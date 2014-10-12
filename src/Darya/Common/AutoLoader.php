@@ -120,7 +120,7 @@ class AutoLoader {
 			}
 			
 			foreach ($nsBasePaths as $nsBasePath) {
-				if ($class == $rns) {
+				if ($class == $ns) {
 					if ($this->attempt($nsBasePath . "$nsPath")) {
 						return true;
 					}
