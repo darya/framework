@@ -105,22 +105,22 @@ class AutoLoader {
 		// Try registered namespace to directory mappings
 		foreach ($this->registeredNamespaces as $rns => $rnsPath) {
 			if ($class == $rns) {
-				if ($this->attempt($this->basePath.$rnsPath)) {
+				if ($this->attempt($this->basePath."/$rnsPath")) {
 					return true;
 				}
 				
-				if ($this->attempt($this->basePath."$rnsPath/$className.php")) {
+				if ($this->attempt($this->basePath."/$rnsPath/$className.php")) {
 					return true;
 				}
 			}
 			
 			if(strpos($class, $rns) === 0){
-				if ($this->attempt($this->basePath."$rnsPath/$dir/$className.php")) {
+				if ($this->attempt($this->basePath."/$rnsPath/$dir/$className.php")) {
 					return true;
 				}
 				
 				$rnsRemain = str_replace('\\', '/', substr($class, strlen($rns)));
-				if ($this->attempt($this->basePath."$rnsPath/$rnsRemain.php")) {
+				if ($this->attempt($this->basePath."/$rnsPath/$rnsRemain.php")) {
 					return true;
 				}
 			}
