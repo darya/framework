@@ -24,7 +24,7 @@ abstract class Controller {
 	public $response;
 	
 	/**
-	 * @var Darya\Routing\Container;
+	 * @var Darya\Service\Container;
 	 */
 	public $services;
 	
@@ -39,7 +39,7 @@ abstract class Controller {
 	 * @param Darya\Core\Models\Request  $request
 	 * @param Darya\Core\Models\Response $response
 	 * @param Darya\Mvc\ViewInterface    $template [optional]
-	 * @param Darya\Container\Container  $services [optional]
+	 * @param Darya\Service\Container  $services [optional]
 	 */
 	public function __construct(Request $request, Response $response, ViewInterface $template = null, Container $services = null) {
 		$this->request = $request;

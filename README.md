@@ -10,7 +10,7 @@ Its components include:
 - MVC foundation
 - Simple abstractions for HTTP requests and responses
 
-The framework is intended as a foundation for the Darya CMS project.
+The framework is has been extracted from and is intended as a foundation for the Darya CMS project.
 
 Inspired by PHP frameworks such as Laravel, Phalcon and Symfony.
 
