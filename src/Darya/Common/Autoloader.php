@@ -17,8 +17,8 @@ class AutoLoader {
 	/**
 	 * Instantiate an autoloader.
 	 * 
-	 * @param string $basePath	  Base directory path to load from
-	 * @param string $namespaces	Namespace to directory mappings to register with the autoloader
+	 * @param string $basePath   Base directory path to load from
+	 * @param string $namespaces Namespace to directory mappings to register with the autoloader
 	 */
 	public function __construct($basePath = null, $namespaces = array()) {
 		$this->setBasePath($basePath);
@@ -64,9 +64,9 @@ class AutoLoader {
 	 * Register namespace to directory mappings to try before the autoloader's 
 	 * default behaviour.
 	 * 
-	 * @param Array $namespaces Namespace keys and directory values
+	 * @param array $namespaces Namespace keys and directory values
 	 */
-	public function registerNamespaces(Array $namespaces = array()) {
+	public function registerNamespaces(array $namespaces = array()) {
 		foreach ($namespaces as $ns => $path) {
 			if (file_exists($this->basePath."/$path") || file_exists($path)) {
 				$this->registeredNamespaces[$ns] = $path; 
@@ -97,7 +97,7 @@ class AutoLoader {
 	 * @return bool
 	 */
 	public function load($class) {
-		// Separate the class and its namespace
+		// Separate the class name and its namespace
 		$parts = explode('\\', $class);
 		$className = array_pop($parts);
 		$dir = implode('/', $parts);
@@ -105,22 +105,22 @@ class AutoLoader {
 		// Try registered namespace to directory mappings
 		foreach ($this->registeredNamespaces as $rns => $rnsPath) {
 			if ($class == $rns) {
-				if ($this->attempt($rnsPath)) {
+				if ($this->attempt($this->basePath.$rnsPath)) {
 					return true;
 				}
 				
-				if ($this->attempt($rnsPath."/$className.php")) {
+				if ($this->attempt($this->basePath."$rnsPath/$className.php")) {
 					return true;
 				}
 			}
 			
 			if(strpos($class, $rns) === 0){
-				if ($this->attempt("$rnsPath/$dir/$className.php")) {
+				if ($this->attempt($this->basePath."$rnsPath/$dir/$className.php")) {
 					return true;
 				}
 				
 				$rnsRemain = str_replace('\\', '/', substr($class, strlen($rns)));
-				if ($this->attempt("$rnsPath/$rnsRemain.php")) {
+				if ($this->attempt($this->basePath."$rnsPath/$rnsRemain.php")) {
 					return true;
 				}
 			}
