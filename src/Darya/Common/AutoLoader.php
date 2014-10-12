@@ -8,11 +8,20 @@ namespace Darya\Common;
  */
 class AutoLoader {
 	
+	/**
+	 * @var array Common subdirectories used as a last resort when autoloading
+	 */
 	private $commonSubdirs = array('Common', 'Classes', 'Controllers', 'Models', 'Tests');
+	
+	/**
+	 * @var array Map of namespaces to paths to use when autoloading 
+	 */
 	private $registeredNamespaces = array();
 	
-	public $basePath;
-	public $debug = false;
+	/**
+	 * @var string Base path to use when autoloading
+	 */
+	private $basePath;
 	
 	/**
 	 * Instantiate an autoloader.
@@ -103,27 +112,33 @@ class AutoLoader {
 		$dir = implode('/', $parts);
 		
 		// Try registered namespace to directory mappings
-		foreach ($this->registeredNamespaces as $rns => $rnsPath) {
-			$rnsBasePath = $this->basePath ? $this->basePath . '/' : null;
+		foreach ($this->registeredNamespaces as $ns => $nsPath) {
+			$nsBasePaths = array('');
 			
-			if ($class == $rns) {
-				if ($this->attempt($rnsBasePath . "$rnsPath")) {
-					return true;
-				}
-				
-				if ($this->attempt($rnsBasePath . "$rnsPath/$className.php")) {
-					return true;
-				}
+			if ($this->basePath) {
+				$nsBasePaths[] = $this->basePath . '/';
 			}
 			
-			if(strpos($class, $rns) === 0){
-				if ($this->attempt($rnsBasePath . "$rnsPath/$dir/$className.php")) {
-					return true;
+			foreach ($nsBasePaths as $nsBasePath) {
+				if ($class == $rns) {
+					if ($this->attempt($nsBasePath . "$nsPath")) {
+						return true;
+					}
+					
+					if ($this->attempt($nsBasePath . "$nsPath/$className.php")) {
+						return true;
+					}
 				}
 				
-				$rnsRemain = str_replace('\\', '/', substr($class, strlen($rns)));
-				if ($this->attempt($rnsBasePath . "$rnsPath/$rnsRemain.php")) {
-					return true;
+				if(strpos($class, $ns) === 0){
+					if ($this->attempt($nsBasePath . "$nsPath/$dir/$className.php")) {
+						return true;
+					}
+					
+					$nsRemain = str_replace('\\', '/', substr($class, strlen($ns)));
+					if ($this->attempt($nsBasePath . "$nsPath/$nsRemain.php")) {
+						return true;
+					}
 				}
 			}
 		}
