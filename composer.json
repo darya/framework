@@ -3,6 +3,7 @@
 	"description": "Darya core framework.",
 	"type": "library",
 	"keywords": ["darya", "framework", "mvc"],
+	"license": "MIT",
 	"authors": [
 		{
 			"name": "Chris Andrew",
