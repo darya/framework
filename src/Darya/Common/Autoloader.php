@@ -104,23 +104,25 @@ class AutoLoader {
 		
 		// Try registered namespace to directory mappings
 		foreach ($this->registeredNamespaces as $rns => $rnsPath) {
+			$rnsBasePath = $this->basePath ? $this->basePath . '/' : null;
+			
 			if ($class == $rns) {
-				if ($this->attempt($this->basePath."/$rnsPath")) {
+				if ($this->attempt($rnsBasePath . "$rnsPath")) {
 					return true;
 				}
 				
-				if ($this->attempt($this->basePath."/$rnsPath/$className.php")) {
+				if ($this->attempt($rnsBasePath . "$rnsPath/$className.php")) {
 					return true;
 				}
 			}
 			
 			if(strpos($class, $rns) === 0){
-				if ($this->attempt($this->basePath."/$rnsPath/$dir/$className.php")) {
+				if ($this->attempt($rnsBasePath . "$rnsPath/$dir/$className.php")) {
 					return true;
 				}
 				
 				$rnsRemain = str_replace('\\', '/', substr($class, strlen($rns)));
-				if ($this->attempt($this->basePath."/$rnsPath/$rnsRemain.php")) {
+				if ($this->attempt($rnsBasePath . "$rnsPath/$rnsRemain.php")) {
 					return true;
 				}
 			}
@@ -148,13 +150,13 @@ class AutoLoader {
 		));
 		
 		foreach($subdirs as $subdir) {
-			$file = $this->basePath."/$dir/$subdir/$className.php";
+			$file = $this->basePath . "/$dir/$subdir/$className.php";
 			if ($this->attempt($file)) {
 				return true;
 			}
 			
 			$subdir_lowercase = strtolower($subdir);
-			$file = $this->basePath."/$dir_lowercase/$subdir_lowercase/$className.php";
+			$file = $this->basePath . "/$dir_lowercase/$subdir_lowercase/$className.php";
 			if ($this->attempt($file)) {
 				return true;
 			}
