@@ -1,10 +1,10 @@
 <?php
 namespace Darya\Mvc;
 
-use Darya\Container\Container;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Mvc\ViewInterface;
+use Darya\Service\Container;
 
 /**
  * Darya's MVC controller.
