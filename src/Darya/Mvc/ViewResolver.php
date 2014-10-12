@@ -45,9 +45,7 @@ class ViewResolver {
 	 * @param string|array [optional] $extensions Template file extensions
 	 */
 	public function __construct($engine, $basePath = null, $extensions = array()) {
-		if (class_exists($engine) && in_array('Darya\Mvc\ViewInterface', class_implements($engine))) {
-			$this->engine = $engine;
-		}
+		$this->setEngine($engine);
 		
 		if ($basePath) {
 			$this->registerBasePaths($basePath);
@@ -55,6 +53,17 @@ class ViewResolver {
 		
 		if ($extensions) {
 			$this->registerExtensions($extensions);
+		}
+	}
+	
+	/**
+	 * Set the engine (ViewInterface implementor) to resolve.
+	 * 
+	 * @param string $engine
+	 */
+	public function setEngine($engine) {
+		if (class_exists($engine) && in_array('Darya\Mvc\ViewInterface', class_implements($engine))) {
+			$this->engine = $engine;
 		}
 	}
 	

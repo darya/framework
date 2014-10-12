@@ -41,7 +41,7 @@ abstract class Controller {
 	 * @param Darya\Mvc\ViewInterface    $template [optional]
 	 * @param Darya\Container\Container  $services [optional]
 	 */
-	public function __construct(Models\Request $request, Models\Response $response, ViewInterface $template = null, Container $services = null) {
+	public function __construct(Request $request, Response $response, ViewInterface $template = null, Container $services = null) {
 		$this->request = $request;
 		$this->response = $response;
 		$this->template = $template;
