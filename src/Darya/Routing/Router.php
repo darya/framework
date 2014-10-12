@@ -3,6 +3,7 @@ namespace Darya\Routing;
 
 use Darya\Common\Tools;
 use Darya\Http\Request;
+use Darya\Http\Response;
 use Darya\Routing\Route;
 
 /**
@@ -12,18 +13,42 @@ use Darya\Routing\Route;
  */
 class Router {
 	
+	/**
+	 * @var array Regex/replacement patterns for converting route definitions into regular expressions 
+	 */
 	protected static $replacements = array(
 		'#/\:params#' => '(?:/(?<params>.*))?',
 		'#/\:([A-Za-z0-9\_\-]+)#' => '(?:/(?<$1>[^/]+))'
 	);
 	
+	/**
+	 * @var string Base URL to ignore when matching routes
+	 */
 	protected $baseUrl = '';
+	
+	/**
+	 * @var array Collection of routes to match
+	 */
 	protected $routes = array();
 	
+	/**
+	 * @var string Default namespace for the router to apply if a matched route doesn't have one
+	 */
 	protected $defaultNamespace = '';
+	
+	/**
+	 * @var string Default controller for the router to apply if a matched route doesn't have one
+	 */
 	protected $defaultController = 'IndexController';
+	
+	/**
+	 * @var string Default action for the router to apply if a matched route doesn't have one
+	 */
 	protected $defaultAction = 'index';
 	
+	/**
+	 * @var callable Callable for handling dispatch errors
+	 */
 	protected $errorHandler;
 	
 	/**
@@ -180,69 +205,11 @@ class Router {
 	 * @param callable $handler
 	 */
 	public function setErrorHandler($handler) {
-	    if (is_callable($handler)) {
-	        $this->errorHandler = $handler;
-	    }
-	}
-	
-	/**
-	
-	/**
-	 * Match a request to a route.
-	 * 
-	 * Accepts an optional callback for filtering matched routes, which is
-	 * useful for determining whether the matched route's parameters result in
-	 * something callable, for example.
-	 * 
-	 * @param Request|string $request A request URI or a Request object to match
-	 * @param Callable $callback [optional] Callback for filtering matched routes
-	 * @return Route The matched route.
-	 */
-	public function match($request, $callback = null) {
-		$request = static::processRequest($request);
-		
-		$url = $request->uri();
-		
-		// Remove base URL
-		$url = substr($url, strlen($this->baseUrl));
-		
-		// Strip query string
-		if (strpos($url, '?') > 0) {
-			$url = strstr($url, '?', true);
+		if (is_callable($handler)) {
+			$this->errorHandler = $handler;
 		}
-		
-		// Find a matching route
-		foreach ($this->routes as $route) {
-			// Clone the route object so as not to modify the instances belonging to the router 
-			$route = clone $route;
-			
-			// Process the route pattern into a regular expression
-			$pattern = static::processPattern($route->pattern);
-			
-			// Test for a match
-			if (preg_match($pattern, $url, $matches)) {
-				$route->addParams(static::processMatches($matches));
-				
-				$route = $this->resolve($route);
-				
-				$matched = true;
-				
-				// Perform the given callback if necessary
-				if ($callback && is_callable($callback)) {
-					$matched = call_user_func($callback, $route);
-				}
-				
-				if ($matched) {
-					$request->router = $this;
-					$request->route = $route;
-					return $route;
-				}
-			}
-		}
-		
-		return false;
 	}
-	
+		
 	/**
 	 * Resolves a matched route's parameters by finding existing controllers and
 	 * actions.
@@ -303,7 +270,63 @@ class Router {
 	}
 	
 	/**
-	 * A simple method for matching a request and dispatching its action.
+	 * Match a request to a route.
+	 * 
+	 * Accepts an optional callback for filtering matched routes, which is
+	 * useful for determining whether the matched route's parameters result in
+	 * something callable, for example.
+	 * 
+	 * @param Request|string $request A request URI or a Request object to match
+	 * @param Callable $callback [optional] Callback for filtering matched routes
+	 * @return Route The matched route.
+	 */
+	public function match($request, $callback = null) {
+		$request = static::processRequest($request);
+		
+		$url = $request->uri();
+		
+		// Remove base URL
+		$url = substr($url, strlen($this->baseUrl));
+		
+		// Strip query string
+		if (strpos($url, '?') > 0) {
+			$url = strstr($url, '?', true);
+		}
+		
+		// Find a matching route
+		foreach ($this->routes as $route) {
+			// Clone the route object so as not to modify the instances belonging to the router 
+			$route = clone $route;
+			
+			// Process the route pattern into a regular expression
+			$pattern = static::processPattern($route->pattern);
+			
+			// Test for a match
+			if (preg_match($pattern, $url, $matches)) {
+				$route->addParams(static::processMatches($matches));
+				
+				$route = $this->resolve($route);
+				
+				$matched = true;
+				
+				// Perform the given callback if necessary
+				if ($callback && is_callable($callback)) {
+					$matched = call_user_func($callback, $route);
+				}
+				
+				if ($matched) {
+					$request->router = $this;
+					$request->route = $route;
+					return $route;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Match a request to a route and dispatch the resolved callable.
 	 * 
 	 * If only a controller is available with the matched route, the router's
 	 * default action will be attempted.
@@ -341,6 +364,22 @@ class Router {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Dispatch a request, resolve a Response object from the result and send
+	 * the response to the client.
+	 * 
+	 * @param Darya\Http\Request $request
+	 */
+	public function respond(Request $request = null) {
+		$response = $this->dispatch($request);
+		
+		if (!$response instanceof Response) {
+			$response = new Response($response);
+		}
+		
+		$response->send();
 	}
 	
 }

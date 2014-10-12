@@ -69,6 +69,7 @@ class Dispatcher {
 	 * Prepare a response object with the given variable.
 	 * 
 	 * @param mixed $response
+	 * @return Darya\Http\Response
 	 */
 	protected function prepareResponse($response) {
 		if (!$response instanceof Response) {

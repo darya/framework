@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Core\Facades;
+namespace Darya\Service\Facades;
 
 use Darya\Service\Facade;
 
