@@ -1,0 +1,19 @@
+{
+	"name": "darya/framework",
+	"description": "Darya core framework.",
+	"type": "library",
+	"keywords": ["darya", "framework", "mvc"],
+	"authors": [
+		{
+			"name": "Chris Andrew",
+			"email": "chris@hexus.io",
+			"homepage": "http://hexus.io",
+			"role": "Developer"
+		}
+	],
+	"autoload": {
+		"psr-0": {
+			"Darya": "src/"
+		}
+	}
+}
