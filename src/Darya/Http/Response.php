@@ -34,17 +34,17 @@ class Response {
 	private $content = null;
 	
 	/**
-	 * @var bool Whether the Response headers have been sent
+	 * @var bool Whether the response headers have been sent
 	 */
 	private $headersSent = false;
 	
 	/**
-	 * @var bool Whether the Response content has been sent
+	 * @var bool Whether the response content has been sent
 	 */
 	private $contentSent = false;
 	
 	/**
-	 * @var bool Whether the Response has been redirected
+	 * @var bool Whether the response has been redirected
 	 */
 	private $redirected = false;
 	
@@ -59,7 +59,7 @@ class Response {
 	}
 	
 	/**
-	 * Get the HTTP status code of the Response
+	 * Get the HTTP status code of the response.
 	 * 
 	 * @return int
 	 */
@@ -68,7 +68,7 @@ class Response {
 	}
 	
 	/**
-	 * Set the HTTP status code of the Response
+	 * Set the HTTP status code of the response.
 	 * 
 	 * @param int $status
 	 */
@@ -77,7 +77,7 @@ class Response {
 	}
 	
 	/**
-	 * Add a header to send with the Response
+	 * Add a header to send with the response.
 	 * 
 	 * @param string $header
 	 */
@@ -86,7 +86,7 @@ class Response {
 	}
 	
 	/**
-	 * Add headers to send with the Response
+	 * Add headers to send with the response.
 	 * 
 	 * @param array $headers
 	 */
@@ -97,7 +97,7 @@ class Response {
 	}
 	
 	/**
-	 * Set a cookie to send with the Response
+	 * Set a cookie to send with the response.
 	 * 
 	 * @param string $key
 	 * @param string $value
@@ -108,7 +108,7 @@ class Response {
 	}
 	
 	/**
-	 * Get the value of a cookie that's been added to the Response
+	 * Get the value of a cookie that's been added to the response.
 	 * 
 	 * @param string $key
 	 * @return string
@@ -118,7 +118,7 @@ class Response {
 	}
 	
 	/**
-	 * Add a cookie to be deleted with the Response
+	 * Add a cookie to be deleted with the response.
 	 * 
 	 * @param string $key
 	 */
@@ -140,7 +140,7 @@ class Response {
 	}
 	
 	/**
-	 * Append to the Response content
+	 * Append to the response content.
 	 * 
 	 * @param string $content
 	 */
@@ -149,7 +149,7 @@ class Response {
 	}
 	
 	/**
-	 * Set the Response content
+	 * Set the response content.
 	 * 
 	 * @param string $content
 	 */
@@ -158,7 +158,7 @@ class Response {
 	}
 	
 	/**
-	 * Determines whether any Response content has been set
+	 * Determines whether any response content has been set.
 	 * 
 	 * @return bool
 	 */
@@ -167,7 +167,7 @@ class Response {
 	}
 	
 	/**
-	 * Retrieve the current Response content
+	 * Retrieve the current response content.
 	 * 
 	 * @return string
 	 */
@@ -176,19 +176,19 @@ class Response {
 	}
 	
 	/**
-	 * Redirect the Response to another URL
+	 * Redirect the response to another location.
+	 * 
+	 * This redirect will only happen when the response headers have been sent.
 	 * 
 	 * @param string $url
 	 */
 	public function redirect($url) {
 		$this->addHeader("Location: $url");
-		$this->setContent('');
-		$this->send();
 		$this->redirected = true;
 	}
 	
 	/**
-	 * Determines whether the Response has been redirected or not
+	 * Determines whether the response has been redirected or not.
 	 * 
 	 * @return bool
 	 */
@@ -197,8 +197,8 @@ class Response {
 	}
 	
 	/**
-	 * Send Response headers to the client, provided that they have not yet been
-	 * sent. Also sends cookies.
+	 * Send the response headers to the client, provided that they have not yet 
+	 * been sent. This sends cookies.
 	 * 
 	 * Optionally adds the given headers to the response before sending.
 	 * 
@@ -212,7 +212,7 @@ class Response {
 				header(':', true, $this->status);
 			}
 			
-			foreach ($this->cookies as $cookieKey => $cookieValues) {
+			foreach ($this->cookies as $cookieKey => $cookieValues) {				
 				setcookie($cookieKey, $cookieValues['value'], $cookieValues['expire'], $cookieValues['path'] ?: '/');
 			}
 			
@@ -227,15 +227,17 @@ class Response {
 	}
 	
 	/**
-	 * Send Response content to the client, provided that Response headers have 
-	 * not yet been sent.
+	 * Send the response content to the client.
+	 * 
+	 * This will only succeed provided that response headers have been sent,
+	 * content has not yet been sent, and the response has not been redirected.
 	 * 
 	 * Optionally sets the given response content before sending.
 	 * 
 	 * @param string $content
 	 */
 	public function sendContent($content = null) {
-		if (!$this->contentSent) {
+		if ($this->headersSent && !$this->contentSent && !$this->redirected) {
 			if (!is_null($content)) {
 				$this->setContent($content);
 			}
@@ -247,7 +249,10 @@ class Response {
 	}
 	
 	/**
-	 * Sends the Response to the client
+	 * Sends the response to the client.
+	 * 
+	 * If the response has been redirected, only headers will be sent, not
+	 * content.
 	 * 
 	 * @param string $content [optional] Response content to send
 	 * @param array  $headers [optional] Response headers to send
@@ -255,7 +260,9 @@ class Response {
 	public function send($content = null, $headers = array()) {
 		$this->sendHeaders($headers);
 		
-		$this->sendContent($content);
+		if (!$this->redirected) {
+			$this->sendContent($content);
+		}
 	}
 	
 }

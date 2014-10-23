@@ -85,12 +85,13 @@ class Dispatcher {
 	 * matched controller.
 	 * 
 	 * @param Darya\Http\Request|string $request
+	 * @param Darya\Http\Response [optional]
 	 */
-	public function dispatch($request) {
+	public function dispatch($request, Response $response = null) {
 		$route = $this->router->match($request, array($this, 'dispatchable'));
 		
 		if ($route) {
-			$controller = is_object($route->controller) ? $route->controller : new $route->controller($request, new Response);
+			$controller = is_object($route->controller) ? $route->controller : new $route->controller($request, $response ?: new Response);
 			
 			if ($this->services) {
 				$controller->setServiceContainer($this->services);
