@@ -80,12 +80,13 @@ class Dispatcher {
 	}
 
 	/**
-	 * Respond to the given request by matching it to a route and invoking
-	 * said route's controller action, as well as before and after hooks of the
+	 * Dispatch the given request by matching it to a route and invoking said 
+	 * route's controller action, as well as before and after hooks of the
 	 * matched controller.
 	 * 
 	 * @param Darya\Http\Request|string $request
-	 * @param Darya\Http\Response [optional]
+	 * @param Darya\Http\Response $response [optional]
+	 * @return Darya\Http\Response
 	 */
 	public function dispatch($request, Response $response = null) {
 		$route = $this->router->match($request, array($this, 'dispatchable'));
@@ -124,6 +125,19 @@ class Dispatcher {
 		}
 		
 		$response->addHeader('X-Location: ' . $this->router->getBaseUrl() . $request->server('PATH_INFO'));
+		return $response;
+	}
+	
+	/**
+	 * Respond to the given request by dispatching it and sending the resulting
+	 * response.
+	 * 
+	 * @param Darya\Http\Request|string $request
+	 * @param Darya\Http\Response $response [optional]
+	 */
+	public function respond($request, Response $response = null) {
+		$response = $this->dispatch($request, $response);
 		$response->send();
 	}
+	
 }
