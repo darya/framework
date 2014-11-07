@@ -77,8 +77,8 @@ RewriteRule .* index.php [L,QSA]
 
 #### Routing to functions
 
-You can define routes when instantiating a router, where URL paths to match are 
-keys and callables are values.
+You can define routes when instantiating a router, where URL paths are keys and
+callables are values.
 
 Here is an example of routing to anonymous functions.
 
@@ -92,11 +92,8 @@ $router = new Router(array(
 	'/about' => function() {
 		return new Response('About this app!');
 	},
-	'/:page/:subpage' => function($page, $subpage) {
-		// Render some awesome $subpage of $page
-	},
-	'/:page' => function($page) {
-		// Render some awesome $page
+	'/:message' => function($message) {
+		return "Message: $message";
 	},
 	'/' => function(){
 		return 'Hello world!';
@@ -114,16 +111,13 @@ $router->setErrorHandler(function(){
 $router->respond(Request::createFromGlobals());
 ```
 
-When using the router's `respond` method, returning `Response` objects is 
+When using the router's `respond` method, returning a `Response` object is 
 optional.
 
 You can also define your own `Request` objects or just pass a URL as a string.
 
 ```php
-$router->respond(new Request('/about', 'post'));
-
+$router->respond(new Request('/about'));
 $router->respond($_SERVER['REQUEST_URI']);
+$router->respond('/about');
 ```
-
-#### Routing to class methods
-
