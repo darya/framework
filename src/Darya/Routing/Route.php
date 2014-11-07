@@ -94,7 +94,10 @@ class Route {
 	/**
 	 * Set default parameters using the given $params array.
 	 * 
-	 * @param array $params
+	 * If a callable is given it is set as the route's action parameter. If a
+	 * string or object is given it is set as the route's controller parameter.
+	 * 
+	 * @param mixed $params
 	 */
 	public function setDefaults($params = array()) {
 		if (is_array($params)) {
@@ -103,7 +106,7 @@ class Route {
 			}
 		} else if(is_callable($params)) {
 			$this->action = $params;
-		} else if(is_string($params)) {
+		} else if(is_string($params) || is_object($params)) {
 			$this->controller = $params;
 		}
 	}

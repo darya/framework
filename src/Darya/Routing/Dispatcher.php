@@ -93,7 +93,7 @@ class Dispatcher {
 		if ($route) {
 			$controller = is_object($route->controller) ? $route->controller : new $route->controller($request, $response ?: new Response);
 			
-			if ($this->services) {
+			if ($this->services && method_exists($controller, 'setServiceContainer')) {
 				$controller->setServiceContainer($this->services);
 				
 				if (!$controller->template && $this->services->view) {
