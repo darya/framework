@@ -188,7 +188,6 @@ require_once "vendor/darya/framework/autoloader.php";
 
 use Darya\Http\Request;
 use Darya\Http\Response;
-use Darya\Http\Session;
 use Darya\Mvc\Controller;
 use Darya\Routing\Dispatcher;
 use Darya\Routing\Router;
