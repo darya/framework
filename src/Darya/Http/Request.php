@@ -52,7 +52,7 @@ class Request {
 			'cookie' => $_COOKIE,
 			'file'   => $_FILES,
 			'server' => $_SERVER,
-			'header' => getallheaders()
+			'header' => function_exists('getallheaders') ? getallheaders() : array()
 		));
 		
 		return $request;

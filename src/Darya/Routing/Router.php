@@ -24,7 +24,7 @@ class Router {
 	/**
 	 * @var string Base URL to ignore when matching routes
 	 */
-	protected $baseUrl = '/';
+	protected $baseUrl = '';
 	
 	/**
 	 * @var array Collection of routes to match
