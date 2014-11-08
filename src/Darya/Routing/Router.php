@@ -78,9 +78,9 @@ class Router {
 		foreach ($matches as $key => $value) {
 			if (!is_numeric($key)) {
 				if ($key == 'params') {
-					$paramParams = explode('/', $value);
-					foreach ($paramParams as $paramParam) {
-						$params[] = $paramParam;
+					$pathParams = explode('/', $value);
+					foreach ($pathParams as $pathParam) {
+						$params[] = $pathParam;
 					}
 				} else {
 					$params[$key] = $value;
@@ -137,10 +137,12 @@ class Router {
 	 * Initialise router with given array of routes where keys are patterns and 
 	 * values are either default controllers or a set of default values
 	 * 
-	 * @param array $routes Array of routes to match
+	 * @param array $routes   Array of routes to match
+	 * @param array $defaults Array of default router properties
 	 */
-	public function __construct(array $routes = array()) {
+	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
+		$this->setDefaults($defaults);
 	}
 	
 	/**
