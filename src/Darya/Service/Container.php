@@ -82,6 +82,9 @@ class Container {
 	 * @return mixed
 	 */
 	public function resolve($id) {
+		if (!isset($this->services[$id]))
+			return null;
+		
 		$service = $this->services[$id];
 		
 		if ($service instanceof Closure || is_callable($service)) {

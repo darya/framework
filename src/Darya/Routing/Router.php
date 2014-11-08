@@ -224,6 +224,8 @@ class Router {
 		// Store the namespace
 		if (!empty($route->params['namespace'])) {
 			$route->namespace = $route->params['namespace'];
+		} else if (!$route->namespace) {
+			$route->namespace = $this->defaultNamespace;
 		}
 		
 		// Match an existing controller

@@ -40,9 +40,10 @@ class Request {
 	/**
 	 * Create a new Request using PHP's super globals.
 	 * 
+	 * @param Darya\Http\SessionInterface $session [optional]
 	 * @return Darya\Http\Request
 	 */
-	public static function createFromGlobals() {
+	public static function createFromGlobals(SessionInterface $session = null) {
 		$uri = $_SERVER['REQUEST_URI'];
 		$method = strtolower($_SERVER['REQUEST_METHOD']);
 		
@@ -54,6 +55,10 @@ class Request {
 			'server' => $_SERVER,
 			'header' => function_exists('getallheaders') ? getallheaders() : array()
 		));
+		
+		if ($session) {
+			$request->setSession($session);
+		}
 		
 		return $request;
 	}
