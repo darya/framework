@@ -113,8 +113,19 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve a parameter from either the 'post' or 'get' data of the Request,
-	 * with 'post' being checked first.
+	 * Determine whether a given parameter is set in the request's post or get
+	 * data.
+	 * 
+	 * @param string $key
+	 * @return bool
+	 */
+	public function has($key) {
+		return isset($this->data['get'][$key]) || isset($this->data['post'][$key]);
+	}
+	
+	/**
+	 * Retrieve a parameter from either the post or get data of the request,
+	 * checking post data if the request method is post.
 	 * 
 	 * @param string $key
 	 * @return mixed
