@@ -95,7 +95,7 @@ class Request {
 		if ($type) {
 			$type = strtolower($type);
 			if ($key) {
-				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : false;
+				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : null;
 			} else {
 				return $this->data[$type];
 			}
@@ -160,9 +160,10 @@ class Request {
 	 * @return bool
 	 */
 	public function ajax() {
-		return isset($this->data['get']['ajax']) 
-		|| isset($this->data['post']['ajax']) 
-		|| $this->header('X-Requested-With') == 'XMLHttpRequest';
+		return isset($this->data['get']['ajax'])
+		|| isset($this->data['post']['ajax'])
+		|| strtolower($this->server('HTTP_X_REQUESTED_WITH')) == 'xmlhttprequest'
+		|| strtolower($this->header('X-Requested-With')) == 'xmlhttprequest';
 	}
 	
 	/**

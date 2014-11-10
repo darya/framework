@@ -132,6 +132,8 @@ class Response {
 	public function prepareContent($content) {
 		if (is_object($content) && method_exists($content, '__toString')) {
 			$content = $content->__toString();
+		} else if (is_array($content)) {
+			$content = json_encode($content, JSON_FORCE_OBJECT & JSON_PRETTY_PRINT);
 		} else {
 			$content = (string) $content;
 		}
@@ -151,7 +153,7 @@ class Response {
 	/**
 	 * Set the response content.
 	 * 
-	 * @param string $content
+	 * @param string|array $content
 	 */
 	public function setContent($content) {
 		$this->content = $this->prepareContent($content);
