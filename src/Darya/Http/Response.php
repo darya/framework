@@ -162,7 +162,7 @@ class Response {
 	 * @param mixed $content
 	 */
 	public function setContent($content) {
-		if (!is_array($content)) {
+		if (is_array($content)) {
 			$this->addHeader('Content-Type: text/json');
 		}
 		
