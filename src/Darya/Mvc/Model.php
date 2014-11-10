@@ -2,6 +2,10 @@
 namespace Darya\Mvc;
 
 use ArrayAccess;
+use ArrayIterator;
+use Countable;
+use IteratorAggregate;
+use Serializable;
 use Darya\Common\Tools;
 
 /**
@@ -9,7 +13,7 @@ use Darya\Common\Tools;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Model implements ArrayAccess {
+abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Serializable {
 	
 	/**
 	 * @var array Model data
@@ -161,6 +165,34 @@ abstract class Model implements ArrayAccess {
 	}
 	
 	/**
+	 * @return int
+	 */
+	public function count() {
+		return count($this->data);
+	}
+	
+	/**
+	 * @return Traversable
+	 */
+	public function getIterator() {
+		return new ArrayIterator($this->data);
+	}
+	
+	/**
+	 * @return string
+	 */
+	public function serialize() {
+		return serialize($this->data);
+	}
+	
+	/**
+	 * @param string $serialized
+	 */
+	public function unserialize($serialized) {
+		$this->data = unserialize($data);
+	}
+	
+	/**
 	 * Get a property from the model
 	 * 
 	 * @param  string $property
@@ -305,4 +337,48 @@ abstract class Model implements ArrayAccess {
 		return $this->errors;
 	}
 	
+	/**
+	 * Recursively convert an object to an array. If no $object is given, the
+	 * model is assumed as the object.
+	 * 
+	 * @param mixed $object
+	 * @return array
+	 */
+	public function toArray($object = null) {
+		$object = $object ?: $this->data;
+		
+		if (is_object($object)) {
+			if (method_exists($object, 'toArray')) {
+				$object = $object->toArray();
+			} else {
+				$object = (array) $object;
+			}
+		}
+		
+		if (is_array($object)) {
+			foreach ($object as $key => $value) {
+				$object[$key] = $value ? $this->toArray($value) : $value;
+			}
+		}
+		
+		return $object;
+	}
+	
+	/**
+	 * Serialize the model as a JSON string.
+	 * 
+	 * @return string
+	 */
+	public function toJson() {
+		return json_encode($this->jsonSerialize());
+	}
+	
+	/**
+	 * Prepare the model's properties for JSON serialization.
+	 * 
+	 * @return array
+	 */
+	public function jsonSerialize() {
+		return $this->toArray();
+	}
 }

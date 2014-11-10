@@ -244,4 +244,5 @@ class Tools {
 			$bytes / pow(1024, ($i = floor(log($bytes, 1024)))), $precision
 		) . ' ' . @$unit[$i];
 	}
+	
 }

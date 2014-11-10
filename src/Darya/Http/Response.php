@@ -129,11 +129,17 @@ class Response {
 		}
 	}
 	
+	/**
+	 * Prepare the given response content as a string. Encodes arrays as JSON.
+	 * 
+	 * @param mixed $content
+	 * @return string
+	 */
 	public function prepareContent($content) {
 		if (is_object($content) && method_exists($content, '__toString')) {
 			$content = $content->__toString();
 		} else if (is_array($content)) {
-			$content = json_encode($content, JSON_FORCE_OBJECT & JSON_PRETTY_PRINT);
+			$content = json_encode($content, JSON_FORCE_OBJECT);
 		} else {
 			$content = (string) $content;
 		}
@@ -144,7 +150,7 @@ class Response {
 	/**
 	 * Append to the response content.
 	 * 
-	 * @param string $content
+	 * @param mixed $content
 	 */
 	public function addContent($content) {
 		$this->content .= $this->prepareContent($content);
@@ -153,9 +159,13 @@ class Response {
 	/**
 	 * Set the response content.
 	 * 
-	 * @param string|array $content
+	 * @param mixed $content
 	 */
 	public function setContent($content) {
+		if (!is_array($content)) {
+			$this->addHeader('Content-Type: text/json');
+		}
+		
 		$this->content = $this->prepareContent($content);
 	}
 	
@@ -221,7 +231,7 @@ class Response {
 			$this->addHeaders($headers);
 			
 			foreach ($this->headers as $header) {
-				header($header);
+				header($header, true);
 			}
 			
 			$this->headersSent = true;
