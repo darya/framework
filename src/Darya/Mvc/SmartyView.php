@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Core;
+namespace Darya\Mvc;
 
 use Darya\Mvc\View;
 use Smarty;
