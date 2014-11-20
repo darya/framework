@@ -104,7 +104,7 @@ abstract class View implements ViewInterface {
 	/**
 	 * Sets a ViewResolver for all views.
 	 * 
-	 * @param Darya\Core\ViewResolver $resolver
+	 * @param Darya\Mvc\ViewResolver $resolver
 	 */
 	public static function setSharedResolver(ViewResolver $resolver) {
 	    static::$sharedResolver = $resolver;
@@ -113,7 +113,7 @@ abstract class View implements ViewInterface {
 	/**
 	 * Sets a ViewResolver for this view.
 	 * 
-	 * @param Darya\Core\ViewResolver $resolver
+	 * @param Darya\Mvc\ViewResolver $resolver
 	 */
 	public function setResolver(ViewResolver $resolver) {
 	    $this->resolver = $resolver;

@@ -121,8 +121,8 @@ class Router {
 	/**
 	 * Instantiates a new Request if the given argument is a string.
 	 *
-	 * @param Darya\Core\Models\Request|string $request
-	 * @return Darya\Core\Models\Request
+	 * @param Darya\Http\Request|string $request
+	 * @return Darya\Http\Request
 	 */
 	public static function processRequest($request) {
 		if (!($request instanceof Request) && is_string($request)) {

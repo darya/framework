@@ -36,8 +36,8 @@ abstract class Controller {
 	/**
 	 * Instantiate a controller.
 	 * 
-	 * @param Darya\Core\Models\Request  $request
-	 * @param Darya\Core\Models\Response $response
+	 * @param Darya\Http\Request  $request
+	 * @param Darya\Http\Response $response
 	 * @param Darya\Mvc\ViewInterface    $template [optional]
 	 * @param Darya\Service\Container  $services [optional]
 	 */
