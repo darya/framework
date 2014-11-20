@@ -3,6 +3,7 @@ namespace Darya\Database;
 
 use Darya\Common\Tools;
 use Darya\Database\DatabaseInterface;
+use Darya\Mvc\Model;
 
 /**
  * Darya's active record implementation for models.
