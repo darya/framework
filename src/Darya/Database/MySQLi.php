@@ -27,7 +27,7 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 	public function connect($host, $user, $pass, $name, $port = null) {
 		$this->connection = new php_mysqli($host, $user, $pass, $name, $port);
 		
-		if (DEBUG && $this->connection->connect_errno) {
+		if ($this->connection->connect_errno) {
 			echo "MySQLi connection failed: (" . $this->connection->connect_errno . ") " . $this->connection->connect_error;
 			return false;
 		}
@@ -44,9 +44,7 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 		$result = $this->connection->query($sql);
 		
 		if ($error = $this->error()) {
-			if (DEBUG) {
-				echo $error['error'].'<br/>SQL: '.$sql;
-			}
+			echo $error['error'].'<br/>SQL: ' . $sql;
 			
 			return array();
 		}
