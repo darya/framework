@@ -325,7 +325,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return bool
 	 */
 	public function validate() {
-		return $this->valid = count($this->errors);
+		return $this->valid = !count($this->errors);
 	}
 	
 	/**
