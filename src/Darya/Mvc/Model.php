@@ -189,7 +189,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param string $serialized
 	 */
 	public function unserialize($serialized) {
-		$this->data = unserialize($data);
+		$this->data = unserialize($serialized);
 	}
 	
 	/**
