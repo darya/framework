@@ -9,18 +9,8 @@ use Darya\Service\ContainerException;
 /**
  * Darya's service container.
  * 
- * A service container can be used to associate interfaces with implementations;
- * the abstract with the concrete.
- * 
- * This makes it easier to interchange the components of an application without
- * modifying its source.
- * 
- * The alias feature of the container exists to map a given string to an
- * interface registered with the container.
- * 
- * If a given concrete implementation is callable, it will be called when
- * resolved from the container, and the container will also attempt to resolve
- * any of the callable's type-hinted arguments.
+ * Service containers can be used to associate interfaces with implementations.
+ * They make it painless to interchange the components of an application.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -32,7 +22,7 @@ class Container {
 	protected static $instance;
 	
 	/**
-	 * @var array Set of interfaces as keys and concrete implementations as values
+	 * @var array Set of interfaces as keys and implementations as values
 	 */
 	protected $services = array();
 	
@@ -47,7 +37,11 @@ class Container {
 	 * @return Darya\Service\Container
 	 */
 	public static function instance() {
-		return is_null(static::$instance) ? static::$instance = new static : static::$instance;
+		if (is_null($static::$instance)) {
+			static::$instance = new static;
+		}
+		
+		return static::$instance;
 	}
 	
 	/**
@@ -98,6 +92,8 @@ class Container {
 	/**
 	 * Get the service associated with the given interface or alias.
 	 * 
+	 * This method does not resolve dependencies using registered services.
+	 * 
 	 * Returns null if not found.
 	 * 
 	 * @return mixed
@@ -109,84 +105,53 @@ class Container {
 	}
 	
 	/**
-	 * Associate a service with the given interface.
+	 * Register an interface and its associated implementation.
 	 * 
-	 * @param string $key
+	 * @param string $abstract
 	 * @param mixed  $concrete
 	 */
-	public function set($key, $concrete) {
-		$this->services[$interface] = $service;
+	public function set($abstract, $concrete) {
+		$this->services[$abstract] = $concrete;
+	}
+	
+	/**
+	 * Register an alias for the given interface.
+	 * 
+	 * @param string $alias
+	 * @param string $abstract
+	 */
+	public function alias($alias, $abstract) {
+		$this->aliases[$alias] = $abstract;
 	}
 	
 	/**
 	 * Register interfaces and their concrete implementations, or aliases and
 	 * their corresponding interfaces.
 	 * 
-	 * @param array|string $key   Interface or alias, or set of interfaces => concretes, or set of aliases => interfaces
-	 * @param mixed        $value [optional] Implementation of the given interface, or interface to associate with the given alias
+	 * This method only registers aliases if their interface is already
+	 * registered with the container. Use Container::alias to explicitly
+	 * register an alias.
+	 * 
+	 * @param array $services interfaces => concretes or aliases => interfaces
 	 */
-	public function register($key, $value = null) {
-		if (is_array($key)) {
-			$set = $key;
-			
-			foreach ($set as $key => $value) {
-				$this->register($key, $value);
-			}
-		} else {
+	public function register(array $services) {
+		foreach ($services as $key => $value) {
 			if (is_string($value) && isset($this->services[$value])) {
-				$this->registerAlias($key, $value);
+				$this->alias($key, $value);
 			} else {
-				$this->registerService($key, $value);
+				$this->set($key, $value);
 			}
-		}
-	}
-	
-	/**
-	 * Register an interface and its associated implementation, or an array of
-	 * interfaces as keys and their corresponding implementations as values.
-	 * 
-	 * @param array|string $interface Interface or set of interfaces and implementations
-	 * @param mixed        $concrete  [optional] Implementation to associate with the given interface
-	 */
-	public function registerService($interface, $concrete = null) {
-		if (is_array($interface)) {
-			$services = $interface;
-			
-			foreach ($services as $interface => $concrete) {
-				$this->registerService($interface, $concrete);
-			}
-		} else {
-			$this->services[$interface] = $concrete;
-		}
-	}
-	
-	/**
-	 * Register an alias for the given interface, or an array of aliases as
-	 * keys and interfaces as values.
-	 * 
-	 * @param array|string $alias     Service alias or set of aliases and interfaces
-	 * @param mixed        $interface [optional] Interface to associate with the given alias
-	 */
-	public function registerAlias($alias, $interface = null) {
-		if (is_array($alias)) {
-			$aliases = $alias;
-			
-			foreach ($aliases as $alias => $interface) {
-				$this->registerAlias($alias, $interface);
-			}
-		} else {
-			$this->aliases[$alias] = $interface;
 		}
 	}
 
 	/**
 	 * Resolve a service by interface or alias.
 	 * 
-	 * @param string $service   Interface name or alias
-	 * @param array  $arguments [optional] Arguments to pass to closures or class constructors
+	 * @param string $abstract  Interface or alias
+	 * @param array  $arguments [optional]
 	 * @return mixed
 	 */
-	public function resolve($interface, array $arguments = array()) {
+	public function resolve($abstract, array $arguments = array()) {
 		$concrete = $this->get($interface);
 		
 		if ($concrete instanceof Closure || is_callable($concrete)) {
@@ -209,7 +174,6 @@ class Container {
 		$reflection = new ReflectionFunction($callable);
 		
 		$parameters = $reflection->getParameters();
-		
 		$arguments = array_merge($this->resolveParameters($parameters), $arguments);
 		
 		return $reflection->invokeArgs($arguments);
@@ -224,7 +188,6 @@ class Container {
 	 */
 	public function create($class, array $arguments = array()) {
 		$reflection = new ReflectionClass($class);
-		
 		$constructor = $reflection->getConstructor();
 		
 		if (!$constructor) {
@@ -232,7 +195,6 @@ class Container {
 		}
 		
 		$parameters = $constructor->getParameters();
-		
 		$arguments = array_merge($this->resolveParameters($parameters), $arguments);
 		
 		return $reflection->newInstanceArgs($arguments);
@@ -249,7 +211,6 @@ class Container {
 		
 		foreach ($parameters as $parameter) {
 			$argument = $this->resolveParameter($parameter);
-			
 			$arguments[$parameter->name] = $argument;
 		}
 		
