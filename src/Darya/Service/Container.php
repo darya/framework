@@ -152,7 +152,7 @@ class Container {
 	 * @return mixed
 	 */
 	public function resolve($abstract, array $arguments = array()) {
-		$concrete = $this->get($interface);
+		$concrete = $this->get($abstract);
 		
 		if ($concrete instanceof Closure || is_callable($concrete)) {
 			return $this->call($concrete, $arguments);
