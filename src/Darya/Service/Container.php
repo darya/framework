@@ -225,7 +225,13 @@ class Container {
 	public function create($class, array $arguments = array()) {
 		$reflection = new ReflectionClass($class);
 		
-		$parameters = $reflection->getConstructor()->getParameters();
+		$constructor = $reflection->getConstructor();
+		
+		if (!$constructor) {
+			return $reflection->newInstance();
+		}
+		
+		$parameters = $constructor->getParameters();
 		
 		$arguments = array_merge($this->resolveParameters($parameters), $arguments);
 		
