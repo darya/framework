@@ -263,19 +263,21 @@ class Container {
 			
 		}
 		
-		if ($type && isset($this->services[$type])) {
-			return $this->resolve($type);
-		}
-		
-		if ($type && class_exists($type)) {
-			return $this->create($type);
+		if ($type) {
+			if (isset($this->services[$type])) {
+				return $this->resolve($type);
+			}
+			
+			if (class_exists($type)) {
+				return $this->create($type);
+			}
 		}
 		
 		if ($parameter->isDefaultValueAvailable()) {
 			return $parameter->getDefaultValue();
 		}
 		
-		if ($parameter->isOptional() || $parameter->allowsNull()) {
+		if ($parameter->allowsNull()) {
 			return null;
 		}
 		
