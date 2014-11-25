@@ -6,7 +6,7 @@ namespace Darya\Common;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class AutoLoader {
+class Autoloader {
 	
 	/**
 	 * @var array Common subdirectories used as a last resort when autoloading
@@ -14,7 +14,7 @@ class AutoLoader {
 	private $commonSubdirs = array('Common', 'Classes', 'Controllers', 'Models', 'Tests');
 	
 	/**
-	 * @var array Map of namespaces to paths to use when autoloading 
+	 * @var array Map of namespaces to paths to use when autoloading
 	 */
 	private $registeredNamespaces = array();
 	
