@@ -206,7 +206,7 @@ class Container {
 	 * @param array    $arguments [optional]
 	 */
 	public function call($callable, array $arguments = array()) {
-		$reflection = new ReflectionFunction($concrete);
+		$reflection = new ReflectionFunction($callable);
 		
 		$parameters = $reflection->getParameters();
 		
