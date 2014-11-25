@@ -133,7 +133,7 @@ class Container {
 				$this->register($key, $value);
 			}
 		} else {
-			if (is_string($value) && isset($this->interfaces[$value])) {
+			if (is_string($value) && isset($this->services[$value])) {
 				$this->registerAlias($key, $value);
 			} else {
 				$this->registerService($key, $value);
