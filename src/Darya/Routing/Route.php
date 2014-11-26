@@ -11,7 +11,7 @@ class Route {
 	/**
 	 * @var array Reserved route parameter names
 	 */
-	protected $reserved = array('namespace', 'controller', 'action');
+	protected $reserved = array('namespace', 'controller', 'action', 'params');
 	
 	/**
 	 * @var string Pattern for matching the route e.g. "/:controller/:action/:params"
@@ -34,9 +34,9 @@ class Route {
 	public $action;
 	
 	/**
-	 * @var array Default or matched params
+	 * @var array Default or matched parameters
 	 */
-	public $params = array(),
+	public $parameters = array(),
 	
 	/**
 	 * @var Darya\Routing\Router The router that matched this route
@@ -61,7 +61,7 @@ class Route {
 	 * @return bool
 	 */
 	public function __isset($property) {
-		return isset($this->$property) || isset($this->params[$property]);
+		return isset($this->$property) || isset($this->parameters[$property]);
 	}
 	
 	/**
@@ -75,7 +75,7 @@ class Route {
 		if (property_exists($this, $property)) {
 			$this->$property = $value;
 		} else {
-			$this->params[$property] = $value;
+			$this->parameters[$property] = $value;
 		}
 	}
 	
@@ -86,40 +86,40 @@ class Route {
 	 * @return mixed
 	 */
 	public function __get($property) {
-		if (isset($this->params[$property])) {
-			return $this->params[$property];
+		if (isset($this->parameters[$property])) {
+			return $this->parameters[$property];
 		}
 	}
 
 	/**
-	 * Set default parameters using the given $params array.
+	 * Set default parameters using the given $parameters array.
 	 * 
 	 * If a callable is given it is set as the route's action parameter. If a
 	 * string or object is given it is set as the route's controller parameter.
 	 * 
-	 * @param mixed $params
+	 * @param mixed $parameters
 	 */
-	public function setDefaults($params = array()) {
-		if (is_array($params)) {
-			foreach ($params as $key => $value) {
-				$this->params[$key] = $value;
+	public function setDefaults($parameters = array()) {
+		if (is_array($parameters)) {
+			foreach ($parameters as $key => $value) {
+				$this->parameters[$key] = $value;
 			}
-		} else if(is_callable($params)) {
-			$this->action = $params;
-		} else if(is_string($params) || is_object($params)) {
-			$this->controller = $params;
+		} else if(is_callable($parameters)) {
+			$this->action = $parameters;
+		} else if(is_string($parameters) || is_object($parameters)) {
+			$this->controller = $parameters;
 		}
 	}
 	
 	/**
-	 * Set parameters using the given $params array.
+	 * Set parameters using the given $parameters array.
 	 * 
-	 * @param array $params
+	 * @param array $parameters
 	 */
-	public function addParams($params = array()) {
-		if (is_array($params)) {
-			foreach ($params as $key => $value) {
-				$this->params[$key] = $value;
+	public function addparameters($parameters = array()) {
+		if (is_array($parameters)) {
+			foreach ($parameters as $key => $value) {
+				$this->parameters[$key] = $value;
 			}
 		}
 	}
@@ -128,15 +128,15 @@ class Route {
 	 * Get the currently set parameters excluding those reserved for 
 	 * dispatching, unless specified by $withReserved.
 	 * 
-	 * @param bool $withReserved Whether to include reserved params
+	 * @param bool $withReserved Whether to include reserved parameters
 	 * @return array
 	 */
-	public function getParams($withReserved = false) {
+	public function getparameters($withReserved = false) {
 		if ($withReserved) {
-			return $this->params;
+			return $this->parameters;
 		}
 		
-		return array_diff_key($this->params, array_flip($this->reserved));
+		return array_diff_key($this->parameters, array_flip($this->reserved));
 	}
 	
 }

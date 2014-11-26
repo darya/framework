@@ -7,14 +7,14 @@ use Darya\Http\Response;
 use Darya\Routing\Route;
 
 /**
- * Darya's router.
+ * Darya's request router.
  * 
  * @author Chris Andrew <chris.andrew>
  */
 class Router {
 	
 	/**
-	 * @var array Regex/replacement patterns for converting route definitions into regular expressions 
+	 * @var array Regular expressions for converting route definitions into regular expressions that match said route
 	 */
 	protected static $replacements = array(
 		'#/\:params#' => '(?:/(?<params>.*))?',
@@ -34,17 +34,17 @@ class Router {
 	/**
 	 * @var string Default namespace for the router to apply if a matched route doesn't have one
 	 */
-	protected $defaultNamespace = '';
+	protected $namespace = '';
 	
 	/**
 	 * @var string Default controller for the router to apply if a matched route doesn't have one
 	 */
-	protected $defaultController = 'IndexController';
+	protected $controller = 'IndexController';
 	
 	/**
 	 * @var string Default action for the router to apply if a matched route doesn't have one
 	 */
-	protected $defaultAction = 'index';
+	protected $action = 'index';
 	
 	/**
 	 * @var callable Callable for handling dispatch errors
@@ -183,10 +183,10 @@ class Router {
 	}
 	
 	/**
-	 * Set the router's default values for namespace, controller and action.
+	 * Set the default values for namespace, controller and action parameters.
 	 * 
-	 * These are used when a route hasn't provided these values and the matched
-	 * route's parameters do not fill these values.
+	 * These are used when a route and the matched route's parameters haven't 
+	 * provided default values.
 	 * 
 	 * @param array $defaults Expects any of 'namespace', 'controller' or 'action' as keys
 	 */
@@ -227,7 +227,7 @@ class Router {
 		if (!empty($route->params['namespace'])) {
 			$route->namespace = $route->params['namespace'];
 		} else if (!$route->namespace) {
-			$route->namespace = $this->defaultNamespace;
+			$route->namespace = $this->namespace;
 		}
 		
 		// Match an existing controller
@@ -243,7 +243,7 @@ class Router {
 			}
 		} else if (!$route->controller) { // Apply router's default controller seeing as the route doesn't have one
 			$route->controller = !empty($route->namespace) ? $route->namespace : '';
-			$route->controller .= '\\' . $this->defaultController;
+			$route->controller .= '\\' . $this->controller;
 		}
 		
 		// Match an existing action
@@ -256,7 +256,7 @@ class Router {
 				$route->action = $action.'Action';
 			}
 		} else if (!$route->action) { // Apply router's default action seeing as the route doesn't have one
-			$route->action = $this->defaultAction;
+			$route->action = $this->action;
 		}
 
 		// Debug
@@ -357,8 +357,8 @@ class Router {
 				return call_user_func_array(array($route->controller, $route->action), $route->getParams());
 			}
 			
-			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->defaultAction))) {
-				return call_user_func_array(array($route->controller, $route->defaultAction), $route->getParams());
+			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->action))) {
+				return call_user_func_array(array($route->controller, $this->action), $route->getParams());
 			}
 		}
 		
