@@ -9,6 +9,9 @@ use Darya\Routing\Route;
 /**
  * Darya's request router.
  * 
+ * TODO: Optionally make use of a service container to replace 
+ *       call_user_func_array calls and make Dispatcher redundant.
+ * 
  * @author Chris Andrew <chris.andrew>
  */
 class Router {
@@ -302,7 +305,7 @@ class Router {
 			// Clone the route object so as not to modify the instances belonging to the router 
 			$route = clone $route;
 			
-			// Process the route pattern into a regular expression
+			// Prepare the route pattern as a regular expression
 			$pattern = static::preparePattern($route->pattern);
 			
 			// Test for a match

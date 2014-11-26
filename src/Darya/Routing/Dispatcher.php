@@ -8,7 +8,9 @@ use Darya\Service\Container;
 
 /**
  * Darya's dispatcher. Invokes the most suitable controller and action derived 
- * from a route matched by the given router. 
+ * from a route matched by the given router.
+ * 
+ * TODO: Find a way to merge this into the Router, possibly.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
