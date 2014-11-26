@@ -66,7 +66,7 @@ class Dispatcher {
 	}
 	
 	/**
-	 * Prepare a response object with the given variable.
+	 * Prepare a response object using the given value.
 	 * 
 	 * @param mixed $response
 	 * @return Darya\Http\Response
@@ -103,7 +103,7 @@ class Dispatcher {
 			}
 			
 			$action = $route->action;
-			$params = $route->getParams();
+			$params = $route->pathParams();
 			
 			$this->call($controller, 'before', $params);
 			$response = $this->call($controller, $action, $params);

@@ -54,10 +54,10 @@ class Router {
 	/**
 	 * Convert a route pattern into a regular expression
 	 * 
-	 * @param string $pattern Route pattern to process 
+	 * @param string $pattern Route pattern to prepare 
 	 * @return string Regular expression for route matching
 	 */
-	public static function processPattern($pattern) {
+	public static function preparePattern($pattern) {
 		foreach (static::$replacements as $replacementPattern => $replacement) {
 			$pattern = preg_replace($replacementPattern, $replacement, $pattern);
 		}
@@ -69,10 +69,10 @@ class Router {
 	 * Remove all non-numeric properties of a route's matched parameters.
 	 * Additionally split the matched "params" property by forward slashes.
 	 * 
-	 * @param array $matches Set of matches to process
+	 * @param array $matches Set of matches to prepare
 	 * @return array Set of parameters to pass to a matched controller action
 	 */
-	public static function processMatches($matches) {
+	public static function prepareMatches($matches) {
 		$params = array();
 		
 		foreach ($matches as $key => $value) {
@@ -101,7 +101,7 @@ class Router {
 	 * @param $controller URL controller name
 	 * @return string Controller class name
 	 */
-	public static function processController($controller) {
+	public static function prepareController($controller) {
 		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller).'Controller';
 	}
 	
@@ -114,7 +114,7 @@ class Router {
 	 * @param $controller URL controller name
 	 * @return string Controller class name
 	 */
-	public static function processAction($action) {
+	public static function prepareAction($action) {
 		return lcfirst(Tools::delimToCamel($action));
 	}
 	
@@ -124,7 +124,7 @@ class Router {
 	 * @param Darya\Core\Models\Request|string $request
 	 * @return Darya\Core\Models\Request
 	 */
-	public static function processRequest($request) {
+	public static function prepareRequest($request) {
 		if (!($request instanceof Request) && is_string($request)) {
 			$request = new Request($request);
 		}
@@ -232,7 +232,7 @@ class Router {
 		
 		// Match an existing controller
 		if (!empty($route->params['controller'])) {
-			$controller = static::processController($route->params['controller']);
+			$controller = static::prepareController($route->params['controller']);
 			
 			if ($route->namespace) {
 				$controller = $route->namespace . '\\' . $controller;
@@ -248,7 +248,7 @@ class Router {
 		
 		// Match an existing action
 		if (!empty($route->params['action'])) {
-			$action = static::processAction($route->params['action']);
+			$action = static::prepareAction($route->params['action']);
 			
 			if (method_exists($route->controller, $action)) {
 				$route->action = $action;
@@ -285,7 +285,7 @@ class Router {
 	 * @return Route The matched route.
 	 */
 	public function match($request, $callback = null) {
-		$request = static::processRequest($request);
+		$request = static::prepareRequest($request);
 		
 		$url = $request->uri();
 		
@@ -303,11 +303,11 @@ class Router {
 			$route = clone $route;
 			
 			// Process the route pattern into a regular expression
-			$pattern = static::processPattern($route->pattern);
+			$pattern = static::preparePattern($route->pattern);
 			
 			// Test for a match
 			if (preg_match($pattern, $url, $matches)) {
-				$route->addParams(static::processMatches($matches));
+				$route->addParams(static::prepareMatches($matches));
 				
 				$route = $this->resolve($route);
 				
@@ -341,24 +341,24 @@ class Router {
 	 * is callable. Returns null in these cases if an error handler is not set.
 	 * 
 	 * @param Request|string $request
-	 * @param Callable $callback [optional] Callback for filtering matched routes
+	 * @param callable $callback [optional] Callback for filtering matched routes
 	 * @return mixed The return value of the called action or null if the request could not be dispatched
 	 */
 	public function dispatch($request, $callback = null) {
-		$request = static::processRequest($request);
+		$request = static::prepareRequest($request);
 		$route = $this->match($request, $callback);
 		
 		if ($route) {
 			if ($route->action && is_callable($route->action)) {
-				return call_user_func_array($route->action, $route->getParams());
+				return call_user_func_array($route->action, $route->pathParams());
 			}
 			
 			if ($route->controller && $route->action && is_callable(array($route->controller, $route->action))) {
-				return call_user_func_array(array($route->controller, $route->action), $route->getParams());
+				return call_user_func_array(array($route->controller, $route->action), $route->pathParams());
 			}
 			
 			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->action))) {
-				return call_user_func_array(array($route->controller, $this->action), $route->getParams());
+				return call_user_func_array(array($route->controller, $this->action), $route->pathParams());
 			}
 		}
 		
