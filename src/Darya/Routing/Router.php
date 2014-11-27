@@ -19,7 +19,7 @@ use Darya\Routing\RouterInterface;
  * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router implements RouterInterface {
+class Router {
 	
 	/**
 	 * @var array Regular expression replacements for matching route URIs to request URIs
