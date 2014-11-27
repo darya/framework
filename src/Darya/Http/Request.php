@@ -76,8 +76,10 @@ class Request {
 		
 		foreach ($server as $key => $value) {
 			if (strpos($key, 'HTTP_') === 0) {
-				$headerName = ucwords(str_replace('_', ' ', substr($key, 5)));
-				$headers[str_replace(' ', '-', $headerName)] = $value;
+				$key = strtolower(substr($key, 5));
+				$key = ucwords(str_replace('_', ' ', $key));
+				$key = str_replace(' ', '-', $key);
+				$headers[$key] = $value;
 			}
 		}
 		
