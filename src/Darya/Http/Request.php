@@ -55,7 +55,7 @@ class Request {
 			'cookie' => $_COOKIE,
 			'file'   => $_FILES,
 			'server' => $_SERVER,
-			'header' => function_exists('getallheaders') ? getallheaders() : array()
+			'header' => static::headersFromServer($_SERVER)
 		));
 		
 		if ($session) {
