@@ -6,6 +6,8 @@ use Darya\Http\SessionInterface;
 /**
  * Darya's HTTP request representation.
  * 
+ * TODO: Populate get variables if there is a query string in the given URI.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Request {
@@ -36,9 +38,9 @@ class Request {
 	 * @var Darya\Http\SessionInterface
 	 */
 	protected $session;
-
+	
 	/**
-	 * Create a new Request using PHP's super globals.
+	 * Create a new request using PHP's super globals.
 	 * 
 	 * @param Darya\Http\SessionInterface $session [optional]
 	 * @return Darya\Http\Request
@@ -64,8 +66,29 @@ class Request {
 	}
 	
 	/**
-	 * Create a new Request. Expects the elements of $data to have keys such
-	 * as 'get', 'post', 'cookie', 'file', 'server', 'header'.
+	 * Extract HTTP request headers from a given set of $_SERVER globals.
+	 * 
+	 * @param array $server
+	 * @return array
+	 */
+	public static function headersFromServer(array $server) {
+		$headers = array();
+		
+		foreach ($server as $key => $value) {
+			if (strpos($key, 'HTTP_') === 0) {
+				$headerName = ucwords(str_replace('_', ' ', substr($key, 5)));
+				$headers[str_replace(' ', '-', $headerName)] = $value;
+			}
+		}
+		
+		return $headers;
+	}
+	
+	/**
+	 * Create a new request. 
+	 * 
+	 * Expects $data to have keys such as 'get', 'post', 'cookie', 'file', 
+	 * 'server', 'header'.
 	 * 
 	 * @param string $uri
 	 * @param string $method
@@ -87,13 +110,19 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve data of the given type with the given key. If no key is set, all
-	 * data of the given type will be returned. If neither are set, all data
-	 * will be returned.
+	 * Retrieve request data of the given type using the given key. 
+	 * 
+	 * If no key is set, all request data of the given type will be returned. If
+	 * neither are set, all request data will be returned.
+	 * 
+	 * @param string $type [optional]
+	 * @param string $key  [optional]
+	 * @return mixed
 	 */
 	public function getData($type = null, $key = null) {
 		if ($type) {
 			$type = strtolower($type);
+			
 			if ($key) {
 				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : null;
 			} else {
@@ -171,8 +200,7 @@ class Request {
 	 * @return bool
 	 */
 	public function ajax() {
-		return isset($this->data['get']['ajax'])
-		|| isset($this->data['post']['ajax'])
+		return $this->has('ajax')
 		|| strtolower($this->server('HTTP_X_REQUESTED_WITH')) == 'xmlhttprequest'
 		|| strtolower($this->header('X-Requested-With')) == 'xmlhttprequest';
 	}
