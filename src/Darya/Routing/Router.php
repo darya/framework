@@ -5,6 +5,7 @@ use Darya\Common\Tools;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
+use Darya\Routing\RouterInterface;
 
 /**
  * Darya's request router.
@@ -12,22 +13,26 @@ use Darya\Routing\Route;
  * TODO: Optionally make use of a service container to replace 
  *       call_user_func_array calls and make Dispatcher redundant.
  * 
+ * TODO: Implement setting named routes.
+ *
+ * TODO: Implement route groups.
+ * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router {
+class Router implements RouterInterface {
 	
 	/**
-	 * @var array Regular expressions for converting route definitions into regular expressions that match said route
+	 * @var array Regular expression replacements for matching route URIs to request URIs
 	 */
-	protected static $replacements = array(
-		'#/\:params#' => '(?:/(?<params>.*))?',
-		'#/\:([A-Za-z0-9\_\-]+)#' => '(?:/(?<$1>[^/]+))'
+	protected $patterns = array(
+		'#/\:([A-Za-z0-9\_\-]+)#' => '(?:/(?<$1>[^/]+))',
+		'#/\:params#' => '(?:/(?<params>.*))?'
 	);
 	
 	/**
-	 * @var string Base URL to ignore when matching routes
+	 * @var string Base URI to expect when matching routes
 	 */
-	protected $baseUrl = '';
+	protected $base;
 	
 	/**
 	 * @var array Collection of routes to match
@@ -37,7 +42,7 @@ class Router {
 	/**
 	 * @var string Default namespace for the router to apply if a matched route doesn't have one
 	 */
-	protected $namespace = '';
+	protected $namespace;
 	
 	/**
 	 * @var string Default controller for the router to apply if a matched route doesn't have one
@@ -55,14 +60,15 @@ class Router {
 	protected $errorHandler;
 	
 	/**
-	 * Convert a route pattern into a regular expression
+	 * Replace a route path's placeholders with regular expressions using the 
+	 * router's registered replacement patterns.
 	 * 
-	 * @param string $pattern Route pattern to prepare 
-	 * @return string Regular expression for route matching
+	 * @param string $path Route path to prepare
+	 * @return string Regular expression that matches a route's path
 	 */
-	public static function preparePattern($pattern) {
-		foreach (static::$replacements as $replacementPattern => $replacement) {
-			$pattern = preg_replace($replacementPattern, $replacement, $pattern);
+	public function prepareRegex($path) {
+		foreach ($this->patterns as $pattern => $replacement) {
+			$pattern = preg_replace($pattern, $replacement, $path);
 		}
 		
 		return '#/?^'.$pattern.'/?$#';
@@ -73,43 +79,44 @@ class Router {
 	 * Additionally split the matched "params" property by forward slashes.
 	 * 
 	 * @param array $matches Set of matches to prepare
-	 * @return array Set of parameters to pass to a matched controller action
+	 * @return array Set of parameters to pass to a matched action
 	 */
 	public static function prepareMatches($matches) {
-		$params = array();
+		$parameters = array();
 		
 		foreach ($matches as $key => $value) {
 			if (!is_numeric($key)) {
 				if ($key == 'params') {
-					$pathParams = explode('/', $value);
-					foreach ($pathParams as $pathParam) {
-						$params[] = $pathParam;
+					$pathParameters = explode('/', $value);
+					
+					foreach ($pathParameters as $pathParameter) {
+						$parameters[] = $pathParameter;
 					}
 				} else {
-					$params[$key] = $value;
+					$parameters[$key] = $value;
 				}
 			}
 		}
 		
-		return $params;
+		return $parameters;
 	}
 	
 	/**
-	 * Prepares a controller name by camel-casing the given value and appending 
+	 * Prepares a controller name by CamelCasing the given value and appending
 	 * 'Controller', if the provided name does not already end as such. The
 	 * resulting string will start with an uppercase letter.
 	 * 
 	 * For example, 'super-swag' would become 'SuperSwagController'
 	 * 
-	 * @param $controller URL controller name
+	 * @param $controller Route path parameter controller string
 	 * @return string Controller class name
 	 */
 	public static function prepareController($controller) {
-		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller).'Controller';
+		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller) . 'Controller';
 	}
 	
 	/**
-	 * Prepares an action name by camel-casing the given value. The resulting 
+	 * Prepares an action name by camelCasing the given value. The resulting
 	 * string will start with a lowercase letter.
 	 * 
 	 * For example, 'super-swag' would become 'superSwag'
@@ -135,7 +142,6 @@ class Router {
 		return $request;
 	}
 	
-	
 	/**
 	 * Initialise router with given array of routes where keys are patterns and 
 	 * values are either default controllers or a set of default values
@@ -149,7 +155,8 @@ class Router {
 	}
 	
 	/**
-	 * Appends routes to the router's collection.
+	 * Append routes to the router.
+	 * 
 	 * Passing $defaults causes the function to expect $routes as a single route
 	 * pattern instead of an array.
 	 * 
@@ -168,21 +175,16 @@ class Router {
 	}
 	
 	/**
-	 * Set the router's base URL
+	 * Get or set the router's base URI.
 	 * 
-	 * @param string $url
+	 * @param string $url [optional]
 	 */
-	public function setBaseUrl($url) {
-		$this->baseUrl = $url;
-	}
-	
-	/**
-	 * Get the router's base URL
-	 * 
-	 * @return string
-	 */
-	public function getBaseUrl() {
-		return $this->baseUrl;
+	public function base($uri) {
+		if (!$uri) {
+			return $this->base;
+		}
+		
+		$this->base = $uri;
 	}
 	
 	/**
@@ -191,11 +193,11 @@ class Router {
 	 * These are used when a route and the matched route's parameters haven't 
 	 * provided default values.
 	 * 
-	 * @param array $defaults Expects any of 'namespace', 'controller' or 'action' as keys
+	 * @param array $defaults Accepts 'namespace', 'controller' or 'action' as keys
 	 */
-	public function setDefaults($defaults = array()) {
+	public function defaults($defaults = array()) {
 		foreach ($defaults as $key => $default) {
-			$property = 'default' . ucfirst(strtolower($key));
+			$property = strtolower($key);
 			
 			if (property_exists($this, $property)) {
 				$this->$property = $default;
@@ -203,18 +205,6 @@ class Router {
 		}
 	}
 	
-	/**
-	 * Set an optional error handler for when a dispatched request doesn't 
-	 * match to a route.
-	 * 
-	 * @param callable $handler
-	 */
-	public function setErrorHandler($handler) {
-		if (is_callable($handler)) {
-			$this->errorHandler = $handler;
-		}
-	}
-		
 	/**
 	 * Resolves a matched route's parameters by finding existing controllers and
 	 * actions.
@@ -227,15 +217,15 @@ class Router {
 	 */
 	protected function resolve(Route $route) {
 		// Store the namespace
-		if (!empty($route->params['namespace'])) {
-			$route->namespace = $route->params['namespace'];
+		if (!empty($route->parameters['namespace'])) {
+			$route->namespace = $route->parameters['namespace'];
 		} else if (!$route->namespace) {
 			$route->namespace = $this->namespace;
 		}
 		
 		// Match an existing controller
-		if (!empty($route->params['controller'])) {
-			$controller = static::prepareController($route->params['controller']);
+		if (!empty($route->parameters['controller'])) {
+			$controller = static::prepareController($route->parameters['controller']);
 			
 			if ($route->namespace) {
 				$controller = $route->namespace . '\\' . $controller;
@@ -250,13 +240,13 @@ class Router {
 		}
 		
 		// Match an existing action
-		if (!empty($route->params['action'])) {
-			$action = static::prepareAction($route->params['action']);
+		if (!empty($route->parameters['action'])) {
+			$action = static::prepareAction($route->parameters['action']);
 			
 			if (method_exists($route->controller, $action)) {
 				$route->action = $action;
 			} else if(method_exists($route->controller, $action.'Action')) {
-				$route->action = $action.'Action';
+				$route->action = $action . 'Action';
 			}
 		} else if (!$route->action) { // Apply router's default action seeing as the route doesn't have one
 			$route->action = $this->action;
@@ -302,15 +292,15 @@ class Router {
 		
 		// Find a matching route
 		foreach ($this->routes as $route) {
-			// Clone the route object so as not to modify the instances belonging to the router 
+			// Clone the route object to preserve instances belonging to the router
 			$route = clone $route;
 			
-			// Prepare the route pattern as a regular expression
-			$pattern = static::preparePattern($route->pattern);
+			// Prepare the route path as a regular expression
+			$pattern = $this->prepareRegex($route->path);
 			
 			// Test for a match
 			if (preg_match($pattern, $url, $matches)) {
-				$route->addParams(static::prepareMatches($matches));
+				$route->parameters(static::prepareMatches($matches));
 				
 				$route = $this->resolve($route);
 				
@@ -330,6 +320,17 @@ class Router {
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Set an error handler for dispatched requests that don't match a route.
+	 * 
+	 * @param callable $handler
+	 */
+	public function errorHandler($handler) {
+		if (is_callable($handler)) {
+			$this->errorHandler = $handler;
+		}
 	}
 	
 	/**
@@ -353,15 +354,15 @@ class Router {
 		
 		if ($route) {
 			if ($route->action && is_callable($route->action)) {
-				return call_user_func_array($route->action, $route->pathParams());
+				return call_user_func_array($route->action, $route->pathParameters());
 			}
 			
 			if ($route->controller && $route->action && is_callable(array($route->controller, $route->action))) {
-				return call_user_func_array(array($route->controller, $route->action), $route->pathParams());
+				return call_user_func_array(array($route->controller, $route->action), $route->pathParameters());
 			}
 			
 			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->action))) {
-				return call_user_func_array(array($route->controller, $this->action), $route->pathParams());
+				return call_user_func_array(array($route->controller, $this->action), $route->pathParameters());
 			}
 		}
 		
