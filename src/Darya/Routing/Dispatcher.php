@@ -126,7 +126,7 @@ class Dispatcher {
 			$response->setStatus(404);
 		}
 		
-		$response->addHeader('X-Location: ' . $this->router->getBaseUrl() . $request->server('PATH_INFO'));
+		$response->addHeader('X-Location: ' . $this->router->base() . $request->server('PATH_INFO'));
 		return $response;
 	}
 	

@@ -25,8 +25,8 @@ class Router {
 	 * @var array Regular expression replacements for matching route URIs to request URIs
 	 */
 	protected $patterns = array(
+		'#/\:params#' => '(?:/(?<params>.*))?',
 		'#/\:([A-Za-z0-9\_\-]+)#' => '(?:/(?<$1>[^/]+))',
-		'#/\:params#' => '(?:/(?<params>.*))?'
 	);
 	
 	/**
@@ -66,12 +66,12 @@ class Router {
 	 * @param string $path Route path to prepare
 	 * @return string Regular expression that matches a route's path
 	 */
-	public function prepareRegex($path) {
+	public function preparePattern($path) {
 		foreach ($this->patterns as $pattern => $replacement) {
-			$pattern = preg_replace($pattern, $replacement, $path);
+			$path = preg_replace($pattern, $replacement, $path);
 		}
 		
-		return '#/?^'.$pattern.'/?$#';
+		return '~/?^'.$path.'/?$~';
 	}
 	
 	/**
@@ -144,14 +144,18 @@ class Router {
 	
 	/**
 	 * Initialise router with given array of routes where keys are patterns and 
-	 * values are either default controllers or a set of default values
+	 * values are either default controllers or a set of default values.
+	 * 
+	 * Optionally accepts an array of default values for reserved route
+	 * parameters to use for routes that don't match with them. These include 
+	 * 'namespace', 'controller' and 'action'.
 	 * 
 	 * @param array $routes   Array of routes to match
 	 * @param array $defaults Array of default router properties
 	 */
 	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
-		$this->setDefaults($defaults);
+		$this->defaults($defaults);
 	}
 	
 	/**
@@ -179,7 +183,7 @@ class Router {
 	 * 
 	 * @param string $url [optional]
 	 */
-	public function base($uri) {
+	public function base($uri = null) {
 		if (!$uri) {
 			return $this->base;
 		}
@@ -206,8 +210,8 @@ class Router {
 	}
 	
 	/**
-	 * Resolves a matched route's parameters by finding existing controllers and
-	 * actions.
+	 * Resolves a matched route's path parameters by finding existing
+	 * controllers and actions.
 	 * 
 	 * TODO: It may make sense to move this into Dispatcher and be used as part 
 	 * of a Router::match() callback instead of being hardcoded into said method.
@@ -245,7 +249,7 @@ class Router {
 			
 			if (method_exists($route->controller, $action)) {
 				$route->action = $action;
-			} else if(method_exists($route->controller, $action.'Action')) {
+			} else if(method_exists($route->controller, $action . 'Action')) {
 				$route->action = $action . 'Action';
 			}
 		} else if (!$route->action) { // Apply router's default action seeing as the route doesn't have one
@@ -253,15 +257,14 @@ class Router {
 		}
 
 		// Debug
-		/*echo '<pre>';
-		print_r(array(
+		/*echo Tools::dump(array(
+			$route->parameters,
 			$route,
 			$route->controller,
 			$route->action,
 			class_exists($route->controller),
 			method_exists($route->controller, $route->action)
-		));
-		echo '</pre>';*/
+		));*/
 		
 		return $route;
 	}
@@ -283,7 +286,7 @@ class Router {
 		$url = $request->uri();
 		
 		// Remove base URL
-		$url = substr($url, strlen($this->baseUrl));
+		$url = substr($url, strlen($this->base));
 		
 		// Strip query string
 		if (strpos($url, '?') > 0) {
@@ -296,7 +299,7 @@ class Router {
 			$route = clone $route;
 			
 			// Prepare the route path as a regular expression
-			$pattern = $this->prepareRegex($route->path);
+			$pattern = $this->preparePattern($route->path);
 			
 			// Test for a match
 			if (preg_match($pattern, $url, $matches)) {

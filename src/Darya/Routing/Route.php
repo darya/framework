@@ -11,7 +11,7 @@ class Route {
 	/**
 	 * @var array Reserved route parameter keys
 	 */
-	protected static $reserved = array('namespace', 'controller', 'action');
+	protected $reserved = array('namespace', 'controller', 'action');
 	
 	/**
 	 * @var string URI path that matches the route - e.g. "/:controller/:action/:params"
@@ -51,7 +51,7 @@ class Route {
 	 */
 	public function __construct($path, $defaults = array()) {
 		$this->path = $path;
-		$this->setDefaults($defaults);
+		$this->defaults($defaults);
 	}
 	
 	/**
@@ -72,7 +72,11 @@ class Route {
 	 * @param mixed  $value
 	 */
 	public function __set($property, $value) {
-		$this->parameters[$property] = $value;
+		if (is_property($property)) {
+			$this->$property = $value;
+		} else {
+			$this->parameters[$property] = $value;
+		}
 	}
 	
 	/**
@@ -132,6 +136,15 @@ class Route {
 	 */
 	public function pathParameters() {
 		return array_diff_key($this->parameters, array_flip($this->reserved));
+	}
+	
+	/**
+	 * Retrieve the URL that the route was matched by.
+	 * 
+	 * @return string
+	 */
+	public function url() {
+		// TODO: $router->url($this->path, $this->parameters); // ???
 	}
 	
 }
