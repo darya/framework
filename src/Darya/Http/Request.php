@@ -98,12 +98,15 @@ class Request {
 	 */
 	public function __construct($uri, $method = 'get', $data = array()) {
 		$this->uri = $uri;
-		$this->method = $method;
+		$this->method = strtolower($method);
 		
 		foreach ($data as $type => $values) {
+			$type = strtolower($type);
+			
 			if (is_array($values) && is_array($this->data[$type])) {
 				$values = array_merge($values, $this->data[$type]);
 			}
+			
 			$this->data[$type] = $values;
 		}
 		
