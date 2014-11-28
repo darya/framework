@@ -28,7 +28,7 @@ abstract class Facade {
 	public static function __callStatic($method, $parameters){
 		$service = static::getServiceName();
 		
-		if (!static::$serviceContainer) {
+		if (static::$serviceContainer) {
 			$instance = static::$serviceContainer->resolve($service);
 		} else {
 			$instance = Container::instance()->resolve($service);

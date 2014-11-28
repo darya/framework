@@ -37,7 +37,7 @@ class Container {
 	 * @return Darya\Service\Container
 	 */
 	public static function instance() {
-		if (is_null($static::$instance)) {
+		if (is_null(static::$instance)) {
 			static::$instance = new static;
 		}
 		
