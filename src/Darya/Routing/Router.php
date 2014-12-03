@@ -5,7 +5,6 @@ use Darya\Common\Tools;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
-use Darya\Routing\RouterInterface;
 
 /**
  * Darya's request router.
@@ -203,7 +202,7 @@ class Router {
 		foreach ($defaults as $key => $default) {
 			$property = strtolower($key);
 			
-			if (property_exists($this, $property)) {
+			if (in_array($property, array('namespace', 'controller', 'action'))) {
 				$this->$property = $default;
 			}
 		}
