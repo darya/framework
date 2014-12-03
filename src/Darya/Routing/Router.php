@@ -25,8 +25,8 @@ class Router {
 	 * @var array Regular expression replacements for matching route URIs to request URIs
 	 */
 	protected $patterns = array(
-		'#/\:params#' => '(?:/(?<params>.*))?',
-		'#/\:([A-Za-z0-9\_\-]+)#' => '(?:/(?<$1>[^/]+))',
+		'#/:params#' => '(?:/(?<params>.*))?',
+		'#/:([A-Za-z0-9_-]+)#' => '(?:/(?<$1>[^/]+))'
 	);
 	
 	/**
