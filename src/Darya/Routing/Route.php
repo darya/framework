@@ -80,7 +80,7 @@ class Route {
 	}
 	
 	/**
-	 * Getter magic method for retrieving route parameters. 
+	 * Getter magic method for retrieving route parameters.
 	 * 
 	 * @param string $property
 	 * @return mixed
@@ -101,10 +101,6 @@ class Route {
 	 * @param callable|array|string $parameters
 	 */
 	public function defaults($parameters) {
-		if (!$parameters) {
-			return $this->parameters;
-		}
-		
 		if (is_array($parameters)) {
 			foreach ($parameters as $key => $value) {
 				$this->parameters[$key] = $value;
@@ -119,9 +115,16 @@ class Route {
 	/**
 	 * Set multiple parameters using the given array.
 	 * 
+	 * If no parameters are given, the currently set parameters are returned.
+	 * 
 	 * @param array $parameters [optional]
+	 * @return array|null
 	 */
 	public function parameters($parameters = array()) {
+		if (!$parameters) {
+			return $this->parameters;
+		}
+		
 		if (is_array($parameters)) {
 			foreach ($parameters as $key => $value) {
 				$this->parameters[$key] = $value;
@@ -144,7 +147,7 @@ class Route {
 	 * @return string
 	 */
 	public function url() {
-		// TODO: $router->url($this->path, $this->parameters); // ???
+		// TODO: $this->router->url($this->path, $this->parameters);
 	}
 	
 }

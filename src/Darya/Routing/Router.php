@@ -16,6 +16,8 @@ use Darya\Routing\Route;
  *
  * TODO: Implement route groups.
  * 
+ * TODO: Event dispatcher.
+ * 
  * @author Chris Andrew <chris.andrew>
  */
 class Router {
@@ -39,19 +41,13 @@ class Router {
 	protected $routes = array();
 	
 	/**
-	 * @var string Default namespace for the router to apply if a matched route doesn't have one
+	 * @var array Default values for the router to apply to matched routes
 	 */
-	protected $namespace;
-	
-	/**
-	 * @var string Default controller for the router to apply if a matched route doesn't have one
-	 */
-	protected $controller = 'IndexController';
-	
-	/**
-	 * @var string Default action for the router to apply if a matched route doesn't have one
-	 */
-	protected $action = 'index';
+	protected $defaults = array(
+		'namespace'  => null,
+		'controller' => 'IndexController',
+		'action'     => 'index'
+	);
 	
 	/**
 	 * @var callable Callable for handling dispatch errors
@@ -181,36 +177,41 @@ class Router {
 	 * Get or set the router's base URI.
 	 * 
 	 * @param string $url [optional]
+	 * @return string
 	 */
 	public function base($uri = null) {
-		if (!$uri) {
-			return $this->base;
+		if ($uri) {
+			$this->base = $uri;
 		}
 		
-		$this->base = $uri;
+		return $this->base;
 	}
 	
 	/**
-	 * Set the default values for namespace, controller and action parameters.
+	 * Get and optionally set the router's default values for matched routes.
 	 * 
-	 * These are used when a route and the matched route's parameters haven't 
+	 * These are used when a route and the matched route's parameters haven't
 	 * provided default values.
 	 * 
-	 * @param array $defaults Accepts 'namespace', 'controller' or 'action' as keys
+	 * @param array $defaults [optional]
+	 * @return array Router defaults
 	 */
 	public function defaults($defaults = array()) {
-		foreach ($defaults as $key => $default) {
+		foreach ($defaults as $key => $value) {
 			$property = strtolower($key);
-			
-			if (in_array($property, array('namespace', 'controller', 'action'))) {
-				$this->$property = $default;
-			}
+			$this->defaults[$property] = $value;
 		}
+		
+		return $this->defaults;
 	}
 	
 	/**
 	 * Resolves a matched route's path parameters by finding existing
 	 * controllers and actions.
+	 * 
+	 * Applies the Router's defaults if a parameter is not set. 
+	 * 
+	 * Also apply any other default parameters.
 	 * 
 	 * TODO: It may make sense to move this into Dispatcher and be used as part 
 	 * of a Router::match() callback instead of being hardcoded into said method.
@@ -223,7 +224,7 @@ class Router {
 		if (!empty($route->parameters['namespace'])) {
 			$route->namespace = $route->parameters['namespace'];
 		} else if (!$route->namespace) {
-			$route->namespace = $this->namespace;
+			$route->namespace = $this->defaults['namespace'];
 		}
 		
 		// Match an existing controller
@@ -237,9 +238,9 @@ class Router {
 			if (class_exists($controller)) {
 				$route->controller = $controller;
 			}
-		} else if (!$route->controller) { // Apply router's default controller seeing as the route doesn't have one
+		} else if (!$route->controller) { // Apply router's default controller when the route doesn't have one
 			$route->controller = !empty($route->namespace) ? $route->namespace : '';
-			$route->controller .= '\\' . $this->controller;
+			$route->controller .= '\\' . $this->defaults['controller'];
 		}
 		
 		// Match an existing action
@@ -252,7 +253,7 @@ class Router {
 				$route->action = $action . 'Action';
 			}
 		} else if (!$route->action) { // Apply router's default action seeing as the route doesn't have one
-			$route->action = $this->action;
+			$route->action = $this->defaults['action'];
 		}
 
 		// Debug
@@ -363,8 +364,8 @@ class Router {
 				return call_user_func_array(array($route->controller, $route->action), $route->pathParameters());
 			}
 			
-			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->action))) {
-				return call_user_func_array(array($route->controller, $this->action), $route->pathParameters());
+			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->defaults['action']))) {
+				return call_user_func_array(array($route->controller, $this->defaults['action']), $route->pathParameters());
 			}
 		}
 		
