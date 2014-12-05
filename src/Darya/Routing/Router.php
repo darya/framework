@@ -50,6 +50,11 @@ class Router {
 	);
 	
 	/**
+	 * @var array Set of callbacks for filtering matched routes by reference
+	 */
+	protected $filters = array();
+	
+	/**
 	 * @var callable Callable for handling dispatch errors
 	 */
 	protected $errorHandler;
@@ -81,14 +86,17 @@ class Router {
 		
 		foreach ($matches as $key => $value) {
 			if (!is_numeric($key)) {
-				if ($key == 'params') {
-					$pathParameters = explode('/', $value);
-					
-					foreach ($pathParameters as $pathParameter) {
-						$parameters[] = $pathParameter;
-					}
-				} else {
-					$parameters[$key] = $value;
+				switch ($key) {
+					case 'params':
+						$pathParameters = explode('/', $value);
+						
+						foreach ($pathParameters as $pathParameter) {
+							$parameters[] = $pathParameter;
+						}
+						
+						break;
+					default:
+						$parameters[$key] = $value;
 				}
 			}
 		}
@@ -151,6 +159,7 @@ class Router {
 	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
 		$this->defaults($defaults);
+		$this->filter(array($this, 'resolve'));
 	}
 	
 	/**
@@ -190,13 +199,15 @@ class Router {
 	/**
 	 * Get and optionally set the router's default values for matched routes.
 	 * 
+	 * Given key value pairs are merged with the current defaults.
+	 * 
 	 * These are used when a route and the matched route's parameters haven't
 	 * provided default values.
 	 * 
 	 * @param array $defaults [optional]
 	 * @return array Router defaults
 	 */
-	public function defaults($defaults = array()) {
+	public function defaults(array $defaults = array()) {
 		foreach ($defaults as $key => $value) {
 			$property = strtolower($key);
 			$this->defaults[$property] = $value;
@@ -206,10 +217,27 @@ class Router {
 	}
 	
 	/**
+	 * Register a callback for filtering matched routes and their parameters.
+	 * 
+	 * Callbacks should return a bool determining whether the route matches.
+	 * A route is passed by reference when matched by Router::match.
+	 * 
+	 * @param callable $callback
+	 * @return Darya\Routing\Router
+	 */
+	public function filter($callback) {
+		if (is_callable($callback)) {
+			$this->filters[] = $callback;
+		}
+		
+		return $this;
+	}
+	
+	/**
 	 * Resolves a matched route's path parameters by finding existing
 	 * controllers and actions.
 	 * 
-	 * Applies the Router's defaults if a parameter is not set. 
+	 * Applies the router's defaults if a parameter is not set. 
 	 * 
 	 * Also apply any other default parameters.
 	 * 
@@ -220,16 +248,14 @@ class Router {
 	 * @return Route
 	 */
 	protected function resolve(Route $route) {
-		// Store the namespace
-		if (!empty($route->parameters['namespace'])) {
-			$route->namespace = $route->parameters['namespace'];
-		} else if (!$route->namespace) {
+		// Set the router's default namespace if necessary
+		if (!$route->namespace) {
 			$route->namespace = $this->defaults['namespace'];
 		}
 		
 		// Match an existing controller
-		if (!empty($route->parameters['controller'])) {
-			$controller = static::prepareController($route->parameters['controller']);
+		if (!empty($route->controller)) {
+			$controller = static::prepareController($route->controller);
 			
 			if ($route->namespace) {
 				$controller = $route->namespace . '\\' . $controller;
@@ -239,13 +265,13 @@ class Router {
 				$route->controller = $controller;
 			}
 		} else if (!$route->controller) { // Apply router's default controller when the route doesn't have one
-			$route->controller = !empty($route->namespace) ? $route->namespace : '';
-			$route->controller .= '\\' . $this->defaults['controller'];
+			$namespace = !empty($route->namespace) ? $route->namespace . '\\' : '';
+			$route->controller = $namespace . $this->defaults['controller'];
 		}
 		
 		// Match an existing action
-		if (!empty($route->parameters['action'])) {
-			$action = static::prepareAction($route->parameters['action']);
+		if (!empty($route->action)) {
+			$action = static::prepareAction($route->action);
 			
 			if (method_exists($route->controller, $action)) {
 				$route->action = $action;
@@ -257,24 +283,23 @@ class Router {
 		}
 
 		// Debug
-		/*echo Tools::dump(array(
-			$route->parameters,
+		/*/echo Tools::dump(array(
+			$route->parameters(),
 			$route,
 			$route->controller,
 			$route->action,
 			class_exists($route->controller),
 			method_exists($route->controller, $route->action)
-		));*/
+		));/**/
 		
-		return $route;
+		return true;
 	}
 	
 	/**
 	 * Match a request to a route.
 	 * 
-	 * Accepts an optional callback for filtering matched routes, which is
-	 * useful for determining whether the matched route's parameters result in
-	 * something callable, for example.
+	 * Accepts an optional callback for filtering matched routes and their
+	 * parameters. This callback is executed after the router's filters.
 	 * 
 	 * @param Request|string $request A request URI or a Request object to match
 	 * @param Callable $callback [optional] Callback for filtering matched routes
@@ -305,13 +330,18 @@ class Router {
 			if (preg_match($pattern, $url, $matches)) {
 				$route->parameters(static::prepareMatches($matches));
 				
-				$route = $this->resolve($route);
-				
 				$matched = true;
+				
+				// Test the route against all registered filters
+				foreach ($this->filters as $filter) {
+					if (!call_user_func_array($filter, array(&$route))){
+						$matched = false;
+					}
+				}
 				
 				// Perform the given callback if necessary
 				if ($callback && is_callable($callback)) {
-					$matched = call_user_func($callback, $route);
+					$matched = call_user_func_array($callback, array(&$route));
 				}
 				
 				if ($matched) {

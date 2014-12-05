@@ -4,6 +4,10 @@ namespace Darya\Routing;
 /**
  * Representation of a route in Darya's routing system.
  * 
+ * @property string $namespace  Matched namespace
+ * @property string $controller Matched controller
+ * @property callable|string $action Matched action (callable or controller method)
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Route {
@@ -19,24 +23,14 @@ class Route {
 	public $path;
 	
 	/**
-	 * @var string Matched namespace
+	 * @var array Default path parameters
 	 */
-	public $namespace;
+	protected $defaults = array();
 	
 	/**
-	 * @var object|string Matched controller
+	 * @var array Matched path parameters
 	 */
-	public $controller;
-	
-	/**
-	 * @var callable|string Matched action (callable or a controller method)
-	 */
-	public $action;
-	
-	/**
-	 * @var array Default or matched path parameters
-	 */
-	public $parameters = array();
+	protected $parameters = array();
 	
 	/**
 	 * @var Darya\Routing\Router The router that matched this route
@@ -44,10 +38,10 @@ class Route {
 	public $router = null;
 	
 	/**
-	 * Instantiate a new route
+	 * Instantiate a new route.
 	 * 
 	 * @param string         $path     Path that matches the route
-	 * @param callable|array $defaults
+	 * @param callable|array $defaults Default route parameters
 	 */
 	public function __construct($path, $defaults = array()) {
 		$this->path = $path;
@@ -55,13 +49,12 @@ class Route {
 	}
 	
 	/**
-	 * Magic method that determines whether an existing property or route
-	 * parameter is set.
+	 * Magic method that determines whether an existing route parameter is set.
 	 * 
 	 * @return bool
 	 */
 	public function __isset($property) {
-		return isset($this->$property) || isset($this->params[$property]);
+		return isset($this->parameters[$property]) || isset($this->defaults[$property]);
 	}
 	
 	/**
@@ -72,11 +65,7 @@ class Route {
 	 * @param mixed  $value
 	 */
 	public function __set($property, $value) {
-		if (is_property($property)) {
-			$this->$property = $value;
-		} else {
-			$this->parameters[$property] = $value;
-		}
+		$this->parameters[$property] = $value;
 	}
 	
 	/**
@@ -89,47 +78,52 @@ class Route {
 		if (isset($this->parameters[$property])) {
 			return $this->parameters[$property];
 		}
+		
+		if (isset($this->defaults[$property])) {
+			return $this->defaults[$property];
+		}
 	}
 
 	/**
-	 * Set default parameters using the given array.
+	 * Set default route parameters using the given array.
 	 * 
 	 * If a callable is given it becomes the route's default action.
 	 * 
 	 * If a string or object is given it becomes the route's default controller.
 	 * 
 	 * @param callable|array|string $parameters
+	 * @return array The route's default parameters
 	 */
-	public function defaults($parameters) {
+	public function defaults($parameters = array()) {
 		if (is_array($parameters)) {
 			foreach ($parameters as $key => $value) {
-				$this->parameters[$key] = $value;
+				$this->defaults[$key] = $value;
 			}
 		} else if(is_callable($parameters)) {
-			$this->action = $parameters;
+			$this->defaults['action'] = $parameters;
 		} else if(is_string($parameters) || is_object($parameters)) {
-			$this->controller = $parameters;
+			$this->defaults['controller'] = $parameters;
 		}
+		
+		return $this->defaults;
 	}
 	
 	/**
-	 * Set multiple parameters using the given array.
+	 * Set route parameters using the given array.
 	 * 
-	 * If no parameters are given, the currently set parameters are returned.
+	 * Returns the currently set parameters merged into defaults.
 	 * 
 	 * @param array $parameters [optional]
-	 * @return array|null
+	 * @return array Route parameters
 	 */
-	public function parameters($parameters = array()) {
-		if (!$parameters) {
-			return $this->parameters;
-		}
-		
+	public function parameters(array $parameters = array()) {
 		if (is_array($parameters)) {
 			foreach ($parameters as $key => $value) {
 				$this->parameters[$key] = $value;
 			}
 		}
+		
+		return array_merge($this->defaults, $this->parameters);
 	}
 	
 	/**
@@ -138,7 +132,7 @@ class Route {
 	 * @return array
 	 */
 	public function pathParameters() {
-		return array_diff_key($this->parameters, array_flip($this->reserved));
+		return array_diff_key($this->parameters(), array_flip($this->reserved));
 	}
 	
 	/**
@@ -147,7 +141,9 @@ class Route {
 	 * @return string
 	 */
 	public function url() {
-		// TODO: $this->router->url($this->path, $this->parameters);
+		if ($this->router) {
+			// TODO: $this->router->url($this->path, $this->parameters);
+		}
 	}
 	
 }
