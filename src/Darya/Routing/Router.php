@@ -50,7 +50,7 @@ class Router {
 	);
 	
 	/**
-	 * @var array Set of callbacks for filtering matched routes by reference
+	 * @var array Set of callbacks for filtering matched routes and their parameters
 	 */
 	protected $filters = array();
 	
@@ -71,7 +71,7 @@ class Router {
 			$path = preg_replace($pattern, $replacement, $path);
 		}
 		
-		return '~/?^'.$path.'/?$~';
+		return '#/?^'.$path.'/?$#';
 	}
 	
 	/**
@@ -134,8 +134,8 @@ class Router {
 	/**
 	 * Instantiates a new Request if the given argument is a string.
 	 *
-	 * @param Darya\Core\Models\Request|string $request
-	 * @return Darya\Core\Models\Request
+	 * @param Darya\Http\Request|string $request
+	 * @return Darya\Http\Request
 	 */
 	public static function prepareRequest($request) {
 		if (!($request instanceof Request) && is_string($request)) {
@@ -169,7 +169,7 @@ class Router {
 	 * pattern instead of an array.
 	 * 
 	 * @param string|array $routes Array of pattern => default-value route definitions or a single route pattern string
-	 * @param Callable|array $defaults String or array of default parameters for the route
+	 * @param callable|array $defaults String or array of default parameters for the route
 	 */
 	public function add($routes, $defaults = null) {
 		if (is_array($routes)) {
@@ -302,7 +302,7 @@ class Router {
 	 * parameters. This callback is executed after the router's filters.
 	 * 
 	 * @param Request|string $request A request URI or a Request object to match
-	 * @param Callable $callback [optional] Callback for filtering matched routes
+	 * @param callable $callback [optional] Callback for filtering matched routes
 	 * @return Route The matched route.
 	 */
 	public function match($request, $callback = null) {
@@ -345,6 +345,7 @@ class Router {
 				}
 				
 				if ($matched) {
+					$route->router = $this;
 					$request->router = $this;
 					$request->route = $route;
 					return $route;
