@@ -16,11 +16,11 @@ class Route {
 	 * @var array Reserved route parameter keys
 	 */
 	protected $reserved = array('namespace', 'controller', 'action');
-	
+
 	/**
 	 * @var string URI path that matches the route - e.g. "/:controller/:action/:params"
 	 */
-	public $path;
+	protected $path;
 	
 	/**
 	 * @var array Default path parameters
@@ -35,13 +35,13 @@ class Route {
 	/**
 	 * @var Darya\Routing\Router The router that matched this route
 	 */
-	public $router = null;
+	public $router;
 	
 	/**
 	 * Instantiate a new route.
 	 * 
-	 * @param string         $path     Path that matches the route
-	 * @param callable|array $defaults Default route parameters
+	 * @param string $path     Path that matches the route
+	 * @param mixed  $defaults Default route parameters
 	 */
 	public function __construct($path, $defaults = array()) {
 		$this->path = $path;
@@ -91,7 +91,7 @@ class Route {
 	 * 
 	 * If a string or object is given it becomes the route's default controller.
 	 * 
-	 * @param callable|array|string $parameters
+	 * @param mixed $parameters
 	 * @return array The route's default parameters
 	 */
 	public function defaults($parameters = array()) {
@@ -124,6 +124,15 @@ class Route {
 		}
 		
 		return array_merge($this->defaults, $this->parameters);
+	}
+	
+	/**
+	 * Retrieve the path that matches the route.
+	 * 
+	 * @return string
+	 */
+	public function path() {
+		return $this->path;
 	}
 	
 	/**

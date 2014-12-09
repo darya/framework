@@ -23,7 +23,7 @@ use Darya\Routing\Route;
 class Router {
 	
 	/**
-	 * @var array Regular expression replacements for matching route URIs to request URIs
+	 * @var array Regular expression replacements for matching route paths to request URIs
 	 */
 	protected $patterns = array(
 		'#/:params#' => '(?:/(?<params>.*))?',
@@ -153,8 +153,8 @@ class Router {
 	 * parameters to use for routes that don't match with them. These include 
 	 * 'namespace', 'controller' and 'action'.
 	 * 
-	 * @param array $routes   Array of routes to match
-	 * @param array $defaults Array of default router properties
+	 * @param array $routes   Routes to match
+	 * @param array $defaults Default router properties
 	 */
 	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
@@ -163,22 +163,19 @@ class Router {
 	}
 	
 	/**
-	 * Append routes to the router.
+	 * Append unnamed routes to the router.
 	 * 
-	 * Passing $defaults causes the function to expect $routes as a single route
-	 * pattern instead of an array.
-	 * 
-	 * @param string|array $routes Array of pattern => default-value route definitions or a single route pattern string
-	 * @param callable|array $defaults String or array of default parameters for the route
+	 * @param string|array   $routes   Path => defaults route definitions or a route path
+	 * @param callable|array $defaults Default parameters for the route
 	 */
 	public function add($routes, $defaults = null) {
 		if (is_array($routes)) {
-			foreach ($routes as $pattern => $defaults) {
-				$this->routes[] = new Route($pattern, $defaults);
+			foreach ($routes as $path => $defaults) {
+				$this->routes[] = new Route($path, $defaults);
 			}
 		} else if ($defaults) {
-			$pattern = $routes;
-			$this->routes[] = new Route($pattern, $defaults);
+			$path = $routes;
+			$this->routes[] = new Route($path, $defaults);
 		}
 	}
 	
@@ -234,15 +231,23 @@ class Router {
 	}
 	
 	/**
+	 * Append a named route to the router.
+	 * 
+	 * @param string $name     Name that identifies the route
+	 * @param string $path     Path that matches the route
+	 * @param mixed  $defaults Default route parameters
+	 */
+	public function route($name, $path, $defaults = array()) {
+		$this->routes[$name] = new Route($path, $defaults);
+	}
+	
+	/**
 	 * Resolves a matched route's path parameters by finding existing
 	 * controllers and actions.
 	 * 
-	 * Applies the router's defaults if a parameter is not set. 
+	 * Applies the router's defaults if a parameter is not set.
 	 * 
-	 * Also apply any other default parameters.
-	 * 
-	 * TODO: It may make sense to move this into Dispatcher and be used as part 
-	 * of a Router::match() callback instead of being hardcoded into said method.
+	 * TODO: Also apply any other default parameters.
 	 * 
 	 * @param Route $route
 	 * @return Route
@@ -264,7 +269,7 @@ class Router {
 			if (class_exists($controller)) {
 				$route->controller = $controller;
 			}
-		} else if (!$route->controller) { // Apply router's default controller when the route doesn't have one
+		} else if (!$route->controller) { // Apply the router's default controller when the route doesn't have one
 			$namespace = !empty($route->namespace) ? $route->namespace . '\\' : '';
 			$route->controller = $namespace . $this->defaults['controller'];
 		}
@@ -278,7 +283,7 @@ class Router {
 			} else if(method_exists($route->controller, $action . 'Action')) {
 				$route->action = $action . 'Action';
 			}
-		} else if (!$route->action) { // Apply router's default action seeing as the route doesn't have one
+		} else if (!$route->action) { // Apply the router's default action when the route doesn't have one
 			$route->action = $this->defaults['action'];
 		}
 
@@ -324,7 +329,7 @@ class Router {
 			$route = clone $route;
 			
 			// Prepare the route path as a regular expression
-			$pattern = $this->preparePattern($route->path);
+			$pattern = $this->preparePattern($route->path());
 			
 			// Test for a match
 			if (preg_match($pattern, $url, $matches)) {
@@ -340,7 +345,7 @@ class Router {
 				}
 				
 				// Perform the given callback if necessary
-				if ($callback && is_callable($callback)) {
+				if ($matched && $callback && is_callable($callback)) {
 					$matched = call_user_func_array($callback, array(&$route));
 				}
 				
@@ -422,6 +427,17 @@ class Router {
 		}
 		
 		$response->send();
+	}
+	
+	/**
+	 * Generate a URL using the given route path and parameters.
+	 * 
+	 * @param string $path
+	 * @param array  $parameters [optional]
+	 * @return string
+	 */
+	public function url($path, $parameters = array()) {
+		
 	}
 	
 }
