@@ -4,6 +4,8 @@ namespace Darya\Http;
 /**
  * Darya's HTTP response representation.
  * 
+ * TODO: Header key/value pairs.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Response {
@@ -48,6 +50,12 @@ class Response {
 	 */
 	private $redirected = false;
 	
+	/**
+	 * Instantiate a new response with the given content and headers.
+	 * 
+	 * @param mixed $content
+	 * @param array $headers
+	 */
 	public function __construct($content = null, $headers = array()) {
 		if ($content) {
 			$this->setContent($content);
@@ -241,7 +249,7 @@ class Response {
 	/**
 	 * Send the response content to the client.
 	 * 
-	 * This will only succeed provided that response headers have been sent,
+	 * This will only succeed if response headers have been sent, response 
 	 * content has not yet been sent, and the response has not been redirected.
 	 * 
 	 * Optionally sets the given response content before sending.
@@ -278,4 +286,3 @@ class Response {
 	}
 	
 }
-?>

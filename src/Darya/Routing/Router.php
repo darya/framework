@@ -9,14 +9,14 @@ use Darya\Routing\Route;
 /**
  * Darya's request router.
  * 
- * TODO: Optionally make use of a service container to replace 
- *       call_user_func_array calls and make Dispatcher redundant.
+ * TODO: Implement optional use of a service container to replace 
+ *       call_user_func_array calls.
  * 
- * TODO: Implement setting named routes.
- *
- * TODO: Implement route groups.
+ * TODO: Reverse routing.
  * 
  * TODO: Event dispatcher.
+ * 
+ * TODO: Implement route groups.
  * 
  * @author Chris Andrew <chris.andrew>
  */
@@ -26,8 +26,8 @@ class Router {
 	 * @var array Regular expression replacements for matching route paths to request URIs
 	 */
 	protected $patterns = array(
-		'#/:params#' => '(?:/(?<params>.*))?',
-		'#/:([A-Za-z0-9_-]+)#' => '(?:/(?<$1>[^/]+))'
+		'#/:([A-Za-z0-9_-]+)#' => '(?:/(?<$1>[^/]+))',
+		'#/:params#' => '(?:/(?<params>.*))?'
 	);
 	
 	/**
@@ -55,7 +55,7 @@ class Router {
 	protected $filters = array();
 	
 	/**
-	 * @var callable Callable for handling dispatch errors
+	 * @var callable Callable for handling dispatched requests that don't match a route
 	 */
 	protected $errorHandler;
 	
@@ -67,7 +67,7 @@ class Router {
 	 * @return string Regular expression that matches a route's path
 	 */
 	public function preparePattern($path) {
-		foreach ($this->patterns as $pattern => $replacement) {
+		foreach (array_reverse($this->patterns) as $pattern => $replacement) {
 			$path = preg_replace($pattern, $replacement, $path);
 		}
 		
@@ -202,7 +202,7 @@ class Router {
 	 * provided default values.
 	 * 
 	 * @param array $defaults [optional]
-	 * @return array Router defaults
+	 * @return array Router default parameters
 	 */
 	public function defaults(array $defaults = array()) {
 		foreach ($defaults as $key => $value) {
@@ -231,6 +231,19 @@ class Router {
 	}
 	
 	/**
+	 * Register a replacement pattern.
+	 * 
+	 * @param string $pattern
+	 * @param string $replacement
+	 * @return Darya\Routing\Router
+	 */
+	public function pattern($pattern, $replacement) {
+		$this->patterns[$pattern] = $replacement;
+		
+		return $this;
+	}
+	
+	/**
 	 * Append a named route to the router.
 	 * 
 	 * @param string $name     Name that identifies the route
@@ -245,12 +258,14 @@ class Router {
 	 * Resolves a matched route's path parameters by finding existing
 	 * controllers and actions.
 	 * 
-	 * Applies the router's defaults if a parameter is not set.
+	 * Applies the router's defaults for these if one is not set.
+	 * 
+	 * This is a built in route filter that is automatically registered.
 	 * 
 	 * TODO: Also apply any other default parameters.
 	 * 
-	 * @param Route $route
-	 * @return Route
+	 * @param Darya\Routing\Route $route
+	 * @return bool
 	 */
 	protected function resolve(Route $route) {
 		// Set the router's default namespace if necessary
@@ -306,33 +321,33 @@ class Router {
 	 * Accepts an optional callback for filtering matched routes and their
 	 * parameters. This callback is executed after the router's filters.
 	 * 
-	 * @param Request|string $request A request URI or a Request object to match
+	 * @param Darya\Http\Request|string $request A request URI or a Request object to match
 	 * @param callable $callback [optional] Callback for filtering matched routes
-	 * @return Route The matched route.
+	 * @return Darya\Routing\Route The matched route
 	 */
 	public function match($request, $callback = null) {
 		$request = static::prepareRequest($request);
 		
-		$url = $request->uri();
+		$uri = $request->uri();
 		
 		// Remove base URL
-		$url = substr($url, strlen($this->base));
+		$uri = substr($uri, strlen($this->base));
 		
 		// Strip query string
-		if (strpos($url, '?') > 0) {
-			$url = strstr($url, '?', true);
+		if (strpos($uri, '?') > 0) {
+			$uri = strstr($uri, '?', true);
 		}
 		
 		// Find a matching route
 		foreach ($this->routes as $route) {
-			// Clone the route object to preserve instances belonging to the router
+			// Clone the route object to preserve the router's instances
 			$route = clone $route;
 			
 			// Prepare the route path as a regular expression
 			$pattern = $this->preparePattern($route->path());
 			
 			// Test for a match
-			if (preg_match($pattern, $url, $matches)) {
+			if (preg_match($pattern, $uri, $matches)) {
 				$route->parameters(static::prepareMatches($matches));
 				
 				$matched = true;
@@ -344,7 +359,7 @@ class Router {
 					}
 				}
 				
-				// Perform the given callback if necessary
+				// Test the route against the given callback filter if necessary
 				if ($matched && $callback && is_callable($callback)) {
 					$matched = call_user_func_array($callback, array(&$route));
 				}
@@ -366,7 +381,7 @@ class Router {
 	 * 
 	 * @param callable $handler
 	 */
-	public function errorHandler($handler) {
+	public function error($handler) {
 		if (is_callable($handler)) {
 			$this->errorHandler = $handler;
 		}
@@ -417,10 +432,10 @@ class Router {
 	 * Dispatch a request, resolve a Response object from the result and send
 	 * the response to the client.
 	 * 
-	 * @param Darya\Http\Request $request
+	 * @param Darya\Http\Request|string $request
 	 */
-	public function respond(Request $request = null) {
-		$response = $this->dispatch($request);
+	public function respond($request) {
+		$response = $this->dispatch(static::prepareRequest($request));
 		
 		if (!$response instanceof Response) {
 			$response = new Response($response);
@@ -430,14 +445,25 @@ class Router {
 	}
 	
 	/**
-	 * Generate a URL using the given route path and parameters.
+	 * Generate a URL path using the given route name and parameters.
 	 * 
-	 * @param string $path
+	 * @param string $name
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
-	public function url($path, $parameters = array()) {
-		
+	public function path($name, $parameters = array()) {
+		// TODO: Get magical...
+	}
+	
+	/**
+	 * Generate an absolute URL using the given route name and parameters.
+	 * 
+	 * @param string $name
+	 * @param array  $parameters [optional]
+	 * @return string
+	 */
+	public function url($name, $parameters = array()) {
+		return $this->base . $this->path($name, $parameters);
 	}
 	
 }
