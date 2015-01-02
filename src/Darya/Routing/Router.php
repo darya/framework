@@ -455,6 +455,10 @@ class Router {
 	 * @return string
 	 */
 	public function path($name, array $parameters = array()) {
+		if (!isset($this->routes[$name])) {
+			return null;
+		}
+		
 		$route = $this->routes[$name];
 		$path = $route->path();
 		$parameters = array_merge($route->defaults(), $parameters);
