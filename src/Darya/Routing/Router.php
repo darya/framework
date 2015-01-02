@@ -447,22 +447,31 @@ class Router {
 	/**
 	 * Generate a URL path using the given route name and parameters.
 	 * 
+	 * Any required parameters that are not satisfied by the given parameters
+	 * or the route's defaults will be set to the string 'null'.
+	 * 
 	 * @param string $name
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
 	public function path($name, array $parameters = array()) {
-		if ($parameters['params'] && is_array($parameters['params'])) {
+		$route = $this->routes[$name];
+		$path = $route->path();
+		$parameters = array_merge($route->defaults(), $parameters);
+		
+		if (isset($parameters['params']) && is_array($parameters['params'])) {
 			$parameters['params'] = implode('/', $parameters['params']);
 		}
 		
-		$path = $this->routes[$name]->path();
-		
-		preg_replace_callback('#/(:[A-Za-z0-9_-]+)#', function ($match) use ($parameters) {
+		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
 			$parameter = isset($match[1]) ? ltrim($match[1], ':') : '';
 			
-			if ($parameter && $parameters[$parameter]) {
+			if ($parameter && isset($parameters[$parameter])) {
 				return '/' . $parameters[$parameter];
+			}
+			
+			if ($parameter !== 'params' && $match[2] !== '?') {
+				return '/null';
 			}
 			
 			return null;
