@@ -464,7 +464,7 @@ class Router {
 		}
 		
 		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
-			$parameter = isset($match[1]) ? ltrim($match[1], ':') : '';
+			$parameter = isset($match[1]) ? trim($match[1], '?:') : '';
 			
 			if ($parameter && isset($parameters[$parameter])) {
 				return '/' . $parameters[$parameter];
