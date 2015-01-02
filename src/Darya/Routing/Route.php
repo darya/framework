@@ -151,7 +151,7 @@ class Route {
 	 */
 	public function url() {
 		if ($this->router) {
-			// TODO: $this->router->url($this->path, $this->parameters);
+			return $this->router->url($this->path, $this->parameters());
 		}
 	}
 	

@@ -450,25 +450,25 @@ class Router {
 	 * Any required parameters that are not satisfied by the given parameters
 	 * or the route's defaults will be set to the string 'null'.
 	 * 
-	 * @param string $name
+	 * @param string $name       Route name or path
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
 	public function path($name, array $parameters = array()) {
-		if (!isset($this->routes[$name])) {
-			return null;
-		}
+		$path = $name;
 		
-		$route = $this->routes[$name];
-		$path = $route->path();
-		$parameters = array_merge($route->defaults(), $parameters);
+		if (isset($this->routes[$name])) {
+			$route = $this->routes[$name];
+			$path = $route->path();
+			$parameters = array_merge($route->defaults(), $parameters);
+		}
 		
 		if (isset($parameters['params']) && is_array($parameters['params'])) {
 			$parameters['params'] = implode('/', $parameters['params']);
 		}
 		
 		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
-			$parameter = isset($match[1]) ? trim($match[1], '?:') : '';
+			$parameter = trim($match[1], '?:');
 			
 			if ($parameter && isset($parameters[$parameter])) {
 				return '/' . $parameters[$parameter];
