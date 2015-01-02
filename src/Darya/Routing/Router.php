@@ -166,7 +166,7 @@ class Router {
 	 * Append unnamed routes to the router.
 	 * 
 	 * @param string|array   $routes   Path => defaults route definitions or a route path
-	 * @param callable|array $defaults Default parameters for the route
+	 * @param callable|array $defaults Default parameters for the route if $routes is a route path
 	 */
 	public function add($routes, $defaults = null) {
 		if (is_array($routes)) {
@@ -177,6 +177,17 @@ class Router {
 			$path = $routes;
 			$this->routes[] = new Route($path, $defaults);
 		}
+	}
+	
+	/**
+	 * Append a named route to the router.
+	 * 
+	 * @param string $name     Name that identifies the route
+	 * @param string $path     Path that matches the route
+	 * @param mixed  $defaults Default route parameters
+	 */
+	public function set($name, $path, $defaults = array()) {
+		$this->routes[$name] = new Route($path, $defaults);
 	}
 	
 	/**
@@ -241,17 +252,6 @@ class Router {
 		$this->patterns[$pattern] = $replacement;
 		
 		return $this;
-	}
-	
-	/**
-	 * Append a named route to the router.
-	 * 
-	 * @param string $name     Name that identifies the route
-	 * @param string $path     Path that matches the route
-	 * @param mixed  $defaults Default route parameters
-	 */
-	public function route($name, $path, $defaults = array()) {
-		$this->routes[$name] = new Route($path, $defaults);
 	}
 	
 	/**
@@ -451,8 +451,22 @@ class Router {
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
-	public function path($name, $parameters = array()) {
-		// TODO: Get magical...
+	public function path($name, array $parameters = array()) {
+		if ($parameters['params'] && is_array($parameters['params'])) {
+			$parameters['params'] = implode('/', $parameters['params']);
+		}
+		
+		$path = $this->routes[$name]->path();
+		
+		preg_replace_callback('#/(:[A-Za-z0-9_-]+)#', function ($match) use ($parameters) {
+			$parameter = isset($match[1]) ? ltrim($match[1], ':') : '';
+			
+			if ($parameter && $parameters[$parameter]) {
+				return '/' . $parameters[$parameter];
+			}
+			
+			return null;
+		}, $path);
 	}
 	
 	/**
