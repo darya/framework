@@ -147,6 +147,9 @@ class Route {
 	/**
 	 * Retrieve the URL that the route was matched by.
 	 * 
+	 * TODO: Find a way to reverse a matched route's "params" (@see Router::path)
+	 *       Maybe move Router::prepareMatches logic to this class?
+	 * 
 	 * @return string
 	 */
 	public function url() {
