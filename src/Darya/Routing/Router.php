@@ -5,6 +5,8 @@ use Darya\Common\Tools;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
+use Darya\Service\Container;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Darya's request router.
@@ -12,9 +14,7 @@ use Darya\Routing\Route;
  * TODO: Implement optional use of a service container to replace 
  *       call_user_func_array calls.
  * 
- * TODO: Reverse routing.
- * 
- * TODO: Event dispatcher.
+ * TODO: Event dispatcher...
  * 
  * TODO: Implement route groups.
  * 
@@ -53,6 +53,16 @@ class Router {
 	 * @var array Set of callbacks for filtering matched routes and their parameters
 	 */
 	protected $filters = array();
+	
+	/**
+	 * @var Symfony\Component\EventDispatcher\EventDispatcherInterface
+	 */
+	protected $eventDispatcher;
+	
+	/**
+	 * @var Darya\Service\Container
+	 */
+	protected $services;
 	
 	/**
 	 * @var callable Callable for handling dispatched requests that don't match a route
@@ -130,6 +140,25 @@ class Router {
 		$this->add($routes);
 		$this->defaults($defaults);
 		$this->filter(array($this, 'resolve'));
+	}
+	
+	/**
+	 * Set the optional event dispatcher for emitting routing events.
+	 * 
+	 * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
+	 */
+	public function setEventDispatcher(EventDispatcherInterface $dispatcher) {
+		$this->eventDispatcher = $dispatcher;
+	}
+	
+	/**
+	 * Set an optional service container for resolving the dependencies of
+	 * controllers and actions.
+	 * 
+	 * @param Darya\Service\Container $container
+	 */
+	public function setServiceContainer(Container $container) {
+		$this->services = $container;
 	}
 	
 	/**
@@ -471,7 +500,7 @@ class Router {
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
-	public function url($name, $parameters = array()) {
+	public function url($name, array $parameters = array()) {
 		return $this->base . $this->path($name, $parameters);
 	}
 	

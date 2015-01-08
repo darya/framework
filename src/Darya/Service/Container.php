@@ -82,11 +82,11 @@ class Container {
 	 * Determine whether the container has a service registered for the given
 	 * interface or alias.
 	 * 
-	 * @param string $key
+	 * @param string $abstract
 	 * @return bool
 	 */
-	public function has($key) {
-		return isset($this->aliases[$key]) || isset($this->services[$key]);
+	public function has($abstract) {
+		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]);
 	}
 	
 	/**
@@ -96,12 +96,13 @@ class Container {
 	 * 
 	 * Returns null if not found.
 	 * 
+	 * @param string $abstract
 	 * @return mixed
 	 */
-	public function get($key) {
-		$key = isset($this->aliases[$key]) ? $this->aliases[$key] : $key;
+	public function get($abstract) {
+		$abstract = isset($this->aliases[$abstract]) ? $this->aliases[$abstract] : $abstract;
 		
-		return isset($this->services[$key]) ? $this->services[$key] : null;
+		return isset($this->services[$abstract]) ? $this->services[$abstract] : null;
 	}
 	
 	/**

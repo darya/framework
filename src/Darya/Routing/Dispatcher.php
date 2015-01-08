@@ -22,7 +22,7 @@ class Dispatcher {
 	protected $router;
 	
 	/**
-	 * @var Darya\Routing\Container
+	 * @var Darya\Service\Container
 	 */
 	protected $services;
 	
