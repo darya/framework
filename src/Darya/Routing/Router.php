@@ -445,6 +445,10 @@ class Router {
 			$parameters = array_merge($route->defaults(), $parameters);
 		}
 		
+		if (isset($parameters['params']) && is_array($parameters['params'])) {
+			$parameters['params'] = implode('/', $parameters['params']);
+		}
+		
 		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
 			$parameter = trim($match[1], '?:');
 			
