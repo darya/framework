@@ -1,7 +1,8 @@
 <?php
 // Composer's autoloader
-if (is_file(__DIR__ . '/../../autoload.php'))
+if (is_file(__DIR__ . '/../../autoload.php')) {
 	include __DIR__ . '/../../autoload.php';
+}
 
 // Darya's autoloader
 include 'src/Darya/Common/Autoloader.php';

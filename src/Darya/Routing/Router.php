@@ -75,36 +75,6 @@ class Router {
 	}
 	
 	/**
-	 * Remove all non-numeric properties of a route's matched parameters.
-	 * Additionally split the matched "params" property by forward slashes.
-	 * 
-	 * @param array $matches Set of matches to prepare
-	 * @return array Set of parameters to pass to a matched action
-	 */
-	public static function prepareMatches($matches) {
-		$parameters = array();
-		
-		foreach ($matches as $key => $value) {
-			if (!is_numeric($key)) {
-				switch ($key) {
-					case 'params':
-						$pathParameters = explode('/', $value);
-						
-						foreach ($pathParameters as $pathParameter) {
-							$parameters[] = $pathParameter;
-						}
-						
-						break;
-					default:
-						$parameters[$key] = $value;
-				}
-			}
-		}
-		
-		return $parameters;
-	}
-	
-	/**
 	 * Prepares a controller name by CamelCasing the given value and appending
 	 * 'Controller', if the provided name does not already end as such. The
 	 * resulting string will start with an uppercase letter.
@@ -163,15 +133,27 @@ class Router {
 	}
 	
 	/**
-	 * Append unnamed routes to the router.
+	 * Add multiple routes to the router.
 	 * 
-	 * @param string|array   $routes   Path => defaults route definitions or a route path
-	 * @param callable|array $defaults Default parameters for the route if $routes is a route path
+	 * Example usage:
+	 *     $router->add(array(
+	 *       // Unnamed
+	 *         '/route-path' => 'Namespace\Controller',
+	 *       // Named
+	 *         'route-name'  => new Route('/route-path', 'Namespace\Controller')
+	 *     ));
+	 * 
+	 * @param string|array          $routes   Route definitions or a route path
+	 * @param callable|array|string $defaults Default parameters for the route if $routes is a route path
 	 */
 	public function add($routes, $defaults = null) {
 		if (is_array($routes)) {
 			foreach ($routes as $path => $defaults) {
-				$this->routes[] = new Route($path, $defaults);
+				if ($defaults instanceof Route) {
+					$this->routes[$path] = $defaults;
+				} else {
+					$this->routes[] = new Route($path, $defaults);
+				}
 			}
 		} else if ($defaults) {
 			$path = $routes;
@@ -180,7 +162,7 @@ class Router {
 	}
 	
 	/**
-	 * Append a named route to the router.
+	 * Add a single named route to the router.
 	 * 
 	 * @param string $name     Name that identifies the route
 	 * @param string $path     Path that matches the route
@@ -318,7 +300,7 @@ class Router {
 	/**
 	 * Match a request to a route.
 	 * 
-	 * Accepts an optional callback for filtering matched routes and their
+	 * Accepts an optional extra callback for filtering matched routes and their
 	 * parameters. This callback is executed after the router's filters.
 	 * 
 	 * @param Darya\Http\Request|string $request A request URI or a Request object to match
@@ -348,7 +330,7 @@ class Router {
 			
 			// Test for a match
 			if (preg_match($pattern, $uri, $matches)) {
-				$route->parameters(static::prepareMatches($matches));
+				$route->matches($matches);
 				
 				$matched = true;
 				
@@ -461,10 +443,6 @@ class Router {
 			$route = $this->routes[$name];
 			$path = $route->path();
 			$parameters = array_merge($route->defaults(), $parameters);
-		}
-		
-		if (isset($parameters['params']) && is_array($parameters['params'])) {
-			$parameters['params'] = implode('/', $parameters['params']);
 		}
 		
 		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {

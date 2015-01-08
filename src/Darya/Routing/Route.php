@@ -30,12 +30,69 @@ class Route {
 	/**
 	 * @var array Matched path parameters
 	 */
+	protected $matches = array();
+	
+	/**
+	 * @var array Matched path parameters prepared as controller arguments
+	 */
 	protected $parameters = array();
 	
 	/**
 	 * @var Darya\Routing\Router The router that matched this route
 	 */
 	public $router;
+	
+	/**
+	 * Prepare the given matches.
+	 * 
+	 * Removes all non-numeric properties of the given matches.
+	 * 
+	 * @param array $matches
+	 * @return array
+	 */
+	public static function prepareMatches($matches) {
+		$prepared = array();
+		
+		foreach ($matches as $key => $value) {
+			if (!is_numeric($key)) {
+				$prepared[$key] = $value;
+			}
+		}
+		
+		return $prepared;
+	}
+	
+	/**
+	 * Prepare the given matches as parameters
+	 * 
+	 * Splits the matched "params" property by forward slashes and appends these
+	 * to the parent array.
+	 * 
+	 * @param array $matches Set of matches to prepare
+	 * @return array Set of route parameters to pass to a matched action
+	 */
+	public static function prepareParameters($matches) {
+		$parameters = array();
+		
+		foreach ($matches as $key => $value) {
+			if (!is_numeric($key)) {
+				switch ($key) {
+					case 'params':
+						$pathParameters = explode('/', $value);
+						
+						foreach ($pathParameters as $pathParameter) {
+							$parameters[] = $pathParameter;
+						}
+						
+						break;
+					default:
+						$parameters[$key] = $value;
+				}
+			}
+		}
+		
+		return $parameters;
+	}
 	
 	/**
 	 * Instantiate a new route.
@@ -70,6 +127,8 @@ class Route {
 	
 	/**
 	 * Getter magic method for retrieving route parameters.
+	 * 
+	 * Tries defaults if the parameter is not set.
 	 * 
 	 * @param string $property
 	 * @return mixed
@@ -109,7 +168,34 @@ class Route {
 	}
 	
 	/**
-	 * Set route parameters using the given array.
+	 * Determine whether the route has been matched by a router.
+	 * 
+	 * @return bool
+	 */
+	public function matched() {
+		return !!$this->matches;
+	}
+	
+	/**
+	 * Set route matches and parameters using the given matches array.
+	 * 
+	 * This completely replaces any existing matches and parameters.
+	 * 
+	 * Returns the currently set matches.
+	 * 
+	 * @param array $matches
+	 * @return array
+	 */
+	public function matches(array $matches = array()) {
+		$this->matches = static::prepareMatches($matches);
+		
+		$this->parameters = static::prepareParameters($matches);
+		
+		return $this->matches;
+	}
+	
+	/**
+	 * Merge route parameters using the given array.
 	 * 
 	 * Returns the currently set parameters merged into defaults.
 	 * 
@@ -117,11 +203,7 @@ class Route {
 	 * @return array Route parameters
 	 */
 	public function parameters(array $parameters = array()) {
-		if (is_array($parameters)) {
-			foreach ($parameters as $key => $value) {
-				$this->parameters[$key] = $value;
-			}
-		}
+		$this->parameters = array_merge($this->parameters, $parameters);
 		
 		return array_merge($this->defaults, $this->parameters);
 	}
@@ -147,14 +229,11 @@ class Route {
 	/**
 	 * Retrieve the URL that the route was matched by.
 	 * 
-	 * TODO: Find a way to reverse a matched route's "params" (@see Router::path)
-	 *       Maybe move Router::prepareMatches logic to this class?
-	 * 
 	 * @return string
 	 */
 	public function url() {
 		if ($this->router) {
-			return $this->router->url($this->path, $this->parameters());
+			return $this->router->url($this->path, $this->matches);
 		}
 	}
 	
