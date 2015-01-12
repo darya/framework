@@ -176,8 +176,8 @@ class Router {
 	}
 	
 	/**
-	 * Helper function for invoking callables that is silent if the given
-	 * argument is not callable.
+	 * Helper function for invoking callables. Silent if the given argument is
+	 * not callable.
 	 * 
 	 * Resolves parameters using the service container if one is set.
 	 * 
@@ -192,6 +192,22 @@ class Router {
 			} else {
 				return call_user_func_array($callable, $parameters);
 			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Helper function for dispatching events. Silent if an event dispatcher is
+	 * not set.
+	 * 
+	 * @param string $name
+	 * @param mixed  $event [optional]
+	 * @return mixed
+	 */
+	protected function event($name, $event = null) {
+		if ($this->eventDispatcher) {
+			return $this->eventDispatcher->dispatch($name, $event);
 		}
 		
 		return null;
@@ -417,7 +433,7 @@ class Router {
 					$route->router = $this;
 					$request->router = $this;
 					$request->route = $route;
-					$this->eventDispatcher->dispatch('router.match');
+					$this->event('router.match');
 					return $route;
 				}
 			}
@@ -470,7 +486,7 @@ class Router {
 			$action = $route->action;
 			$arguments = $route->arguments();
 			
-			$this->eventDispatcher->dispatch('router.before');
+			$this->event('router.before');
 			
 			if ($route->action && is_callable($route->action)) {
 				$response = $this->call($action, $arguments);
@@ -488,15 +504,15 @@ class Router {
 				$response = $this->call(array($this->defaults['controller'], $this->defaults['action']), $arguments);
 			}
 			
-			$this->eventDispatcher->dispatch('router.after');
+			$this->event('router.after');
 			
 			$response = static::prepareResponse($response);
 			
 			if (!$response->redirected()) {
-				$this->eventDispatcher->dispatch('router.last');
+				$this->event('router.last');
 			}
 			
-			$response->addHeader('X-Location: ' . $this->router->base() . $request->server('PATH_INFO'));
+			$response->addHeader('X-Location: ' . $this->base() . $request->server('PATH_INFO'));
 			return $response;
 		}
 		
