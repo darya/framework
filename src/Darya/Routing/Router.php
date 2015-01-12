@@ -162,13 +162,15 @@ class Router {
 	}
 	
 	/**
-	 * Add multiple routes to the router.
+	 * Add routes to the router.
 	 * 
-	 * Example usage:
+	 * When passed as an array, $routes elements can consist of either:
+	 *   - Route path as the key, callable as the value
+	 *   - Route name as the key, Route instance as the value
+	 * 
+	 * An example using both:
 	 *     $router->add(array(
-	 *       // Unnamed
 	 *         '/route-path' => 'Namespace\Controller',
-	 *       // Named
 	 *         'route-name'  => new Route('/route-path', 'Namespace\Controller')
 	 *     ));
 	 * 
