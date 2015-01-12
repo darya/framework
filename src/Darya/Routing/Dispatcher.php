@@ -105,7 +105,7 @@ class Dispatcher {
 			}
 			
 			$action = $route->action;
-			$params = $route->pathParameters();
+			$params = $route->arguments();
 			
 			$this->call($controller, 'before', $params);
 			$response = $this->call($controller, $action, $params);

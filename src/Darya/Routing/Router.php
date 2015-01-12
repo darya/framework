@@ -91,7 +91,7 @@ class Router {
 	 * 
 	 * For example, 'super-swag' would become 'SuperSwagController'
 	 * 
-	 * @param $controller Route path parameter controller string
+	 * @param string $controller Route path parameter controller string
 	 * @return string Controller class name
 	 */
 	public static function prepareController($controller) {
@@ -104,7 +104,7 @@ class Router {
 	 * 
 	 * For example, 'super-swag' would become 'superSwag'
 	 * 
-	 * @param $controller URL controller name
+	 * @param string $controller URL controller name
 	 * @return string Controller class name
 	 */
 	public static function prepareAction($action) {
@@ -112,7 +112,7 @@ class Router {
 	}
 	
 	/**
-	 * Instantiates a new Request if the given argument is a string.
+	 * Instantiates a new request if the given argument is a string.
 	 *
 	 * @param Darya\Http\Request|string $request
 	 * @return Darya\Http\Request
@@ -123,6 +123,20 @@ class Router {
 		}
 		
 		return $request;
+	}
+	
+	/**
+	 * Prepare a response object using the given value.
+	 * 
+	 * @param mixed $response
+	 * @return Darya\Http\Response
+	 */
+	public static function prepareResponse($response) {
+		if (!($response instanceof Response)) {
+			$response = new Response($response);
+		}
+		
+		return $response;
 	}
 	
 	/**
@@ -159,6 +173,28 @@ class Router {
 	 */
 	public function setServiceContainer(Container $container) {
 		$this->services = $container;
+	}
+	
+	/**
+	 * Helper function for invoking callables that is silent if the given
+	 * argument is not callable.
+	 * 
+	 * Resolves parameters using the service container if one is set.
+	 * 
+	 * @param string $callable
+	 * @param array  $params
+	 * @return mixed
+	 */
+	protected function call($callable, $parameters = array()) {
+		if (is_callable($callable)) {
+			if ($this->services) {
+				return $this->services->call($callable, $parameters);
+			} else {
+				return call_user_func_array($callable, $parameters);
+			}
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -381,6 +417,7 @@ class Router {
 					$route->router = $this;
 					$request->router = $this;
 					$request->route = $route;
+					$this->eventDispatcher->dispatch('router.match');
 					return $route;
 				}
 			}
@@ -404,54 +441,87 @@ class Router {
 	 * Match a request to a route and dispatch the resolved callable.
 	 * 
 	 * If only a controller is available with the matched route, the router's
-	 * default action will be attempted.
+	 * default action will be attempted. If neither a controller nor action are
+	 * available, both defaults will be attempted.
 	 * 
 	 * An error handler can be set (@see Router::setErrorHandler) to handle the
 	 * request in the case that a route could not be matched, or the matched
 	 * route does not result in an action or controller-action combination that
 	 * is callable. Returns null in these cases if an error handler is not set.
 	 * 
-	 * @param Request|string $request
-	 * @param callable $callback [optional] Callback for filtering matched routes
-	 * @return mixed The return value of the called action or null if the request could not be dispatched
+	 * @param Darya\Http\Request|string $request
+	 * @param Darya\Http\Response       $response [optional]
+	 * @return Darya\Http\Response|null
 	 */
-	public function dispatch($request, $callback = null) {
+	public function dispatch($request, Response $response = null) {
 		$request = static::prepareRequest($request);
-		$route = $this->match($request, $callback);
+		$route = $this->match($request);
 		
 		if ($route) {
+			$controller = $route->controller;
+			
+			if ($this->services && !is_object($route->controller) && class_exists($route->controller)) {
+				$controller = $this->services->create($route->controller, array(
+					'request'  => $request,
+					'response' => $response ?: new Response
+				));
+			}
+			
+			$action = $route->action;
+			$arguments = $route->arguments();
+			
+			$this->eventDispatcher->dispatch('router.before');
+			
 			if ($route->action && is_callable($route->action)) {
-				return call_user_func_array($route->action, $route->pathParameters());
+				$response = $this->call($action, $arguments);
 			}
 			
-			if ($route->controller && $route->action && is_callable(array($route->controller, $route->action))) {
-				return call_user_func_array(array($route->controller, $route->action), $route->pathParameters());
+			if ($controller && $action && is_callable(array($controller, $action))) {
+				$response = $this->call(array($controller, $action), $arguments);
 			}
 			
-			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->defaults['action']))) {
-				return call_user_func_array(array($route->controller, $this->defaults['action']), $route->pathParameters());
+			if ($controller && !$action && is_callable(array($controller, $this->defaults['action']))) {
+				$response = $this->call(array($controller, $this->defaults['action']), $arguments);
 			}
+			
+			if (!$controller && !$action && is_callable(array($this->defaults['controller'], $this->defaults['action']))) {
+				$response = $this->call(array($this->defaults['controller'], $this->defaults['action']), $arguments);
+			}
+			
+			$this->eventDispatcher->dispatch('router.after');
+			
+			$response = static::prepareResponse($response);
+			
+			if (!$response->redirected()) {
+				$this->eventDispatcher->dispatch('router.last');
+			}
+			
+			$response->addHeader('X-Location: ' . $this->router->base() . $request->server('PATH_INFO'));
+			return $response;
 		}
 		
 		if ($this->errorHandler) {
 			$errorHandler = $this->errorHandler;
-			return $errorHandler($request);
+			return static::prepareResponse($this->call($errorHandler, array($request)));
 		}
 		
 		return null;
 	}
 	
 	/**
-	 * Dispatch a request, resolve a Response object from the result and send
+	 * Dispatch a request, resolve a response object from the result and send
 	 * the response to the client.
 	 * 
+	 * Optionally pass through an existing response object.
+	 * 
 	 * @param Darya\Http\Request|string $request
+	 * @param Darya\Http\Response       $response [optional]
 	 */
-	public function respond($request) {
-		$response = $this->dispatch(static::prepareRequest($request));
+	public function respond($request, Response $response = null) {
+		$response = $this->dispatch(static::prepareRequest($request), static::prepareResponse($response));
 		
 		if (!$response instanceof Response) {
-			$response = new Response($response);
+			$response = static::prepareResponse($response);
 		}
 		
 		$response->send();

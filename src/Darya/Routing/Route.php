@@ -142,7 +142,17 @@ class Route {
 			return $this->defaults[$property];
 		}
 	}
-
+	
+	/**
+	 * Get the currently set parameters, excluding those with reserved keys,
+	 * for use as action arguments.
+	 * 
+	 * @return array
+	 */
+	public function arguments() {
+		return array_diff_key($this->parameters(), array_flip($this->reserved));
+	}
+	
 	/**
 	 * Set default route parameters using the given array.
 	 * 
@@ -215,15 +225,6 @@ class Route {
 	 */
 	public function path() {
 		return $this->path;
-	}
-	
-	/**
-	 * Get the currently set parameters excluding those with reserved keys.
-	 * 
-	 * @return array
-	 */
-	public function pathParameters() {
-		return array_diff_key($this->parameters(), array_flip($this->reserved));
 	}
 	
 	/**
