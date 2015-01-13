@@ -6,7 +6,10 @@ use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
 use Darya\Service\Container;
+use Darya\Service\ContainerAwareInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Darya's request router.
@@ -419,21 +422,20 @@ class Router {
 				
 				// Test the route against all registered filters
 				foreach ($this->filters as $filter) {
-					if (!call_user_func_array($filter, array(&$route))){
+					if (!$this->call($filter, array(&$route))) {
 						$matched = false;
 					}
 				}
 				
 				// Test the route against the given callback filter if necessary
 				if ($matched && $callback && is_callable($callback)) {
-					$matched = call_user_func_array($callback, array(&$route));
+					$matched = $this->call($callback, array(&$route));
 				}
 				
 				if ($matched) {
 					$route->router = $this;
 					$request->router = $this;
 					$request->route = $route;
-					$this->event('router.match');
 					return $route;
 				}
 			}
@@ -456,9 +458,11 @@ class Router {
 	/**
 	 * Match a request to a route and dispatch the resolved callable.
 	 * 
-	 * If only a controller is available with the matched route, the router's
-	 * default action will be attempted. If neither a controller nor action are
-	 * available, both defaults will be attempted.
+	 * Attempts to resolve a callable in this order:
+	 *   - Action
+	 *   - Controller::action
+	 *   - Controller:defaultAction
+	 *   - DefaultController::defaultAction
 	 * 
 	 * An error handler can be set (@see Router::setErrorHandler) to handle the
 	 * request in the case that a route could not be matched, or the matched
@@ -470,17 +474,32 @@ class Router {
 	 * @return Darya\Http\Response|null
 	 */
 	public function dispatch($request, Response $response = null) {
-		$request = static::prepareRequest($request);
+		$request  = static::prepareRequest($request);
+		$response = static::prepareResponse($response);
+		
 		$route = $this->match($request);
 		
 		if ($route) {
 			$controller = $route->controller;
 			
-			if ($this->services && !is_object($route->controller) && class_exists($route->controller)) {
-				$controller = $this->services->create($route->controller, array(
-					'request'  => $request,
-					'response' => $response ?: new Response
-				));
+			// Instantiate the controller
+			if (!is_object($controller) && class_exists($controller)) {
+				if ($this->services) {
+					$controller = $this->services->create($controller, array(
+						'request'  => $request,
+						'response' => $response
+					));
+				} else {
+					$controller = new $controller($request, $response);
+				}
+			}
+			
+			if ($this->services && $controller instanceof ContainerAwareInterface) {
+				$controller->setServiceContainer($this->services);
+			}
+			
+			if ($this->eventDispatcher && $controller instanceof EventSubscriberInterface) {
+				$this->eventDispatcher->addSubscriber($controller);
 			}
 			
 			$action = $route->action;
@@ -499,7 +518,7 @@ class Router {
 			if ($controller && !$action && is_callable(array($controller, $this->defaults['action']))) {
 				$response = $this->call(array($controller, $this->defaults['action']), $arguments);
 			}
-			
+
 			if (!$controller && !$action && is_callable(array($this->defaults['controller'], $this->defaults['action']))) {
 				$response = $this->call(array($this->defaults['controller'], $this->defaults['action']), $arguments);
 			}
@@ -512,21 +531,26 @@ class Router {
 				$this->event('router.last');
 			}
 			
+			if ($this->eventDispatcher && $controller instanceof EventSubscriberInterface) {
+				$this->eventDispatcher->removeSubscriber($controller);
+			}
+			
 			$response->addHeader('X-Location: ' . $this->base() . $request->server('PATH_INFO'));
 			return $response;
+		} else {
+			$response->setStatus(404);
 		}
 		
 		if ($this->errorHandler) {
 			$errorHandler = $this->errorHandler;
-			return static::prepareResponse($this->call($errorHandler, array($request)));
+			return static::prepareResponse($this->call($errorHandler, array($request, $response)));
 		}
 		
-		return null;
+		return $response;
 	}
 	
 	/**
-	 * Dispatch a request, resolve a response object from the result and send
-	 * the response to the client.
+	 * Dispatch a request, resolving a response and send it to the client.
 	 * 
 	 * Optionally pass through an existing response object.
 	 * 
@@ -534,12 +558,7 @@ class Router {
 	 * @param Darya\Http\Response       $response [optional]
 	 */
 	public function respond($request, Response $response = null) {
-		$response = $this->dispatch(static::prepareRequest($request), static::prepareResponse($response));
-		
-		if (!$response instanceof Response) {
-			$response = static::prepareResponse($response);
-		}
-		
+		$response = $this->dispatch($request, $response);
 		$response->send();
 	}
 	

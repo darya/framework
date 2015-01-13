@@ -1,8 +1,8 @@
 <?php
 namespace Darya\Service;
 
-use Darya\Service\Container;
 use \Exception;
+use Darya\Service\Container;
 
 /**
  * Darya's service facade implementation, very similar to Laravel's approach.
