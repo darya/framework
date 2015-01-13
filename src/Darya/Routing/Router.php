@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router {
+class Router implements ContainerAwareInterface {
 	
 	/**
 	 * @var array Regular expression replacements for matching route paths to request URIs
@@ -261,7 +261,7 @@ class Router {
 	/**
 	 * Get or set the router's base URI.
 	 * 
-	 * @param string $url [optional]
+	 * @param string $uri [optional]
 	 * @return string
 	 */
 	public function base($uri = null) {
@@ -328,7 +328,7 @@ class Router {
 	 * 
 	 * Applies the router's defaults for these if one is not set.
 	 * 
-	 * This is a built in route filter that is automatically registered.
+	 * This is a built in route filter that is registered by default.
 	 * 
 	 * TODO: Also apply any other default parameters.
 	 * 
@@ -369,16 +369,6 @@ class Router {
 		} else if (!$route->action) { // Apply the router's default action when the route doesn't have one
 			$route->action = $this->defaults['action'];
 		}
-
-		// Debug
-		/*/echo Tools::dump(array(
-			$route->parameters(),
-			$route,
-			$route->controller,
-			$route->action,
-			class_exists($route->controller),
-			method_exists($route->controller, $route->action)
-		));/**/
 		
 		return true;
 	}
