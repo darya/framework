@@ -179,7 +179,7 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Helper function for invoking callables. Silent if the given argument is
+	 * Helper method for invoking callables. Silent if the given argument is
 	 * not callable.
 	 * 
 	 * Resolves parameters using the service container if one is set.
@@ -201,7 +201,7 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Helper function for dispatching events. Silent if an event dispatcher is
+	 * Helper method for dispatching events. Silent if an event dispatcher is
 	 * not set.
 	 * 
 	 * @param string $name
@@ -214,6 +214,38 @@ class Router implements ContainerAwareInterface {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Helper method for subscribing objects (controllers) to the router's event
+	 * dispatcher.
+	 * 
+	 * @param Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
+	 * @return bool
+	 */
+	protected function subscribe(EventSubscriberInterface $subscriber) {
+		if ($this->eventDispatcher && $subscriber instanceof EventSubscriberInterface) {
+			$this->eventDispatcher->addSubscriber($subscriber);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Helper method for unsubscribing objects (controllers) from the router's 
+	 * event dispatcher.
+	 * 
+	 * @param Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
+	 * @return bool
+	 */
+	protected function unsubscribe(EventSubscriberInterface $subscriber) {
+		if ($this->eventDispatcher && $subscriber instanceof EventSubscriberInterface) {
+			$this->eventDispatcher->removeSubscriber($subscriber);
+			return true;
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -335,7 +367,7 @@ class Router implements ContainerAwareInterface {
 	 * @param Darya\Routing\Route $route
 	 * @return bool
 	 */
-	protected function resolve(Route $route) {
+	public function resolve(Route $route) {
 		// Set the router's default namespace if necessary
 		if (!$route->namespace) {
 			$route->namespace = $this->defaults['namespace'];
@@ -471,6 +503,8 @@ class Router implements ContainerAwareInterface {
 		
 		if ($route) {
 			$controller = $route->controller;
+			$action     = $route->action;
+			$arguments  = $route->arguments();
 			
 			// Instantiate the controller
 			if (!is_object($controller) && class_exists($controller)) {
@@ -488,12 +522,7 @@ class Router implements ContainerAwareInterface {
 				$controller->setServiceContainer($this->services);
 			}
 			
-			if ($this->eventDispatcher && $controller instanceof EventSubscriberInterface) {
-				$this->eventDispatcher->addSubscriber($controller);
-			}
-			
-			$action = $route->action;
-			$arguments = $route->arguments();
+			$this->subscribe($controller);
 			
 			$this->event('router.before');
 			
@@ -521,9 +550,7 @@ class Router implements ContainerAwareInterface {
 				$this->event('router.last');
 			}
 			
-			if ($this->eventDispatcher && $controller instanceof EventSubscriberInterface) {
-				$this->eventDispatcher->removeSubscriber($controller);
-			}
+			$this->unsubscribe($controller);
 			
 			$response->addHeader('X-Location: ' . $this->base() . $request->server('PATH_INFO'));
 			return $response;

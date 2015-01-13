@@ -2,6 +2,7 @@
 namespace Darya\Service;
 
 use \ReflectionClass;
+use \ReflectionMethod;
 use \ReflectionFunction;
 use \ReflectionParameter;
 use Darya\Service\ContainerException;
@@ -171,13 +172,19 @@ class Container {
 	 * @param callable $callable
 	 * @param array    $arguments [optional]
 	 */
-	public function call(callable $callable, array $arguments = array()) {
-		$reflection = new ReflectionFunction($callable);
+	public function call($callable, array $arguments = array()) {
+		$method = is_array($callable) && count($callable) > 1 && method_exists($callable[0], $callable[1]);
+		
+		if ($method) {
+			$reflection = new ReflectionMethod($callable[0], $callable[1]);
+		} else {
+			$reflection = new ReflectionFunction($callable);
+		}
 		
 		$parameters = $reflection->getParameters();
 		$arguments = array_merge($this->resolveParameters($parameters), $arguments);
 		
-		return $reflection->invokeArgs($arguments);
+		return $method ? $reflection->invokeArgs($callable[0], $arguments) : $reflection->invokeArgs($arguments);
 	}
 	
 	/**
