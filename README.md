@@ -1,6 +1,6 @@
 # Darya Framework
 
-![Latest Darya Release](https://img.shields.io/github/tag/hexusio/darya-framework.svg?style=flat&label=release "Latest Darya Release")
+![Latest Darya Release](https://img.shields.io/github/release/hexusio/darya-framework.svg?style=flat "Latest Darya Release")
 
 Darya is a PHP framework for web application development.
 

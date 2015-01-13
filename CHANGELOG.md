@@ -10,7 +10,7 @@
 ## v0.4.0-dev - Jan 8, 2015
 - More expressive routing API
 - Implemented reverse routing (using named routes)
-- Various non-backwards-compatible API changes, hence the major version change
+- Various non-backwards-compatible API changes, hence the minor version change
 
 ## v0.3.0 - Nov 26, 2014
 - Readme files
