@@ -77,7 +77,7 @@ class Autoloader {
 	 */
 	public function registerNamespaces(array $namespaces = array()) {
 		foreach ($namespaces as $ns => $path) {
-			if (file_exists($this->basePath."/$path") || file_exists($path)) {
+			if (file_exists($this->basePath . "/$path") || file_exists($path)) {
 				$this->registeredNamespaces[$ns] = $path; 
 			}
 		}
@@ -151,9 +151,9 @@ class Autoloader {
 		
 		// Try using the namespace in lowercase as a directory mapping, with 
 		// only the class name in its original case
-		$dir_lowercase = strtolower($dir);
-		$file_lowercase = $this->basePath . "/$dir_lowercase/$className.php";
-		if ($this->attempt($file_lowercase)) {
+		$dirLowercase = strtolower($dir);
+		$fileLowercase = $this->basePath . "/$dirLowercase/$className.php";
+		if ($this->attempt($fileLowercase)) {
 			return true;
 		}
 		
@@ -161,7 +161,7 @@ class Autoloader {
 		// and without a trailing 's', as well as any common subdirectory names
 		$subdirs = array_merge($this->commonSubdirs, array(
 			$className,
-			$className.'s',
+			$className . 's',
 		));
 		
 		foreach($subdirs as $subdir) {
@@ -170,8 +170,8 @@ class Autoloader {
 				return true;
 			}
 			
-			$subdir_lowercase = strtolower($subdir);
-			$file = $this->basePath . "/$dir_lowercase/$subdir_lowercase/$className.php";
+			$subdirLowercase = strtolower($subdir);
+			$file = $this->basePath . "/$dirLowercase/$subdirLowercase/$className.php";
 			if ($this->attempt($file)) {
 				return true;
 			}
