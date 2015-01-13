@@ -14,11 +14,6 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 /**
  * Darya's request router.
  * 
- * TODO: Implement optional use of a service container to replace 
- *       call_user_func_array calls.
- * 
- * TODO: Event dispatcher...
- * 
  * TODO: Implement route groups.
  * 
  * @author Chris Andrew <chris.andrew>
