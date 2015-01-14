@@ -7,6 +7,20 @@ use Darya\Http\SessionInterface;
  * Darya's HTTP request representation.
  * 
  * TODO: Populate get variables if there is a query string in the given URI.
+ *       Also populate server 'PATHINFO'.
+ * 
+ * @property array $get
+ * @property array $post
+ * @property array $cookie
+ * @property array $file
+ * @property array $server
+ * @property array $header
+ * @method mixed get(string $key)
+ * @method mixed post(string $key)
+ * @method mixed cookie(string $key)
+ * @method mixed file(string $key)
+ * @method mixed server(string $key)
+ * @method mixed header(string $key)
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -35,15 +49,25 @@ class Request {
 	);
 	
 	/**
-	 * @var Darya\Http\SessionInterface
+	 * @var \Darya\Http\SessionInterface
 	 */
 	protected $session;
 	
 	/**
+	 * @var \Darya\Routing\Router Router that matched this request
+	 */
+	protected $router;
+	
+	/**
+	 * @var \Darya\Routing\Route Route that this request was matched with
+	 */
+	protected $route;
+	
+	/**
 	 * Create a new request using PHP's super globals.
 	 * 
-	 * @param Darya\Http\SessionInterface $session [optional]
-	 * @return Darya\Http\Request
+	 * @param \Darya\Http\SessionInterface $session [optional]
+	 * @return \Darya\Http\Request
 	 */
 	public static function createFromGlobals(SessionInterface $session = null) {
 		$uri = $_SERVER['REQUEST_URI'];
@@ -139,7 +163,7 @@ class Request {
 	}
 	
 	public function __get($property) {
-		return property_exists($this, $property) ? $this->$property : $this->getData($property);
+		return $this->getData($property);
 	}
 	
 	public function __call($method, $args) {
@@ -222,7 +246,7 @@ class Request {
 	/**
 	 * Retrieve the session interface for the Request.
 	 * 
-	 * @return Darya\Http\SessionInterface
+	 * @return \Darya\Http\SessionInterface
 	 */
 	public function getSession() {
 		return $this->session;
@@ -232,7 +256,7 @@ class Request {
 	 * Set the session interface for the Request. Starts the session if it
 	 * hasn't been already.
 	 * 
-	 * @param Darya\Http\SessionInterface $session
+	 * @param \Darya\Http\SessionInterface $session
 	 */
 	public function setSession(SessionInterface $session) {
 		if (!$session->started()) {
@@ -245,8 +269,8 @@ class Request {
 	/**
 	 * Add flash data with the given key to the session.
 	 * 
-	 * @param string $key Flash data key
-	 * @param string|array $value A single value or set of values to add
+	 * @param string       $key    Flash data key
+	 * @param string|array $values A single value or set of values to add
 	 * @return bool
 	 */
 	public function flash($key, $values) {
@@ -258,7 +282,7 @@ class Request {
 					$flash[$key][] = $value;
 				}
 			}
-
+			
 			$this->session->set('flash', $flash);
 			
 			return true;
@@ -282,7 +306,7 @@ class Request {
 		
 		if ($this->hasSession()) {
 			$flash = $this->session->get('flash');
-
+			
 			if ($key) {
 				if (isset($flash[$key])) {
 					$data = $flash[$key];
@@ -309,6 +333,7 @@ class Request {
 	public function postObjectData($key = null) {
 		$post = $this->post($key);
 		$data = array();
+		
 		if (is_array($post)) {
 			foreach ($post as $field => $keys) {
 				foreach ($keys as $key => $value) {
@@ -316,6 +341,7 @@ class Request {
 				}
 			}
 		}
+		
 		return $data;
 	}
 	

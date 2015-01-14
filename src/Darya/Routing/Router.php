@@ -53,12 +53,12 @@ class Router implements ContainerAwareInterface {
 	protected $filters = array();
 	
 	/**
-	 * @var Symfony\Component\EventDispatcher\EventDispatcherInterface
+	 * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
 	 */
 	protected $eventDispatcher;
 	
 	/**
-	 * @var Darya\Service\Container
+	 * @var \Darya\Service\Container
 	 */
 	protected $services;
 	
@@ -359,7 +359,7 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * TODO: Also apply any other default parameters.
 	 * 
-	 * @param Darya\Routing\Route $route
+	 * @param \Darya\Routing\Route $route
 	 * @return bool
 	 */
 	public function resolve(Route $route) {

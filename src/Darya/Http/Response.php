@@ -223,6 +223,7 @@ class Response {
 	 * Optionally adds the given headers to the response before sending.
 	 * 
 	 * @param array $headers
+	 * @return bool
 	 */
 	public function sendHeaders(array $headers = array()) {
 		if (!$this->headersSent && !headers_sent()) {
@@ -243,7 +244,11 @@ class Response {
 			}
 			
 			$this->headersSent = true;
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
 	/**
@@ -255,6 +260,7 @@ class Response {
 	 * Optionally sets the given response content before sending.
 	 * 
 	 * @param string $content
+	 * @return bool
 	 */
 	public function sendContent($content = null) {
 		if ($this->headersSent && !$this->contentSent && !$this->redirected) {
@@ -265,7 +271,11 @@ class Response {
 			echo $this->content;
 			
 			$this->contentSent = true;
+			
+			return true;
 		}
+		
+		return false;
 	}
 	
 	/**
