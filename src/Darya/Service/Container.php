@@ -18,7 +18,7 @@ use Darya\Service\ContainerException;
 class Container {
 	
 	/**
-	 * @var Darya\Service\Container Singleton instance of the service container
+	 * @var \Darya\Service\Container Singleton instance of the service container
 	 */
 	protected static $instance;
 	
@@ -35,7 +35,7 @@ class Container {
 	/**
 	 * Returns a singleton instance of the container.
 	 * 
-	 * @return Darya\Service\Container
+	 * @return \Darya\Service\Container
 	 */
 	public static function instance() {
 		if (is_null(static::$instance)) {
@@ -228,7 +228,7 @@ class Container {
 	/**
 	 * Attempt to resolve a reflection parameter from the container.
 	 * 
-	 * @param ReflectionParameter $parameter
+	 * @param \ReflectionParameter|null $parameter
 	 * @return mixed
 	 */
 	protected function resolveParameter(ReflectionParameter $parameter) {

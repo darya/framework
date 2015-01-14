@@ -112,7 +112,7 @@ class Response {
 	 * @param int $expire
 	 */
 	public function setCookie($key, $value, $expire, $path = '/') {
-		$this->cookies[$key] = array('value' => $value, 'expire' => $expire, 'path' => '/');
+		$this->cookies[$key] = compact('value', 'expire', 'path');
 	}
 	
 	/**

@@ -56,12 +56,12 @@ class Request {
 	/**
 	 * @var \Darya\Routing\Router Router that matched this request
 	 */
-	protected $router;
+	public $router;
 	
 	/**
 	 * @var \Darya\Routing\Route Route that this request was matched with
 	 */
-	protected $route;
+	public $route;
 	
 	/**
 	 * Create a new request using PHP's super globals.

@@ -5,41 +5,42 @@ use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Mvc\ViewInterface;
 use Darya\Service\Container;
+use Darya\Service\ContainerAwareInterface;
 
 /**
- * Darya's MVC controller.
+ * Darya's base functionality for MVC controllers.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Controller {
+abstract class Controller implements ContainerAwareInterface {
 	
 	/**
-	 * @var Darya\Http\Request
+	 * @var \Darya\Http\Request
 	 */
 	public $request;
 	
 	/**
-	 * @var Darya\Http\Response
+	 * @var \Darya\Http\Response
 	 */
 	public $response;
 	
 	/**
-	 * @var Darya\Service\Container;
+	 * @var \Darya\Service\Container;
 	 */
 	public $services;
 	
 	/**
-	 * @var Darya\Mvc\ViewInterface
+	 * @var \Darya\Mvc\ViewInterface
 	 */
 	public $template;
 	
 	/**
 	 * Instantiate a controller.
 	 * 
-	 * @param Darya\Core\Models\Request  $request
-	 * @param Darya\Core\Models\Response $response
-	 * @param Darya\Mvc\ViewInterface    $template [optional]
-	 * @param Darya\Service\Container  $services [optional]
+	 * @param \Darya\Http\Request      $request
+	 * @param \Darya\Http\Response     $response
+	 * @param \Darya\Mvc\ViewInterface $template [optional]
+	 * @param \Darya\Service\Container $services [optional]
 	 */
 	public function __construct(Request $request, Response $response, ViewInterface $template = null, Container $services = null) {
 		$this->request = $request;
@@ -48,6 +49,11 @@ abstract class Controller {
 		$this->services = $services;
 	}
 	
+	/**
+	 * Set the controller's service container.
+	 * 
+	 * @param \Darya\Service\Container $services
+	 */
 	public function setServiceContainer(Container $services) {
 		$this->services = $services;
 	}

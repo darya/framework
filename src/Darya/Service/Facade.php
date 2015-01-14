@@ -12,9 +12,9 @@ use Darya\Service\Container;
 abstract class Facade {
 	
 	/**
-	 * @var Darya\Service\Container
+	 * @var \Darya\Service\Container
 	 */
-	protected static $serviceContainer = null;
+	protected static $serviceContainer;
 	
 	public static function setServiceContainer(Container $container){
 		static::$serviceContainer = $container;
@@ -22,7 +22,7 @@ abstract class Facade {
 	
 	public static function getServiceName(){
 		$class = get_class(new static);
-		throw new Exception('Facade "$class" does not implement getServiceName()');
+		throw new Exception('Facade "' . $class . '" does not implement getServiceName()');
 	}
 	
 	public static function __callStatic($method, $parameters){

@@ -95,7 +95,7 @@ class SmartyView extends View {
 	 */
 	public function js($file) {
 		if ($file) {
-			array_push($this->template['js'], $file);
+			array_push($this->vars['template']['js'], $file);
 		}
 	}
 	
@@ -106,7 +106,7 @@ class SmartyView extends View {
 	 */
 	public function css($file) {
 		if ($file) {
-			array_push($this->template['css'], $file);
+			array_push($this->vars['template']['css'], $file);
 		}
 	}
 	

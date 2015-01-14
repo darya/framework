@@ -27,9 +27,9 @@ class Autoloader {
 	 * Instantiate an autoloader.
 	 * 
 	 * @param string $basePath   Base directory path to load from
-	 * @param string $namespaces Namespace to directory mappings to register with the autoloader
+	 * @param array  $namespaces Namespace to directory mappings to register with the autoloader
 	 */
-	public function __construct($basePath = null, $namespaces = array()) {
+	public function __construct($basePath = null, array $namespaces = array()) {
 		$this->setBasePath($basePath);
 		$this->registerNamespaces($namespaces);
 	}
@@ -47,7 +47,7 @@ class Autoloader {
 	/**
 	 * Set the base directory to load from.
 	 * 
-	 * @param string $basepath
+	 * @param string $basePath
 	 */
 	public function setBasePath($basePath = null) {
 		$this->basePath = $basePath ?: realpath(__DIR__.'/../../');

@@ -1,8 +1,10 @@
 <?php
 namespace Darya\Mvc;
 
+use Darya\Mvc\ViewResolver;
+
 /**
- * Base functionality for Views.
+ * Darya's base functionality for MVC views.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -24,12 +26,12 @@ abstract class View implements ViewInterface {
 	protected static $shared = array();
 	
 	/**
-	 * @var ViewResolver Shared resolver for selecting template files
+	 * @var \Darya\Mvc\ViewResolver Shared resolver for selecting template files
 	 */
 	protected static $sharedResolver;
 	
 	/**
-	 * @var ViewResolver Instance resolver for selecting template files
+	 * @var \Darya\Mvc\ViewResolver Instance resolver for selecting template files
 	 */
 	protected $resolver;
 	
@@ -44,7 +46,7 @@ abstract class View implements ViewInterface {
 	protected $dir;
 	
 	/**
-	 * @var Filename of the view template
+	 * @var string Filename of the view template
 	 */
 	protected $file;
 	
@@ -73,7 +75,7 @@ abstract class View implements ViewInterface {
 	public function registerExtensions($extensions) {
 		$newExtensions = array();
 		
-		foreach ((array)$extensions as $extension) {
+		foreach ((array) $extensions as $extension) {
 			$extension = '.' . ltrim(trim($extension), '.');
 			$newExtensions[] = $extension;
 		}
@@ -90,33 +92,38 @@ abstract class View implements ViewInterface {
 	 */
 	public function __construct($file = null, $vars = array(), $config = array()) {
 		if ($file) {
-		    $this->select($file, $vars, $config);
+			$this->select($file, $vars, $config);
 		} else {
-		    $this->setConfig($config);
-		    $this->assign($vars);
+			$this->setConfig($config);
+			$this->assign($vars);
 		}
 	}
 	
+	/**
+	 * Evaluate the template as a string by rendering it.
+	 * 
+	 * @return string
+	 */
 	public function __toString() {
-	    return $this->render();
+		return $this->render();
 	}
 
 	/**
 	 * Sets a ViewResolver for all views.
 	 * 
-	 * @param Darya\Core\ViewResolver $resolver
+	 * @param \Darya\Mvc\ViewResolver $resolver
 	 */
 	public static function setSharedResolver(ViewResolver $resolver) {
-	    static::$sharedResolver = $resolver;
+		static::$sharedResolver = $resolver;
 	}
 	
 	/**
 	 * Sets a ViewResolver for this view.
 	 * 
-	 * @param Darya\Core\ViewResolver $resolver
+	 * @param \Darya\Mvc\ViewResolver $resolver
 	 */
 	public function setResolver(ViewResolver $resolver) {
-	    $this->resolver = $resolver;
+		$this->resolver = $resolver;
 	}
 
 	/**
@@ -128,7 +135,7 @@ abstract class View implements ViewInterface {
 	 */
 	public function select($file, $vars = array(), $config = array()) {
 		if ($config) {
-		    $this->setConfig($config);
+			$this->setConfig($config);
 		}
 		
 		if ($vars) {
