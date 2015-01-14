@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Service;
 
+use \Closure;
 use \ReflectionClass;
 use \ReflectionMethod;
 use \ReflectionFunction;
@@ -171,6 +172,7 @@ class Container {
 	 * 
 	 * @param callable $callable
 	 * @param array    $arguments [optional]
+	 * @return mixed
 	 */
 	public function call($callable, array $arguments = array()) {
 		$method = is_array($callable) && count($callable) > 1 && method_exists($callable[0], $callable[1]);
@@ -193,6 +195,7 @@ class Container {
 	 * 
 	 * @param callable $class
 	 * @param array    $arguments [optional]
+	 * @return object
 	 */
 	public function create($class, array $arguments = array()) {
 		$reflection = new ReflectionClass($class);

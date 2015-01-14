@@ -406,9 +406,9 @@ class Router implements ContainerAwareInterface {
 	 * Accepts an optional extra callback for filtering matched routes and their
 	 * parameters. This callback is executed after the router's filters.
 	 * 
-	 * @param Darya\Http\Request|string $request A request URI or a Request object to match
+	 * @param \Darya\Http\Request|string $request A request URI or a Request object to match
 	 * @param callable $callback [optional] Callback for filtering matched routes
-	 * @return Darya\Routing\Route|bool The matched route
+	 * @return \Darya\Routing\Route|bool The matched route
 	 */
 	public function match($request, $callback = null) {
 		$request = static::prepareRequest($request);

@@ -6,7 +6,7 @@ namespace Darya\Routing;
  * 
  * @property string $namespace  Matched namespace
  * @property string $controller Matched controller
- * @property callable|string $action Matched action (callable or controller method)
+ * @property string|callable $action Matched action (callable or controller method)
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -38,7 +38,7 @@ class Route {
 	protected $parameters = array();
 	
 	/**
-	 * @var Darya\Routing\Router The router that matched this route
+	 * @var \Darya\Routing\Router The router that matched this route
 	 */
 	public $router;
 	
