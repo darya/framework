@@ -102,8 +102,8 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * For example, 'super-swag' would become 'superSwag'
 	 * 
-	 * @param string $controller URL controller name
-	 * @return string Controller class name
+	 * @param string $action URL action name
+	 * @return string Action method name
 	 */
 	public static function prepareAction($action) {
 		return lcfirst(Tools::delimToCamel($action));
@@ -112,8 +112,8 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Instantiates a new request if the given argument is a string.
 	 *
-	 * @param Darya\Http\Request|string $request
-	 * @return Darya\Http\Request
+	 * @param \Darya\Http\Request|string $request
+	 * @return \Darya\Http\Request
 	 */
 	public static function prepareRequest($request) {
 		if (!($request instanceof Request) && is_string($request)) {
@@ -127,7 +127,7 @@ class Router implements ContainerAwareInterface {
 	 * Prepare a response object using the given value.
 	 * 
 	 * @param mixed $response
-	 * @return Darya\Http\Response
+	 * @return \Darya\Http\Response
 	 */
 	public static function prepareResponse($response) {
 		if (!($response instanceof Response)) {
@@ -157,7 +157,7 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 * 
-	 * @param Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
+	 * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
 	 */
 	public function setEventDispatcher(EventDispatcherInterface $dispatcher) {
 		$this->eventDispatcher = $dispatcher;
@@ -167,7 +167,7 @@ class Router implements ContainerAwareInterface {
 	 * Set an optional service container for resolving the dependencies of
 	 * controllers and actions.
 	 * 
-	 * @param Darya\Service\Container $container
+	 * @param \Darya\Service\Container $container
 	 */
 	public function setServiceContainer(Container $container) {
 		$this->services = $container;
@@ -179,11 +179,11 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * Resolves parameters using the service container if one is set.
 	 * 
-	 * @param string $callable
-	 * @param array  $params
+	 * @param array|string $callable
+	 * @param array        $parameters [optional]
 	 * @return mixed
 	 */
-	protected function call($callable, $parameters = array()) {
+	protected function call($callable, array $parameters = array()) {
 		if (is_callable($callable)) {
 			if ($this->services) {
 				return $this->services->call($callable, $parameters);
@@ -215,7 +215,7 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for subscribing objects (controllers) to the router's event
 	 * dispatcher.
 	 * 
-	 * @param Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
+	 * @param \Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
 	 * @return bool
 	 */
 	protected function subscribe(EventSubscriberInterface $subscriber) {
@@ -231,7 +231,7 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for unsubscribing objects (controllers) from the router's 
 	 * event dispatcher.
 	 * 
-	 * @param Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
+	 * @param \Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
 	 * @return bool
 	 */
 	protected function unsubscribe(EventSubscriberInterface $subscriber) {
@@ -408,7 +408,7 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * @param Darya\Http\Request|string $request A request URI or a Request object to match
 	 * @param callable $callback [optional] Callback for filtering matched routes
-	 * @return Darya\Routing\Route The matched route
+	 * @return Darya\Routing\Route|bool The matched route
 	 */
 	public function match($request, $callback = null) {
 		$request = static::prepareRequest($request);
