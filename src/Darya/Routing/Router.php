@@ -440,8 +440,8 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	public function resolve(Route $route) {
-		$route = $this->resolveRouteController($route);
-		$route = $this->resolveRouteAction($route);
+		$this->resolveRouteController($route);
+		$this->resolveRouteAction($route);
 		return true;
 	}
 	
