@@ -180,8 +180,8 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * Resolves parameters using the service container if available.
 	 * 
-	 * @param array|string $callable
-	 * @param array        $parameters [optional]
+	 * @param mixed $callable
+	 * @param array $arguments [optional]
 	 * @return mixed
 	 */
 	protected function call($callable, array $arguments = array()) {
