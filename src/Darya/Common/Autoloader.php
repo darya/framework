@@ -4,6 +4,8 @@ namespace Darya\Common;
 /**
  * Darya's class autoloader.
  * 
+ * TODO: Simplify Autoloader::load.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Autoloader {
@@ -64,9 +66,11 @@ class Autoloader {
 	
 	/**
 	 * Register this autoloader.
+	 * 
+	 * @return bool
 	 */
 	public function register() {
-		spl_autoload_register(array($this, 'load'));
+		return spl_autoload_register(array($this, 'load'));
 	}
 	
 	/**
@@ -100,6 +104,7 @@ class Autoloader {
 
 	/**
 	 * Load a class assuming the namespace is a path.
+	 * 
 	 * Checks common subdirectory names as a last resort if nothing is found.
 	 * 
 	 * @param string $class Class name

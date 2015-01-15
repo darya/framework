@@ -116,7 +116,7 @@ class Router implements ContainerAwareInterface {
 	 * @return \Darya\Http\Request
 	 */
 	public static function prepareRequest($request) {
-		if (!($request instanceof Request) && is_string($request)) {
+		if (!$request instanceof Request && is_string($request)) {
 			$request = new Request($request);
 		}
 		
@@ -130,7 +130,7 @@ class Router implements ContainerAwareInterface {
 	 * @return \Darya\Http\Response
 	 */
 	public static function prepareResponse($response) {
-		if (!($response instanceof Response)) {
+		if (!$response instanceof Response) {
 			$response = new Response($response);
 		}
 		
@@ -350,8 +350,83 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Resolves a matched route's path parameters by finding existing
-	 * controllers and actions.
+	 * Attempt to resolve a matched route's controller class.
+	 * 
+	 * Falls back to the router's default controller.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return string|null Controller name
+	 */
+	protected function resolveRouteController(Route $route) {
+		if (!$route->namespace) {
+			$route->namespace = $this->defaults['namespace'];
+		}
+		
+		if (!empty($route->controller)) {
+			$controller = static::prepareController($route->controller);
+			
+			if ($route->namespace) {
+				$controller = $route->namespace . '\\' . $controller;
+			}
+			
+			if (class_exists($controller)) {
+				return $controller;
+			}
+		} else if (!$route->controller) { // Apply the router's default controller when the route doesn't have one
+			$namespace = !empty($route->namespace) ? $route->namespace . '\\' : '';
+			return $namespace . $this->defaults['controller'];
+		}
+		
+		return $route->controller;
+	}
+	
+	/**
+	 * Attempt to resolve a matched route's action method.
+	 * 
+	 * Falls back to the router's default action.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return string|callable|null Action method or callable
+	 */
+	protected function resolveRouteAction(Route $route) {
+		if (!empty($route->action)) {
+			$action = static::prepareAction($route->action);
+			
+			if (method_exists($route->controller, $action)) {
+				return $action;
+			} else if(method_exists($route->controller, $action . 'Action')) {
+				return $action . 'Action';
+			}
+		} else if (!$route->action) { // Apply the router's default action when the route doesn't have one
+			return $this->defaults['action'];
+		}
+		
+		return $route->action;
+	}
+	
+	/**
+	 * Instantiate the given controller if it isn't already an object.
+	 * 
+	 * @param mixed $controller
+	 * @return object
+	 */
+	protected function createController($controller) {
+		if (!is_object($controller) && class_exists($controller)) {
+			if ($this->services) {
+				$controller = $this->services->create($controller, array(
+					'request'  => $request,
+					'response' => $response
+				));
+			} else {
+				$controller = new $controller($request, $response);
+			}
+		}
+		
+		return $controller;
+	}
+	
+	/**
+	 * Resolve a matched route's controller and action.
 	 * 
 	 * Applies the router's defaults for these if one is not set.
 	 * 
@@ -363,40 +438,8 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	public function resolve(Route $route) {
-		// Set the router's default namespace if necessary
-		if (!$route->namespace) {
-			$route->namespace = $this->defaults['namespace'];
-		}
-		
-		// Match an existing controller
-		if (!empty($route->controller)) {
-			$controller = static::prepareController($route->controller);
-			
-			if ($route->namespace) {
-				$controller = $route->namespace . '\\' . $controller;
-			}
-			
-			if (class_exists($controller)) {
-				$route->controller = $controller;
-			}
-		} else if (!$route->controller) { // Apply the router's default controller when the route doesn't have one
-			$namespace = !empty($route->namespace) ? $route->namespace . '\\' : '';
-			$route->controller = $namespace . $this->defaults['controller'];
-		}
-		
-		// Match an existing action
-		if (!empty($route->action)) {
-			$action = static::prepareAction($route->action);
-			
-			if (method_exists($route->controller, $action)) {
-				$route->action = $action;
-			} else if(method_exists($route->controller, $action . 'Action')) {
-				$route->action = $action . 'Action';
-			}
-		} else if (!$route->action) { // Apply the router's default action when the route doesn't have one
-			$route->action = $this->defaults['action'];
-		}
-		
+		$route->controller = $this->resolveRouteController($route);
+		$route->action = $this->resolveRouteAction($route);
 		return true;
 	}
 	
@@ -475,12 +518,6 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Match a request to a route and dispatch the resolved callable.
 	 * 
-	 * Attempts to resolve a callable in this order:
-	 *   - Action
-	 *   - Controller::action
-	 *   - Controller:defaultAction
-	 *   - DefaultController::defaultAction
-	 * 
 	 * An error handler can be set (@see Router::setErrorHandler) to handle the
 	 * request in the case that a route could not be matched, or the matched
 	 * route does not result in an action or controller-action combination that
@@ -497,21 +534,9 @@ class Router implements ContainerAwareInterface {
 		$route = $this->match($request);
 		
 		if ($route) {
-			$controller = $route->controller;
+			$controller = $this->createController($route->controller);
 			$action     = $route->action;
 			$arguments  = $route->arguments();
-			
-			// Instantiate the controller
-			if (!is_object($controller) && class_exists($controller)) {
-				if ($this->services) {
-					$controller = $this->services->create($controller, array(
-						'request'  => $request,
-						'response' => $response
-					));
-				} else {
-					$controller = new $controller($request, $response);
-				}
-			}
 			
 			if ($this->services && $controller instanceof ContainerAwareInterface) {
 				$controller->setServiceContainer($this->services);
@@ -521,20 +546,10 @@ class Router implements ContainerAwareInterface {
 			
 			$this->event('router.before');
 			
-			if ($route->action && is_callable($route->action)) {
-				$response = $this->call($action, $arguments);
-			}
-			
-			if ($controller && $action && is_callable(array($controller, $action))) {
+			if ($controller && is_callable(array($controller, $action))) {
 				$response = $this->call(array($controller, $action), $arguments);
-			}
-			
-			if ($controller && !$action && is_callable(array($controller, $this->defaults['action']))) {
-				$response = $this->call(array($controller, $this->defaults['action']), $arguments);
-			}
-
-			if (!$controller && !$action && is_callable(array($this->defaults['controller'], $this->defaults['action']))) {
-				$response = $this->call(array($this->defaults['controller'], $this->defaults['action']), $arguments);
+			} else if (is_callable($action)) {
+				$response = $this->call($action, $arguments);
 			}
 			
 			$this->event('router.after');
