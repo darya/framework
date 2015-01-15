@@ -413,6 +413,10 @@ class Router implements ContainerAwareInterface {
 	 */
 	protected function resolveRouteAction(Route $route) {
 		if ($route->action) {
+			if (!is_string($route->action)) {
+				return $route;
+			}
+			
 			$action = static::prepareAction($route->action);
 			
 			if (method_exists($route->controller, $action)) {
