@@ -39,23 +39,23 @@ abstract class Controller implements ContainerAwareInterface {
 	 * 
 	 * @param \Darya\Http\Request      $request
 	 * @param \Darya\Http\Response     $response
-	 * @param \Darya\Mvc\ViewInterface $template [optional]
-	 * @param \Darya\Service\Container $services [optional]
 	 */
-	public function __construct(Request $request, Response $response, ViewInterface $template = null, Container $services = null) {
+	public function __construct(Request $request, Response $response) {
 		$this->request = $request;
 		$this->response = $response;
-		$this->template = $template;
-		$this->services = $services;
 	}
 	
 	/**
-	 * Set the controller's service container.
+	 * Set the controller's service container and instantiate an empty view.
 	 * 
 	 * @param \Darya\Service\Container $services
 	 */
 	public function setServiceContainer(Container $services) {
 		$this->services = $services;
+		
+		if ($this->services->has('Darya\Mvc\ViewResolver')) {
+			$this->template = $this->services->resolve('Darya\Mvc\ViewResolver')->create();
+		}
 	}
 	
 }

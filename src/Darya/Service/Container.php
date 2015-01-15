@@ -137,7 +137,7 @@ class Container {
 	 * 
 	 * @param array $services interfaces => concretes or aliases => interfaces
 	 */
-	public function register(array $services) {
+	public function register(array $services = array()) {
 		foreach ($services as $key => $value) {
 			if (is_string($value) && isset($this->services[$value])) {
 				$this->alias($key, $value);

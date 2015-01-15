@@ -564,6 +564,11 @@ class Router implements ContainerAwareInterface {
 			
 			if (!$response->redirected()) {
 				$this->event('router.last');
+				
+				// TODO: Eradicate the need for this statement.
+				if (!$response->hasContent()) {
+					$response = static::prepareRespone($controller->template);
+				}
 			}
 			
 			$this->unsubscribe($controller);
