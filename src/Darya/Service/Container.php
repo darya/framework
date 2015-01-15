@@ -184,7 +184,7 @@ class Container {
 		}
 		
 		$parameters = $reflection->getParameters();
-		$arguments = array_merge($this->resolveParameters($parameters), $arguments);
+		$arguments = array_map('is_numeric', array_keys($arguments)) ? $arguments : array_merge($this->resolveParameters($parameters), $arguments);
 		
 		return $method ? $reflection->invokeArgs($callable[0], $arguments) : $reflection->invokeArgs($arguments);
 	}

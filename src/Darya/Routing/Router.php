@@ -385,7 +385,7 @@ class Router implements ContainerAwareInterface {
 			$route->namespace = $this->defaults['namespace'];
 		}
 		
-		if (!empty($route->controller)) {
+		if ($route->controller) {
 			$controller = static::prepareController($route->controller);
 			
 			if ($route->namespace) {
@@ -393,14 +393,14 @@ class Router implements ContainerAwareInterface {
 			}
 			
 			if (class_exists($controller)) {
-				return $controller;
+				$route->controller = $controller;
 			}
-		} else if (!$route->controller) { // Apply the router's default controller when the route doesn't have one
-			$namespace = !empty($route->namespace) ? $route->namespace . '\\' : '';
-			return $namespace . $this->defaults['controller'];
+		} else {
+			$namespace = $route->namespace ? $route->namespace . '\\' : '';
+			$route->controller = $namespace . $this->defaults['controller'];
 		}
 		
-		return $route->controller;
+		return $route;
 	}
 	
 	/**
@@ -412,19 +412,19 @@ class Router implements ContainerAwareInterface {
 	 * @return string|callable|null Action method or callable
 	 */
 	protected function resolveRouteAction(Route $route) {
-		if (!empty($route->action)) {
+		if ($route->action) {
 			$action = static::prepareAction($route->action);
 			
 			if (method_exists($route->controller, $action)) {
-				return $action;
+				$route->action = $action;
 			} else if(method_exists($route->controller, $action . 'Action')) {
-				return $action . 'Action';
+				$route->action = $action . 'Action';
 			}
-		} else if (!$route->action) { // Apply the router's default action when the route doesn't have one
-			return $this->defaults['action'];
+		} else {
+			$route->action = $this->defaults['action'];
 		}
 		
-		return $route->action;
+		return $route;
 	}
 	
 	/**
@@ -440,8 +440,8 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	public function resolve(Route $route) {
-		$route->controller = $this->resolveRouteController($route);
-		$route->action = $this->resolveRouteAction($route);
+		$route = $this->resolveRouteController($route);
+		$route = $this->resolveRouteAction($route);
 		return true;
 	}
 	
@@ -460,10 +460,9 @@ class Router implements ContainerAwareInterface {
 		
 		$uri = $request->uri();
 		
-		// Remove base URL
+		// Strip base URI and query string
 		$uri = substr($uri, strlen($this->base));
 		
-		// Strip query string
 		if (strpos($uri, '?') > 0) {
 			$uri = strstr($uri, '?', true);
 		}
@@ -525,9 +524,9 @@ class Router implements ContainerAwareInterface {
 	 * route does not result in an action or controller-action combination that
 	 * is callable. Returns null in these cases if an error handler is not set.
 	 * 
-	 * @param Darya\Http\Request|string $request
-	 * @param Darya\Http\Response       $response [optional]
-	 * @return Darya\Http\Response|null
+	 * @param \Darya\Http\Request|string $request
+	 * @param \Darya\Http\Response       $response [optional]
+	 * @return \Darya\Http\Response
 	 */
 	public function dispatch($request, Response $response = null) {
 		$request  = static::prepareRequest($request);
