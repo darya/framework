@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Routing;
 
+use ReflectionClass;
 use Darya\Common\Tools;
 use Darya\Http\Request;
 use Darya\Http\Response;
@@ -177,22 +178,44 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for invoking callables. Silent if the given argument is
 	 * not callable.
 	 * 
-	 * Resolves parameters using the service container if one is set.
+	 * Resolves parameters using the service container if available.
 	 * 
 	 * @param array|string $callable
 	 * @param array        $parameters [optional]
 	 * @return mixed
 	 */
-	protected function call($callable, array $parameters = array()) {
+	protected function call($callable, array $arguments = array()) {
 		if (is_callable($callable)) {
 			if ($this->services) {
-				return $this->services->call($callable, $parameters);
+				return $this->services->call($callable, $arguments);
 			} else {
-				return call_user_func_array($callable, $parameters);
+				return call_user_func_array($callable, $arguments);
 			}
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Helper method for instantiating classes.
+	 * 
+	 * Instantiates the given class if it isn't already an object.
+	 * 
+	 * @param mixed $class
+	 * @param array $arguments [optional]
+	 * @return object
+	 */
+	protected function create($class, $arguments) {
+		if (!is_object($class) && class_exists($class)) {
+			if ($this->services) {
+				$class = $this->services->create($class, $arguments);
+			} else {
+				$reflection = new ReflectionClass($class);
+				$class = $reflection->newInstanceArgs($arguments);
+			}
+		}
+		
+		return $class;
 	}
 	
 	/**
@@ -215,10 +238,10 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for subscribing objects (controllers) to the router's event
 	 * dispatcher.
 	 * 
-	 * @param \Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
+	 * @param object $subscriber
 	 * @return bool
 	 */
-	protected function subscribe(EventSubscriberInterface $subscriber) {
+	protected function subscribe($subscriber) {
 		if ($this->eventDispatcher && $subscriber instanceof EventSubscriberInterface) {
 			$this->eventDispatcher->addSubscriber($subscriber);
 			return true;
@@ -231,10 +254,10 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for unsubscribing objects (controllers) from the router's 
 	 * event dispatcher.
 	 * 
-	 * @param \Symfony\Component\EventDispatcher\EventSubscriberInterface $subscriber
+	 * @param object $subscriber
 	 * @return bool
 	 */
-	protected function unsubscribe(EventSubscriberInterface $subscriber) {
+	protected function unsubscribe($subscriber) {
 		if ($this->eventDispatcher && $subscriber instanceof EventSubscriberInterface) {
 			$this->eventDispatcher->removeSubscriber($subscriber);
 			return true;
@@ -405,27 +428,6 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Instantiate the given controller if it isn't already an object.
-	 * 
-	 * @param mixed $controller
-	 * @return object
-	 */
-	protected function createController($controller) {
-		if (!is_object($controller) && class_exists($controller)) {
-			if ($this->services) {
-				$controller = $this->services->create($controller, array(
-					'request'  => $request,
-					'response' => $response
-				));
-			} else {
-				$controller = new $controller($request, $response);
-			}
-		}
-		
-		return $controller;
-	}
-	
-	/**
 	 * Resolve a matched route's controller and action.
 	 * 
 	 * Applies the router's defaults for these if one is not set.
@@ -534,7 +536,12 @@ class Router implements ContainerAwareInterface {
 		$route = $this->match($request);
 		
 		if ($route) {
-			$controller = $this->createController($route->controller);
+			$controllerArguments = array(
+				'request'  => $request,
+				'response' => $response
+			);
+			
+			$controller = $this->create($route->controller, $controllerArguments);
 			$action     = $route->action;
 			$arguments  = $route->arguments();
 			
