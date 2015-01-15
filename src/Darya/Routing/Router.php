@@ -567,7 +567,7 @@ class Router implements ContainerAwareInterface {
 				
 				// TODO: Eradicate the need for this statement.
 				if (!$response->hasContent()) {
-					$response = static::prepareRespone($controller->template);
+					$response = static::prepareResponse($controller->template);
 				}
 			}
 			
