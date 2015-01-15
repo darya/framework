@@ -378,7 +378,7 @@ class Router implements ContainerAwareInterface {
 	 * Falls back to the router's default controller.
 	 * 
 	 * @param \Darya\Routing\Route $route
-	 * @return string|null Controller name
+	 * @return \Darya\Routing\Route
 	 */
 	protected function resolveRouteController(Route $route) {
 		if (!$route->namespace) {
@@ -409,7 +409,7 @@ class Router implements ContainerAwareInterface {
 	 * Falls back to the router's default action.
 	 * 
 	 * @param \Darya\Routing\Route $route
-	 * @return string|callable|null Action method or callable
+	 * @return \Darya\Routing\Route
 	 */
 	protected function resolveRouteAction(Route $route) {
 		if ($route->action) {
