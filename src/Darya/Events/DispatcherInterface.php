@@ -1,38 +1,15 @@
 <?php
 namespace Darya\Events;
 
+use Darya\Events\DispatchableInterface;
+use Darya\Events\ListenableInterface;
+use Darya\Events\SubscribableInterface;
+
 /**
- * Darya's event dispatcher interface.
+ * Darya's unioned event dispatcher interface.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface DispatcherInterface {
-	
-	/**
-	 * Register a listener with the given event.
-	 * 
-	 * @param string   $event
-	 * @param callable $callable
-	 */
-	public function listen($event, $callable);
-	
-	/**
-	 * Unregister a listener from the given event.
-	 * 
-	 * @param string   $event
-	 * @param callable $callable
-	 */
-	public function unlisten($event, $callable);
-	
-	/**
-	 * Dispatch the given event, invoking all its listeners.
-	 * 
-	 * Optionally accepts arguments to pass to the event's registered listeners.
-	 * 
-	 * @param string $event
-	 * @param array  $arguments
-	 * @return mixed
-	 */
-	public function dispatch($event, array $arguments);
+interface DispatcherInterface extends DispatchableInterface, ListenableInterface, SubscribableInterface {
 	
 }

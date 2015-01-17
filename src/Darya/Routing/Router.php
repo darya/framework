@@ -3,14 +3,13 @@ namespace Darya\Routing;
 
 use ReflectionClass;
 use Darya\Common\Tools;
+use Darya\Events\DispatcherInterface;
+use Darya\Events\SubscriberInterface;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
 use Darya\Service\Container;
 use Darya\Service\ContainerAwareInterface;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Darya's request router.
@@ -54,7 +53,7 @@ class Router implements ContainerAwareInterface {
 	protected $filters = array();
 	
 	/**
-	 * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+	 * @var \Darya\Events\DispatcherInterface
 	 */
 	protected $eventDispatcher;
 	
@@ -158,9 +157,9 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 * 
-	 * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
+	 * @param \Darya\Events\DispatcherInterface $dispatcher
 	 */
-	public function setEventDispatcher(EventDispatcherInterface $dispatcher) {
+	public function setEventDispatcher(DispatcherInterface $dispatcher) {
 		$this->eventDispatcher = $dispatcher;
 	}
 	
@@ -223,27 +222,28 @@ class Router implements ContainerAwareInterface {
 	 * not set.
 	 * 
 	 * @param string $name
-	 * @param mixed  $event [optional]
+	 * @param mixed  $arguments [optional]
 	 * @return mixed
 	 */
-	protected function event($name, $event = null) {
+	protected function event($name, array $arguments = array()) {
 		if ($this->eventDispatcher) {
-			return $this->eventDispatcher->dispatch($name, $event);
+			return $this->eventDispatcher->dispatch($name, $arguments);
 		}
 		
 		return null;
 	}
 	
 	/**
-	 * Helper method for subscribing objects (controllers) to the router's event
-	 * dispatcher.
+	 * Helper method for subscribing objects to the router's event dispatcher.
+	 * 
+	 * Silent if $subscriber does not implement SubscriberInterface.
 	 * 
 	 * @param object $subscriber
 	 * @return bool
 	 */
 	protected function subscribe($subscriber) {
-		if ($this->eventDispatcher && $subscriber instanceof EventSubscriberInterface) {
-			$this->eventDispatcher->addSubscriber($subscriber);
+		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+			$this->eventDispatcher->subscribe($subscriber);
 			return true;
 		}
 		
@@ -251,15 +251,17 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Helper method for unsubscribing objects (controllers) from the router's 
-	 * event dispatcher.
+	 * Helper method for unsubscribing objects from the router's event
+	 * dispatcher.
+	 * 
+	 * Silent if $subscriber does not implement SubscriberInterface.
 	 * 
 	 * @param object $subscriber
 	 * @return bool
 	 */
 	protected function unsubscribe($subscriber) {
-		if ($this->eventDispatcher && $subscriber instanceof EventSubscriberInterface) {
-			$this->eventDispatcher->removeSubscriber($subscriber);
+		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+			$this->eventDispatcher->unsubscribe($subscriber);
 			return true;
 		}
 		
@@ -560,11 +562,13 @@ class Router implements ContainerAwareInterface {
 				$response = $this->call(array($controller, $action), $arguments);
 			} else if (is_callable($action)) {
 				$response = $this->call($action, $arguments);
+			} else {
+				$response->setStatus(404);
 			}
 			
 			$this->event('router.after');
 			
-			$response = static::prepareResponse($response);
+			$response = static::prepareResponse($response ?: $controller->response);
 			
 			if (!$response->redirected()) {
 				$this->event('router.last');

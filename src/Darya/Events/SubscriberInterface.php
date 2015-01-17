@@ -2,7 +2,7 @@
 namespace Darya\Events;
 
 /**
- * Event subscriber interface for Darya's event dispatcher system.
+ * Event subscriber manager interface for Darya's event system.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
