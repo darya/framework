@@ -17,7 +17,15 @@ interface DispatcherInterface {
 	public function listen($event, $callable);
 	
 	/**
-	 * Dispatch the given event.
+	 * Unregister a listener from the given event.
+	 * 
+	 * @param string   $event
+	 * @param callable $callable
+	 */
+	public function unlisten($event, $callable);
+	
+	/**
+	 * Dispatch the given event, invoking all its listeners.
 	 * 
 	 * Optionally accepts arguments to pass to the event's registered listeners.
 	 * 

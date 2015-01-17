@@ -1,8 +1,8 @@
 <?php
 namespace Darya\Mvc;
 
-use Darya\Mvc\View;
 use Smarty;
+use Darya\Mvc\View;
 
 /**
  * Darya's Smarty templating view.
@@ -40,7 +40,7 @@ class SmartyView extends View {
 	 * Instantiate a new Template object.
 	 * 
 	 * @param string $file   [optional] Path to the template file to use
-	 * @param Array  $vars   [optional] Variables to assign to the template
+	 * @param array  $vars   [optional] Variables to assign to the template
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
 	public function __construct($file = null, $vars = array(), $config = array()){
@@ -76,13 +76,13 @@ class SmartyView extends View {
 	public function render() {
 		$template = $this->dir . '/' . $this->file;
 		
-		if (file_exists($template)) {
+		if (is_file($template)) {
 			$this->smarty->assign(static::$shared);
 			$this->smarty->assign($this->vars);
 			return $this->smarty->fetch($template, $this->dir, $this->dir);
 		} else {
-			// throw new TemplateNotFoundException("Could not find template \"$template\"");
-			return "Could not find template \"$template\" when rendering<br/>";
+			throw new \Exception("Could not find template \"$template\"");
+			// return "Could not find template \"$template\" when rendering<br/>";
 		}
 		
 		return false;

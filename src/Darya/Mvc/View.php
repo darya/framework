@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Mvc;
 
+use Darya\Mvc\ViewInterface;
 use Darya\Mvc\ViewResolver;
 
 /**
@@ -62,17 +63,18 @@ abstract class View implements ViewInterface {
 	 */
 	public static function setBasePath($path) {
 		$path = realpath($path);
+		
 		if (is_dir($path)) {
 			static::$basePath = $path;
 		}
 	}
 	
 	/**
-	 * Register valid template file extensions.
+	 * Register template file extensions.
 	 * 
-	 * @param string|array $extensions 
+	 * @param string|array $extensions
 	 */
-	public function registerExtensions($extensions) {
+	public static function registerExtensions($extensions) {
 		$newExtensions = array();
 		
 		foreach ((array) $extensions as $extension) {
@@ -87,7 +89,7 @@ abstract class View implements ViewInterface {
 	 * Instantiate a new View object.
 	 * 
 	 * @param string $file   [optional] Path to the template file to use
-	 * @param Array  $vars   [optional] Variables to assign to the template
+	 * @param array  $vars   [optional] Variables to assign to the template
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
 	public function __construct($file = null, $vars = array(), $config = array()) {
@@ -188,6 +190,7 @@ abstract class View implements ViewInterface {
 			if (static::$basePath) {
 				$paths[] = static::$basePath . "/$path$extension";
 			}
+			
 			$paths[] = "$path$extension";
 		}
 		

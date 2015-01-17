@@ -22,10 +22,21 @@ class Dispatcher implements DispatcherInterface {
 	 * 
 	 * @param string   $event
 	 * @param callable $callable
-	 * @return bool
+	 * @return void
 	 */
 	public function listen($event, $callable) {
 		$this->listeners[$event][] = $callable;
+	}
+	
+	/**
+	 * Unregister a listener from the given event.
+	 * 
+	 * @param string   $event
+	 * @param callable $callable
+	 * @return void
+	 */
+	public function unlisten($event, $callable) {
+		$this->listeners = array_diff($this->listeners, array($callable));
 	}
 	
 	/**

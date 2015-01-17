@@ -3,7 +3,6 @@ namespace Darya\Mvc;
 
 use Darya\Http\Request;
 use Darya\Http\Response;
-use Darya\Mvc\ViewInterface;
 use Darya\Service\Container;
 use Darya\Service\ContainerAwareInterface;
 
@@ -25,7 +24,7 @@ abstract class Controller implements ContainerAwareInterface {
 	public $response;
 	
 	/**
-	 * @var \Darya\Service\Container;
+	 * @var \Darya\Service\Container
 	 */
 	public $services;
 	
@@ -37,8 +36,8 @@ abstract class Controller implements ContainerAwareInterface {
 	/**
 	 * Instantiate a controller.
 	 * 
-	 * @param \Darya\Http\Request      $request
-	 * @param \Darya\Http\Response     $response
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Http\Response $response
 	 */
 	public function __construct(Request $request, Response $response) {
 		$this->request = $request;
