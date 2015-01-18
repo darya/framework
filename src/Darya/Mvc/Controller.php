@@ -24,7 +24,7 @@ abstract class Controller implements ContainerAwareInterface {
 	public $response;
 	
 	/**
-	 * @var \Darya\Service\Container
+	 * @var \Darya\Service\ContainerInterface
 	 */
 	public $services;
 	

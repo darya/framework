@@ -518,6 +518,8 @@ class Router implements ContainerAwareInterface {
 			if (preg_match($pattern, $uri, $matches)) {
 				$route->matches($matches);
 				
+				$this->event('router.prefilter', array($route));
+				
 				$matched = true;
 				
 				// Test the route against all registered filters

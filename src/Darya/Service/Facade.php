@@ -13,7 +13,7 @@ use Darya\Service\ContainerInterface;
 abstract class Facade {
 	
 	/**
-	 * @var \Darya\Service\Container
+	 * @var \Darya\Service\ContainerInterface
 	 */
 	protected static $serviceContainer;
 	

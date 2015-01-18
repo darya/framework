@@ -79,8 +79,8 @@ class Tools {
 	 * Determine whether a given haystack starts
 	 * with a given needle.
 	 * 
-	 * @param string haystack
-	 * @param string needle
+	 * @param string $haystack
+	 * @param string $needle
 	 * @return bool
 	 * @see http://stackoverflow.com/questions/834303
 	 */
@@ -92,8 +92,8 @@ class Tools {
 	 * Determine whether a given haystack ends
 	 * with a given needle.
 	 * 
-	 * @param string haystack
-	 * @param string needle
+	 * @param string $haystack
+	 * @param string $needle
 	 * @return bool
 	 * @see http://stackoverflow.com/questions/834303
 	 */
@@ -117,7 +117,7 @@ class Tools {
 	 * 
 	 * @param string $date1 Date string
 	 * @param string $date2 [optional] Date string, defaults to current time ('now')
-	 * @return DateInterval
+	 * @return \DateInterval
 	 */
 	public static function dateDiff($date1, $date2 = null) {
 		$date2 = $date2 ?: 'now';
@@ -156,15 +156,14 @@ class Tools {
 	}
 	
 	/**
-	 * Captures the output of invoking var_dump with the 
-	 * given variable as an argument, returning the result
-	 * HTML encoded & wrapped in <pre> tags.
+	 * Captures the output of invoking var_dump with the given arguments,
+	 * returning the result HTML-encoded & wrapped in <pre> tags.
 	 * 
-	 * @param mixed $var
+	 * @return string
 	 */
-	public static function dump($var) {
+	public static function dump() {
 		ob_start();
-		var_dump($var);
+		call_user_func_array('var_dump', func_get_args());
 		return '<pre>' . htmlentities(ob_get_clean()) . '</pre>';
 	}
 	
@@ -210,7 +209,7 @@ class Tools {
 	 * trailing slashes.
 	 * 
 	 * @param string $path
-	 * @param bool $ignoreLeadingSlash Whether to retain a leading slash
+	 * @param bool   $ignoreLeadingSlash Whether to retain a leading slash
 	 * @return string
 	 */
 	public static function normalisePath($path, $ignoreLeadingSlash = false) {
