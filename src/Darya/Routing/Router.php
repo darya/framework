@@ -365,7 +365,7 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * @param string $pattern
 	 * @param string $replacement
-	 * @return Darya\Routing\Router
+	 * @return \Darya\Routing\Router
 	 */
 	public function pattern($pattern, $replacement) {
 		$this->patterns[$pattern] = $replacement;

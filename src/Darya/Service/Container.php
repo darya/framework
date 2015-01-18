@@ -118,7 +118,7 @@ class Container implements ContainerInterface {
 	 * @param mixed  $concrete
 	 */
 	public function set($abstract, $concrete) {
-		$this->services[$abstract] = $concrete;
+		$this->services[$abstract] = is_callable($concrete) ? $this->share($concrete) : $concrete;
 	}
 	
 	/**
@@ -167,6 +167,31 @@ class Container implements ContainerInterface {
 		}
 		
 		return $concrete;
+	}
+	
+	/**
+	 * Wraps a callable in a closure that returns the same instance on every
+	 * call using a static variable.
+	 * 
+	 * @param callable $callable
+	 * @return \Closure
+	 */
+	public function share($callable) {
+		if (is_callable($callable)) {
+			$container = $this;
+			
+			return function () use ($callable, $container) {
+				static $instance;
+				
+				if (is_null($instance)) {
+					$instance = $container->call($callable, array($container));
+				}
+				
+				return $instance;
+			};
+		}
+		
+		throw new ContainerException('Service is not callable in Container::share().');
 	}
 	
 	/**
