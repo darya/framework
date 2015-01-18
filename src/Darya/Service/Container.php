@@ -50,36 +50,39 @@ class Container implements ContainerInterface {
 	/**
 	 * Instantiate a service container.
 	 * 
+	 * Registers the service container with itself, as well as registering any
+	 * given services and aliases.
+	 * 
 	 * @param array $services [optional] Initial set of services and/or aliases
 	 */
 	public function __construct(array $services = array()) {
+		$this->register(array(
+			'Darya\Service\ContainerInterface' => $this,
+			'Darya\Service\Container'          => $this
+		));
+		
 		$this->register($services);
 	}
 	
 	/**
 	 * Enables shorter syntax for resolving services.
 	 * 
-	 * @param string $id
+	 * @param string $alias
 	 * @return mixed
 	 */
-	public function __get($id) {
-		if (!property_exists($this, $id)) {
-			return $this->resolve($id);
-		}
-		
-		return $this->$id;
+	public function __get($alias) {
+		return $this->resolve($alias);
 	}
 	
 	/**
 	 * Enables shorter syntax for registering a service.
 	 * 
-	 * @param string $id
+	 * @param string $alias
 	 * @param mixed  $service
 	 */
-	public function __set($id, $service) {
-		$this->register($id, $service);
+	public function __set($alias, $service) {
+		$this->register($alias, $service);
 	}
-	
 	
 	/**
 	 * Determine whether the container has a service registered for the given
@@ -158,7 +161,7 @@ class Container implements ContainerInterface {
 		$concrete = $this->get($abstract);
 		
 		if ($concrete instanceof Closure || is_callable($concrete)) {
-			return $this->call($concrete, $arguments);
+			return $this->call($concrete, $arguments ?: array($this));
 		} else if (is_string($concrete) && class_exists($concrete)) {
 			return $this->create($concrete, $arguments);
 		}
@@ -184,7 +187,10 @@ class Container implements ContainerInterface {
 		}
 		
 		$parameters = $reflection->getParameters();
-		$arguments = array_map('is_numeric', array_keys($arguments)) ? $arguments : array_merge($this->resolveParameters($parameters), $arguments);
+		
+		if (!array_map('is_numeric', array_keys($arguments))) {
+			$arguments = array_merge($this->resolveParameters($parameters), $arguments);
+		}
 		
 		return $method ? $reflection->invokeArgs($callable[0], $arguments) : $reflection->invokeArgs($arguments);
 	}
