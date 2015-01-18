@@ -3,7 +3,7 @@ namespace Darya\Mvc;
 
 use Darya\Http\Request;
 use Darya\Http\Response;
-use Darya\Service\Container;
+use Darya\Service\ContainerInterface;
 use Darya\Service\ContainerAwareInterface;
 
 /**
@@ -47,9 +47,9 @@ abstract class Controller implements ContainerAwareInterface {
 	/**
 	 * Set the controller's service container and instantiate an empty view.
 	 * 
-	 * @param \Darya\Service\Container $services
+	 * @param \Darya\Service\ContainerInterface $services
 	 */
-	public function setServiceContainer(Container $services) {
+	public function setServiceContainer(ContainerInterface $services) {
 		$this->services = $services;
 		
 		if ($this->services->has('Darya\Mvc\ViewResolver')) {

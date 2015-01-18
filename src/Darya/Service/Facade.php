@@ -3,6 +3,7 @@ namespace Darya\Service;
 
 use \Exception;
 use Darya\Service\Container;
+use Darya\Service\ContainerInterface;
 
 /**
  * Darya's service facade implementation, very similar to Laravel's approach.
@@ -16,25 +17,44 @@ abstract class Facade {
 	 */
 	protected static $serviceContainer;
 	
-	public static function setServiceContainer(Container $container){
+	/**
+	 * Set the service container to use for all facades.
+	 * 
+	 * @param \Darya\Service\ContainerInterface $container
+	 */
+	public static function setServiceContainer(ContainerInterface $container){
 		static::$serviceContainer = $container;
 	}
 	
+	/**
+	 * Return the service interface or alias to resolve from the container.
+	 * 
+	 * All facades must override this method.
+	 * 
+	 * @return string
+	 */
 	public static function getServiceName(){
 		$class = get_class(new static);
 		throw new Exception('Facade "' . $class . '" does not implement getServiceName()');
 	}
 	
+	/**
+	 * Magic method that redirects static calls to the facade's related service.
+	 * 
+	 * @param string $method
+	 * @param array  $parameters
+	 * @return mixed
+	 */
 	public static function __callStatic($method, $parameters){
 		$service = static::getServiceName();
 		
-		if (static::$serviceContainer) {
-			$instance = static::$serviceContainer->resolve($service);
-		} else {
-			$instance = Container::instance()->resolve($service);
+		if (!static::$serviceContainer) {
+			static::$serviceContainer = Container::instance();
 		}
 		
-		return call_user_func_array(array($instance, $method), $parameters);
+		$instance = static::$serviceContainer->resolve($service);
+		
+		return static::$serviceContainer->call(array($instance, $method), $parameters);
 	}
 	
 }

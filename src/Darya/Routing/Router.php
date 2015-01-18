@@ -8,7 +8,7 @@ use Darya\Events\SubscriberInterface;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
-use Darya\Service\Container;
+use Darya\Service\ContainerInterface;
 use Darya\Service\ContainerAwareInterface;
 
 /**
@@ -58,7 +58,7 @@ class Router implements ContainerAwareInterface {
 	protected $eventDispatcher;
 	
 	/**
-	 * @var \Darya\Service\Container
+	 * @var \Darya\Service\ContainerInterface
 	 */
 	protected $services;
 	
@@ -151,7 +151,6 @@ class Router implements ContainerAwareInterface {
 	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
 		$this->defaults($defaults);
-		$this->filter(array($this, 'resolve'));
 	}
 	
 	/**
@@ -167,9 +166,9 @@ class Router implements ContainerAwareInterface {
 	 * Set an optional service container for resolving the dependencies of
 	 * controllers and actions.
 	 * 
-	 * @param \Darya\Service\Container $container
+	 * @param \Darya\Service\ContainerInterface $container
 	 */
-	public function setServiceContainer(Container $container) {
+	public function setServiceContainer(ContainerInterface $container) {
 		$this->services = $container;
 	}
 	
@@ -236,7 +235,7 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Helper method for subscribing objects to the router's event dispatcher.
 	 * 
-	 * Silent if $subscriber does not implement SubscriberInterface.
+	 * Silent if $subscriber does not implement `SubscriberInterface`.
 	 * 
 	 * @param object $subscriber
 	 * @return bool
@@ -254,7 +253,7 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for unsubscribing objects from the router's event
 	 * dispatcher.
 	 * 
-	 * Silent if $subscriber does not implement SubscriberInterface.
+	 * Silent if $subscriber does not implement `SubscriberInterface`.
 	 * 
 	 * @param object $subscriber
 	 * @return bool
@@ -333,7 +332,7 @@ class Router implements ContainerAwareInterface {
 	 * provided default values.
 	 * 
 	 * @param array $defaults [optional]
-	 * @return array Router default parameters
+	 * @return array Router's default route parameters
 	 */
 	public function defaults(array $defaults = array()) {
 		foreach ($defaults as $key => $value) {
@@ -351,7 +350,7 @@ class Router implements ContainerAwareInterface {
 	 * A route is passed by reference when matched by Router::match.
 	 * 
 	 * @param callable $callback
-	 * @return Darya\Routing\Router
+	 * @return \Darya\Routing\Router
 	 */
 	public function filter($callback) {
 		if (is_callable($callback)) {
@@ -436,7 +435,7 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Resolve a matched route's controller and action.
 	 * 
-	 * Applies the router's defaults for these if one is not set.
+	 * Applies the router's defaults for these if they are not set.
 	 * 
 	 * This is a built in route filter that is registered by default.
 	 * 
@@ -449,6 +448,40 @@ class Router implements ContainerAwareInterface {
 		$this->resolveRouteController($route);
 		$this->resolveRouteAction($route);
 		return true;
+	}
+	
+	/**
+	 * Determine whether a given matched route can be dispatched based on
+	 * whether the resolved controller action is callable.
+	 * 
+	 * This is a built in route filter that is registered by default. It expects
+	 * the `resolve` filter to have already been applied to the given route.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return bool
+	 */
+	public function dispatchable(Route $route) {
+		$dispatchableAction = is_callable($route->action);
+		
+		$dispatchableController =
+			(is_object($route->controller) || class_exists($route->controller))
+			&& method_exists($route->controller, $route->action)
+			&& is_callable(array($route->controller, $route->action));
+			
+		return $dispatchableAction || $dispatchableController;
+	}
+	
+	/**
+	 * Registers the router's built in route filters.
+	 */
+	public function registerDefaultFilters() {
+		static $registered;
+		
+		if (!$registered) {
+			$this->filter(array($this, 'resolve'));
+			$this->filter(array($this, 'dispatchable'));
+			$registered = true;
+		}
 	}
 	
 	/**

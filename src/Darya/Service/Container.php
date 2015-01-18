@@ -7,6 +7,7 @@ use \ReflectionMethod;
 use \ReflectionFunction;
 use \ReflectionParameter;
 use Darya\Service\ContainerException;
+use Darya\Service\ContainerInterface;
 
 /**
  * Darya's service container.
@@ -16,7 +17,7 @@ use Darya\Service\ContainerException;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Container {
+class Container implements ContainerInterface {
 	
 	/**
 	 * @var \Darya\Service\Container Singleton instance of the service container
@@ -132,8 +133,7 @@ class Container {
 	 * their corresponding interfaces.
 	 * 
 	 * This method only registers aliases if their interface is already
-	 * registered with the container. Use Container::alias to explicitly
-	 * register an alias.
+	 * registered with the container.
 	 * 
 	 * @param array $services interfaces => concretes or aliases => interfaces
 	 */
@@ -148,7 +148,7 @@ class Container {
 	}
 
 	/**
-	 * Resolve a service by interface or alias.
+	 * Resolve a service and its dependencies by interface or alias.
 	 * 
 	 * @param string $abstract  Interface or alias
 	 * @param array  $arguments [optional]
