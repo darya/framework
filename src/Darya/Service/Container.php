@@ -81,7 +81,7 @@ class Container implements ContainerInterface {
 	 * @param mixed  $service
 	 */
 	public function __set($alias, $service) {
-		$this->register($alias, $service);
+		$this->register(array($alias => $service));
 	}
 	
 	/**
