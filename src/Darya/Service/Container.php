@@ -224,8 +224,8 @@ class Container implements ContainerInterface {
 	 * Instantiate the given class and attempt to resolve its constructor's
 	 * parameters using services registered with the container.
 	 * 
-	 * @param callable $class
-	 * @param array    $arguments [optional]
+	 * @param string $class
+	 * @param array  $arguments [optional]
 	 * @return object
 	 */
 	public function create($class, array $arguments = array()) {

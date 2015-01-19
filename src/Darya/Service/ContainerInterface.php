@@ -66,6 +66,15 @@ interface ContainerInterface {
 	public function resolve($abstract, array $arguments = array());
 	
 	/**
+	 * Wrap a callable in a closure that returns the same instance on every
+	 * call using a static variable.
+	 * 
+	 * @param callable $callable
+	 * @return \Closure
+	 */
+	public function share($callable);
+	
+	/**
 	 * Call a callable and attempt to resolve its parameters using services
 	 * registered with the container.
 	 * 
@@ -74,5 +83,15 @@ interface ContainerInterface {
 	 * @return mixed
 	 */
 	public function call($callable, array $arguments = array());
+	
+	/**
+	 * Instantiate the given class and attempt to resolve its constructor's
+	 * parameters using services registered with the container.
+	 * 
+	 * @param string $class
+	 * @param array  $arguments [optional]
+	 * @return object
+	 */
+	public function create($class, array $arguments = array());
 	
 }
