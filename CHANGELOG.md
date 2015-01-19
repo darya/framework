@@ -7,8 +7,11 @@
 - Implemented optional usage of service container for resolving route
   controllers and actions
 - Method support for `Container::call()`
+- Implemented `Container::instance()` to wrap callable service definitions in
+  closures that always return the same instance. This enables lazy-loading
+  service instances, only instantiating them when resolved from the container.
 
-## v0.4.0-dev - Jan 8, 2015
+## v0.4.0-alpha - Jan 8, 2015
 - More expressive routing API
 - Implemented reverse routing (using named routes)
 - Various non-backwards-compatible API changes, hence the minor version change

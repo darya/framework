@@ -34,7 +34,7 @@ class Router implements ContainerAwareInterface {
 	protected $base;
 	
 	/**
-	 * @var array Collection of routes to match
+	 * @var array Collection of routes to match requests against
 	 */
 	protected $routes = array();
 	
@@ -151,6 +151,8 @@ class Router implements ContainerAwareInterface {
 	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
 		$this->defaults($defaults);
+		$this->filter(array($this, 'resolve'));
+		$this->filter(array($this, 'dispatchable'));
 	}
 	
 	/**
@@ -470,20 +472,7 @@ class Router implements ContainerAwareInterface {
 			
 		return $dispatchableAction || $dispatchableController;
 	}
-	
-	/**
-	 * Registers the router's built in route filters.
-	 */
-	public function registerDefaultFilters() {
-		static $registered;
-		
-		if (!$registered) {
-			$this->filter(array($this, 'resolve'));
-			$this->filter(array($this, 'dispatchable'));
-			$registered = true;
-		}
-	}
-	
+
 	/**
 	 * Match a request to a route.
 	 * 
