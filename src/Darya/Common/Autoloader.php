@@ -117,12 +117,14 @@ class Autoloader {
 		$parts = explode('\\', $class);
 		$className = array_pop($parts);
 		$dir = implode('/', $parts);
+		$paths = array();
 		
-		// Try registered namespace to directory mappings
+		// Test for potential registered namespace to directory mappings
 		foreach ($this->registeredNamespaces as $registered) {
 			list($ns, $nsPaths) = $registered;
 			
 			foreach ((array) $nsPaths as $nsPath) {
+				// Try without and with the autoloader's base path
 				$nsBasePaths = array('');
 				
 				if ($this->basePath) {
@@ -131,44 +133,32 @@ class Autoloader {
 				
 				foreach ($nsBasePaths as $nsBasePath) {
 					if ($class == $ns) {
-						if ($this->attempt($nsBasePath . "$nsPath")) {
-							return true;
-						}
-						
-						if ($this->attempt($nsBasePath . "$nsPath/$className.php")) {
-							return true;
-						}
+						array_push($paths, "$nsBasePath$nsPath");
+						array_push($paths, "$nsBasePath$nsPath/$className.php");
+						array_push($paths, "$nsBasePath" . strtolower($nsPath) . "/$className.php");
 					}
 					
-					if(strpos($class, $ns) === 0){
-						if ($this->attempt($nsBasePath . "$nsPath/$dir/$className.php")) {
-							return true;
-						}
+					if(strpos($class, $ns) == 0){
+						array_push($paths, "$nsBasePath$nsPath/$dir/$className.php");
+						array_push($paths, "$nsBasePath" . strtolower("$nsPath/$dir") . "/$className.php");
 						
 						$nsRemain = str_replace('\\', '/', substr($class, strlen($ns)));
-						if ($this->attempt($nsBasePath . "$nsPath/$nsRemain.php")) {
-							return true;
-						}
+						array_push($paths, "$nsBasePath$nsPath/$nsRemain.php");
+						array_push($paths, "$nsPath/$nsRemain.php");
 					}
 				}
 			}
 		}
 		
 		// Try using the namespace as an exact directory mapping
-		$file = $this->basePath . "/$dir/$className.php";
-		if ($this->attempt($file)) {
-			return true;
-		}
+		array_push($paths, $this->basePath . "$dir/$className.php");
 		
-		// Try using the namespace in lowercase as a directory mapping, with 
+		// Try using the namespace in lowercase as a directory mapping, with
 		// only the class name in its original case
 		$dirLowercase = strtolower($dir);
-		$fileLowercase = $this->basePath . "/$dirLowercase/$className.php";
-		if ($this->attempt($fileLowercase)) {
-			return true;
-		}
+		array_push($paths, $this->basePath . "$dirLowercase/$className.php");
 		
-		// Last try using the last part of the namespace as a subdirectory, with 
+		// Last try using the last part of the namespace as a subdirectory, with
 		// and without a trailing 's', as well as any common subdirectory names
 		$subdirs = array_merge($this->commonSubdirs, array(
 			$className,
@@ -176,14 +166,15 @@ class Autoloader {
 		));
 		
 		foreach($subdirs as $subdir) {
-			$file = $this->basePath . "/$dir/$subdir/$className.php";
-			if ($this->attempt($file)) {
-				return true;
-			}
+			array_push($paths, $this->basePath . "/$dir/$subdir/$className.php");
 			
 			$subdirLowercase = strtolower($subdir);
-			$file = $this->basePath . "/$dirLowercase/$subdirLowercase/$className.php";
-			if ($this->attempt($file)) {
+			array_push($paths, $this->basePath . "/$dirLowercase/$subdirLowercase/$className.php");
+		}
+		
+		// Finally, attempt to find the class
+		foreach ($paths as $path) {
+			if ($this->attempt($path)) {
 				return true;
 			}
 		}
