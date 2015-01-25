@@ -269,7 +269,7 @@ class Container implements ContainerInterface {
 		try {
 			$type = @$parameter->getClass()->name;
 		} catch (\Exception $e) {
-			
+			$type = null;
 		}
 		
 		if ($type) {

@@ -53,7 +53,7 @@ class SmartyView extends View {
 	/**
 	 * Set the template's working directory.
 	 * 
-	 * @param string $dir Template directory 
+	 * @param string $dir Template directory
 	 */
 	protected function setDir($dir) {
 		if ($dir != $this->dir) {

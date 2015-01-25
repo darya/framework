@@ -74,15 +74,17 @@ class Autoloader {
 	}
 	
 	/**
-	 * Register namespace to directory mappings to try before the autoloader's 
-	 * default behaviour.
+	 * Register namespace to directory mappings to attempt before the
+	 * autoloader's default behaviour.
 	 * 
 	 * @param array $namespaces Namespace keys and directory values
 	 */
 	public function registerNamespaces(array $namespaces = array()) {
-		foreach ($namespaces as $ns => $path) {
-			if (file_exists($this->basePath . "/$path") || file_exists($path)) {
-				$this->registeredNamespaces[$ns] = $path; 
+		foreach ($namespaces as $ns => $paths) {
+			foreach ((array) $paths as $path) {
+				if (file_exists($this->basePath . "/$path") || file_exists($path)) {
+					$this->registeredNamespaces[] = array($ns, $path);
+				}
 			}
 		}
 	}
@@ -117,32 +119,36 @@ class Autoloader {
 		$dir = implode('/', $parts);
 		
 		// Try registered namespace to directory mappings
-		foreach ($this->registeredNamespaces as $ns => $nsPath) {
-			$nsBasePaths = array('');
+		foreach ($this->registeredNamespaces as $registered) {
+			list($ns, $nsPaths) = $registered;
 			
-			if ($this->basePath) {
-				$nsBasePaths[] = $this->basePath . '/';
-			}
-			
-			foreach ($nsBasePaths as $nsBasePath) {
-				if ($class == $ns) {
-					if ($this->attempt($nsBasePath . "$nsPath")) {
-						return true;
-					}
-					
-					if ($this->attempt($nsBasePath . "$nsPath/$className.php")) {
-						return true;
-					}
+			foreach ((array) $nsPaths as $nsPath) {
+				$nsBasePaths = array('');
+				
+				if ($this->basePath) {
+					$nsBasePaths[] = $this->basePath . '/';
 				}
 				
-				if(strpos($class, $ns) === 0){
-					if ($this->attempt($nsBasePath . "$nsPath/$dir/$className.php")) {
-						return true;
+				foreach ($nsBasePaths as $nsBasePath) {
+					if ($class == $ns) {
+						if ($this->attempt($nsBasePath . "$nsPath")) {
+							return true;
+						}
+						
+						if ($this->attempt($nsBasePath . "$nsPath/$className.php")) {
+							return true;
+						}
 					}
 					
-					$nsRemain = str_replace('\\', '/', substr($class, strlen($ns)));
-					if ($this->attempt($nsBasePath . "$nsPath/$nsRemain.php")) {
-						return true;
+					if(strpos($class, $ns) === 0){
+						if ($this->attempt($nsBasePath . "$nsPath/$dir/$className.php")) {
+							return true;
+						}
+						
+						$nsRemain = str_replace('\\', '/', substr($class, strlen($ns)));
+						if ($this->attempt($nsBasePath . "$nsPath/$nsRemain.php")) {
+							return true;
+						}
 					}
 				}
 			}
