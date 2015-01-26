@@ -10,10 +10,4 @@ use Darya\Mvc\Model;
  */
 class Config extends Model {
 	
-	public function set($key, $value) {
-		if (!$this->$key) {
-			parent::set($key, $value);
-		}
-	}
-	
 }
