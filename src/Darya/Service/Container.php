@@ -138,7 +138,7 @@ class Container implements ContainerInterface {
 	 * This method only registers aliases if their interface is already
 	 * registered with the container.
 	 * 
-	 * @param array $services interfaces => concretes or aliases => interfaces
+	 * @param array $services interface => concrete and/or alias => interface
 	 */
 	public function register(array $services = array()) {
 		foreach ($services as $key => $value) {
@@ -177,21 +177,21 @@ class Container implements ContainerInterface {
 	 * @return \Closure
 	 */
 	public function share($callable) {
-		if (is_callable($callable)) {
-			$container = $this;
-			
-			return function () use ($callable, $container) {
-				static $instance;
-				
-				if (is_null($instance)) {
-					$instance = $container->call($callable, array($container));
-				}
-				
-				return $instance;
-			};
+		if (!is_callable($callable)) {
+			throw new ContainerException('Service is not callable in Container::share()');
 		}
 		
-		throw new ContainerException('Service is not callable in Container::share().');
+		$container = $this;
+		
+		return function () use ($callable, $container) {
+			static $instance;
+			
+			if (is_null($instance)) {
+				$instance = $container->call($callable, array($container));
+			}
+			
+			return $instance;
+		};
 	}
 	
 	/**
@@ -203,6 +203,10 @@ class Container implements ContainerInterface {
 	 * @return mixed
 	 */
 	public function call($callable, array $arguments = array()) {
+		if (!is_callable($callable)) {
+			return null;
+		}
+		
 		$method = is_array($callable) && count($callable) > 1 && method_exists($callable[0], $callable[1]);
 		
 		if ($method) {

@@ -2,11 +2,10 @@
 namespace Darya\Service;
 
 use \Exception;
-use Darya\Service\Container;
 use Darya\Service\ContainerInterface;
 
 /**
- * Darya's service facade implementation, very similar to Laravel's approach.
+ * Darya's service facade implementation. Very similar to Laravel's approach.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -49,7 +48,7 @@ abstract class Facade {
 		$service = static::getServiceName();
 		
 		if (!static::$serviceContainer) {
-			static::$serviceContainer = Container::instance();
+			throw new Exception('Tried to use a facade without setting a service container');
 		}
 		
 		$instance = static::$serviceContainer->resolve($service);
