@@ -233,7 +233,7 @@ class Response {
 				header(':', true, $this->status);
 			}
 			
-			foreach ($this->cookies as $cookieKey => $cookieValues) {				
+			foreach ($this->cookies as $cookieKey => $cookieValues) {
 				setcookie($cookieKey, $cookieValues['value'], $cookieValues['expire'], $cookieValues['path'] ?: '/');
 			}
 			

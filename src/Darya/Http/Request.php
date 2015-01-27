@@ -79,7 +79,7 @@ class Request {
 			'cookie' => $_COOKIE,
 			'file'   => $_FILES,
 			'server' => $_SERVER,
-			'header' => static::headersFromServer($_SERVER)
+			'header' => static::headersFromGlobals($_SERVER)
 		));
 		
 		if ($session) {
@@ -95,7 +95,7 @@ class Request {
 	 * @param array $server
 	 * @return array
 	 */
-	public static function headersFromServer(array $server) {
+	public static function headersFromGlobals(array $server) {
 		$headers = array();
 		
 		foreach ($server as $key => $value) {

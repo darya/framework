@@ -31,7 +31,7 @@ $request = new Request($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], arra
 	'cookie' => $_COOKIE,
 	'file'   => $_FILES,
 	'server' => $_SERVER,
-	'header' => Request::headersFromServer($_SERVER)
+	'header' => Request::headersFromGlobals($_SERVER)
 ))
 ```
 

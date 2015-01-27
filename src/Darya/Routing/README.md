@@ -22,6 +22,39 @@ RewriteRule .* index.php [L,QSA]
 
 ### Router
 
+#### Defining and matching routes
+
+You can define routes in an array when instantiating a router using request
+paths for keys and route parameters defaults values.
+
+Reserved route parameters are as follows:
+
+- `namespace`  - The namespace to prepend to a matched controller
+- `controller` - The class to use as a controller
+- `action`     - The anonymous function or controller method to run when the
+                 route is dispatched
+- `params`     - Slash-delimited parameters to pass to actions as arguments.
+                 This one is always optional and should be used at the end of a
+                 route's request path.
+
+Here is an example of instantiating the router with an initial route definition.
+The anonymous function becomes the route's `action` parameter.
+
+```php
+use Darya\Routing\Router;
+
+$router = new Router(array(
+	'/' => function() {
+		return 'Hello world!';
+	}
+));
+
+/**
+ * @var Darya\Routing\Route 
+ */
+$route = $router->match('/'); // $route->action == function() {return 'Hello world!';}
+```
+
 #### Route matching
 
 Now that our `index.php` receives all requests for any files that don't exist, let's instantiate a router with its first route!
