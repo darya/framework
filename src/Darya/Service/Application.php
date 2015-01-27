@@ -19,6 +19,20 @@ class Application extends Container implements ApplicationInterface {
 	protected $providers = array();
 	
 	/**
+	 * Instantiate an application.
+	 * 
+	 * @param array $services [optional] Initial set of services and/or aliases
+	 */
+	public function __construct(array $services = array()) {
+		$this->register(array(
+			'Darya\Service\ApplicationInterface' => $this,
+			'Darya\Service\Application'          => $this
+		));
+		
+		parent::__construct($services);
+	}
+	
+	/**
 	 * Register a service provider with the application.
 	 * 
 	 * @param \Darya\Service\ProviderInterface $provider
