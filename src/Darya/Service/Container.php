@@ -8,6 +8,7 @@ use \ReflectionFunction;
 use \ReflectionParameter;
 use Darya\Service\ContainerException;
 use Darya\Service\ContainerInterface;
+use Darya\Service\ProviderInterface;
 
 /**
  * Darya's service container.
@@ -20,11 +21,6 @@ use Darya\Service\ContainerInterface;
 class Container implements ContainerInterface {
 	
 	/**
-	 * @var \Darya\Service\Container Singleton instance of the service container
-	 */
-	protected static $instance;
-	
-	/**
 	 * @var array Set of interfaces as keys and implementations as values
 	 */
 	protected $services = array();
@@ -35,17 +31,9 @@ class Container implements ContainerInterface {
 	protected $aliases = array();
 	
 	/**
-	 * Returns a singleton instance of the container.
-	 * 
-	 * @return \Darya\Service\Container
+	 * @var array Set of service providers
 	 */
-	public static function instance() {
-		if (is_null(static::$instance)) {
-			static::$instance = new static;
-		}
-		
-		return static::$instance;
-	}
+	protected $providers = array();
 	
 	/**
 	 * Instantiate a service container.

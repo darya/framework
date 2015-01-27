@@ -53,6 +53,14 @@ abstract class Facade {
 		
 		$instance = static::$serviceContainer->resolve($service);
 		
+		if (!is_object($instance)) {
+			throw new Exception('Facade resolved non-object from the service container');
+		}
+		
+		if (!method_exists($instance, $method)) {
+			throw new Exception('Call to non-existent method "' . $method . '" on facade instance');
+		}
+		
 		return static::$serviceContainer->call(array($instance, $method), $parameters);
 	}
 	
