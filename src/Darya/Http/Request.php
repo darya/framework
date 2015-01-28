@@ -138,10 +138,12 @@ class Request {
 		}
 		
 		$components = parse_url($uri);
-		$path = $components['path'] ?: '';
+		$path = isset($components['path']) ? $components['path'] : '';
 		
-		parse_str($components['query'], $get);
-		$this->data['get'] = array_merge($this->data['get'], $get);
+		if (isset($components['query'])) {
+			parse_str($components['query'], $get);
+			$this->data['get'] = array_merge($this->data['get'], $get);
+		}
 		
 		$this->uri = $uri;
 		$this->path = $path;
