@@ -27,6 +27,11 @@ use Darya\Http\SessionInterface;
 class Request {
 	
 	/**
+	 * @var string Request path
+	 */
+	private $path;
+	
+	/**
 	 * @var string Request URI
 	 */
 	private $uri;
@@ -121,8 +126,6 @@ class Request {
 	 * @param array  $data
 	 */
 	public function __construct($uri, $method = 'get', $data = array()) {
-		$this->uri = $uri;
-		$this->method = strtolower($method);
 		
 		foreach ($data as $type => $values) {
 			$type = strtolower($type);
@@ -134,6 +137,17 @@ class Request {
 			$this->data[$type] = $values;
 		}
 		
+		$components = parse_url($uri);
+		$path = $components['path'] ?: '';
+		
+		parse_str($components['query'], $get);
+		$this->data['get'] = array_merge($this->data['get'], $get);
+		
+		$this->uri = $uri;
+		$this->path = $path;
+		$this->method = strtolower($method);
+		
+		$this->data['server']['PATH_INFO'] = $path;
 		$this->data['server']['REQUEST_URI'] = $uri;
 		$this->data['server']['REQUEST_METHOD'] = $method;
 	}
@@ -193,9 +207,18 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve the URI of the Request.
+	 * Retrieve the path of the request.
 	 * 
-	 * @returns string
+	 * @return string
+	 */
+	public function path() {
+		return $this->path;
+	}
+	
+	/**
+	 * Retrieve the URI of the request.
+	 * 
+	 * @return string
 	 */
 	public function uri() {
 		return $this->uri;
@@ -244,7 +267,7 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve the session interface for the Request.
+	 * Retrieve the session interface for the request.
 	 * 
 	 * @return \Darya\Http\SessionInterface
 	 */
@@ -253,7 +276,7 @@ class Request {
 	}
 	
 	/**
-	 * Set the session interface for the Request. Starts the session if it
+	 * Set the session interface for the request. Starts the session if it
 	 * hasn't been already.
 	 * 
 	 * @param \Darya\Http\SessionInterface $session
@@ -277,7 +300,7 @@ class Request {
 		if ($this->hasSession()) {
 			$flash = $this->session->get('flash') ?: array();
 			
-			foreach ((array)$values as $value) {
+			foreach ((array) $values as $value) {
 				if (!is_null($value)) {
 					$flash[$key][] = $value;
 				}
@@ -293,7 +316,7 @@ class Request {
 	
 	/**
 	 * Retrieve and clear flash data with the given key from the session. If no
-	 * key is given, all data is retrieved and cleared. 
+	 * key is given, all data is retrieved and cleared.
 	 * 
 	 * Returns an empty array if this request has no session or flash variables 
 	 * were not found with the given key.
