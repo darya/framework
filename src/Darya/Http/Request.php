@@ -70,15 +70,15 @@ class Request {
 	 * @return \Darya\Http\Request
 	 */
 	public static function createFromGlobals(SessionInterface $session = null) {
-		$uri = $_SERVER['REQUEST_URI'];
-		$method = strtolower($_SERVER['REQUEST_METHOD']);
+		$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+		$method = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
 		
 		$request = new static($uri, $method, array(
-			'get'    => $_GET,
-			'post'   => $_POST,
-			'cookie' => $_COOKIE,
-			'file'   => $_FILES,
-			'server' => $_SERVER,
+			'get'    => $_GET    ?: array(),
+			'post'   => $_POST   ?: array(),
+			'cookie' => $_COOKIE ?: array(),
+			'file'   => $_FILES  ?: array(),
+			'server' => $_SERVER ?: array(),
 			'header' => static::headersFromGlobals($_SERVER)
 		));
 		
