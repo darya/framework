@@ -82,9 +82,7 @@ class Autoloader {
 	public function registerNamespaces(array $namespaces = array()) {
 		foreach ($namespaces as $ns => $paths) {
 			foreach ((array) $paths as $path) {
-				if (file_exists($this->basePath . "/$path") || file_exists($path)) {
-					$this->registeredNamespaces[] = array($ns, $path);
-				}
+				$this->registeredNamespaces[] = array($ns, $path);
 			}
 		}
 	}
