@@ -79,11 +79,11 @@ class Request {
 		$method = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
 		
 		$request = new static($uri, $method, array(
-			'get'    => $_GET    ?: array(),
-			'post'   => $_POST   ?: array(),
-			'cookie' => $_COOKIE ?: array(),
-			'file'   => $_FILES  ?: array(),
-			'server' => $_SERVER ?: array(),
+			'get'    => $_GET,
+			'post'   => $_POST,
+			'cookie' => $_COOKIE,
+			'file'   => $_FILES,
+			'server' => $_SERVER,
 			'header' => static::headersFromGlobals($_SERVER)
 		));
 		
@@ -116,17 +116,51 @@ class Request {
 	}
 	
 	/**
-	 * Create a new request. 
+	 * Parse the given URI and return its components.
 	 * 
-	 * Expects $data to have keys such as 'get', 'post', 'cookie', 'file', 
-	 * 'server', 'header'.
+	 * Any components not satisfied will be null instead of non-existent, so you
+	 * can safely expect the keys 'scheme', 'host', 'port', 'user', 'pass',
+	 * 'query' and 'fragment' to exist.
+	 * 
+	 * @param string $uri
+	 * @return array
+	 */
+	protected static function parseUri($uri) {
+		return array_merge(array(
+			'scheme' => null,
+			'host'   => null,
+			'port'   => null,
+			'user'   => null,
+			'pass'   => null,
+			'query'  => null,
+			'fragment' => null
+		), parse_url($uri));
+	}
+	
+	/**
+	 * Parse the given query and return its key value pairs.
+	 * 
+	 * @param string $query
+	 * @return array
+	 */
+	protected static function parseQuery($query) {
+		$values = array();
+		parse_str($query, $values);
+		
+		return $values;
+	}
+	
+	/**
+	 * Create a new request.
+	 * 
+	 * Expects $data to have keys such as 'get', 'post', 'cookie', 'file',
+	 * 'server', 'header' and the same general structure as PHP superglobals.
 	 * 
 	 * @param string $uri
 	 * @param string $method
 	 * @param array  $data
 	 */
 	public function __construct($uri, $method = 'get', $data = array()) {
-		
 		foreach ($data as $type => $values) {
 			$type = strtolower($type);
 			
@@ -137,13 +171,13 @@ class Request {
 			$this->data[$type] = $values;
 		}
 		
-		$components = parse_url($uri);
-		$path = isset($components['path']) ? $components['path'] : '';
+		$components = static::parseUri($uri);
+		$path = $components['path'];
 		
-		if (isset($components['query'])) {
-			parse_str($components['query'], $get);
-			$this->data['get'] = array_merge($this->data['get'], $get);
-		}
+		$this->data['get'] = array_merge(
+			$this->data['get'],
+			static::parseQuery($components['query'])
+		);
 		
 		$this->uri = $uri;
 		$this->path = $path;
@@ -155,7 +189,7 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve request data of the given type using the given key. 
+	 * Retrieve request data of the given type using the given key.
 	 * 
 	 * If no key is set, all request data of the given type will be returned. If
 	 * neither are set, all request data will be returned.
