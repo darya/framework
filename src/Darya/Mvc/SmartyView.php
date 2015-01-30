@@ -43,7 +43,7 @@ class SmartyView extends View {
 	 * @param array  $vars   [optional] Variables to assign to the template
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
-	public function __construct($file = null, $vars = array(), $config = array()){
+	public function __construct($file = null, $vars = array(), $config = array()) {
 		$this->smarty = new Smarty;
 		$this->smarty->error_reporting = E_ALL & ~E_NOTICE & ~E_WARNING;
 		
@@ -62,9 +62,9 @@ class SmartyView extends View {
 			$base = isset($this->config['base']) ? $this->config['base'] : $this->dir;
 			
 			$this->smarty->setTemplateDir($this->dir)
-						 ->setCompileDir($base.'/'.$this->config['compile'])
-						 ->setCacheDir($base.'/'.$this->config['cache'])
-						 ->addPluginsDir($base.'/'.$this->config['plugins']);
+						 ->setCacheDir($base . '/' . $this->config['cache'])
+						 ->setCompileDir($base . '/' . $this->config['compile'])
+						 ->addPluginsDir($base . '/' . $this->config['plugins']);
 		}
 	}
 	
@@ -84,8 +84,6 @@ class SmartyView extends View {
 			throw new \Exception("Could not find template \"$template\"");
 			// return "Could not find template \"$template\" when rendering<br/>";
 		}
-		
-		return false;
 	}
 	
 	/**

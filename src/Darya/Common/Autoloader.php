@@ -52,7 +52,7 @@ class Autoloader {
 	 * @param string $basePath
 	 */
 	public function setBasePath($basePath = null) {
-		$this->basePath = $basePath ?: realpath(__DIR__.'/../../');
+		$this->basePath = $basePath ?: realpath(__DIR__ . '/../../');
 	}
 	
 	/**
@@ -136,7 +136,7 @@ class Autoloader {
 						array_push($paths, "$nsBasePath" . strtolower($nsPath) . "/$className.php");
 					}
 					
-					if(strpos($class, $ns) == 0){
+					if (strpos($class, $ns) == 0) {
 						array_push($paths, "$nsBasePath$nsPath/$dir/$className.php");
 						array_push($paths, "$nsBasePath" . strtolower("$nsPath/$dir") . "/$className.php");
 						
@@ -163,7 +163,7 @@ class Autoloader {
 			$className . 's',
 		));
 		
-		foreach($subdirs as $subdir) {
+		foreach ($subdirs as $subdir) {
 			array_push($paths, $this->basePath . "/$dir/$subdir/$className.php");
 			
 			$subdirLowercase = strtolower($subdir);

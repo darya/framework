@@ -36,10 +36,10 @@ abstract class View implements ViewInterface {
 	 */
 	protected $resolver;
 	
-    /**
-     * @var array Variables for configuring the view
-     */
-    protected $config = array();
+	/**
+	 * @var array Variables for configuring the view
+	 */
+	protected $config = array();
 	
 	/**
 	 * @var string Path to the directory containing the view template
@@ -218,7 +218,7 @@ abstract class View implements ViewInterface {
 	 * @return array
 	 */
 	public function getConfig() {
-	    return $this->config;
+		return $this->config;
 	}
 	
 	/**
