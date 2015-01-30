@@ -138,7 +138,10 @@ class Response {
 	}
 	
 	/**
-	 * Prepare the given response content as a string. Encodes arrays as JSON.
+	 * Prepare the given response content as a string.
+	 * 
+	 * Uses __toString() on objects if exposed. Encodes arrays as JSON.
+	 * Everything else is casted to string.
 	 * 
 	 * @param mixed $content
 	 * @return string
@@ -153,15 +156,6 @@ class Response {
 		}
 		
 		return $content;
-	}
-	
-	/**
-	 * Append to the response content.
-	 * 
-	 * @param mixed $content
-	 */
-	public function addContent($content) {
-		$this->content .= $this->prepareContent($content);
 	}
 	
 	/**
@@ -237,19 +231,17 @@ class Response {
 	}
 	
 	/**
-	 * Send the response headers to the client, provided that they have not yet 
-	 * been sent. This sends cookies.
+	 * Send the response headers to the client, provided that they have not yet
+	 * been sent.
 	 * 
-	 * Optionally adds the given headers to the response before sending.
+	 * HTTP status and cookies are sent before the headers.
 	 * 
-	 * @param array $headers
 	 * @return bool
 	 */
-	public function sendHeaders(array $headers = array()) {
+	public function sendHeaders() {
 		if (!$this->headersSent && !headers_sent()) {
 			$this->sendStatus();
 			$this->sendCookies();
-			$this->addHeaders($headers);
 			
 			foreach ($this->headers as $header) {
 				header($header, true);
@@ -264,20 +256,13 @@ class Response {
 	/**
 	 * Send the response content to the client.
 	 * 
-	 * This will only succeed if response headers have been sent, response 
+	 * This will only succeed if response headers have been sent, response
 	 * content has not yet been sent, and the response has not been redirected.
 	 * 
-	 * Optionally sets the given response content before sending.
-	 * 
-	 * @param string $content
 	 * @return bool
 	 */
-	public function sendContent($content = null) {
+	public function sendContent() {
 		if ($this->headersSent && !$this->contentSent && !$this->redirected) {
-			if (!is_null($content)) {
-				$this->setContent($content);
-			}
-			
 			echo $this->content;
 			
 			$this->contentSent = true;
@@ -289,13 +274,11 @@ class Response {
 	/**
 	 * Sends the response to the client.
 	 * 
-	 * If the response has been redirected, only headers will be sent, not
-	 * content.
+	 * Sends the response headers and response content.
 	 * 
-	 * @param string $content [optional] Response content to send
-	 * @param array  $headers [optional] Response headers to send
+	 * If the response has been redirected, only headers will be sent.
 	 */
-	public function send($content = null, $headers = array()) {
+	public function send() {
 		$this->sendHeaders($headers);
 		
 		if (!$this->redirected) {
