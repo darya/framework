@@ -26,11 +26,6 @@ class Response {
 	private $cookies = array();
 	
 	/**
-	 * @var Darya\Http\SessionInterface
-	 */
-	private $session = null;
-	
-	/**
 	 * @var string Response content
 	 */
 	private $content = null;
@@ -279,10 +274,10 @@ class Response {
 	 * If the response has been redirected, only headers will be sent.
 	 */
 	public function send() {
-		$this->sendHeaders($headers);
+		$this->sendHeaders();
 		
 		if (!$this->redirected) {
-			$this->sendContent($content);
+			$this->sendContent();
 		}
 	}
 	
