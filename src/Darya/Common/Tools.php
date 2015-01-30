@@ -32,20 +32,6 @@ class Tools {
 		return '<script type="text/javascript">'.$javascript.'</script>';
 	}
 	
-	public static function processPost($post) {
-		$data = array();
-		
-		if (is_array($post)) {
-			foreach ($post as $field => $keys) {
-				foreach ($keys as $key => $value) {
-					$data[$key][$field] = $value;
-				}
-			}
-		}
-		
-		return $data;
-	}
-	
 	/**
 	 * Trim a string's leading and trailing whitespace.
 	 * 
