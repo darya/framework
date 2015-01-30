@@ -217,6 +217,26 @@ class Response {
 	}
 	
 	/**
+	 * Helper method for encapsulating setting the current HTTP status.
+	 */
+	protected function sendStatus() {
+		if (function_exists('http_response_code')) {
+			http_response_code($this->status);
+		} else {
+			header(':', true, $this->status);
+		}
+	}
+	
+	/**
+	 * Sends all the currently set cookies.
+	 */
+	protected function sendCookies() {
+		foreach ($this->cookies as $cookieKey => $cookieValues) {
+			setcookie($cookieKey, $cookieValues['value'], $cookieValues['expire'], $cookieValues['path'] ?: '/');
+		}
+	}
+	
+	/**
 	 * Send the response headers to the client, provided that they have not yet 
 	 * been sent. This sends cookies.
 	 * 
@@ -227,16 +247,8 @@ class Response {
 	 */
 	public function sendHeaders(array $headers = array()) {
 		if (!$this->headersSent && !headers_sent()) {
-			if (function_exists('http_response_code')) {
-				http_response_code($this->status);
-			} else {
-				header(':', true, $this->status);
-			}
-			
-			foreach ($this->cookies as $cookieKey => $cookieValues) {
-				setcookie($cookieKey, $cookieValues['value'], $cookieValues['expire'], $cookieValues['path'] ?: '/');
-			}
-			
+			$this->sendStatus();
+			$this->sendCookies();
 			$this->addHeaders($headers);
 			
 			foreach ($this->headers as $header) {
