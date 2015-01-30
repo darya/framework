@@ -494,8 +494,10 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Test a route against the given callback.
 	 * 
+	 * Simply returns true if callback is not callable.
+	 * 
 	 * @param \Darya\Routing\Route $route
-	 * @param callable             $callback
+	 * @param mixed                $callback
 	 * @return bool
 	 */
 	protected function testMatchCallback(Route $route, $callback) {
@@ -515,6 +517,8 @@ class Router implements ContainerAwareInterface {
 	 * parameters. This callback is executed after testing the route against
 	 * the router's filters.
 	 * 
+	 * Fires the 'router.prefilter' event before testing against filters.
+	 * 
 	 * @param \Darya\Http\Request  $request
 	 * @param \Darya\Routing\Route $route
 	 * @param callable             $callback [optional]
@@ -530,7 +534,11 @@ class Router implements ContainerAwareInterface {
 			
 			$this->event('router.prefilter', array($route));
 			
-			$matched = $this->testMatchFilters($route) && $this->testMatchCallback($route, $callback);
+			$matched = $this->testMatchFilters($route);
+			
+			if ($matched) {
+				$matched = $this->testMatchCallback($route, $callback);
+			}
 			
 			if ($matched) {
 				$route->router = $this;
