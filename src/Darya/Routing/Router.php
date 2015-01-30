@@ -472,12 +472,79 @@ class Router implements ContainerAwareInterface {
 			
 		return $dispatchableAction || $dispatchableController;
 	}
-
+	
 	/**
-	 * Match a request to a route.
+	 * Test a given route against the router's filters.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return bool
+	 */
+	protected function testMatchFilters(Route $route) {
+		$matched = true;
+		
+		foreach ($this->filters as $filter) {
+			if (!$this->call($filter, array(&$route))) {
+				$matched = false;
+			}
+		}
+		
+		return $matched;
+	}
+	
+	/**
+	 * Test a route against the given callback.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @param callable             $callback
+	 * @return bool
+	 */
+	protected function testMatchCallback(Route $route, $callback) {
+		$matched = true;
+		
+		if (is_callable($callback)) {
+			$matched = $this->call($callback, array(&$route));
+		}
+		
+		return $matched;
+	}
+	
+	/**
+	 * Test a request against a route.
 	 * 
 	 * Accepts an optional extra callback for filtering matched routes and their
-	 * parameters. This callback is executed after the router's filters.
+	 * parameters. This callback is executed after testing the route against
+	 * the router's filters.
+	 * 
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Routing\Route $route
+	 * @param callable             $callback [optional]
+	 * @return bool
+	 */
+	protected function testMatch(Request $request, Route $route, $callback = null) {
+		$path = $request->path();
+		$path = substr($path, strlen($this->base));
+		$pattern = $this->preparePattern($route->path());
+		
+		if (preg_match($pattern, $path, $matches)) {
+			$route->matches($matches);
+			
+			$this->event('router.prefilter', array($route));
+			
+			$matched = $this->testMatchFilters($route) && $this->testMatchCallback($route, $callback);
+			
+			if ($matched) {
+				$route->router = $this;
+				$request->router = $this;
+				$request->route = $route;
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Match a request to one of the router's routes.
 	 * 
 	 * @param \Darya\Http\Request|string $request A request URI or a Request object to match
 	 * @param callable $callback [optional] Callback for filtering matched routes
@@ -486,49 +553,11 @@ class Router implements ContainerAwareInterface {
 	public function match($request, $callback = null) {
 		$request = static::prepareRequest($request);
 		
-		$uri = $request->uri();
-		
-		// Strip base URI and query string
-		$uri = substr($uri, strlen($this->base));
-		
-		if (strpos($uri, '?') > 0) {
-			$uri = strstr($uri, '?', true);
-		}
-		
-		// Find a matching route
 		foreach ($this->routes as $route) {
-			// Clone the route object to preserve the router's instances
 			$route = clone $route;
 			
-			// Prepare the route path as a regular expression
-			$pattern = $this->preparePattern($route->path());
-			
-			// Test for a match
-			if (preg_match($pattern, $uri, $matches)) {
-				$route->matches($matches);
-				
-				$this->event('router.prefilter', array($route));
-				
-				$matched = true;
-				
-				// Test the route against all registered filters
-				foreach ($this->filters as $filter) {
-					if (!$this->call($filter, array(&$route))) {
-						$matched = false;
-					}
-				}
-				
-				// Test the route against the given callback filter if necessary
-				if ($matched && $callback && is_callable($callback)) {
-					$matched = $this->call($callback, array(&$route));
-				}
-				
-				if ($matched) {
-					$route->router = $this;
-					$request->router = $this;
-					$request->route = $route;
-					return $route;
-				}
+			if ($this->testMatch($request, $route, $callback)) {
+				return $route;
 			}
 		}
 		
