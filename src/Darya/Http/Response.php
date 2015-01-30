@@ -256,11 +256,9 @@ class Response {
 			}
 			
 			$this->headersSent = true;
-			
-			return true;
 		}
 		
-		return false;
+		return $this->headersSent;
 	}
 	
 	/**
@@ -283,11 +281,9 @@ class Response {
 			echo $this->content;
 			
 			$this->contentSent = true;
-			
-			return true;
 		}
 		
-		return false;
+		return $this->contentSent;
 	}
 	
 	/**
