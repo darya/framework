@@ -130,31 +130,35 @@ class Autoloader {
 				}
 				
 				foreach ($nsBasePaths as $nsBasePath) {
-					if ($class == $ns) {
+					if ($class === $ns) {
 						array_push($paths, "$nsBasePath$nsPath");
 						array_push($paths, "$nsBasePath$nsPath/$className.php");
 						array_push($paths, "$nsBasePath" . strtolower($nsPath) . "/$className.php");
 					}
 					
-					if (strpos($class, $ns) == 0) {
+					if (strpos($class, $ns) === 0) {
 						array_push($paths, "$nsBasePath$nsPath/$dir/$className.php");
 						array_push($paths, "$nsBasePath" . strtolower("$nsPath/$dir") . "/$className.php");
 						
 						$nsRemain = str_replace('\\', '/', substr($class, strlen($ns)));
 						array_push($paths, "$nsBasePath$nsPath/$nsRemain.php");
 						array_push($paths, "$nsPath/$nsRemain.php");
+						
+						$nsRemainDir = dirname($nsRemain);
+						$nsRemainFile = basename($nsRemain);
+						array_push($paths, "$nsBasePath$nsPath/" . strtolower($nsRemainDir) . "/$nsRemainFile.php");
 					}
 				}
 			}
 		}
 		
 		// Try using the namespace as an exact directory mapping
-		array_push($paths, $this->basePath . "$dir/$className.php");
+		array_push($paths, $this->basePath . "/$dir/$className.php");
 		
 		// Try using the namespace in lowercase as a directory mapping, with
 		// only the class name in its original case
 		$dirLowercase = strtolower($dir);
-		array_push($paths, $this->basePath . "$dirLowercase/$className.php");
+		array_push($paths, $this->basePath . "/$dirLowercase/$className.php");
 		
 		// Last try using the last part of the namespace as a subdirectory, with
 		// and without a trailing 's', as well as any common subdirectory names
