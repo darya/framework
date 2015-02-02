@@ -564,6 +564,54 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
+	 * Dispatch the given request/response using the given 
+	 * controller/action/arguments.
+	 * 
+	 * TODO: Lots of refactoring!
+	 * 
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Http\Response $response
+	 * @param object|string        $controller [optional]
+	 * @param callable|string      $action
+	 * @param array                $arguments [optional]
+	 * @return \Darya\Http\Response
+	 */
+	protected function dispatchController(Request $request, Response $response, $controller = null, $action, array $arguments = array()) {
+		if ($this->services && $controller instanceof ContainerAwareInterface) {
+			$controller->setServiceContainer($this->services);
+		}
+		
+		$this->subscribe($controller);
+		
+		$this->event('router.before');
+		
+		if ($controller && is_callable(array($controller, $action))) {
+			$response = $this->call(array($controller, $action), $arguments);
+		} else if (is_callable($action)) {
+			$response = $this->call($action, $arguments);
+		} else {
+			$response->setStatus(404);
+		}
+		
+		$this->event('router.after');
+		
+		$response = static::prepareResponse($response ?: $controller->response);
+		
+		if (!$response->redirected()) {
+			$this->event('router.last');
+			
+			// TODO: Eradicate the need for this statement.
+			if (!$response->hasContent()) {
+				$response = static::prepareResponse($controller->template);
+			}
+		}
+		
+		$this->unsubscribe($controller);
+		
+		return $response;
+	}
+	
+	/**
 	 * Match a request to a route and dispatch the resolved callable.
 	 * 
 	 * An error handler can be set (@see Router::setErrorHandler) to handle the
@@ -591,36 +639,7 @@ class Router implements ContainerAwareInterface {
 			$action     = $route->action;
 			$arguments  = $route->arguments();
 			
-			if ($this->services && $controller instanceof ContainerAwareInterface) {
-				$controller->setServiceContainer($this->services);
-			}
-			
-			$this->subscribe($controller);
-			
-			$this->event('router.before');
-			
-			if ($controller && is_callable(array($controller, $action))) {
-				$response = $this->call(array($controller, $action), $arguments);
-			} else if (is_callable($action)) {
-				$response = $this->call($action, $arguments);
-			} else {
-				$response->setStatus(404);
-			}
-			
-			$this->event('router.after');
-			
-			$response = static::prepareResponse($response ?: $controller->response);
-			
-			if (!$response->redirected()) {
-				$this->event('router.last');
-				
-				// TODO: Eradicate the need for this statement.
-				if (!$response->hasContent()) {
-					$response = static::prepareResponse($controller->template);
-				}
-			}
-			
-			$this->unsubscribe($controller);
+			$response = $this->dispatchController($request, $response, $controller, $action, $arguments);
 			
 			$response->addHeader('X-Location: ' . $request->path());
 			return $response;
