@@ -483,19 +483,15 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	protected function testMatchFilters(Route $route, $callback = null) {
-		$matched = true;
+		$filters = is_callable($callback) ? array_merge($this->filters, $callback) : $this->filters;
 		
-		foreach ($this->filters as $filter) {
+		foreach ($filters as $filter) {
 			if (!$this->call($filter, array(&$route))) {
-				$matched = false;
+				return false;
 			}
 		}
 		
-		if ($matched && is_callable($callback)) {
-			$matched = $this->call($callback, array(&$route));
-		}
-		
-		return $matched;
+		return true;
 	}
 	
 	/**
@@ -626,7 +622,7 @@ class Router implements ContainerAwareInterface {
 			
 			$this->unsubscribe($controller);
 			
-			$response->addHeader('X-Location: ' . $this->base() . $request->server('PATH_INFO'));
+			$response->addHeader('X-Location: ' . $request->path());
 			return $response;
 		} else {
 			$response->setStatus(404);
