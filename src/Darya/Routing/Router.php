@@ -650,7 +650,32 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Generate a URL path using the given route name and parameters.
+	 * Generate a request path using the given route path and parameters.
+	 * 
+	 * TODO: Swap generate() & path() functionality?
+	 * 
+	 * @param string $path
+	 * @param array $parameters [optional]
+	 * @return string
+	 */
+	public function generate($path, array $parameters = array()) {
+		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
+			$parameter = trim($match[1], '?:');
+			
+			if ($parameter && isset($parameters[$parameter])) {
+				return '/' . $parameters[$parameter];
+			}
+			
+			if ($parameter !== 'params' && $match[2] !== '?') {
+				return '/null';
+			}
+			
+			return null;
+		}, $path);
+	}
+	
+	/**
+	 * Generate a request path using the given route name/path and parameters.
 	 * 
 	 * Any required parameters that are not satisfied by the given parameters
 	 * or the route's defaults will be set to the string 'null'.
@@ -672,19 +697,7 @@ class Router implements ContainerAwareInterface {
 			$parameters['params'] = implode('/', $parameters['params']);
 		}
 		
-		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
-			$parameter = trim($match[1], '?:');
-			
-			if ($parameter && isset($parameters[$parameter])) {
-				return '/' . $parameters[$parameter];
-			}
-			
-			if ($parameter !== 'params' && $match[2] !== '?') {
-				return '/null';
-			}
-			
-			return null;
-		}, $path);
+		return $this->generate($path, $parameters);
 	}
 	
 	/**
