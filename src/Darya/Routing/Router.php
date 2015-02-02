@@ -658,8 +658,8 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * Optionally pass through an existing response object.
 	 * 
-	 * @param Darya\Http\Request|string $request
-	 * @param Darya\Http\Response       $response [optional]
+	 * @param \Darya\Http\Request|string $request
+	 * @param \Darya\Http\Response       $response [optional]
 	 */
 	public function respond($request, Response $response = null) {
 		$response = $this->dispatch($request, $response);
