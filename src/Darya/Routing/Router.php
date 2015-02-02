@@ -239,7 +239,7 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * Silent if $subscriber does not implement `SubscriberInterface`.
 	 * 
-	 * @param object $subscriber
+	 * @param mixed $subscriber
 	 * @return bool
 	 */
 	protected function subscribe($subscriber) {
@@ -257,7 +257,7 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * Silent if $subscriber does not implement `SubscriberInterface`.
 	 * 
-	 * @param object $subscriber
+	 * @param mixed $subscriber
 	 * @return bool
 	 */
 	protected function unsubscribe($subscriber) {
@@ -564,19 +564,17 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Dispatch the given request/response using the given 
-	 * controller/action/arguments.
+	 * Dispatch the given controller/action/arguments.
 	 * 
 	 * TODO: Lots of refactoring!
 	 * 
-	 * @param \Darya\Http\Request  $request
 	 * @param \Darya\Http\Response $response
 	 * @param object|string        $controller [optional]
 	 * @param callable|string      $action
 	 * @param array                $arguments [optional]
 	 * @return \Darya\Http\Response
 	 */
-	protected function dispatchController(Request $request, Response $response, $controller = null, $action, array $arguments = array()) {
+	protected function dispatchController(Response $response, $controller = null, $action, array $arguments = array()) {
 		if ($this->services && $controller instanceof ContainerAwareInterface) {
 			$controller->setServiceContainer($this->services);
 		}
@@ -639,7 +637,7 @@ class Router implements ContainerAwareInterface {
 			$action     = $route->action;
 			$arguments  = $route->arguments();
 			
-			$response = $this->dispatchController($request, $response, $controller, $action, $arguments);
+			$response = $this->dispatchController($response, $controller, $action, $arguments);
 			
 			$response->addHeader('X-Location: ' . $request->path());
 			return $response;
