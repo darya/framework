@@ -574,14 +574,14 @@ class Router implements ContainerAwareInterface {
 	 * @param array                $arguments [optional]
 	 * @return \Darya\Http\Response
 	 */
-	protected function dispatchController(Response $response, $controller = null, $action, array $arguments = array()) {
+	protected function dispatchController(Request $request, Response $response, $controller = null, $action, array $arguments = array()) {
 		if ($this->services && $controller instanceof ContainerAwareInterface) {
 			$controller->setServiceContainer($this->services);
 		}
 		
 		$this->subscribe($controller);
 		
-		$this->event('router.before');
+		$this->event('router.before', array($request));
 		
 		if ($controller && is_callable(array($controller, $action))) {
 			$response = $this->call(array($controller, $action), $arguments);
@@ -591,12 +591,12 @@ class Router implements ContainerAwareInterface {
 			$response->setStatus(404);
 		}
 		
-		$this->event('router.after');
+		$this->event('router.after', array($request));
 		
 		$response = static::prepareResponse($response ?: $controller->response);
 		
 		if (!$response->redirected()) {
-			$this->event('router.last');
+			$this->event('router.last', array($request));
 			
 			// TODO: Eradicate the need for this statement.
 			if (!$response->hasContent()) {
@@ -637,7 +637,7 @@ class Router implements ContainerAwareInterface {
 			$action     = $route->action;
 			$arguments  = $route->arguments();
 			
-			$response = $this->dispatchController($response, $controller, $action, $arguments);
+			$response = $this->dispatchController($request, $response, $controller, $action, $arguments);
 			
 			$response->addHeader('X-Location: ' . $request->path());
 			return $response;

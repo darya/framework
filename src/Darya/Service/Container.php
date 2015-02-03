@@ -36,6 +36,11 @@ class Container implements ContainerInterface {
 	protected $providers = array();
 	
 	/**
+	 * @var array Current scope that overrides services
+	 */
+	protected $scope = array();
+	
+	/**
 	 * Instantiate a service container.
 	 * 
 	 * Registers the service container with itself, as well as registering any
@@ -80,7 +85,7 @@ class Container implements ContainerInterface {
 	 * @return bool
 	 */
 	public function has($abstract) {
-		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]);
+		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]) || isset($this->scope[$abstract]);
 	}
 	
 	/**
@@ -96,7 +101,15 @@ class Container implements ContainerInterface {
 	public function get($abstract) {
 		$abstract = isset($this->aliases[$abstract]) ? $this->aliases[$abstract] : $abstract;
 		
-		return isset($this->services[$abstract]) ? $this->services[$abstract] : null;
+		if (isset($this->scope[$abstract])) {
+			return $this->scope[$abstract];
+		}
+		
+		if (isset($this->services[$abstract])) {
+			return $this->services[$abstract];
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -204,10 +217,7 @@ class Container implements ContainerInterface {
 		}
 		
 		$parameters = $reflection->getParameters();
-		
-		if (!array_map('is_numeric', array_keys($arguments))) {
-			$arguments = array_merge($this->resolveParameters($parameters), $arguments);
-		}
+		$arguments = $this->resolveParameters($parameters, $arguments);
 		
 		return $method ? $reflection->invokeArgs($callable[0], $arguments) : $reflection->invokeArgs($arguments);
 	}
@@ -229,43 +239,78 @@ class Container implements ContainerInterface {
 		}
 		
 		$parameters = $constructor->getParameters();
-		$arguments = array_merge($this->resolveParameters($parameters), $arguments);
+		$arguments = $this->resolveParameters($parameters, $arguments);
 		
 		return $reflection->newInstanceArgs($arguments);
 	}
 	
 	/**
-	 * Resolve a set of reflection parameters.
+	 * Enter the given services scope to temporarily override current services.
 	 * 
-	 * @param array $parameters
-	 * @return array
+	 * @param array $services
 	 */
-	protected function resolveParameters($parameters) {
-		$arguments = array();
-		
-		foreach ($parameters as $parameter) {
-			$argument = $this->resolveParameter($parameter);
-			$arguments[$parameter->name] = $argument;
-		}
-		
-		return $arguments;
+	public function scope(array $services = array()) {
+		$this->scope = $services;
 	}
 	
 	/**
-	 * Attempt to resolve a reflection parameter from the container.
+	 * Leave the scope.
+	 */
+	public function leave() {
+		$this->scope = array();
+	}
+	
+	/**
+	 * Merge resolved parameters with the given arguments.
+	 * 
+	 * @param array $resolved
+	 * @param array $arguments
+	 * @return array
+	 */
+	protected function mergeResolved(array $resolved, array $arguments) {
+		$merged = array();
+		
+		if (!array_map('is_numeric', array_keys($arguments))) {
+			$merged = array_merge($resolved, $arguments);
+		} else {
+			// Some alternate merge involving numeric indexes, maybe?
+			return $arguments ?: $resolved;
+		}
+		
+		return $merged;
+	}
+	
+	/**
+	 * Resolve a set of reflection parameters.
+	 * 
+	 * @param \ReflectionParameter[] $parameters
+	 * @param array                  $arguments [optional]
+	 * @return array
+	 */
+	protected function resolveParameters($parameters, array $arguments = array()) {
+		$resolved = array();
+		
+		foreach ($parameters as $parameter) {
+			$argument = $this->resolveParameter($parameter);
+			$resolved[$parameter->name] = $argument;
+		}
+		
+		$resolved = $this->mergeResolved($resolved, $arguments);
+		
+		return $resolved;
+	}
+	
+	/**
+	 * Attempt to resolve a reflection parameter's argument.
 	 * 
 	 * @param \ReflectionParameter|null $parameter
 	 * @return mixed
 	 */
 	protected function resolveParameter(ReflectionParameter $parameter) {
-		try {
-			$type = @$parameter->getClass()->name;
-		} catch (\Exception $e) {
-			$type = null;
-		}
+		$type = $this->resolveParameterType($parameter);
 		
 		if ($type) {
-			if (isset($this->services[$type])) {
+			if ($this->has($type)) {
 				return $this->resolve($type);
 			}
 			
@@ -283,6 +328,22 @@ class Container implements ContainerInterface {
 		}
 		
 		throw new ContainerException("Could not resolve parameter: $parameter");
+	}
+	
+	/**
+	 * Resolve the given reflection parameters type hint.
+	 * 
+	 * @param \ReflectionParameter $parameter
+	 * @return string|null
+	 */
+	protected function resolveParameterType(ReflectionParameter $parameter) {
+		try {
+			$type = @$parameter->getClass()->name;
+		} catch (\Exception $e) {
+			$type = null;
+		}
+		
+		return $type;
 	}
 	
 }
