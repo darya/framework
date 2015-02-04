@@ -349,7 +349,7 @@ class Router implements ContainerAwareInterface {
 	 * Register a callback for filtering matched routes and their parameters.
 	 * 
 	 * Callbacks should return a bool determining whether the route matches.
-	 * A route is passed by reference when matched by Router::match.
+	 * A route is passed by reference when matched by Router::match().
 	 * 
 	 * @param callable $callback
 	 * @return \Darya\Routing\Router
@@ -483,7 +483,7 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	protected function testMatchFilters(Route $route, $callback = null) {
-		$filters = is_callable($callback) ? array_merge($this->filters, (array) $callback) : $this->filters;
+		$filters = is_callable($callback) ? array_merge($this->filters, array($callback)) : $this->filters;
 		
 		foreach ($filters as $filter) {
 			if (!$this->call($filter, array(&$route))) {
@@ -518,9 +518,7 @@ class Router implements ContainerAwareInterface {
 			
 			$this->event('router.prefilter', array($route));
 			
-			$matched = $this->testMatchFilters($route, $callback);
-			
-			if ($matched) {
+			if ($this->testMatchFilters($route, $callback)) {
 				return true;
 			}
 		}
@@ -565,6 +563,25 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
+	 * Invoke the error handler with the given request and response if one is
+	 * set.
+	 * 
+	 * Returns the given response if no error handler is set.
+	 * 
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Http\Response $response
+	 * @param string               $message [optional]
+	 */
+	protected function handleError(Request $request, Response $response, $message = null) {
+		if ($this->errorHandler) {
+			$errorHandler = $this->errorHandler;
+			return static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
+		}
+		
+		return $response;
+	}
+	
+	/**
 	 * Dispatch the given request and response objects with the given callable
 	 * and optional arguments.
 	 * 
@@ -585,10 +602,8 @@ class Router implements ContainerAwareInterface {
 		if (is_callable($callable)) {
 			$responses[] = $this->call($callable, $arguments);
 		} else {
-			// Call error handler?
 			$response->setStatus(404);
-			
-			return $response;
+			return $this->handleError($request, $response, 'Non-callable resolved from the matched route');
 		}
 		
 		$responses = array_merge($responses, $this->event('router.after',$requestResponse));
@@ -643,14 +658,10 @@ class Router implements ContainerAwareInterface {
 			$response->addHeader('X-Location: ' . $request->path());
 			
 			return $response;
-		} else {
-			$response->setStatus(404);
 		}
 		
-		if ($this->errorHandler) {
-			$errorHandler = $this->errorHandler;
-			return static::prepareResponse($this->call($errorHandler, array($request, $response)));
-		}
+		$response->setStatus(404);
+		$this->handleError($request, $response, 'No route matches the request');
 		
 		return $response;
 	}
