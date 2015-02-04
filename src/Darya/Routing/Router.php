@@ -469,7 +469,7 @@ class Router implements ContainerAwareInterface {
 			(is_object($route->controller) || class_exists($route->controller))
 			&& method_exists($route->controller, $route->action)
 			&& is_callable(array($route->controller, $route->action));
-			
+		
 		return $dispatchableAction || $dispatchableController;
 	}
 	
@@ -483,7 +483,7 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	protected function testMatchFilters(Route $route, $callback = null) {
-		$filters = is_callable($callback) ? array_merge($this->filters, $callback) : $this->filters;
+		$filters = is_callable($callback) ? array_merge($this->filters, (array) $callback) : $this->filters;
 		
 		foreach ($filters as $filter) {
 			if (!$this->call($filter, array(&$route))) {
@@ -521,9 +521,6 @@ class Router implements ContainerAwareInterface {
 			$matched = $this->testMatchFilters($route, $callback);
 			
 			if ($matched) {
-				$route->router = $this;
-				$request->router = $this;
-				$request->route = $route;
 				return true;
 			}
 		}
@@ -545,6 +542,10 @@ class Router implements ContainerAwareInterface {
 			$route = clone $route;
 			
 			if ($this->testMatch($request, $route, $callback)) {
+				$route->router = $this;
+				$request->router = $this;
+				$request->route = $route;
+				
 				return $route;
 			}
 		}
@@ -579,9 +580,7 @@ class Router implements ContainerAwareInterface {
 	protected function dispatchCallable(Request $request, Response $response, $callable, array $arguments = array()) {
 		$requestResponse = array($request, $response);
 		
-		$responses = array();
-		
-		$responses = array_merge($responses, $this->event('router.before', $requestResponse));
+		$responses = $this->event('router.before', $requestResponse);
 		
 		if (is_callable($callable)) {
 			$responses[] = $this->call($callable, $arguments);
@@ -593,17 +592,18 @@ class Router implements ContainerAwareInterface {
 		}
 		
 		$responses = array_merge($responses, $this->event('router.after',$requestResponse));
-		
 		$responses = array_merge($responses, $this->event('router.last', $requestResponse));
 		
-		// vard($responses);
+		$count = count($responses);
 		
-		$responsesCount = count($responses);
-		
-		for ($i = 0; $i < $responsesCount; $i++) {
+		for ($i = 0; $i < $count; $i++) {
 			$potential = static::prepareResponse($responses[$i]);
 			
-			if (!$response->redirected() && $potential->hasContent()) {
+			if ($potential->redirected()) {
+				return $potential;
+			}
+			
+			if ($potential->hasContent()) {
 				$response = $potential;
 			}
 		}
