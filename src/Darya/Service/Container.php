@@ -81,7 +81,7 @@ class Container implements ContainerInterface {
 	 * @return bool
 	 */
 	public function has($abstract) {
-		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]) || isset($this->scope[$abstract]);
+		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]);
 	}
 	
 	/**
@@ -247,23 +247,19 @@ class Container implements ContainerInterface {
 	}
 	
 	/**
-	 * Merge resolved parameters with the given arguments.
+	 * Merge (override) resolved parameters with the given arguments.
 	 * 
 	 * @param array $resolved
 	 * @param array $arguments
 	 * @return array
 	 */
 	protected function mergeResolved(array $resolved, array $arguments) {
-		$merged = array();
-		
 		if (!array_filter(array_keys($arguments), 'is_numeric')) {
-			$merged = array_merge($resolved, $arguments);
+			return array_merge($resolved, $arguments);
 		} else {
 			// Some alternate merge involving numeric indexes, maybe?
 			return $arguments ?: $resolved;
 		}
-		
-		return $merged;
 	}
 	
 	/**

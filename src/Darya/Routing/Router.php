@@ -599,11 +599,7 @@ class Router implements ContainerAwareInterface {
 		for ($i = 0; $i < $count; $i++) {
 			$potential = static::prepareResponse($responses[$i]);
 			
-			if ($potential->redirected()) {
-				return $potential;
-			}
-			
-			if ($potential->hasContent()) {
+			if (!$response->redirected() && ($potential->redirected() || $potential->hasContent())) {
 				$response = $potential;
 			}
 		}
