@@ -87,7 +87,7 @@ class Dispatcher implements DispatcherInterface {
 	 * 
 	 * @param string $event
 	 * @param array  $arguments [optional]
-	 * @return mixed
+	 * @return array
 	 */
 	public function dispatch($event, array $arguments = array()) {
 		$this->touch($event);
@@ -99,7 +99,7 @@ class Dispatcher implements DispatcherInterface {
 			}
 		}
 		
-		return $results ?: null;
+		return $results;
 	}
 	
 }

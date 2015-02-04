@@ -6,6 +6,7 @@ use \ReflectionClass;
 use \ReflectionMethod;
 use \ReflectionFunction;
 use \ReflectionParameter;
+use Darya\Service\ContainerAwareInterface;
 use Darya\Service\ContainerException;
 use Darya\Service\ContainerInterface;
 use Darya\Service\ProviderInterface;
@@ -34,11 +35,6 @@ class Container implements ContainerInterface {
 	 * @var array Set of service providers
 	 */
 	protected $providers = array();
-	
-	/**
-	 * @var array Current scope that overrides services
-	 */
-	protected $scope = array();
 	
 	/**
 	 * Instantiate a service container.
@@ -241,23 +237,13 @@ class Container implements ContainerInterface {
 		$parameters = $constructor->getParameters();
 		$arguments = $this->resolveParameters($parameters, $arguments);
 		
-		return $reflection->newInstanceArgs($arguments);
-	}
-	
-	/**
-	 * Enter the given services scope to temporarily override current services.
-	 * 
-	 * @param array $services
-	 */
-	public function scope(array $services = array()) {
-		$this->scope = $services;
-	}
-	
-	/**
-	 * Leave the scope.
-	 */
-	public function leave() {
-		$this->scope = array();
+		$instance = $reflection->newInstanceArgs($arguments);
+		
+		if ($instance instanceof ContainerAwareInterface) {
+			$instance->setServiceContainer($this);
+		}
+		
+		return $instance;
 	}
 	
 	/**
@@ -270,7 +256,7 @@ class Container implements ContainerInterface {
 	protected function mergeResolved(array $resolved, array $arguments) {
 		$merged = array();
 		
-		if (!array_map('is_numeric', array_keys($arguments))) {
+		if (!array_filter(array_keys($arguments), 'is_numeric')) {
 			$merged = array_merge($resolved, $arguments);
 		} else {
 			// Some alternate merge involving numeric indexes, maybe?
@@ -323,11 +309,7 @@ class Container implements ContainerInterface {
 			return $parameter->getDefaultValue();
 		}
 		
-		if ($parameter->allowsNull()) {
-			return null;
-		}
-		
-		throw new ContainerException("Could not resolve parameter: $parameter");
+		return null;
 	}
 	
 	/**
@@ -337,13 +319,9 @@ class Container implements ContainerInterface {
 	 * @return string|null
 	 */
 	protected function resolveParameterType(ReflectionParameter $parameter) {
-		try {
-			$type = @$parameter->getClass()->name;
-		} catch (\Exception $e) {
-			$type = null;
-		}
+		$class = $parameter->getClass();
 		
-		return $type;
+		return is_object($class) ? $class->name : null;
 	}
 	
 }

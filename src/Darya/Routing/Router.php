@@ -224,14 +224,14 @@ class Router implements ContainerAwareInterface {
 	 * 
 	 * @param string $name
 	 * @param mixed  $arguments [optional]
-	 * @return mixed
+	 * @return array
 	 */
 	protected function event($name, array $arguments = array()) {
 		if ($this->eventDispatcher) {
 			return $this->eventDispatcher->dispatch($name, $arguments);
 		}
 		
-		return null;
+		return array();
 	}
 	
 	/**
@@ -564,47 +564,49 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Dispatch the given controller/action/arguments.
+	 * Dispatch the given request and response objects with the given callable
+	 * and optional arguments.
 	 * 
-	 * TODO: Lots of refactoring!
+	 * An error handler can be set (@see Router::setErrorHandler()) to handle
+	 * the request in the case that the given action is not callable.
 	 * 
+	 * @param \Darya\Http\Request  $request
 	 * @param \Darya\Http\Response $response
-	 * @param object|string        $controller [optional]
-	 * @param callable|string      $action
+	 * @param callable|string      $callable
 	 * @param array                $arguments [optional]
 	 * @return \Darya\Http\Response
 	 */
-	protected function dispatchController(Request $request, Response $response, $controller = null, $action, array $arguments = array()) {
-		if ($this->services && $controller instanceof ContainerAwareInterface) {
-			$controller->setServiceContainer($this->services);
-		}
+	protected function dispatchCallable(Request $request, Response $response, $callable, array $arguments = array()) {
+		$requestResponse = array($request, $response);
 		
-		$this->subscribe($controller);
+		$responses = array();
 		
-		$this->event('router.before', array($request));
+		$responses = array_merge($responses, $this->event('router.before', $requestResponse));
 		
-		if ($controller && is_callable(array($controller, $action))) {
-			$response = $this->call(array($controller, $action), $arguments);
-		} else if (is_callable($action)) {
-			$response = $this->call($action, $arguments);
+		if (is_callable($callable)) {
+			$responses[] = $this->call($callable, $arguments);
 		} else {
+			// Call error handler?
 			$response->setStatus(404);
+			
+			return $response;
 		}
 		
-		$this->event('router.after', array($request));
+		$responses = array_merge($responses, $this->event('router.after',$requestResponse));
 		
-		$response = static::prepareResponse($response ?: $controller->response);
+		$responses = array_merge($responses, $this->event('router.last', $requestResponse));
 		
-		if (!$response->redirected()) {
-			$this->event('router.last', array($request));
+		// vard($responses);
+		
+		$responsesCount = count($responses);
+		
+		for ($i = 0; $i < $responsesCount; $i++) {
+			$potential = static::prepareResponse($responses[$i]);
 			
-			// TODO: Eradicate the need for this statement.
-			if (!$response->hasContent()) {
-				$response = static::prepareResponse($controller->template);
+			if (!$response->redirected() && $potential->hasContent()) {
+				$response = $potential;
 			}
 		}
-		
-		$this->unsubscribe($controller);
 		
 		return $response;
 	}
@@ -612,10 +614,9 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Match a request to a route and dispatch the resolved callable.
 	 * 
-	 * An error handler can be set (@see Router::setErrorHandler) to handle the
-	 * request in the case that a route could not be matched, or the matched
-	 * route does not result in an action or controller-action combination that
-	 * is callable. Returns null in these cases if an error handler is not set.
+	 * An error handler can be set (@see Router::setErrorHandler()) to handle
+	 * the request in the case that a route could not be matched. Returns null
+	 * in this case if an error handler is not set.
 	 * 
 	 * @param \Darya\Http\Request|string $request
 	 * @param \Darya\Http\Response       $response [optional]
@@ -637,9 +638,14 @@ class Router implements ContainerAwareInterface {
 			$action     = $route->action;
 			$arguments  = $route->arguments();
 			
-			$response = $this->dispatchController($request, $response, $controller, $action, $arguments);
+			$callable = is_callable(array($controller, $action)) ? array($controller, $action) : $action;
+			
+			$this->subscribe($controller);
+			$response = $this->dispatchCallable($request, $response, $callable, $arguments);
+			$this->unsubscribe($controller);
 			
 			$response->addHeader('X-Location: ' . $request->path());
+			
 			return $response;
 		} else {
 			$response->setStatus(404);
