@@ -609,8 +609,6 @@ class Router implements ContainerAwareInterface {
 		$responses = array_merge($responses, $this->event('router.after',$requestResponse));
 		$responses = array_merge($responses, $this->event('router.last', $requestResponse));
 		
-		$count = count($responses);
-		
 		foreach ($responses as $potential) {
 			$potential = static::prepareResponse($potential);
 			
