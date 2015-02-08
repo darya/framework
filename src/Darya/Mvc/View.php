@@ -93,12 +93,7 @@ abstract class View implements ViewInterface {
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
 	public function __construct($file = null, $vars = array(), $config = array()) {
-		if ($file) {
-			$this->select($file, $vars, $config);
-		} else {
-			$this->setConfig($config);
-			$this->assign($vars);
-		}
+		$this->select($file, $vars, $config);
 	}
 	
 	/**
