@@ -9,7 +9,6 @@ use \ReflectionParameter;
 use Darya\Service\ContainerAwareInterface;
 use Darya\Service\ContainerException;
 use Darya\Service\ContainerInterface;
-use Darya\Service\ProviderInterface;
 
 /**
  * Darya's service container.
@@ -30,11 +29,6 @@ class Container implements ContainerInterface {
 	 * @var array Set of aliases as keys and interfaces as values
 	 */
 	protected $aliases = array();
-	
-	/**
-	 * @var array Set of service providers
-	 */
-	protected $providers = array();
 	
 	/**
 	 * Instantiate a service container.
@@ -97,10 +91,6 @@ class Container implements ContainerInterface {
 	public function get($abstract) {
 		$abstract = isset($this->aliases[$abstract]) ? $this->aliases[$abstract] : $abstract;
 		
-		if (isset($this->scope[$abstract])) {
-			return $this->scope[$abstract];
-		}
-		
 		if (isset($this->services[$abstract])) {
 			return $this->services[$abstract];
 		}
@@ -116,6 +106,15 @@ class Container implements ContainerInterface {
 	 */
 	public function set($abstract, $concrete) {
 		$this->services[$abstract] = is_callable($concrete) ? $this->share($concrete) : $concrete;
+	}
+	
+	/**
+	 * Retrieve all registered services.
+	 * 
+	 * @return array
+	 */
+	public function all() {
+		return $this->services;
 	}
 	
 	/**

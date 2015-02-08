@@ -154,7 +154,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param mixed $value
 	 */
 	public function offsetSet($offset, $value) {
-		return $this->set($offset, $value);
+		$this->set($offset, $value);
 	}
 	
 	/**

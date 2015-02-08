@@ -616,7 +616,7 @@ class Router implements ContainerAwareInterface {
 				$response = $potential;
 			}
 			
-			if ($response->redirected()) {
+			if ($response->redirected() || $response->hasContent()) {
 				return $response;
 			}
 		}

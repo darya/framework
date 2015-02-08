@@ -38,6 +38,13 @@ interface ContainerInterface {
 	public function set($abstract, $concrete);
 	
 	/**
+	 * Retrieve all registered services.
+	 * 
+	 * @return array
+	 */
+	public function all();
+	
+	/**
 	 * Register an alias for the given interface.
 	 * 
 	 * @param string $alias

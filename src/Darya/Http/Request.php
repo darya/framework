@@ -299,7 +299,7 @@ class Request {
 	 * @return bool
 	 */
 	public function hasSession() {
-		return $this->session !== null;
+		return !is_null($this->session);
 	}
 	
 	/**
@@ -323,6 +323,8 @@ class Request {
 		}
 		
 		$this->session = $session;
+		
+		$this->data['session'] = $this->session;
 	}
 	
 	/**
