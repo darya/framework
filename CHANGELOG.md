@@ -1,15 +1,33 @@
 # Darya Framework Changelog
 
-## v0.4.0 - Jan ?, 2015
+## v0.4.0 - Feb ?, 2015
+- Minor `Autoloader` improvement
+- Major `Router` refactoring using method extraction
+- `Session` objects can now be accessed like arrays, and as a result through
+  their parent `Request` objects in the same way as other request data.
+- `Response` refactoring, also removed `Response::addContent()`
+- Removed redundant `Tools::processPost()`
+- Added `ContainerInterface::all()` and `SessionInterface::has()`
+- `Container` now automatically injects itself to any `ContainerAwareInterface`
+  implementors that it instantiates
+- **TODO:** Simplify `Request`/`Response` API
+
+## v0.4.0-beta - Jan 29, 2015
+- `Autoloader` refactoring
 - Implemented improved `Dispatcher` functionality in `Router`, making
   `Dispatcher` redundant
 - Implemented `Events` component that can be optionally used for routing hooks
 - Implemented optional usage of service container for resolving route
   controllers and actions
 - Method support for `Container::call()`
-- Implemented `Container::instance()` to wrap callable service definitions in
+- Implemented `Container::share()` to wrap callable service definitions in
   closures that always return the same instance. This enables lazy-loading
   service instances, only instantiating them when resolved from the container.
+- Request objects parse URI queries into get variables and store a path value.
+- Updated main readme to consist primarily of code examples.
+- `Controller` now implements ContainerAwareInterface, as does `Router`.
+- Added more thorough `Facade` exceptions
+- Implemented `Application` class which registered and boots service providers.
 
 ## v0.4.0-alpha - Jan 8, 2015
 - More expressive routing API
