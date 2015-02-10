@@ -33,10 +33,10 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * @var string The key of the field that uniquely identifies the model
 	 */
-	protected $key; 
+	protected $key;
 	
 	/**
-	 * @var string A prefix for model data keys 
+	 * @var string A prefix for model data keys
 	 */
 	protected $fieldPrefix;
 	

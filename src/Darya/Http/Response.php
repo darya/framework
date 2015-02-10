@@ -145,7 +145,7 @@ class Response {
 		if (is_object($content) && method_exists($content, '__toString')) {
 			$content = $content->__toString();
 		} else if (is_array($content)) {
-			$content = json_encode($content, JSON_FORCE_OBJECT);
+			$content = json_encode($content);
 		} else {
 			$content = (string) $content;
 		}
@@ -190,10 +190,13 @@ class Response {
 	 * This redirect will only happen when the response headers have been sent.
 	 * 
 	 * @param string $url
+	 * @return $this
 	 */
 	public function redirect($url) {
 		$this->addHeader("Location: $url");
 		$this->redirected = true;
+		
+		return $this;
 	}
 	
 	/**

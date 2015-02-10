@@ -328,7 +328,7 @@ class Request {
 	}
 	
 	/**
-	 * Add flash data with the given key to the session.
+	 * Flash data with the given key to the session.
 	 * 
 	 * @param string       $key    Flash data key
 	 * @param string|array $values A single value or set of values to add
@@ -353,10 +353,10 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve and clear flash data with the given key from the session. If no
-	 * key is given, all data is retrieved and cleared.
+	 * Retrieve and clear flashed data with the given key from the session. If
+	 * no key is given, all data is retrieved and cleared.
 	 * 
-	 * Returns an empty array if this request has no session or flash variables 
+	 * Returns an empty array if this request has no session or flash variables
 	 * were not found with the given key.
 	 * 
 	 * @param string $key [optional] Flash data key
