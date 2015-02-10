@@ -246,13 +246,13 @@ class Container implements ContainerInterface {
 	}
 	
 	/**
-	 * Merge (override) resolved parameters with the given arguments.
+	 * Merge resolved parameters with the given arguments.
 	 * 
 	 * @param array $resolved
 	 * @param array $arguments
 	 * @return array
 	 */
-	protected function mergeResolved(array $resolved, array $arguments) {
+	protected function mergeResolvedParameters(array $resolved, array $arguments) {
 		if (!array_filter(array_keys($arguments), 'is_numeric')) {
 			return array_merge($resolved, $arguments);
 		} else {
@@ -276,7 +276,7 @@ class Container implements ContainerInterface {
 			$resolved[$parameter->name] = $argument;
 		}
 		
-		$resolved = $this->mergeResolved($resolved, $arguments);
+		$resolved = $this->mergeResolvedParameters($resolved, $arguments);
 		
 		return $resolved;
 	}

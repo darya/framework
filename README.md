@@ -10,7 +10,7 @@ Its components include:
 - Autoloader
 - Service container
 - HTTP abstractions
-- Request router
+- Router
 - Event dispatcher
 - MVC foundation
 
@@ -60,8 +60,43 @@ $autoloader->registerNamespaces(array(
 
 ### Services
 
+Darya's service container can be used to manage dependencies within an
+application.
+
+#### Registering services and aliases
+
+Services can be values, instances (objects), or closures that define how an
+object is instantiated.
+
+You can optionally define aliases for these services after the service
+definitions themselves.
+
+```php
+use Darya\Service\Container;
+
+$container = new Container;
+
+$container->register(array(
+	'App\SomeInterface'    => new App\SomeImplementation,
+	'App\AnotherInterface' => function (Container $services) {
+		return new App\AnotherImplementation($services->some);
+	},
+	'some'    => 'App\SomeInterface',
+	'another' => 'App\AnotherInterface'
+));
 ```
-TODO: Examples.
+
+#### Resolving services
+
+```php
+$container->some;    // instanceof App\SomeInterface
+$container->another; // instanceof App\AnotherInterface
+```
+
+##### Alternative syntax
+
+```php
+$container->resolve('another') === $container->resolve('App\AnotherInterface'); // true
 ```
 
 ### HTTP abstractions
@@ -168,3 +203,6 @@ $router->add('/about/:params', function() {
 
 $router->respond('/about/One/two/three'); // Outputs 'One, two, three'
 ```
+
+### Events
+
