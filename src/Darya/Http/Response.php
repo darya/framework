@@ -126,7 +126,7 @@ class Response {
 	 * @param string $key
 	 */
 	public function deleteCookie($key) {
-		if (isset($cookies[$key])) {
+		if (isset($this->cookies[$key])) {
 			$this->cookies[$key]['value'] = '';
 			$this->cookies[$key]['expire'] = 0;
 		}
@@ -223,8 +223,8 @@ class Response {
 	 * Sends all the currently set cookies.
 	 */
 	protected function sendCookies() {
-		foreach ($this->cookies as $cookieKey => $cookieValues) {
-			setcookie($cookieKey, $cookieValues['value'], $cookieValues['expire'], $cookieValues['path'] ?: '/');
+		foreach ($this->cookies as $key => $values) {
+			setcookie($key, $values['value'], $values['expire'], $values['path'] ?: '/');
 		}
 	}
 	
