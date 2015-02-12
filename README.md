@@ -89,14 +89,20 @@ $container->register(array(
 #### Resolving services
 
 ```php
-$container->some;    // instanceof App\SomeInterface
-$container->another; // instanceof App\AnotherInterface
-```
+// Fetch services as they were registered
+$container->get('some');     // App\SomeImplementation
+$container->get('another');  // Closure
 
-##### Alternative syntax
+// Resolve services
+$container->resolve('some');    // App\SomeImplementation
+$container->resolve('another'); // App\AnotherImplementation
 
-```php
-$container->resolve('another') === $container->resolve('App\AnotherInterface'); // true
+// Shorter syntax
+$container->some;    // App\SomeImplementation
+$container->another; // App\AnotherImplementation
+
+// Closures become lazy-loaded instances
+$container->another === $container->another; // true
 ```
 
 ### HTTP abstractions
@@ -110,8 +116,8 @@ $request = Request::createFromGlobals();
 
 $username = $request->get('username');
 $password = $request->post('password');
-$token    = $request->cookie('token');
-$upload   = $request->file('upload');
+$uploaded = $request->file('uploaded');
+$session  = $request->cookie('PHPSESSID');
 $uri      = $request->server('PATH_INFO');
 $ua       = $request->header('User-Agent');
 ```
@@ -145,6 +151,34 @@ $response->redirect('http://google.co.uk/');
 $response->send();
 ```
 
+#### Sessions
+
+Sessions will eventually accept a SessionHandlerInterface implementor as a
+constructor argument. Superglobals are currently hardcoded.
+
+```php
+use Darya\Http\Session;
+
+$session = new Session;
+$session->start();
+
+$session->set('key', 'value');
+$session->has('key'); // true
+$session->get('key'); // 'value'
+
+$session->delete('key');
+$session->has('key'); // false;
+```
+
+##### Request sessions
+
+```php
+$session = new Session;
+$request = Request::createFromGlobals($session);
+
+$request->session('key'); // 'value'
+```
+
 ### Routing
 
 Darya's router is the heart of the framework. It matches HTTP requests to routes
@@ -161,9 +195,15 @@ $router = new Router(array(
 	}
 ));
 
+/**
+ * @var \Darya\Routing\Route
+ */
 $route = $router->match('/'); // $route->action === function() {return 'Hello world!';}
 
-$result = $router->dispatch('/'); // $result === 'Hello world!'
+/**
+ * @var \Darya\Http\Response
+ */
+$response = $router->dispatch('/'); // $response->getContent() === 'Hello world!'
 
 $router->respond('/'); // Outputs 'Hello world!'
 ```
@@ -206,3 +246,20 @@ $router->respond('/about/One/two/three'); // Outputs 'One, two, three'
 
 ### Events
 
+#### Listening to and dispatching events
+
+```php
+use Darya\Events\Dispatcher;
+
+$dispatcher = new Dispatcher;
+
+$dispatcher->listen('some_event', function ($thing) {
+	return "one $thing";
+});
+
+$dispatcher->listen('some_event', function ($thing) {
+	return "two $thing" . 's';
+});
+
+$results = $dispatcher->dispatch('some_event', 'thing'); // array('one thing', 'two things');
+```
