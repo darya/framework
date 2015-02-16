@@ -18,7 +18,7 @@ class Autoloader {
 	/**
 	 * @var array Map of namespaces to paths to use when autoloading
 	 */
-	private $registeredNamespaces = array();
+	private $namespaces = array();
 	
 	/**
 	 * @var string Base path to use when autoloading
@@ -32,8 +32,8 @@ class Autoloader {
 	 * @param array  $namespaces Namespace to directory mappings to register with the autoloader
 	 */
 	public function __construct($basePath = null, array $namespaces = array()) {
-		$this->setBasePath($basePath);
-		$this->registerNamespaces($namespaces);
+		$this->basePath($basePath);
+		$this->namespaces($namespaces);
 	}
 	
 	/**
@@ -42,25 +42,19 @@ class Autoloader {
 	 * @param string $class Fully qualified (namespaced) class name
 	 * @return string
 	 */
-	public static function classBaseName($class) {
+	private static function className($class) {
 		return basename(str_replace('\\', '/', $class));
 	}
 	
 	/**
-	 * Set the base directory to load from.
+	 * Get and optionally set the base directory to load classes from.
 	 * 
 	 * @param string $basePath
-	 */
-	public function setBasePath($basePath = null) {
-		$this->basePath = $basePath ?: realpath(__DIR__ . '/../../');
-	}
-	
-	/**
-	 * Get the base directory to load from.
-	 * 
 	 * @return string
 	 */
-	public function getBasePath() {
+	public function basePath($basePath = null) {
+		$this->basePath = $basePath ?: realpath(__DIR__ . '/../../');
+		
 		return $this->basePath;
 	}
 	
@@ -77,14 +71,20 @@ class Autoloader {
 	 * Register namespace to directory mappings to attempt before the
 	 * autoloader's default behaviour.
 	 * 
+	 * Duplicate namespaces are permitted. Returns the autoloader's currently 
+	 * set namespaces after registering any that are given.
+	 * 
 	 * @param array $namespaces Namespace keys and directory values
+	 * @return array
 	 */
-	public function registerNamespaces(array $namespaces = array()) {
+	public function namespaces(array $namespaces = array()) {
 		foreach ($namespaces as $ns => $paths) {
 			foreach ((array) $paths as $path) {
-				$this->registeredNamespaces[] = array($ns, $path);
+				$this->namespaces[] = array($ns, $path);
 			}
 		}
+		
+		return $this->namespaces;
 	}
 
 	/**
@@ -118,7 +118,7 @@ class Autoloader {
 		$paths = array();
 		
 		// Test for potential registered namespace to directory mappings
-		foreach ($this->registeredNamespaces as $registered) {
+		foreach ($this->namespaces as $registered) {
 			list($ns, $nsPaths) = $registered;
 			
 			foreach ((array) $nsPaths as $nsPath) {

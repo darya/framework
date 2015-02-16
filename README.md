@@ -46,14 +46,14 @@ Darya's `autoloader.php` includes Composer's `autoload.php`.
 require_once 'vendor/darya/framework/autoloader.php';
 ```
 
-You can optionally configure Darya's autoloader by adding namespace mappings.
+You can optionally configure Darya's autoloader by providing namespace mappings.
 
 ```php
 $autoloader = require_once 'vendor/darya/framework/autoloader.php';
 
-$autoloader->registerNamespaces(array(
-	'MyNamespace' => 'app',
-	'MyNamespace' => 'app/MyNamespace',
+$autoloader->namespaces(array(
+	'MyNamespace'         => 'app',
+	'MyNamespace'         => 'app/MyNamespace',
 	'MyNamespace\MyClass' => 'app/MyNamespace/MyClass.php'
 ));
 ```
@@ -131,7 +131,7 @@ use Darya\Http\Response;
 
 $response = new Response;
 
-$response->setStatus(200);
+$response->status(200);
 $response->setContent('Hello world!');
 $response->send(); // Outputs 'Hello world!'
 ```
@@ -139,7 +139,7 @@ $response->send(); // Outputs 'Hello world!'
 ##### 404 Not Found
 
 ```php
-$response->setStatus(404);
+$response->status(404);
 $response->setContent('Whoops!');
 $response->send();
 ```
@@ -212,7 +212,7 @@ $route = $router->match('/'); // $route->action === function() {return 'Hello wo
 /**
  * @var \Darya\Http\Response
  */
-$response = $router->dispatch('/'); // $response->getContent() === 'Hello world!'
+$response = $router->dispatch('/'); // $response->content() === 'Hello world!'
 
 $router->respond('/'); // Outputs 'Hello world!'
 ```

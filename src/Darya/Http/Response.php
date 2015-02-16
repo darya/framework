@@ -4,8 +4,6 @@ namespace Darya\Http;
 /**
  * Darya's HTTP response representation.
  * 
- * TODO: Header key/value pairs.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Response {
@@ -46,37 +44,52 @@ class Response {
 	private $redirected = false;
 	
 	/**
-	 * Instantiate a new response with the given content and headers.
+	 * Prepare the given response content as a string.
+	 * 
+	 * Invokes `__toString()` on objects if exposed. Encodes arrays as JSON.
+	 * Anything else is casted to a string.
 	 * 
 	 * @param mixed $content
-	 * @param array $headers
+	 * @return string
+	 */
+	public static function prepareContent($content) {
+		if (is_object($content) && method_exists($content, '__toString')) {
+			$content = $content->__toString();
+		} else if (is_array($content)) {
+			$content = json_encode($content);
+		} else {
+			$content = (string) $content;
+		}
+		
+		return $content;
+	}
+	
+	/**
+	 * Instantiate a new response with the optionally given content and headers.
+	 * 
+	 * @param mixed $content [optional]
+	 * @param array $headers [optional]
 	 */
 	public function __construct($content = null, array $headers = array()) {
 		if (!is_null($content)) {
-			$this->setContent($content);
+			$this->content($content);
 		}
 		
-		if (!empty($headers)) {
-			$this->addHeaders($headers);
-		}
+		$this->headers($headers);
 	}
 	
 	/**
-	 * Get the HTTP status code of the response.
-	 * 
-	 * @return int
-	 */
-	public function getStatus() {
-		return $this->status;
-	}
-	
-	/**
-	 * Set the HTTP status code of the response.
+	 * Get and optionally set the HTTP status code of the response.
 	 * 
 	 * @param int $status
+	 * @return int
 	 */
-	public function setStatus($status) {
-		$this->status = $status;
+	public function status($status) {
+		if (!is_null($status)) {
+			$this->status = $status;
+		}
+		
+		return $this->status;
 	}
 	
 	/**
@@ -84,19 +97,25 @@ class Response {
 	 * 
 	 * @param string $header
 	 */
-	public function addHeader($header) {
-		$this->headers[] = $header;
+	public function header($header) {
+		if (!is_null($header) && strlen($header)) {
+			list($name, $value) = explode(':', $header, 2);
+			$this->headers[$name] = $value;
+		}
 	}
 	
 	/**
-	 * Add headers to send with the response.
+	 * Add headers to send with the response and retrieve all response headers.
 	 * 
-	 * @param array $headers
+	 * @param array|string $headers [optional]
+	 * @return array
 	 */
-	public function addHeaders(array $headers) {
-		foreach ($headers as $header) {
-			$this->headers[] = $header;
+	public function headers($headers = array()) {
+		foreach ((array) $headers as $header) {
+			$this->header($header);
 		}
+		
+		return $this->headers;
 	}
 	
 	/**
@@ -133,37 +152,19 @@ class Response {
 	}
 	
 	/**
-	 * Prepare the given response content as a string.
-	 * 
-	 * Uses __toString() on objects if exposed. Encodes arrays as JSON.
-	 * Everything else is casted to string.
+	 * Get and optionally set the response content.
 	 * 
 	 * @param mixed $content
 	 * @return string
 	 */
-	public function prepareContent($content) {
-		if (is_object($content) && method_exists($content, '__toString')) {
-			$content = $content->__toString();
-		} else if (is_array($content)) {
-			$content = json_encode($content);
-		} else {
-			$content = (string) $content;
-		}
-		
-		return $content;
-	}
-	
-	/**
-	 * Set the response content.
-	 * 
-	 * @param mixed $content
-	 */
-	public function setContent($content) {
+	public function content($content) {
 		if (is_array($content)) {
-			$this->addHeader('Content-Type: text/json');
+			$this->header('Content-Type: text/json');
 		}
 		
 		$this->content = $this->prepareContent($content);
+		
+		return $this->content;
 	}
 	
 	/**
@@ -176,15 +177,6 @@ class Response {
 	}
 	
 	/**
-	 * Retrieve the current response content.
-	 * 
-	 * @return string
-	 */
-	public function getContent() {
-		return $this->content;
-	}
-	
-	/**
 	 * Redirect the response to another location.
 	 * 
 	 * This redirect will only happen when the response headers have been sent.
@@ -193,7 +185,7 @@ class Response {
 	 * @return $this
 	 */
 	public function redirect($url) {
-		$this->addHeader("Location: $url");
+		$this->header("Location: $url");
 		$this->redirected = true;
 		
 		return $this;
@@ -209,7 +201,7 @@ class Response {
 	}
 	
 	/**
-	 * Helper method for encapsulating setting the current HTTP status.
+	 * Sends the current HTTP status of the response.
 	 */
 	protected function sendStatus() {
 		if (function_exists('http_response_code')) {
@@ -229,6 +221,15 @@ class Response {
 	}
 	
 	/**
+	 * Determine whether any headers have been sent by this response or another.
+	 * 
+	 * @return bool
+	 */
+	protected function headersSent() {
+		return $this->headersSent || headers_sent();
+	}
+	
+	/**
 	 * Send the response headers to the client, provided that they have not yet
 	 * been sent.
 	 * 
@@ -237,12 +238,12 @@ class Response {
 	 * @return bool
 	 */
 	public function sendHeaders() {
-		if (!$this->headersSent && !headers_sent()) {
+		if (!$this->headersSent()) {
 			$this->sendStatus();
 			$this->sendCookies();
 			
-			foreach ($this->headers as $header) {
-				header($header, true);
+			foreach ($this->headers as $name => $value) {
+				header("$name: $value", true);
 			}
 			
 			$this->headersSent = true;
@@ -260,7 +261,7 @@ class Response {
 	 * @return bool
 	 */
 	public function sendContent() {
-		if ($this->headersSent && !$this->contentSent && !$this->redirected) {
+		if ($this->headersSent() && !$this->contentSent && !$this->redirected) {
 			echo $this->content;
 			
 			$this->contentSent = true;

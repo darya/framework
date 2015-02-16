@@ -602,7 +602,7 @@ class Router implements ContainerAwareInterface {
 		if (is_callable($callable)) {
 			$responses[] = $this->call($callable, $arguments);
 		} else {
-			$response->setStatus(404);
+			$response->status(404);
 			return $this->handleError($request, $response, 'Non-callable resolved from the matched route');
 		}
 		
@@ -653,12 +653,12 @@ class Router implements ContainerAwareInterface {
 			$response = $this->dispatchCallable($request, $response, $callable, $arguments);
 			$this->unsubscribe($controller);
 			
-			$response->addHeader('X-Location: ' . $request->path());
+			$response->header('X-Location: ' . $request->path());
 			
 			return $response;
 		}
 		
-		$response->setStatus(404);
+		$response->status(404);
 		$this->handleError($request, $response, 'No route matches the request');
 		
 		return $response;

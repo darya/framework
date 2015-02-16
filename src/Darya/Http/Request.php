@@ -303,15 +303,6 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve the session interface for the request.
-	 * 
-	 * @return \Darya\Http\SessionInterface
-	 */
-	public function getSession() {
-		return $this->session;
-	}
-	
-	/**
 	 * Set the session interface for the request. Starts the session if it
 	 * hasn't been already.
 	 * 

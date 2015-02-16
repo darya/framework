@@ -5,7 +5,7 @@ use Darya\Mvc\ViewInterface;
 use Darya\Mvc\ViewResolver;
 
 /**
- * Darya's base functionality for MVC views.
+ * Darya's abstract view implementation.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -17,7 +17,7 @@ abstract class View implements ViewInterface {
 	protected static $basePath;
 	
 	/**
-	 * @var array Set of template file extensions compatible with this view 
+	 * @var array Set of template file extensions compatible with this view
 	 */
 	protected static $extensions = array();
 	
@@ -44,7 +44,7 @@ abstract class View implements ViewInterface {
 	/**
 	 * @var string Path to the directory containing the view template
 	 */
-	protected $dir;
+	protected $directory;
 	
 	/**
 	 * @var string Filename of the view template
@@ -129,7 +129,7 @@ abstract class View implements ViewInterface {
 	 */
 	public function select($file, array $vars = array(), array $config = array()) {
 		if (!empty($config)) {
-			$this->setConfig($config);
+			$this->config($config);
 		}
 		
 		if (!empty($vars)) {
@@ -137,7 +137,7 @@ abstract class View implements ViewInterface {
 		}
 		
 		if ($file) {
-			$this->setFile($file);
+			$this->file($file);
 		}
 	}
 	
@@ -152,7 +152,7 @@ abstract class View implements ViewInterface {
 		
 		if ($path && is_file($path)) {
 			$dirname = dirname($path);
-			$this->setDir($dirname);
+			$this->directory($dirname);
 			$this->file = basename($path);
 			
 			return true;
@@ -185,12 +185,12 @@ abstract class View implements ViewInterface {
 	 * @param string $path Path to template file
 	 * @return bool
 	 */
-	public function setFile($path) {
+	public function file($path) {
 		$paths = array();
 		
 		$paths[] = $this->resolve($path);
 		
-		$extensions = array_merge(array(''), static::$extensions);
+		$extensions = array_merge(static::$extensions, array(''));
 		
 		foreach ($extensions as $extension) {
 			if (static::$basePath) {
@@ -210,30 +210,27 @@ abstract class View implements ViewInterface {
 	}
 	
 	/**
-	 * Set the template's working directory.
+	 * Get and optionally set the template's working directory.
 	 * 
-	 * @param string $dir Template directory
+	 * @param string $directory [optional] Working directory path
+	 * @return string
 	 */
-	protected function setDir($dir) {
-		$this->dir = $dir != '.' ? $dir : '';
+	protected function directory($directory = null) {
+		$this->directory = $directory != '.' ? $directory : '';
 	}
 	
 	/**
-	 * Get view configuration variables.
+	 * Get and optionally set view configuration variables.
 	 * 
+	 * This merges given variables with any that have been previously set.
+	 * 
+	 * @param array $config [optional]
 	 * @return array
 	 */
-	public function getConfig() {
-		return $this->config;
-	}
-	
-	/**
-	 * Set view configuration variables. This merges with any previously set.
-	 * 
-	 * @param array $config
-	 */
-	public function setConfig(array $config) {
+	public function config(array $config = array()) {
 		$this->config = array_merge($this->config, $config);
+		
+		return $this->config;
 	}
 
 	/**
@@ -251,7 +248,7 @@ abstract class View implements ViewInterface {
 	 * @param string $key Key of a variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public function getAssigned($key = null) {
+	public function assigned($key = null) {
 		return !is_null($key) && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
 	}
 	
@@ -265,13 +262,13 @@ abstract class View implements ViewInterface {
 	}
 	
 	/**
-	 * Get all variables or a particular variable shared to all templates.
+	 * Get all variables or a particular variable shared with all templates.
 	 * 
 	 * @param string $key Key of a variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public static function getShared($key = null) {
+	public static function shared($key = null) {
 		return !is_null($key) && isset(static::$shared[$key]) ? static::$shared[$key] : static::$shared;
 	}
-
+	
 }

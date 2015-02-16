@@ -18,18 +18,14 @@ interface ViewInterface {
 	public function select($file, array $vars = array(), array $config = array());
 	
 	/**
-	 * Get view configuration variables.
+	 * Get and optionally set view configuration variables.
 	 * 
+	 * This merges given variables with any that have been previously set.
+	 * 
+	 * @param array $config [optional]
 	 * @return array
 	 */
-	public function getConfig();
-	
-	/**
-	 * Set view configuration variables. This merges with any previously set.
-	 * 
-	 * @param array $config
-	 */
-	public function setConfig(array $config);
+	public function config(array $config = array());
 	
 	/**
 	 * Assign an array of key/value pairs to the template.
@@ -39,12 +35,12 @@ interface ViewInterface {
 	public function assign(array $vars);
 	
 	/**
-	 * Get all variables or a particular variable assigned to the template.
+	 * Get all variables or a specific variable assigned to the template.
 	 * 
 	 * @param string $key [optional] Key of the variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public function getAssigned($key = null);
+	public function assigned($key = null);
 	
 	/**
 	 * Render the view.
