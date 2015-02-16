@@ -26,12 +26,12 @@ Use [composer](https://getcomposer.org) to install the package `darya/framework`
 
 Otherwise just clone this repository into a directory such as `/vendor`.
 
-## Basic usage
+## Introduction
 
 ### Autoloading
 
-To get started you'll want to make use of a class autoloader to save you from 
-having to manually include every class you want to use.
+To get started you'll want to make use of a class autoloader to save you from
+having to manually `include` every class you want to use.
 
 #### Composer's autoloader
 ```php
@@ -149,6 +149,15 @@ $response->send();
 ```php
 $response->redirect('http://google.co.uk/');
 $response->send();
+```
+
+##### Cookies
+
+```php
+$response->setCookie('key', 'value', strtotime('+1 day', time()));
+$cookie = $response->getCookie('key'); // 'value'
+
+$response->deleteCookie('key');
 ```
 
 #### Sessions
