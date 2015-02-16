@@ -96,10 +96,8 @@ class ViewResolver {
 	 * 
 	 * @param array $vars
 	 */
-	public function share($vars = array()) {
-		if (is_array($vars)) {
-			$this->shared = array_merge($this->shared, $vars);
-		}
+	public function share(array $vars = array()) {
+		$this->shared = array_merge($this->shared, $vars);
 	}
 	
 	/**
@@ -107,10 +105,8 @@ class ViewResolver {
 	 * 
 	 * @param array $config
 	 */
-	public function shareConfig($config = array()) {
-		if (is_array($config)) {
-			$this->config = array_merge($this->config, $config);
-		}
+	public function shareConfig(array $config = array()) {
+		$this->config = array_merge($this->config, $config);
 	}
 	
 	/**

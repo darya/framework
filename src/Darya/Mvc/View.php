@@ -70,19 +70,25 @@ abstract class View implements ViewInterface {
 	}
 	
 	/**
+	 * Sets a ViewResolver for all views.
+	 * 
+	 * @param \Darya\Mvc\ViewResolver $resolver
+	 */
+	public static function setSharedResolver(ViewResolver $resolver) {
+		static::$sharedResolver = $resolver;
+	}
+	
+	/**
 	 * Register template file extensions.
 	 * 
 	 * @param string|array $extensions
 	 */
 	public static function registerExtensions($extensions) {
-		$newExtensions = array();
+		$extensions = array_map(function($extension) {
+			return '.' . ltrim(trim($extension), '.');
+		}, (array) $extensions);
 		
-		foreach ((array) $extensions as $extension) {
-			$extension = '.' . ltrim(trim($extension), '.');
-			$newExtensions[] = $extension;
-		}
-		
-		static::$extensions = array_merge(static::$extensions, $newExtensions);
+		static::$extensions = array_merge(static::$extensions, $extensions);
 	}
 	
 	/**
@@ -103,15 +109,6 @@ abstract class View implements ViewInterface {
 	 */
 	public function __toString() {
 		return $this->render();
-	}
-
-	/**
-	 * Sets a ViewResolver for all views.
-	 * 
-	 * @param \Darya\Mvc\ViewResolver $resolver
-	 */
-	public static function setSharedResolver(ViewResolver $resolver) {
-		static::$sharedResolver = $resolver;
 	}
 	
 	/**
@@ -155,7 +152,7 @@ abstract class View implements ViewInterface {
 		
 		if ($path && is_file($path)) {
 			$dirname = dirname($path);
-			$this->setDir($dirname != '.' ? $dirname : '');
+			$this->setDir($dirname);
 			$this->file = basename($path);
 			
 			return true;
@@ -218,7 +215,7 @@ abstract class View implements ViewInterface {
 	 * @param string $dir Template directory
 	 */
 	protected function setDir($dir) {
-		$this->dir = $dir;
+		$this->dir = $dir != '.' ? $dir : '';
 	}
 	
 	/**
@@ -245,9 +242,7 @@ abstract class View implements ViewInterface {
 	 * @param array $vars
 	 */
 	public function assign(array $vars = array()) {
-		if (is_array($vars)) {
-			$this->vars = array_merge($this->vars, $vars);
-		}
+		$this->vars = array_merge($this->vars, $vars);
 	}
 	
 	/**
