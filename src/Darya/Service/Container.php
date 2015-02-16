@@ -252,7 +252,7 @@ class Container implements ContainerInterface {
 	 * @param array $arguments
 	 * @return array
 	 */
-	protected function mergeResolvedParameters(array $resolved, array $arguments) {
+	protected function mergeResolvedParameters(array $resolved, array $arguments = array()) {
 		if (!array_filter(array_keys($arguments), 'is_numeric')) {
 			return array_merge($resolved, $arguments);
 		} else {
@@ -290,7 +290,7 @@ class Container implements ContainerInterface {
 	protected function resolveParameter(ReflectionParameter $parameter) {
 		$type = $this->resolveParameterType($parameter);
 		
-		if ($type) {
+		if (!is_null($type)) {
 			if ($this->has($type)) {
 				return $this->resolve($type);
 			}

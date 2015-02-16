@@ -318,7 +318,7 @@ class Router implements ContainerAwareInterface {
 	 * @return string
 	 */
 	public function base($uri = null) {
-		if ($uri) {
+		if (!is_null($uri)) {
 			$this->base = $uri;
 		}
 		

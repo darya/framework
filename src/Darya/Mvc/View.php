@@ -122,7 +122,7 @@ abstract class View implements ViewInterface {
 	public function setResolver(ViewResolver $resolver) {
 		$this->resolver = $resolver;
 	}
-
+	
 	/**
 	 * Select a template, optionally assigning variables and config values.
 	 * 
@@ -130,12 +130,12 @@ abstract class View implements ViewInterface {
 	 * @param array  $vars 	 [optional] Variables to assign to the template immediately
 	 * @param array  $config [optional] Config variables for the view
 	 */
-	public function select($file, $vars = array(), $config = array()) {
-		if ($config) {
+	public function select($file, array $vars = array(), array $config = array()) {
+		if (!empty($config)) {
 			$this->setConfig($config);
 		}
 		
-		if ($vars) {
+		if (!empty($vars)) {
 			$this->assign($vars);
 		}
 		
@@ -157,10 +157,28 @@ abstract class View implements ViewInterface {
 			$dirname = dirname($path);
 			$this->setDir($dirname != '.' ? $dirname : '');
 			$this->file = basename($path);
+			
 			return true;
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Attempt to resolve the given view path to a file path using the view's
+	 * resolver or that class's shared resolver.
+	 * 
+	 * @param string $path
+	 * @return string
+	 */
+	protected function resolve($path) {
+		if ($this->resolver) {
+			return $this->resolver->resolve($path);
+		} else if (static::$sharedResolver) {
+			return static::$sharedResolver->resolve($path);
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -172,12 +190,8 @@ abstract class View implements ViewInterface {
 	 */
 	public function setFile($path) {
 		$paths = array();
-
-		if ($this->resolver) {
-			$paths[] = $this->resolver->resolve($path);
-		} else if (static::$sharedResolver) {
-			$paths[] = static::$sharedResolver->resolve($path);
-		}
+		
+		$paths[] = $this->resolve($path);
 		
 		$extensions = array_merge(array(''), static::$extensions);
 		
@@ -201,7 +215,7 @@ abstract class View implements ViewInterface {
 	/**
 	 * Set the template's working directory.
 	 * 
-	 * @param string $dir Template directory 
+	 * @param string $dir Template directory
 	 */
 	protected function setDir($dir) {
 		$this->dir = $dir;
@@ -243,7 +257,7 @@ abstract class View implements ViewInterface {
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
 	public function getAssigned($key = null) {
-		return $key && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
+		return !is_null($key) && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
 	}
 	
 	/**
@@ -262,7 +276,7 @@ abstract class View implements ViewInterface {
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
 	public static function getShared($key = null) {
-		return $key && isset(static::$shared[$key]) ? static::$shared[$key] : static::$shared;
+		return !is_null($key) && isset(static::$shared[$key]) ? static::$shared[$key] : static::$shared;
 	}
 
 }

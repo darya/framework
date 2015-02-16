@@ -199,10 +199,10 @@ class Request {
 	 * @return mixed
 	 */
 	public function getData($type = null, $key = null) {
-		if ($type) {
+		if (!empty($type)) {
 			$type = strtolower($type);
 			
-			if ($key) {
+			if (!empty($key)) {
 				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : null;
 			} else {
 				return $this->data[$type];
@@ -368,7 +368,7 @@ class Request {
 		if ($this->hasSession()) {
 			$flash = $this->session->get('flash');
 			
-			if ($key) {
+			if (!empty($key)) {
 				if (isset($flash[$key])) {
 					$data = $flash[$key];
 					unset($flash[$key]);

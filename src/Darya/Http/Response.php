@@ -51,12 +51,12 @@ class Response {
 	 * @param mixed $content
 	 * @param array $headers
 	 */
-	public function __construct($content = null, $headers = array()) {
-		if ($content) {
+	public function __construct($content = null, array $headers = array()) {
+		if (!is_null($content)) {
 			$this->setContent($content);
 		}
 		
-		if ($headers) {
+		if (!empty($headers)) {
 			$this->addHeaders($headers);
 		}
 	}
