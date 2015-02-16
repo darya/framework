@@ -7,11 +7,11 @@ Darya is a PHP framework for web application development.
 
 Its components include:
 
-- Autoloader
-- Service container
-- HTTP abstractions
-- Router
-- Event dispatcher
+- [Autoloader](#autoloading)
+- [Service container](#services)
+- [HTTP abstractions](#http-abstractions)
+- [Router](#routing)
+- [Event dispatcher](#events)
 - MVC foundation
 
 The framework has been extracted from and is intended as a foundation for the Darya CMS project.
@@ -24,7 +24,7 @@ This document covers the basics of using the components. If you'd like more deta
 
 Use [composer](https://getcomposer.org) to install the package `darya/framework`.
 
-Otherwise just clone this repository into a directory such as `/vendor`.
+Otherwise just clone this repository into a directory such as `/vendor/darya/framework`.
 
 ## Introduction
 
