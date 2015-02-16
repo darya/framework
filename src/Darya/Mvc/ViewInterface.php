@@ -15,7 +15,7 @@ interface ViewInterface {
 	 * @param array  $vars 	 [optional] Variables to assign to the template immediately
 	 * @param array  $config [optional] Config variables for the view
 	 */
-	public function select($file, $vars = array(), $config = array());
+	public function select($file, array $vars = array(), array $config = array());
 	
 	/**
 	 * Get view configuration variables.

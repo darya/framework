@@ -44,7 +44,7 @@ class ViewResolver {
 	 * @param string|array [optional] $path Single path or set of paths
 	 * @param string|array [optional] $extensions Template file extensions
 	 */
-	public function __construct($engine, $basePath = null, array $extensions = array()) {
+	public function __construct($engine, $basePath = null, $extensions = array()) {
 		$this->setEngine($engine);
 		
 		if ($basePath) {
