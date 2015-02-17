@@ -12,7 +12,7 @@ Its components include:
 - [HTTP abstractions](#http-abstractions)
 - [Router](#routing)
 - [Event dispatcher](#events)
-- MVC foundation
+- [MVC foundation](#model-view-controller-foundation)
 
 The framework has been extracted from and is intended as a foundation for the Darya CMS project.
 
@@ -271,4 +271,36 @@ $dispatcher->listen('some_event', function ($thing) {
 });
 
 $results = $dispatcher->dispatch('some_event', 'thing'); // array('one thing', 'two things');
+```
+
+### Model-View-Controller Foundation
+
+#### Models
+
+Darya's abstract `Model` implementation implements `ArrayAccess`, `Countable`,
+`IteratorAggregate` and `Serializable`. It is essentially a flexible collection
+of data.
+
+##### Creating a model
+
+Model attribute keys are currently prefixed with the class name and an
+underscore (`classname_`) by default. This prefix does not need to be used
+when accessing attributes; only when setting data.
+
+```php
+use Darya\Mvc\Model;
+
+class Something extends Model {
+	
+}
+
+$something = new Something(array(
+	'something_id'   => 72,
+	'something_name' => 'Something',
+	'something_type' => 'A thing'
+));
+
+$id   = $something->id;          // 72
+$name = $something['name'];      // 'Something'
+$type = $something->get('type'); // 'A thing'
 ```
