@@ -9,7 +9,7 @@ namespace Darya\Mvc;
 class PhpView extends View {
 	
 	public function render() {
-		chdir($this->dir);
+		chdir($this->directory);
 		extract($this->vars);
 		
 		$error_reporting = error_reporting();

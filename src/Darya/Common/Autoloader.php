@@ -37,16 +37,6 @@ class Autoloader {
 	}
 	
 	/**
-	 * Return the base name of a namespaced class.
-	 * 
-	 * @param string $class Fully qualified (namespaced) class name
-	 * @return string
-	 */
-	private static function className($class) {
-		return basename(str_replace('\\', '/', $class));
-	}
-	
-	/**
 	 * Get and optionally set the base directory to load classes from.
 	 * 
 	 * @param string $basePath
