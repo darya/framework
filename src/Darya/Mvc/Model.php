@@ -170,13 +170,15 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * @return Traversable
+	 * @return \Traversable
 	 */
 	public function getIterator() {
 		return new ArrayIterator($this->data);
 	}
 	
 	/**
+	 * Serialize the model.
+	 * 
 	 * @return string
 	 */
 	public function serialize() {
@@ -184,10 +186,21 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Unserialize the model.
+	 * 
 	 * @param string $serialized
 	 */
 	public function unserialize($serialized) {
 		$this->data = unserialize($serialized);
+	}
+	
+	/**
+	 * Retrieve all of the model's attributes.
+	 * 
+	 * @return array
+	 */
+	public function data() {
+		return $this->data;
 	}
 	
 	/**
@@ -207,15 +220,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		}
 		
 		return $value;
-	}
-	
-	/**
-	 * Retrieve all properties from the model.
-	 * 
-	 * @return array
-	 */
-	public function getAll() {
-		return $this->data;
 	}
 	
 	/**
@@ -295,7 +299,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param string $date Date to be parsed using strtotime()
 	 */
 	public function setDate($key, $date) {
-		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/','-', $date)) : $date));
+		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/', '-', $date)) : $date));
 	}
 	
 	/**

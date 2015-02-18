@@ -166,7 +166,7 @@ class Request {
 	 * Lower-cases keys of `server` and `header` data so they can be treated
 	 * case-insensitively.
 	 * 
-	 * @param array  $data
+	 * @param array $data
 	 * @return array
 	 */
 	protected static function prepareData(array $data) {
