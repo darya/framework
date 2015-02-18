@@ -156,8 +156,8 @@ class Request {
 	 * @param string $type
 	 * @return bool
 	 */
-	protected static function caseSensitiveDataType($type) {
-		return in_array($type, $this->caseSensitive);
+	protected static function caseInsensitiveDataType($type) {
+		return in_array($type, static::$caseInsensitive);
 	}
 	
 	/**
@@ -171,7 +171,7 @@ class Request {
 	 * @return array
 	 */
 	protected static function prepareData($type, array $values) {
-		if (static::caseSensitiveDataType($type)) {
+		if (static::caseInsensitiveDataType($type)) {
 			$values = array_change_key_case($values);
 		}
 		
@@ -193,7 +193,7 @@ class Request {
 			$type = strtolower($type);
 			
 			if (is_array($values) && is_array($this->data[$type])) {
-				$values = static::prepareData($values);
+				$values = static::prepareData($type, $values);
 				$values = array_merge($values, $this->data[$type]);
 			}
 			
@@ -212,9 +212,9 @@ class Request {
 		$this->path = $path;
 		$this->method = strtolower($method);
 		
-		$this->data['server']['PATH_INFO'] = $path;
-		$this->data['server']['REQUEST_URI'] = $uri;
-		$this->data['server']['REQUEST_METHOD'] = $method;
+		$this->data['server']['path_info'] = $path;
+		$this->data['server']['request_uri'] = $uri;
+		$this->data['server']['request_method'] = $method;
 	}
 	
 	/**
@@ -231,7 +231,7 @@ class Request {
 		if (!empty($type)) {
 			$type = strtolower($type);
 			
-			if (static::caseSensitiveDataType($type)) {
+			if (static::caseInsensitiveDataType($type)) {
 				$key = strtolower($key);
 			}
 			
@@ -324,7 +324,7 @@ class Request {
 	 * @return string
 	 */
 	public function ip() {
-		return $this->server('REMOTE_ADDR');
+		return $this->server('remote_addr');
 	}
 	
 	/**
@@ -336,8 +336,8 @@ class Request {
 	 */
 	public function ajax() {
 		return $this->has('ajax')
-		|| strtolower($this->server('HTTP_X_REQUESTED_WITH')) == 'xmlhttprequest'
-		|| strtolower($this->header('X-Requested-With')) == 'xmlhttprequest';
+		|| strtolower($this->server('http_x_requested_with')) == 'xmlhttprequest'
+		|| strtolower($this->header('x-requested-with')) == 'xmlhttprequest';
 	}
 	
 	/**
