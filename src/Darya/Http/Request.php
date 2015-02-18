@@ -24,14 +24,19 @@ use Darya\Http\SessionInterface;
 class Request {
 	
 	/**
-	 * @var string Request path
-	 */
-	private $path;
-	
-	/**
 	 * @var string Request URI
 	 */
 	private $uri;
+	
+	/**
+	 * @var string Request hostname
+	 */
+	private $host;
+	
+	/**
+	 * @var string Request path
+	 */
+	private $path;
 	
 	/**
 	 * @var string Request method
@@ -209,6 +214,7 @@ class Request {
 		);
 		
 		$this->uri = $uri;
+		$this->host = $host;
 		$this->path = $path;
 		$this->method = strtolower($method);
 		
@@ -290,21 +296,30 @@ class Request {
 	}
 	
 	/**
-	 * Retrieve the path of the request.
-	 * 
-	 * @return string
-	 */
-	public function path() {
-		return $this->path;
-	}
-	
-	/**
 	 * Retrieve the URI of the request.
 	 * 
 	 * @return string
 	 */
 	public function uri() {
 		return $this->uri;
+	}
+	
+	/**
+	 * Retrieve the hostname of the request.
+	 * 
+	 * @return string
+	 */
+	public function host() {
+		return $this->host;
+	}
+	
+	/**
+	 * Retrieve the path of the request.
+	 * 
+	 * @return string
+	 */
+	public function path() {
+		return $this->path;
 	}
 	
 	/**
@@ -319,7 +334,7 @@ class Request {
 	}
 	
 	/**
-	 * Retrieves the IP address of the client that made the request.
+	 * Retrieve the IP address of the client that made the request.
 	 * 
 	 * @return string
 	 */
