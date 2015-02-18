@@ -21,7 +21,7 @@ abstract class Facade {
 	 * 
 	 * @param \Darya\Service\ContainerInterface $container
 	 */
-	public static function setServiceContainer(ContainerInterface $container){
+	public static function setServiceContainer(ContainerInterface $container) {
 		static::$serviceContainer = $container;
 	}
 	
@@ -32,7 +32,7 @@ abstract class Facade {
 	 * 
 	 * @return string
 	 */
-	public static function getServiceName(){
+	public static function getServiceName() {
 		$class = get_class(new static);
 		throw new Exception('Facade "' . $class . '" does not implement getServiceName()');
 	}
@@ -44,7 +44,7 @@ abstract class Facade {
 	 * @param array  $parameters
 	 * @return mixed
 	 */
-	public static function __callStatic($method, $parameters){
+	public static function __callStatic($method, $parameters) {
 		$service = static::getServiceName();
 		
 		if (!static::$serviceContainer) {

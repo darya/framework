@@ -5,7 +5,7 @@ use Darya\Service\Facade;
 
 class Config extends Facade {
 	
-	public static function getServiceName(){
+	public static function getServiceName() {
 		return 'config';
 	}
 	

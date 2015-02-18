@@ -79,7 +79,7 @@ class Router implements ContainerAwareInterface {
 			$path = preg_replace($pattern, $replacement, $path);
 		}
 		
-		return '#/?^'.$path.'/?$#';
+		return '#/?^' . $path . '/?$#';
 	}
 	
 	/**
@@ -424,7 +424,7 @@ class Router implements ContainerAwareInterface {
 			
 			if (method_exists($route->controller, $action)) {
 				$route->action = $action;
-			} else if(method_exists($route->controller, $action . 'Action')) {
+			} else if (method_exists($route->controller, $action . 'Action')) {
 				$route->action = $action . 'Action';
 			}
 		} else {
@@ -606,7 +606,7 @@ class Router implements ContainerAwareInterface {
 			return $this->handleError($request, $response, 'Non-callable resolved from the matched route');
 		}
 		
-		$responses = array_merge($responses, $this->event('router.after',$requestResponse));
+		$responses = array_merge($responses, $this->event('router.after', $requestResponse));
 		$responses = array_merge($responses, $this->event('router.last', $requestResponse));
 		
 		foreach ($responses as $potential) {

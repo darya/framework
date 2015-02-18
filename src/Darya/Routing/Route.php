@@ -168,9 +168,9 @@ class Route {
 			foreach ($parameters as $key => $value) {
 				$this->defaults[$key] = $value;
 			}
-		} else if(is_callable($parameters)) {
+		} else if (is_callable($parameters)) {
 			$this->defaults['action'] = $parameters;
-		} else if(is_string($parameters) || is_object($parameters)) {
+		} else if (is_string($parameters) || is_object($parameters)) {
 			$this->defaults['controller'] = $parameters;
 		}
 		
