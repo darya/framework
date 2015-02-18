@@ -206,6 +206,7 @@ class Request {
 		}
 		
 		$components = static::parseUri($uri);
+		$host = $components['host'];
 		$path = $components['path'];
 		
 		$this->data['get'] = array_merge(
