@@ -6,9 +6,6 @@ use Darya\Http\SessionInterface;
 /**
  * Darya's HTTP request representation.
  * 
- * TODO: Populate get variables if there is a query string in the given URI.
- *       Also populate server 'PATHINFO'.
- * 
  * @property array $get
  * @property array $post
  * @property array $cookie
@@ -52,6 +49,8 @@ class Request {
 		'server' => array(),
 		'header' => array()
 	);
+	
+	protected static $caseInsensitive = array('server', 'header');
 	
 	/**
 	 * @var \Darya\Http\SessionInterface
@@ -138,7 +137,7 @@ class Request {
 	}
 	
 	/**
-	 * Parse the given query and return its key value pairs.
+	 * Parse the given query string and return its key value pairs.
 	 * 
 	 * @param string $query
 	 * @return array
@@ -151,7 +150,36 @@ class Request {
 	}
 	
 	/**
-	 * Create a new request.
+	 * Determine whether the given data type's keys can be treated
+	 * case-insensitively.
+	 * 
+	 * @param string $type
+	 * @return bool
+	 */
+	protected static function caseSensitiveDataType($type) {
+		return in_array($type, $this->caseSensitive);
+	}
+	
+	/**
+	 * Alter the data of the given type if necessary.
+	 * 
+	 * Lower-cases keys of `server` and `header` data so they can be treated
+	 * case insensitively.
+	 * 
+	 * @param string $type
+	 * @param array  $data
+	 * @return array
+	 */
+	protected static function prepareData($type, array $values) {
+		if (static::caseSensitiveDataType($type)) {
+			$values = array_change_key_case($values);
+		}
+		
+		return $values;
+	}
+	
+	/**
+	 * Instantiate a new request with the given data.
 	 * 
 	 * Expects $data to have keys such as 'get', 'post', 'cookie', 'file',
 	 * 'server', 'header' and the same general structure as PHP superglobals.
@@ -165,6 +193,7 @@ class Request {
 			$type = strtolower($type);
 			
 			if (is_array($values) && is_array($this->data[$type])) {
+				$values = static::prepareData($values);
 				$values = array_merge($values, $this->data[$type]);
 			}
 			
@@ -202,6 +231,10 @@ class Request {
 		if (!empty($type)) {
 			$type = strtolower($type);
 			
+			if (static::caseSensitiveDataType($type)) {
+				$key = strtolower($key);
+			}
+			
 			if (!empty($key)) {
 				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : null;
 			} else {
@@ -212,10 +245,24 @@ class Request {
 		}
 	}
 	
+	/**
+	 * Magic method implementation that provides read-only array access to
+	 * request data.
+	 * 
+	 * @param string $property
+	 * @return array
+	 */
 	public function __get($property) {
 		return $this->getData($property);
 	}
 	
+	/**
+	 * Magic method implementation that provides read-only functional access
+	 * to request data.
+	 * 
+	 * @param string $method
+	 * @param array  $args
+	 */
 	public function __call($method, $args) {
 		return count($args) ? $this->getData($method, $args[0]) : $this->getData($method);
 	}
