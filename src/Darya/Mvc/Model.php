@@ -210,32 +210,26 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve all properties from the model
+	 * Retrieve all properties from the model.
 	 * 
 	 * @return array
 	 */
 	public function getAll() {
-		$data = array();
-		
-		foreach ($this->data as $key => $value) {
-			$data[$key] = $value;
-		}
-		
-		return $data;
+		return $this->data;
 	}
 	
 	/**
-	 * Return a field as an integer
+	 * Return a field as an integer.
 	 * 
 	 * @param  string $key
 	 * @return int
 	 */
 	public function getInt($key) {
-		return (int)$this->get($key);
+		return (int) $this->get($key);
 	}
 	
 	/**
-	 * Return a field in the configured time format
+	 * Return a field in the configured time format.
 	 *
 	 * @param  string $key
 	 * @param  string $format
@@ -246,7 +240,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Return a field in the configured date format
+	 * Return a field in the configured date format.
 	 *
 	 * @param  string $key
 	 * @param  string $format
@@ -257,7 +251,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Return a field in the configured date/time format
+	 * Return a field in the configured date/time format.
 	 *
 	 * @param  string $key
 	 * @param  string $format
@@ -268,7 +262,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the value of a field
+	 * Set the value of a field.
 	 * 
 	 * @param string $key
 	 * @param mixed  $value
@@ -279,7 +273,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the values of multiple fields using a key/value array
+	 * Set the values of multiple fields using a key/value array.
 	 * 
 	 * @param array $data
 	 */
@@ -292,19 +286,22 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the value of a date field with the correct formatting for MySQL
-	 * TODO: This should not be specific to MySQL, create a config for model date setting format
+	 * Set the value of a date field with the correct formatting for MySQL.
+	 * 
+	 * TODO: This does not need to be specific to MySQL. Create a config for
+	 *       model date formats?
 	 * 
 	 * @param string $key
 	 * @param string $date Date to be parsed using strtotime()
 	 */
 	public function setDate($key, $date) {
-		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/','-',$date)) : $date));
+		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/','-', $date)) : $date));
 	}
 	
 	/**
-	 * Sets the created and modified dates according to the time given
-	 * Defaults to the current system time if none is given
+	 * Sets the created and modified dates according to the time given.
+	 * 
+	 * Defaults to the current system time if none is given.
 	 * 
 	 * @param int $time [optional] Timestamp
 	 */

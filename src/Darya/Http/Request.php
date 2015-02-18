@@ -161,21 +161,22 @@ class Request {
 	}
 	
 	/**
-	 * Alter the data of the given type if necessary.
+	 * Prepare the given request data where necessary.
 	 * 
 	 * Lower-cases keys of `server` and `header` data so they can be treated
-	 * case insensitively.
+	 * case-insensitively.
 	 * 
-	 * @param string $type
 	 * @param array  $data
 	 * @return array
 	 */
-	protected static function prepareData($type, array $values) {
-		if (static::caseInsensitiveDataType($type)) {
-			$values = array_change_key_case($values);
+	protected static function prepareData(array $data) {
+		foreach (array_keys($data) as $type) {
+			if (static::caseInsensitiveDataType($type)) {
+				$data[$type] = array_change_key_case($data[$type]);
+			}
 		}
 		
-		return $values;
+		return $data;
 	}
 	
 	/**
@@ -189,11 +190,10 @@ class Request {
 	 * @param array  $data
 	 */
 	public function __construct($uri, $method = 'get', $data = array()) {
-		foreach ($data as $type => $values) {
+		foreach (static::prepareData($data) as $type => $values) {
 			$type = strtolower($type);
 			
 			if (is_array($values) && is_array($this->data[$type])) {
-				$values = static::prepareData($type, $values);
 				$values = array_merge($values, $this->data[$type]);
 			}
 			

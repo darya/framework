@@ -277,6 +277,9 @@ $results = $dispatcher->dispatch('some_event', 'thing'); // array('one thing', '
 
 #### Models
 
+Darya models are self-validating value objects used to represent entities within
+an application.
+
 Darya's abstract `Model` implementation implements `ArrayAccess`, `Countable`,
 `IteratorAggregate` and `Serializable`. It is essentially a flexible collection
 of data.
@@ -284,8 +287,12 @@ of data.
 ##### Creating a model
 
 Model attribute keys are currently prefixed with the class name and an
-underscore (`classname_`) by default. This prefix does not need to be used
-when accessing attributes; only when setting data.
+underscore (`classname_`) by default. All attribute keys are treated
+case-insensitively
+
+This prefix does not need to be used when accessing attributes; only when
+setting data. To prevent the use of a prefix simply set the
+`protected $fieldPrefix = '';` property on your model.
 
 ```php
 use Darya\Mvc\Model;
@@ -304,3 +311,29 @@ $id   = $something->id;          // 72
 $name = $something['name'];      // 'Something'
 $type = $something->get('type'); // 'A thing'
 ```
+
+##### Iterating over a model
+
+```php
+$attributes = array();
+
+foreach ($something as $key => $value) {
+	$attributes[$key] => $value;
+}
+```
+
+##### Serializing a model
+
+```php
+$serialized = serialize($something);
+$attributes = $something->toArray();
+$json = $something->toJson();
+```
+
+#### Views
+
+To be documented.
+
+#### Controllers
+
+To be documented.
