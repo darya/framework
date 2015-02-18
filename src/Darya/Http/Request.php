@@ -227,22 +227,22 @@ class Request {
 	 * @param string $key  [optional]
 	 * @return mixed
 	 */
-	public function getData($type = null, $key = null) {
-		if (!empty($type)) {
-			$type = strtolower($type);
-			
+	public function data($type = null, $key = null) {
+		$type = strtolower($type);
+		
+		if (isset($this->data[$type])) {
 			if (static::caseInsensitiveDataType($type)) {
 				$key = strtolower($key);
 			}
 			
 			if (!empty($key)) {
 				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : null;
-			} else {
-				return $this->data[$type];
 			}
-		} else {
-			return $this->data;
+			
+			return $this->data[$type];
 		}
+		
+		return $this->data;
 	}
 	
 	/**
@@ -253,7 +253,7 @@ class Request {
 	 * @return array
 	 */
 	public function __get($property) {
-		return $this->getData($property);
+		return $this->data($property);
 	}
 	
 	/**
@@ -264,7 +264,7 @@ class Request {
 	 * @param array  $args
 	 */
 	public function __call($method, $args) {
-		return count($args) ? $this->getData($method, $args[0]) : $this->getData($method);
+		return count($args) ? $this->data($method, $args[0]) : $this->data($method);
 	}
 	
 	/**
