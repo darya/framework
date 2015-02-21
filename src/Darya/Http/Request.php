@@ -24,38 +24,22 @@ use Darya\Http\SessionInterface;
 class Request {
 	
 	/**
-	 * @var string Request URI
+	 * @var array Request data types to treat case-insensitively
 	 */
-	private $uri;
-	
-	/**
-	 * @var string Request hostname
-	 */
-	private $host;
-	
-	/**
-	 * @var string Request path
-	 */
-	private $path;
-	
-	/**
-	 * @var string Request method
-	 */
-	private $method;
+	protected static $caseInsensitive = array('server', 'header');
 	
 	/**
 	 * @var array Request data
 	 */
 	protected $data = array(
-		'get'    => array(),
-		'post'   => array(),
-		'cookie' => array(),
-		'file'   => array(),
-		'server' => array(),
-		'header' => array()
+		'get'     => array(),
+		'post'    => array(),
+		'cookie'  => array(),
+		'file'    => array(),
+		'server'  => array(),
+		'header'  => array(),
+		'session' => null
 	);
-	
-	protected static $caseInsensitive = array('server', 'header');
 	
 	/**
 	 * @var \Darya\Http\SessionInterface
@@ -73,30 +57,119 @@ class Request {
 	public $route;
 	
 	/**
-	 * Create a new request using PHP's super globals.
+	 * Determine whether the given data type's keys can be treated
+	 * case-insensitively.
 	 * 
-	 * @param \Darya\Http\SessionInterface $session [optional]
-	 * @return \Darya\Http\Request
+	 * @param string $type
+	 * @return bool
 	 */
-	public static function createFromGlobals(SessionInterface $session = null) {
-		$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
-		$method = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
+	protected static function isCaseInsensitive($type) {
+		return in_array($type, static::$caseInsensitive);
+	}
+	
+	/**
+	 * Prepare the given request data where necessary.
+	 * 
+	 * Lowercases data type keys and the keys of `server` and `header` data so
+	 * they can be treated case-insensitively.
+	 * 
+	 * Any expected data types not satisfied will contain an empty array apart
+	 * from `session`, which will be null.
+	 * 
+	 * @param array $data
+	 * @return array
+	 */
+	protected static function prepareData(array $data) {
+		$data = array_change_key_case($data);
 		
-		$request = new static($uri, $method, array(
-			'get'    => $_GET,
-			'post'   => $_POST,
-			'cookie' => $_COOKIE,
-			'file'   => $_FILES,
-			'server' => $_SERVER,
-			'header' => static::headersFromGlobals($_SERVER)
-		));
-		
-		if ($session) {
-			$request->setSession($session);
+		foreach (array_keys($data) as $type) {
+			if (static::isCaseInsensitive($type)) {
+				$data[$type] = array_change_key_case($data[$type]);
+			}
 		}
 		
-		return $request;
+		return array_merge(array(
+			'get'     => array(),
+			'post'    => array(),
+			'cookie'  => array(),
+			'file'    => array(),
+			'server'  => array(),
+			'header'  => array(),
+			'session' => null
+		), $data);
 	}
+	
+	
+	/**
+	 * Parse the given URI and return its components.
+	 * 
+	 * Any components not satisfied will be null instead of non-existent, so you
+	 * can safely expect the keys 'scheme', 'host', 'port', 'user', 'pass',
+	 * 'query' and 'fragment' to exist.
+	 * 
+	 * @param string $uri
+	 * @return array
+	 */
+	protected static function parseUri($uri) {
+		return array_merge(array(
+			'scheme' => null,
+			'host'   => null,
+			'port'   => null,
+			'user'   => null,
+			'pass'   => null,
+			'path'   => null,
+			'query'  => null,
+			'fragment' => null
+		), parse_url($uri));
+	}
+	
+	/**
+	 * Parse the given query string and return its key value pairs.
+	 * 
+	 * @param string $query
+	 * @return array
+	 */
+	protected static function parseQuery($query) {
+		$values = array();
+		parse_str($query, $values);
+		
+		return $values;
+	}
+	
+	/**
+	 * Create a new request with the given URI, method and data.
+	 * 
+	 * @param string           $uri
+	 * @param string           $method
+	 * @param array            $data
+	 * @param SessionInterface $session
+	 * @return Request
+	 */
+	public static function create($uri, $method = 'GET', $data = array(), SessionInterface $session) {
+		$components = static::parseUri($uri);
+		$data = static::prepareData($data);
+		
+		$data['get'] = array_merge(
+			$data['get'],
+			static::parseQuery($components['query'])
+		);
+		
+		$data['server']['http_host'] = $components['host'];
+		$data['server']['path_info'] = $components['path'];
+		$data['server']['request_uri'] = $uri;
+		$data['server']['request_method'] = strtoupper($method);
+		
+		return new Request(
+			$data['get'],
+			$data['post'],
+			$data['cookie'],
+			$data['file'],
+			$data['server'],
+			$data['header'],
+			$session
+		);
+	}
+	
 	
 	/**
 	 * Extract HTTP request headers from a given set of $_SERVER globals.
@@ -120,108 +193,59 @@ class Request {
 	}
 	
 	/**
-	 * Parse the given URI and return its components.
+	 * Create a new request using PHP's super globals.
 	 * 
-	 * Any components not satisfied will be null instead of non-existent, so you
-	 * can safely expect the keys 'scheme', 'host', 'port', 'user', 'pass',
-	 * 'query' and 'fragment' to exist.
-	 * 
-	 * @param string $uri
-	 * @return array
+	 * @param \Darya\Http\SessionInterface $session [optional]
+	 * @return \Darya\Http\Request
 	 */
-	protected static function parseUri($uri) {
-		return array_merge(array(
-			'scheme' => null,
-			'host'   => null,
-			'port'   => null,
-			'user'   => null,
-			'pass'   => null,
-			'query'  => null,
-			'fragment' => null
-		), parse_url($uri));
-	}
-	
-	/**
-	 * Parse the given query string and return its key value pairs.
-	 * 
-	 * @param string $query
-	 * @return array
-	 */
-	protected static function parseQuery($query) {
-		$values = array();
-		parse_str($query, $values);
+	public static function createFromGlobals(SessionInterface $session = null) {
+		$request =  new Request($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER, static::headersFromGlobals($_SERVER));
 		
-		return $values;
-	}
-	
-	/**
-	 * Determine whether the given data type's keys can be treated
-	 * case-insensitively.
-	 * 
-	 * @param string $type
-	 * @return bool
-	 */
-	protected static function caseInsensitiveDataType($type) {
-		return in_array($type, static::$caseInsensitive);
-	}
-	
-	/**
-	 * Prepare the given request data where necessary.
-	 * 
-	 * Lower-cases keys of `server` and `header` data so they can be treated
-	 * case-insensitively.
-	 * 
-	 * @param array $data
-	 * @return array
-	 */
-	protected static function prepareData(array $data) {
-		foreach (array_keys($data) as $type) {
-			if (static::caseInsensitiveDataType($type)) {
-				$data[$type] = array_change_key_case($data[$type]);
-			}
+		if ($session) {
+			$request->setSession($session);
 		}
 		
-		return $data;
+		return $request;
 	}
 	
 	/**
 	 * Instantiate a new request with the given data.
 	 * 
-	 * Expects $data to have keys such as 'get', 'post', 'cookie', 'file',
-	 * 'server', 'header' and the same general structure as PHP superglobals.
+	 * Expects request data in the same format as PHP superglobals.
 	 * 
-	 * @param string $uri
-	 * @param string $method
-	 * @param array  $data
+	 * @param array $get
+	 * @param array $post
+	 * @param array $cookie
+	 * @param array $file
+	 * @param array $server
+	 * @param array $header
 	 */
-	public function __construct($uri, $method = 'get', $data = array()) {
-		foreach (static::prepareData($data) as $type => $values) {
-			$type = strtolower($type);
-			
-			if (is_array($values) && is_array($this->data[$type])) {
-				$values = array_merge($values, $this->data[$type]);
-			}
-			
-			$this->data[$type] = $values;
+	public function __construct(array $get, array $post, array $cookie, array $file, array $server, array $header) {
+		$this->data = static::prepareData(compact('get', 'post', 'cookie', 'file', 'server', 'header'));
+	}
+	
+	/**
+	 * Determine whether this Request has a session interface.
+	 * 
+	 * @return bool
+	 */
+	public function hasSession() {
+		return !is_null($this->session);
+	}
+	
+	/**
+	 * Set the session interface for the request. Starts the session if it
+	 * hasn't been already.
+	 * 
+	 * @param \Darya\Http\SessionInterface $session
+	 */
+	public function setSession(SessionInterface $session) {
+		if (!$session->started()) {
+			$session->start();
 		}
 		
-		$components = static::parseUri($uri);
-		$host = $components['host'];
-		$path = $components['path'];
-		
-		$this->data['get'] = array_merge(
-			$this->data['get'],
-			static::parseQuery($components['query'])
-		);
-		
-		$this->uri = $uri;
-		$this->host = $host;
-		$this->path = $path;
-		$this->method = strtolower($method);
-		
-		$this->data['server']['path_info'] = $path;
-		$this->data['server']['request_uri'] = $uri;
-		$this->data['server']['request_method'] = $method;
+		$this->session = $session;
+		$this->data['session'] = $this->session;
 	}
 	
 	/**
@@ -238,7 +262,7 @@ class Request {
 		$type = strtolower($type);
 		
 		if (isset($this->data[$type])) {
-			if (static::caseInsensitiveDataType($type)) {
+			if (static::isCaseInsensitive($type)) {
 				$key = strtolower($key);
 			}
 			
@@ -302,7 +326,7 @@ class Request {
 	 * @return string
 	 */
 	public function uri() {
-		return $this->uri;
+		return $this->server('request_uri');
 	}
 	
 	/**
@@ -311,7 +335,7 @@ class Request {
 	 * @return string
 	 */
 	public function host() {
-		return $this->host;
+		return $this->server('http_host');
 	}
 	
 	/**
@@ -320,18 +344,21 @@ class Request {
 	 * @return string
 	 */
 	public function path() {
-		return $this->path;
+		return $this->server('path_info');
 	}
 	
 	/**
-	 * Retrieve the method of the request or, if $method is set, determine
-	 * whether the method of the request is the same as the given method.
+	 * Retrieve the method of the request or determine whether the method of the
+	 * request is the same as the one given.
 	 * 
 	 * @param string $method [optional]
 	 * @return string|bool
 	 */
 	public function method($method = null) {
-		return $method ? strtolower($this->method) == strtolower($method) : $this->method;
+		$method = strtolower($method);
+		$requestMethod = strtolower($this->server('request_method'));
+		
+		return $method ? $requestMethod == $method : $this->server('request_method');
 	}
 	
 	/**
@@ -354,31 +381,6 @@ class Request {
 		return $this->has('ajax')
 		|| strtolower($this->server('http_x_requested_with')) == 'xmlhttprequest'
 		|| strtolower($this->header('x-requested-with')) == 'xmlhttprequest';
-	}
-	
-	/**
-	 * Determine whether this Request has a session interface.
-	 * 
-	 * @return bool
-	 */
-	public function hasSession() {
-		return !is_null($this->session);
-	}
-	
-	/**
-	 * Set the session interface for the request. Starts the session if it
-	 * hasn't been already.
-	 * 
-	 * @param \Darya\Http\SessionInterface $session
-	 */
-	public function setSession(SessionInterface $session) {
-		if (!$session->started()) {
-			$session->start();
-		}
-		
-		$this->session = $session;
-		
-		$this->data['session'] = $this->session;
 	}
 	
 	/**

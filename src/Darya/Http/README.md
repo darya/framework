@@ -19,13 +19,15 @@ well change to upper case at some point))).
 #### Creating requests
 
 ```php
-$request = new Request('/hello');
+$request = Request::create('/hello');
 ```
 
-They can be populated with request data when instantiated. This data is expected to mirror the structure of PHP's superglobals, which means the superglobals themselves can be used to mimic the current request.
+They can be populated with request data when instantiated. This data is expected
+to mirror the structure of PHP's superglobals, which means the superglobals
+themselves can be used to represent the current request.
 
 ```php
-$request = new Request($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
+$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
 	'get'    => $_GET,
 	'post'   => $_POST,
 	'cookie' => $_COOKIE,

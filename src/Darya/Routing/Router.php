@@ -110,14 +110,14 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Instantiates a new request if the given argument is a string.
+	 * Instantiates a new request using the given argument.
 	 *
 	 * @param \Darya\Http\Request|string $request
 	 * @return \Darya\Http\Request
 	 */
 	public static function prepareRequest($request) {
-		if (!$request instanceof Request && is_string($request)) {
-			$request = new Request($request);
+		if (!$request instanceof Request) {
+			$request = Request::create($request);
 		}
 		
 		return $request;
