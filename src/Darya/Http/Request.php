@@ -239,7 +239,7 @@ class Request {
 	 * 
 	 * @param \Darya\Http\SessionInterface $session
 	 */
-	public function setSession(SessionInterface $session) {
+	public function setSession(SessionInterface $session = null) {
 		if (is_object($session) && !$session->started()) {
 			$session->start();
 		}
