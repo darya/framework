@@ -140,12 +140,12 @@ class Request {
 	 * Create a new request with the given URI, method and data.
 	 * 
 	 * @param string           $uri
-	 * @param string           $method
-	 * @param array            $data
-	 * @param SessionInterface $session
+	 * @param string           $method  [optional]
+	 * @param array            $data    [optional]
+	 * @param SessionInterface $session [optional]
 	 * @return Request
 	 */
-	public static function create($uri, $method = 'GET', $data = array(), SessionInterface $session) {
+	public static function create($uri, $method = 'GET', $data = array(), SessionInterface $session = null) {
 		$components = static::parseUri($uri);
 		$data = static::prepareData($data);
 		
@@ -159,15 +159,18 @@ class Request {
 		$data['server']['request_uri'] = $uri;
 		$data['server']['request_method'] = strtoupper($method);
 		
-		return new Request(
+		$request = new Request(
 			$data['get'],
 			$data['post'],
 			$data['cookie'],
 			$data['file'],
 			$data['server'],
-			$data['header'],
-			$session
+			$data['header']
 		);
+		
+		$request->setSession($session);
+		
+		return $request;
 	}
 	
 	
@@ -200,10 +203,7 @@ class Request {
 	 */
 	public static function createFromGlobals(SessionInterface $session = null) {
 		$request =  new Request($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER, static::headersFromGlobals($_SERVER));
-		
-		if ($session) {
-			$request->setSession($session);
-		}
+		$request->setSession($session);
 		
 		return $request;
 	}
@@ -240,7 +240,7 @@ class Request {
 	 * @param \Darya\Http\SessionInterface $session
 	 */
 	public function setSession(SessionInterface $session) {
-		if (!$session->started()) {
+		if (is_object($session) && !$session->started()) {
 			$session->start();
 		}
 		
