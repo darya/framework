@@ -175,6 +175,36 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
+	 * Set an error handler for dispatched requests that don't match a route.
+	 * 
+	 * @param callable $handler
+	 */
+	public function setErrorHandler($handler) {
+		if (is_callable($handler)) {
+			$this->errorHandler = $handler;
+		}
+	}
+	
+	/**
+	 * Invoke the error handler with the given request and response if one is
+	 * set.
+	 * 
+	 * Returns the given response if no error handler is set.
+	 * 
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Http\Response $response
+	 * @param string               $message [optional]
+	 */
+	protected function handleError(Request $request, Response $response, $message = null) {
+		if ($this->errorHandler) {
+			$errorHandler = $this->errorHandler;
+			return static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
+		}
+		
+		return $response;
+	}
+	
+	/**
 	 * Helper method for invoking callables. Silent if the given argument is
 	 * not callable.
 	 * 
@@ -277,10 +307,12 @@ class Router implements ContainerAwareInterface {
 	 *   - Route name as the key, Route instance as the value
 	 * 
 	 * An example using both:
+	 * ```
 	 *     $router->add(array(
 	 *         '/route-path' => 'Namespace\Controller',
 	 *         'route-name'  => new Route('/route-path', 'Namespace\Controller')
 	 *     ));
+	 * ```
 	 * 
 	 * @param string|array          $routes   Route definitions or a route path
 	 * @param callable|array|string $defaults Default parameters for the route if $routes is a route path
@@ -549,36 +581,6 @@ class Router implements ContainerAwareInterface {
 		}
 		
 		return false;
-	}
-	
-	/**
-	 * Set an error handler for dispatched requests that don't match a route.
-	 * 
-	 * @param callable $handler
-	 */
-	public function error($handler) {
-		if (is_callable($handler)) {
-			$this->errorHandler = $handler;
-		}
-	}
-	
-	/**
-	 * Invoke the error handler with the given request and response if one is
-	 * set.
-	 * 
-	 * Returns the given response if no error handler is set.
-	 * 
-	 * @param \Darya\Http\Request  $request
-	 * @param \Darya\Http\Response $response
-	 * @param string               $message [optional]
-	 */
-	protected function handleError(Request $request, Response $response, $message = null) {
-		if ($this->errorHandler) {
-			$errorHandler = $this->errorHandler;
-			return static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
-		}
-		
-		return $response;
 	}
 	
 	/**
