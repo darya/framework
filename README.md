@@ -175,6 +175,10 @@ $session->set('key', 'value');
 $session->has('key'); // true
 $session->get('key'); // 'value'
 
+// Alternative syntax
+$session->key;   // 'another value';
+$session['key']; // 'yet another value';
+
 $session->delete('key');
 $session->has('key'); // false;
 ```
@@ -183,8 +187,11 @@ $session->has('key'); // false;
 
 ```php
 $session = new Session;
+$session->key = 'value';
 $request = Request::createFromGlobals($session);
 
+$request->session->key;   // 'value'
+$request->session['key']; // 'value'
 $request->session('key'); // 'value'
 ```
 
