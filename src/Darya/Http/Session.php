@@ -11,21 +11,33 @@ use ArrayAccess;
 class Session implements ArrayAccess, SessionInterface {
 	
 	/**
-	 * Start a new session or resume an existing one.
+	 * Magic method that determines whether a session key is set.
 	 * 
+	 * @param string $property
 	 * @return bool
 	 */
-	public function start() {
-		return session_start();
+	public function __isset($property) {
+		return $this->has($property);
 	}
 	
 	/**
-	 * Determine whether a session is active.
-	 *
+	 * Magic method that retrieves a session value.
+	 * 
+	 * @param string $property
 	 * @return bool
 	 */
-	public function started() {
-		return session_id() != '';
+	public function __get($property) {
+		return $this->get($property);
+	}
+	
+	/**
+	 * Magic method that sets a session value.
+	 * 
+	 * @param string $property
+	 * @param mixed  $value
+	 */
+	public function __set($property, $value) {
+		$this->set($property, $value);
 	}
 	
 	/**
@@ -57,6 +69,24 @@ class Session implements ArrayAccess, SessionInterface {
 	 */
 	public function offsetUnset($offset) {
 		$this->delete($offset);
+	}
+	
+	/**
+	 * Start a new session or resume an existing one.
+	 * 
+	 * @return bool
+	 */
+	public function start() {
+		return session_start();
+	}
+	
+	/**
+	 * Determine whether a session is active.
+	 *
+	 * @return bool
+	 */
+	public function started() {
+		return session_id() != '';
 	}
 	
 	/**
