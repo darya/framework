@@ -132,7 +132,7 @@ use Darya\Http\Response;
 $response = new Response;
 
 $response->status(200);
-$response->setContent('Hello world!');
+$response->content('Hello world!');
 $response->send(); // Outputs 'Hello world!'
 ```
 
@@ -140,7 +140,7 @@ $response->send(); // Outputs 'Hello world!'
 
 ```php
 $response->status(404);
-$response->setContent('Whoops!');
+$response->content('Whoops!');
 $response->send();
 ```
 
