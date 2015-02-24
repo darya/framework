@@ -506,6 +506,20 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
+	 * Strip the router's base URI from the beginning of the given URI.
+	 * 
+	 * @param string $uri
+	 * @return string
+	 */
+	protected function stripBase($uri) {
+		if (strpos($uri, $this->base) === 0) {
+			$uri = substr($uri, strlen($this->base));
+		}
+		
+		return $uri;
+	}
+	
+	/**
 	 * Test a given route against the router's filters.
 	 * 
 	 * Optionally test against the given callback after testing against filters.
@@ -541,8 +555,7 @@ class Router implements ContainerAwareInterface {
 	 * @return bool
 	 */
 	protected function testMatch(Request $request, Route $route, $callback = null) {
-		$path = $request->path();
-		$path = substr($path, strlen($this->base));
+		$path = $this->stripBase($request->path());
 		$pattern = $this->preparePattern($route->path());
 		
 		if (preg_match($pattern, $path, $matches)) {
@@ -655,7 +668,7 @@ class Router implements ContainerAwareInterface {
 			$response = $this->dispatchCallable($request, $response, $callable, $arguments);
 			$this->unsubscribe($controller);
 			
-			$response->header('X-Location: ' . $request->path());
+			$response->header('X-Location: ' . $request->uri());
 			
 			return $response;
 		}
