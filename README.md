@@ -284,8 +284,8 @@ $results = $dispatcher->dispatch('some_event', 'thing'); // array('one thing', '
 
 #### Models
 
-Darya models are self-validating value objects used to represent entities within
-an application.
+Darya models are self-validating objects used to represent business entities
+within an application.
 
 Darya's abstract `Model` implementation implements `ArrayAccess`, `Countable`,
 `IteratorAggregate` and `Serializable`. It is essentially a flexible collection
@@ -339,8 +339,53 @@ $json = $something->toJson();
 
 #### Views
 
-To be documented.
+Views are used to separate application logic and presentation. It's always good
+practice to treat them only as a means of displaying the data they are given.
+
+##### Simple PHP view
+
+A simple `PhpView` class is provided with Darya so you can easily use PHP as a
+templating engine. Adapters for popular templating engines are in the works,
+including Smarty, Mustache and Twig.
+
+##### views/index.php
+
+```php
+<p>Hello <?=$thing?>, this is a <?=$test?>.</p>
+
+<?php foreach ($somethings as $something): ?>
+	<p><?=ucfirst($something)?> something.</p>
+<?php endforeach; ?>
+
+```
+
+##### index.php
+
+```php
+use Darya\Mvc\PhpView;
+
+$view = new PhpView('views/index.php');
+
+$view->assign(array(
+	'thing' => 'world',
+	'test'  => 'test',
+	'somethings' => array('one', 'two', 'three')
+));
+
+echo $view->render();
+```
+
+##### Output
+
+```html
+<p>Hello world, this is a test.</p>
+
+	<p>One something.</p>
+	<p>Two something.</p>
+	<p>Three something.</p>
+```
 
 #### Controllers
 
-To be documented.
+Controllers are used to generate a dynamic response from a given request. They
+are best used in conjunction with the [`Router`](#routing).
