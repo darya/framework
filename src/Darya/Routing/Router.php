@@ -512,7 +512,7 @@ class Router implements ContainerAwareInterface {
 	 * @return string
 	 */
 	protected function stripBase($uri) {
-		if (strpos($uri, $this->base) === 0) {
+		if (!empty($this->base) && strpos($uri, $this->base) === 0) {
 			$uri = substr($uri, strlen($this->base));
 		}
 		
