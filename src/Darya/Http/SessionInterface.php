@@ -23,6 +23,14 @@ interface SessionInterface {
 	public function started();
 	
 	/**
+	 * Determine whether a session variable is set.
+	 * 
+	 * @param string $key
+	 * @return bool
+	 */
+	public function has($key);
+	
+	/**
 	 * Retrieve a session variable.
 	 * 
 	 * @param string $key

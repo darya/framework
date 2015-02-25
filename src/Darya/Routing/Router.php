@@ -1,208 +1,181 @@
 <?php
 namespace Darya\Routing;
 
+use ReflectionClass;
 use Darya\Common\Tools;
+use Darya\Events\DispatcherInterface;
+use Darya\Events\SubscriberInterface;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
+use Darya\Service\ContainerInterface;
+use Darya\Service\ContainerAwareInterface;
 
 /**
- * Darya's router.
+ * Darya's request router.
+ * 
+ * TODO: Implement route groups.
  * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router {
+class Router implements ContainerAwareInterface {
 	
 	/**
-	 * @var array Regex/replacement patterns for converting route definitions into regular expressions 
+	 * @var array Regular expression replacements for matching route paths to request URIs
 	 */
-	protected static $replacements = array(
-		'#/\:params#' => '(?:/(?<params>.*))?',
-		'#/\:([A-Za-z0-9\_\-]+)#' => '(?:/(?<$1>[^/]+))'
+	protected $patterns = array(
+		'#/:([A-Za-z0-9_-]+)#' => '(?:/(?<$1>[^/]+))',
+		'#/:params#' => '(?:/(?<params>.*))?'
 	);
 	
 	/**
-	 * @var string Base URL to ignore when matching routes
+	 * @var string Base URI to expect when matching routes
 	 */
-	protected $baseUrl = '';
+	protected $base;
 	
 	/**
-	 * @var array Collection of routes to match
+	 * @var array Collection of routes to match requests against
 	 */
 	protected $routes = array();
 	
 	/**
-	 * @var string Default namespace for the router to apply if a matched route doesn't have one
+	 * @var array Default values for the router to apply to matched routes
 	 */
-	protected $defaultNamespace = '';
+	protected $defaults = array(
+		'namespace'  => null,
+		'controller' => 'IndexController',
+		'action'     => 'index'
+	);
 	
 	/**
-	 * @var string Default controller for the router to apply if a matched route doesn't have one
+	 * @var array Set of callbacks for filtering matched routes and their parameters
 	 */
-	protected $defaultController = 'IndexController';
+	protected $filters = array();
 	
 	/**
-	 * @var string Default action for the router to apply if a matched route doesn't have one
+	 * @var \Darya\Events\DispatcherInterface
 	 */
-	protected $defaultAction = 'index';
+	protected $eventDispatcher;
 	
 	/**
-	 * @var callable Callable for handling dispatch errors
+	 * @var \Darya\Service\ContainerInterface
+	 */
+	protected $services;
+	
+	/**
+	 * @var callable Callable for handling dispatched requests that don't match a route
 	 */
 	protected $errorHandler;
 	
 	/**
-	 * Convert a route pattern into a regular expression
+	 * Replace a route path's placeholders with regular expressions using the 
+	 * router's registered replacement patterns.
 	 * 
-	 * @param string $pattern Route pattern to process 
-	 * @return string Regular expression for route matching
+	 * @param string $path Route path to prepare
+	 * @return string Regular expression that matches a route's path
 	 */
-	public static function processPattern($pattern) {
-		foreach (static::$replacements as $replacementPattern => $replacement) {
-			$pattern = preg_replace($replacementPattern, $replacement, $pattern);
+	public function preparePattern($path) {
+		foreach (array_reverse($this->patterns) as $pattern => $replacement) {
+			$path = preg_replace($pattern, $replacement, $path);
 		}
 		
-		return '#/?^'.$pattern.'/?$#';
+		return '#/?^' . $path . '/?$#';
 	}
 	
 	/**
-	 * Remove all non-numeric properties of a route's matched parameters.
-	 * Additionally split the matched "params" property by forward slashes.
-	 * 
-	 * @param array $matches Set of matches to process
-	 * @return array Set of parameters to pass to a matched controller action
-	 */
-	public static function processMatches($matches) {
-		$params = array();
-		
-		foreach ($matches as $key => $value) {
-			if (!is_numeric($key)) {
-				if ($key == 'params') {
-					$pathParams = explode('/', $value);
-					foreach ($pathParams as $pathParam) {
-						$params[] = $pathParam;
-					}
-				} else {
-					$params[$key] = $value;
-				}
-			}
-		}
-		
-		return $params;
-	}
-	
-	/**
-	 * Prepares a controller name by camel-casing the given value and appending 
+	 * Prepares a controller name by CamelCasing the given value and appending
 	 * 'Controller', if the provided name does not already end as such. The
 	 * resulting string will start with an uppercase letter.
 	 * 
 	 * For example, 'super-swag' would become 'SuperSwagController'
 	 * 
-	 * @param $controller URL controller name
+	 * @param string $controller Route path parameter controller string
 	 * @return string Controller class name
 	 */
-	public static function processController($controller) {
-		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller).'Controller';
+	public static function prepareController($controller) {
+		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller) . 'Controller';
 	}
 	
 	/**
-	 * Prepares an action name by camel-casing the given value. The resulting 
+	 * Prepares an action name by camelCasing the given value. The resulting
 	 * string will start with a lowercase letter.
 	 * 
 	 * For example, 'super-swag' would become 'superSwag'
 	 * 
-	 * @param $controller URL controller name
-	 * @return string Controller class name
+	 * @param string $action URL action name
+	 * @return string Action method name
 	 */
-	public static function processAction($action) {
+	public static function prepareAction($action) {
 		return lcfirst(Tools::delimToCamel($action));
 	}
 	
 	/**
-	 * Instantiates a new Request if the given argument is a string.
+	 * Instantiates a new request using the given argument.
 	 *
-	 * @param Darya\Http\Request|string $request
-	 * @return Darya\Http\Request
+	 * @param \Darya\Http\Request|string $request
+	 * @return \Darya\Http\Request
 	 */
-	public static function processRequest($request) {
-		if (!($request instanceof Request) && is_string($request)) {
-			$request = new Request($request);
+	public static function prepareRequest($request) {
+		if (!$request instanceof Request) {
+			$request = Request::create($request);
 		}
 		
 		return $request;
 	}
 	
+	/**
+	 * Prepare a response object using the given value.
+	 * 
+	 * @param mixed $response
+	 * @return \Darya\Http\Response
+	 */
+	public static function prepareResponse($response) {
+		if (!$response instanceof Response) {
+			$response = new Response($response);
+		}
+		
+		return $response;
+	}
 	
 	/**
 	 * Initialise router with given array of routes where keys are patterns and 
-	 * values are either default controllers or a set of default values
+	 * values are either default controllers or a set of default values.
 	 * 
-	 * @param array $routes   Array of routes to match
-	 * @param array $defaults Array of default router properties
+	 * Optionally accepts an array of default values for reserved route
+	 * parameters to use for routes that don't match with them. These include 
+	 * 'namespace', 'controller' and 'action'.
+	 * 
+	 * @param array $routes   Routes to match
+	 * @param array $defaults Default router properties
 	 */
 	public function __construct(array $routes = array(), array $defaults = array()) {
 		$this->add($routes);
-		$this->setDefaults($defaults);
+		$this->defaults($defaults);
+		$this->filter(array($this, 'resolve'));
+		$this->filter(array($this, 'dispatchable'));
 	}
 	
 	/**
-	 * Appends routes to the router's collection.
-	 * Passing $defaults causes the function to expect $routes as a single route
-	 * pattern instead of an array.
+	 * Set the optional event dispatcher for emitting routing events.
 	 * 
-	 * @param string|array $routes Array of pattern => default-value route definitions or a single route pattern string
-	 * @param Callable|array $defaults String or array of default parameters for the route
+	 * @param \Darya\Events\DispatcherInterface $dispatcher
 	 */
-	public function add($routes, $defaults = null) {
-		if (is_array($routes)) {
-			foreach ($routes as $pattern => $defaults) {
-				$this->routes[] = new Route($pattern, $defaults);
-			}
-		} else if ($defaults) {
-			$pattern = $routes;
-			$this->routes[] = new Route($pattern, $defaults);
-		}
+	public function setEventDispatcher(DispatcherInterface $dispatcher) {
+		$this->eventDispatcher = $dispatcher;
 	}
 	
 	/**
-	 * Set the router's base URL
+	 * Set an optional service container for resolving the dependencies of
+	 * controllers and actions.
 	 * 
-	 * @param string $url
+	 * @param \Darya\Service\ContainerInterface $container
 	 */
-	public function setBaseUrl($url) {
-		$this->baseUrl = $url;
+	public function setServiceContainer(ContainerInterface $container) {
+		$this->services = $container;
 	}
 	
 	/**
-	 * Get the router's base URL
-	 * 
-	 * @return string
-	 */
-	public function getBaseUrl() {
-		return $this->baseUrl;
-	}
-	
-	/**
-	 * Set the router's default values for namespace, controller and action.
-	 * 
-	 * These are used when a route hasn't provided these values and the matched
-	 * route's parameters do not fill these values.
-	 * 
-	 * @param array $defaults Expects any of 'namespace', 'controller' or 'action' as keys
-	 */
-	public function setDefaults($defaults = array()) {
-		foreach ($defaults as $key => $default) {
-			$property = 'default' . ucfirst(strtolower($key));
-			
-			if (property_exists($this, $property)) {
-				$this->$property = $default;
-			}
-		}
-	}
-	
-	/**
-	 * Set an optional error handler for when a dispatched request doesn't 
-	 * match to a route.
+	 * Set an error handler for dispatched requests that don't match a route.
 	 * 
 	 * @param callable $handler
 	 */
@@ -211,28 +184,244 @@ class Router {
 			$this->errorHandler = $handler;
 		}
 	}
-		
+	
 	/**
-	 * Resolves a matched route's parameters by finding existing controllers and
-	 * actions.
+	 * Invoke the error handler with the given request and response if one is
+	 * set.
 	 * 
-	 * TODO: It may make sense to move this into Dispatcher and be used as part 
-	 * of a Router::match() callback instead of being hardcoded into said method.
+	 * Returns the given response if no error handler is set.
 	 * 
-	 * @param Route $route
-	 * @return Route
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Http\Response $response
+	 * @param string               $message [optional]
 	 */
-	protected function resolve(Route $route) {
-		// Store the namespace
-		if (!empty($route->params['namespace'])) {
-			$route->namespace = $route->params['namespace'];
-		} else if (!$route->namespace) {
-			$route->namespace = $this->defaultNamespace;
+	protected function handleError(Request $request, Response $response, $message = null) {
+		if ($this->errorHandler) {
+			$errorHandler = $this->errorHandler;
+			return static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
 		}
 		
-		// Match an existing controller
-		if (!empty($route->params['controller'])) {
-			$controller = static::processController($route->params['controller']);
+		return $response;
+	}
+	
+	/**
+	 * Helper method for invoking callables. Silent if the given argument is
+	 * not callable.
+	 * 
+	 * Resolves parameters using the service container if available.
+	 * 
+	 * @param mixed $callable
+	 * @param array $arguments [optional]
+	 * @return mixed
+	 */
+	protected function call($callable, array $arguments = array()) {
+		if (is_callable($callable)) {
+			if ($this->services) {
+				return $this->services->call($callable, $arguments);
+			} else {
+				return call_user_func_array($callable, $arguments);
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Helper method for instantiating classes.
+	 * 
+	 * Instantiates the given class if it isn't already an object.
+	 * 
+	 * @param mixed $class
+	 * @param array $arguments [optional]
+	 * @return object
+	 */
+	protected function create($class, $arguments) {
+		if (!is_object($class) && class_exists($class)) {
+			if ($this->services) {
+				$class = $this->services->create($class, $arguments);
+			} else {
+				$reflection = new ReflectionClass($class);
+				$class = $reflection->newInstanceArgs($arguments);
+			}
+		}
+		
+		return $class;
+	}
+	
+	/**
+	 * Helper method for dispatching events. Silent if an event dispatcher is
+	 * not set.
+	 * 
+	 * @param string $name
+	 * @param mixed  $arguments [optional]
+	 * @return array
+	 */
+	protected function event($name, array $arguments = array()) {
+		if ($this->eventDispatcher) {
+			return $this->eventDispatcher->dispatch($name, $arguments);
+		}
+		
+		return array();
+	}
+	
+	/**
+	 * Helper method for subscribing objects to the router's event dispatcher.
+	 * 
+	 * Silent if $subscriber does not implement `SubscriberInterface`.
+	 * 
+	 * @param mixed $subscriber
+	 * @return bool
+	 */
+	protected function subscribe($subscriber) {
+		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+			$this->eventDispatcher->subscribe($subscriber);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Helper method for unsubscribing objects from the router's event
+	 * dispatcher.
+	 * 
+	 * Silent if $subscriber does not implement `SubscriberInterface`.
+	 * 
+	 * @param mixed $subscriber
+	 * @return bool
+	 */
+	protected function unsubscribe($subscriber) {
+		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+			$this->eventDispatcher->unsubscribe($subscriber);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Add routes to the router.
+	 * 
+	 * When passed as an array, $routes elements can consist of either:
+	 *   - Route path as the key, callable as the value
+	 *   - Route name as the key, Route instance as the value
+	 * 
+	 * An example using both:
+	 * ```
+	 *     $router->add(array(
+	 *         '/route-path' => 'Namespace\Controller',
+	 *         'route-name'  => new Route('/route-path', 'Namespace\Controller')
+	 *     ));
+	 * ```
+	 * 
+	 * @param string|array          $routes   Route definitions or a route path
+	 * @param callable|array|string $defaults Default parameters for the route if $routes is a route path
+	 */
+	public function add($routes, $defaults = null) {
+		if (is_array($routes)) {
+			foreach ($routes as $path => $defaults) {
+				if ($defaults instanceof Route) {
+					$this->routes[$path] = $defaults;
+				} else {
+					$this->routes[] = new Route($path, $defaults);
+				}
+			}
+		} else if ($defaults) {
+			$path = $routes;
+			$this->routes[] = new Route($path, $defaults);
+		}
+	}
+	
+	/**
+	 * Add a single named route to the router.
+	 * 
+	 * @param string $name     Name that identifies the route
+	 * @param string $path     Path that matches the route
+	 * @param mixed  $defaults Default route parameters
+	 */
+	public function set($name, $path, $defaults = array()) {
+		$this->routes[$name] = new Route($path, $defaults);
+	}
+	
+	/**
+	 * Get or set the router's base URI.
+	 * 
+	 * @param string $uri [optional]
+	 * @return string
+	 */
+	public function base($uri = null) {
+		if (!is_null($uri)) {
+			$this->base = $uri;
+		}
+		
+		return $this->base;
+	}
+	
+	/**
+	 * Get and optionally set the router's default values for matched routes.
+	 * 
+	 * Given key value pairs are merged with the current defaults.
+	 * 
+	 * These are used when a route and the matched route's parameters haven't
+	 * provided default values.
+	 * 
+	 * @param array $defaults [optional]
+	 * @return array Router's default route parameters
+	 */
+	public function defaults(array $defaults = array()) {
+		foreach ($defaults as $key => $value) {
+			$property = strtolower($key);
+			$this->defaults[$property] = $value;
+		}
+		
+		return $this->defaults;
+	}
+	
+	/**
+	 * Register a callback for filtering matched routes and their parameters.
+	 * 
+	 * Callbacks should return a bool determining whether the route matches.
+	 * A route is passed by reference when matched by Router::match().
+	 * 
+	 * @param callable $callback
+	 * @return \Darya\Routing\Router
+	 */
+	public function filter($callback) {
+		if (is_callable($callback)) {
+			$this->filters[] = $callback;
+		}
+		
+		return $this;
+	}
+	
+	/**
+	 * Register a replacement pattern.
+	 * 
+	 * @param string $pattern
+	 * @param string $replacement
+	 * @return \Darya\Routing\Router
+	 */
+	public function pattern($pattern, $replacement) {
+		$this->patterns[$pattern] = $replacement;
+		
+		return $this;
+	}
+	
+	/**
+	 * Attempt to resolve a matched route's controller class.
+	 * 
+	 * Falls back to the router's default controller.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return \Darya\Routing\Route
+	 */
+	protected function resolveRouteController(Route $route) {
+		if (!$route->namespace) {
+			$route->namespace = $this->defaults['namespace'];
+		}
+		
+		if ($route->controller) {
+			$controller = static::prepareController($route->controller);
 			
 			if ($route->namespace) {
 				$controller = $route->namespace . '\\' . $controller;
@@ -241,88 +430,141 @@ class Router {
 			if (class_exists($controller)) {
 				$route->controller = $controller;
 			}
-		} else if (!$route->controller) { // Apply router's default controller seeing as the route doesn't have one
-			$route->controller = !empty($route->namespace) ? $route->namespace : '';
-			$route->controller .= '\\' . $this->defaultController;
+		} else {
+			$namespace = $route->namespace ? $route->namespace . '\\' : '';
+			$route->controller = $namespace . $this->defaults['controller'];
 		}
-		
-		// Match an existing action
-		if (!empty($route->params['action'])) {
-			$action = static::processAction($route->params['action']);
-			
-			if (method_exists($route->controller, $action)) {
-				$route->action = $action;
-			} else if(method_exists($route->controller, $action.'Action')) {
-				$route->action = $action.'Action';
-			}
-		} else if (!$route->action) { // Apply router's default action seeing as the route doesn't have one
-			$route->action = $this->defaultAction;
-		}
-
-		// Debug
-		/*echo '<pre>';
-		print_r(array(
-			$route,
-			$route->controller,
-			$route->action,
-			class_exists($route->controller),
-			method_exists($route->controller, $route->action)
-		));
-		echo '</pre>';*/
 		
 		return $route;
 	}
 	
 	/**
-	 * Match a request to a route.
+	 * Attempt to resolve a matched route's action method.
 	 * 
-	 * Accepts an optional callback for filtering matched routes, which is
-	 * useful for determining whether the matched route's parameters result in
-	 * something callable, for example.
+	 * Falls back to the router's default action.
 	 * 
-	 * @param Request|string $request A request URI or a Request object to match
-	 * @param Callable $callback [optional] Callback for filtering matched routes
-	 * @return Route The matched route.
+	 * @param \Darya\Routing\Route $route
+	 * @return \Darya\Routing\Route
 	 */
-	public function match($request, $callback = null) {
-		$request = static::processRequest($request);
-		
-		$url = $request->uri();
-		
-		// Remove base URL
-		$url = substr($url, strlen($this->baseUrl));
-		
-		// Strip query string
-		if (strpos($url, '?') > 0) {
-			$url = strstr($url, '?', true);
+	protected function resolveRouteAction(Route $route) {
+		if ($route->action) {
+			if (!is_string($route->action)) {
+				return $route;
+			}
+			
+			$action = static::prepareAction($route->action);
+			
+			if (method_exists($route->controller, $action)) {
+				$route->action = $action;
+			} else if (method_exists($route->controller, $action . 'Action')) {
+				$route->action = $action . 'Action';
+			}
+		} else {
+			$route->action = $this->defaults['action'];
 		}
 		
-		// Find a matching route
-		foreach ($this->routes as $route) {
-			// Clone the route object so as not to modify the instances belonging to the router 
-			$route = clone $route;
+		return $route;
+	}
+	
+	/**
+	 * Resolve a matched route's controller and action.
+	 * 
+	 * Applies the router's defaults for these if they are not set.
+	 * 
+	 * This is a built in route filter that is registered by default.
+	 * 
+	 * TODO: Also apply any other default parameters.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return bool
+	 */
+	public function resolve(Route $route) {
+		$this->resolveRouteController($route);
+		$this->resolveRouteAction($route);
+		return true;
+	}
+	
+	/**
+	 * Determine whether a given matched route can be dispatched based on
+	 * whether the resolved controller action is callable.
+	 * 
+	 * This is a built in route filter that is registered by default. It expects
+	 * the `resolve` filter to have already been applied to the given route.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @return bool
+	 */
+	public function dispatchable(Route $route) {
+		$dispatchableAction = is_callable($route->action);
+		
+		$dispatchableController =
+			(is_object($route->controller) || class_exists($route->controller))
+			&& method_exists($route->controller, $route->action)
+			&& is_callable(array($route->controller, $route->action));
+		
+		return $dispatchableAction || $dispatchableController;
+	}
+	
+	/**
+	 * Strip the router's base URI from the beginning of the given URI.
+	 * 
+	 * @param string $uri
+	 * @return string
+	 */
+	protected function stripBase($uri) {
+		if (!empty($this->base) && strpos($uri, $this->base) === 0) {
+			$uri = substr($uri, strlen($this->base));
+		}
+		
+		return $uri;
+	}
+	
+	/**
+	 * Test a given route against the router's filters.
+	 * 
+	 * Optionally test against the given callback after testing against filters.
+	 * 
+	 * @param \Darya\Routing\Route $route
+	 * @param callable             $callback
+	 * @return bool
+	 */
+	protected function testMatchFilters(Route $route, $callback = null) {
+		$filters = is_callable($callback) ? array_merge($this->filters, array($callback)) : $this->filters;
+		
+		foreach ($filters as $filter) {
+			if (!$this->call($filter, array(&$route))) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Test a request against a route.
+	 * 
+	 * Accepts an optional extra callback for filtering matched routes and their
+	 * parameters. This callback is executed after testing the route against
+	 * the router's filters.
+	 * 
+	 * Fires the 'router.prefilter' event before testing against filters.
+	 * 
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Routing\Route $route
+	 * @param callable             $callback [optional]
+	 * @return bool
+	 */
+	protected function testMatch(Request $request, Route $route, $callback = null) {
+		$path = $this->stripBase($request->path());
+		$pattern = $this->preparePattern($route->path());
+		
+		if (preg_match($pattern, $path, $matches)) {
+			$route->matches($matches);
 			
-			// Process the route pattern into a regular expression
-			$pattern = static::processPattern($route->pattern);
+			$this->event('router.prefilter', array($route));
 			
-			// Test for a match
-			if (preg_match($pattern, $url, $matches)) {
-				$route->addParams(static::processMatches($matches));
-				
-				$route = $this->resolve($route);
-				
-				$matched = true;
-				
-				// Perform the given callback if necessary
-				if ($callback && is_callable($callback)) {
-					$matched = call_user_func($callback, $route);
-				}
-				
-				if ($matched) {
-					$request->router = $this;
-					$request->route = $route;
-					return $route;
-				}
+			if ($this->testMatchFilters($route, $callback)) {
+				return true;
 			}
 		}
 		
@@ -330,60 +572,186 @@ class Router {
 	}
 	
 	/**
-	 * Match a request to a route and dispatch the resolved callable.
+	 * Match a request to one of the router's routes.
 	 * 
-	 * If only a controller is available with the matched route, the router's
-	 * default action will be attempted.
-	 * 
-	 * An error handler can be set (@see Router::setErrorHandler) to handle the
-	 * request in the case that a route could not be matched, or the matched
-	 * route does not result in an action or controller-action combination that
-	 * is callable. Returns null in these cases if an error handler is not set.
-	 * 
-	 * @param Request|string $request
-	 * @param Callable $callback [optional] Callback for filtering matched routes
-	 * @return mixed The return value of the called action or null if the request could not be dispatched
+	 * @param \Darya\Http\Request|string $request A request URI or a Request object to match
+	 * @param callable $callback [optional] Callback for filtering matched routes
+	 * @return \Darya\Routing\Route|bool The matched route
 	 */
-	public function dispatch($request, $callback = null) {
-		$request = static::processRequest($request);
-		$route = $this->match($request, $callback);
+	public function match($request, $callback = null) {
+		$request = static::prepareRequest($request);
 		
-		if ($route) {
-			if ($route->action && is_callable($route->action)) {
-				return call_user_func_array($route->action, $route->getParams());
-			}
+		foreach ($this->routes as $route) {
+			$route = clone $route;
 			
-			if ($route->controller && $route->action && is_callable(array($route->controller, $route->action))) {
-				return call_user_func_array(array($route->controller, $route->action), $route->getParams());
-			}
-			
-			if ($route->controller && !$route->action && is_callable(array($route->controller, $this->defaultAction))) {
-				return call_user_func_array(array($route->controller, $route->defaultAction), $route->getParams());
+			if ($this->testMatch($request, $route, $callback)) {
+				$route->router = $this;
+				$request->router = $this;
+				$request->route = $route;
+				
+				return $route;
 			}
 		}
 		
-		if ($this->errorHandler) {
-			$errorHandler = $this->errorHandler;
-			return $errorHandler($request);
-		}
-		
-		return null;
+		return false;
 	}
 	
 	/**
-	 * Dispatch a request, resolve a Response object from the result and send
-	 * the response to the client.
+	 * Dispatch the given request and response objects with the given callable
+	 * and optional arguments.
 	 * 
-	 * @param Darya\Http\Request $request
+	 * An error handler can be set (@see Router::setErrorHandler()) to handle
+	 * the request in the case that the given action is not callable.
+	 * 
+	 * @param \Darya\Http\Request  $request
+	 * @param \Darya\Http\Response $response
+	 * @param callable|string      $callable
+	 * @param array                $arguments [optional]
+	 * @return \Darya\Http\Response
 	 */
-	public function respond(Request $request = null) {
-		$response = $this->dispatch($request);
+	protected function dispatchCallable(Request $request, Response $response, $callable, array $arguments = array()) {
+		$requestResponse = array($request, $response);
 		
-		if (!$response instanceof Response) {
-			$response = new Response($response);
+		$responses = $this->event('router.before', $requestResponse);
+		
+		if (is_callable($callable)) {
+			$responses[] = $this->call($callable, $arguments);
+		} else {
+			$response->status(404);
+			return $this->handleError($request, $response, 'Non-callable resolved from the matched route');
 		}
 		
+		$responses = array_merge($responses, $this->event('router.after', $requestResponse));
+		$responses = array_merge($responses, $this->event('router.last', $requestResponse));
+		
+		foreach ($responses as $potential) {
+			$potential = static::prepareResponse($potential);
+			
+			if ($potential->redirected() || $potential->hasContent()) {
+				return $potential;
+			}
+		}
+		
+		return $response;
+	}
+	
+	/**
+	 * Match a request to a route and dispatch the resolved callable.
+	 * 
+	 * An error handler can be set (@see Router::setErrorHandler()) to handle
+	 * the request in the case that a route could not be matched. Returns null
+	 * in this case if an error handler is not set.
+	 * 
+	 * @param \Darya\Http\Request|string $request
+	 * @param \Darya\Http\Response       $response [optional]
+	 * @return \Darya\Http\Response
+	 */
+	public function dispatch($request, Response $response = null) {
+		$request  = static::prepareRequest($request);
+		$response = static::prepareResponse($response);
+		
+		$route = $this->match($request);
+		
+		if ($route) {
+			$controllerArguments = array(
+				'request'  => $request,
+				'response' => $response
+			);
+			
+			$controller = $this->create($route->controller, $controllerArguments);
+			$action     = $route->action;
+			$arguments  = $route->arguments();
+			
+			$callable = is_callable(array($controller, $action)) ? array($controller, $action) : $action;
+			
+			$this->subscribe($controller);
+			$response = $this->dispatchCallable($request, $response, $callable, $arguments);
+			$this->unsubscribe($controller);
+			
+			$response->header('X-Location: ' . $request->uri());
+			
+			return $response;
+		}
+		
+		$response->status(404);
+		$this->handleError($request, $response, 'No route matches the request');
+		
+		return $response;
+	}
+	
+	/**
+	 * Dispatch a request, resolving a response and send it to the client.
+	 * 
+	 * Optionally pass through an existing response object.
+	 * 
+	 * @param \Darya\Http\Request|string $request
+	 * @param \Darya\Http\Response       $response [optional]
+	 */
+	public function respond($request, Response $response = null) {
+		$response = $this->dispatch($request, $response);
 		$response->send();
+	}
+	
+	/**
+	 * Generate a request path using the given route path and parameters.
+	 * 
+	 * TODO: Swap generate() & path() functionality?
+	 * 
+	 * @param string $path
+	 * @param array $parameters [optional]
+	 * @return string
+	 */
+	public function generate($path, array $parameters = array()) {
+		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
+			$parameter = trim($match[1], '?:');
+			
+			if ($parameter && isset($parameters[$parameter])) {
+				return '/' . $parameters[$parameter];
+			}
+			
+			if ($parameter !== 'params' && $match[2] !== '?') {
+				return '/null';
+			}
+			
+			return null;
+		}, $path);
+	}
+	
+	/**
+	 * Generate a request path using the given route name/path and parameters.
+	 * 
+	 * Any required parameters that are not satisfied by the given parameters
+	 * or the route's defaults will be set to the string 'null'.
+	 * 
+	 * @param string $name       Route name or path
+	 * @param array  $parameters [optional]
+	 * @return string
+	 */
+	public function path($name, array $parameters = array()) {
+		$path = $name;
+		
+		if (isset($this->routes[$name])) {
+			$route = $this->routes[$name];
+			$path = $route->path();
+			$parameters = array_merge($route->defaults(), $parameters);
+		}
+		
+		if (isset($parameters['params']) && is_array($parameters['params'])) {
+			$parameters['params'] = implode('/', $parameters['params']);
+		}
+		
+		return $this->generate($path, $parameters);
+	}
+	
+	/**
+	 * Generate an absolute URL using the given route name and parameters.
+	 * 
+	 * @param string $name
+	 * @param array  $parameters [optional]
+	 * @return string
+	 */
+	public function url($name, array $parameters = array()) {
+		return $this->base . $this->path($name, $parameters);
 	}
 	
 }

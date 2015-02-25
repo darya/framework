@@ -4,139 +4,238 @@ namespace Darya\Routing;
 /**
  * Representation of a route in Darya's routing system.
  * 
+ * @property string $namespace  Matched namespace
+ * @property string $controller Matched controller
+ * @property string|callable $action Matched action (callable or controller method)
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Route {
 	
 	/**
-	 * @var array Reserved route parameter names
+	 * @var array Reserved route parameter keys
 	 */
 	protected $reserved = array('namespace', 'controller', 'action');
-	
+
 	/**
-	 * @var string Pattern for matching the route e.g. "/:controller/:action/:params"
+	 * @var string URI path that matches the route - e.g. "/:controller/:action/:params"
 	 */
-	public $pattern;
+	protected $path;
 	
 	/**
-	 * @var string Matched namespace
+	 * @var array Default path parameters
 	 */
-	public $namespace;
+	protected $defaults = array();
 	
 	/**
-	 * @var object|string Matched controller
+	 * @var array Matched path parameters
 	 */
-	public $controller;
+	protected $matches = array();
 	
 	/**
-	 * @var callable|string Matched action (controller method)
+	 * @var array Matched path parameters prepared as controller arguments
 	 */
-	public $action;
+	protected $parameters = array();
 	
 	/**
-	 * @var array Default or matched params
+	 * @var \Darya\Routing\Router The router that matched this route
 	 */
-	public $params = array(),
+	public $router;
 	
 	/**
-	 * @var Darya\Routing\Router The router that matched this route
-	 */
-	$router = null;
-	
-	/**
-	 * Instantiate a new route
+	 * Prepare the given matches.
 	 * 
-	 * @param string $pattern Pattern for matching the route
-	 * @param callable|array $defaults
+	 * Removes all non-numeric properties of the given matches.
+	 * 
+	 * @param array $matches
+	 * @return array
 	 */
-	public function __construct($pattern, $defaults = array()) {
-		$this->pattern = $pattern;
-		$this->setDefaults($defaults);
+	public static function prepareMatches($matches) {
+		$prepared = array();
+		
+		foreach ($matches as $key => $value) {
+			if (!is_numeric($key)) {
+				$prepared[$key] = $value;
+			}
+		}
+		
+		return $prepared;
 	}
 	
 	/**
-	 * Magic method for determining whether an existing property or route 
-	 * parameter is set.
+	 * Prepare the given matches as parameters
+	 * 
+	 * Splits the matched "params" property by forward slashes and appends these
+	 * to the parent array.
+	 * 
+	 * @param array $matches Set of matches to prepare
+	 * @return array Set of route parameters to pass to a matched action
+	 */
+	public static function prepareParameters($matches) {
+		$parameters = array();
+		
+		foreach ($matches as $key => $value) {
+			if (!is_numeric($key)) {
+				switch ($key) {
+					case 'params':
+						$pathParameters = explode('/', $value);
+						
+						foreach ($pathParameters as $pathParameter) {
+							$parameters[] = $pathParameter;
+						}
+						
+						break;
+					default:
+						$parameters[$key] = $value;
+				}
+			}
+		}
+		
+		return $parameters;
+	}
+	
+	/**
+	 * Instantiate a new route.
+	 * 
+	 * @param string $path     Path that matches the route
+	 * @param mixed  $defaults Default route parameters
+	 */
+	public function __construct($path, $defaults = array()) {
+		$this->path = $path;
+		$this->defaults($defaults);
+	}
+	
+	/**
+	 * Magic method that determines whether an existing route parameter is set.
 	 * 
 	 * @return bool
 	 */
 	public function __isset($property) {
-		return isset($this->$property) || isset($this->params[$property]);
+		return isset($this->parameters[$property]) || isset($this->defaults[$property]);
 	}
 	
 	/**
-	 * Setter magic method for setting route parameters if the property does not
-	 * exist.
+	 * Setter magic method that sets route parameters if the attempted property
+	 * does not exist.
 	 * 
 	 * @param string $property
-	 * @param mixed $value
+	 * @param mixed  $value
 	 */
 	public function __set($property, $value) {
-		if (property_exists($this, $property)) {
-			$this->$property = $value;
-		} else {
-			$this->params[$property] = $value;
-		}
+		$this->parameters[$property] = $value;
 	}
 	
 	/**
-	 * Getter magic method for retrieving route parameters. 
+	 * Getter magic method for retrieving route parameters.
+	 * 
+	 * Tries defaults if the parameter is not set.
 	 * 
 	 * @param string $property
 	 * @return mixed
 	 */
 	public function __get($property) {
-		if (isset($this->params[$property])) {
-			return $this->params[$property];
-		}
-	}
-
-	/**
-	 * Set default parameters using the given $params array.
-	 * 
-	 * If a callable is given it is set as the route's action parameter. If a
-	 * string or object is given it is set as the route's controller parameter.
-	 * 
-	 * @param mixed $params
-	 */
-	public function setDefaults($params = array()) {
-		if (is_array($params)) {
-			foreach ($params as $key => $value) {
-				$this->params[$key] = $value;
-			}
-		} else if(is_callable($params)) {
-			$this->action = $params;
-		} else if(is_string($params) || is_object($params)) {
-			$this->controller = $params;
-		}
-	}
-	
-	/**
-	 * Set parameters using the given $params array.
-	 * 
-	 * @param array $params
-	 */
-	public function addParams($params = array()) {
-		if (is_array($params)) {
-			foreach ($params as $key => $value) {
-				$this->params[$key] = $value;
-			}
-		}
-	}
-	
-	/**
-	 * Get the currently set parameters excluding those reserved for 
-	 * dispatching, unless specified by $withReserved.
-	 * 
-	 * @param bool $withReserved Whether to include reserved params
-	 * @return array
-	 */
-	public function getParams($withReserved = false) {
-		if ($withReserved) {
-			return $this->params;
+		if (isset($this->parameters[$property])) {
+			return $this->parameters[$property];
 		}
 		
-		return array_diff_key($this->params, array_flip($this->reserved));
+		if (isset($this->defaults[$property])) {
+			return $this->defaults[$property];
+		}
+	}
+	
+	/**
+	 * Get the currently set parameters, excluding those with reserved keys,
+	 * for use as action arguments.
+	 * 
+	 * @return array
+	 */
+	public function arguments() {
+		return array_diff_key($this->parameters(), array_flip($this->reserved));
+	}
+	
+	/**
+	 * Set default route parameters using the given array.
+	 * 
+	 * If a callable is given it becomes the route's default action.
+	 * 
+	 * If a string or object is given it becomes the route's default controller.
+	 * 
+	 * @param mixed $parameters
+	 * @return array The route's default parameters
+	 */
+	public function defaults($parameters = array()) {
+		if (is_array($parameters)) {
+			foreach ($parameters as $key => $value) {
+				$this->defaults[$key] = $value;
+			}
+		} else if (is_callable($parameters)) {
+			$this->defaults['action'] = $parameters;
+		} else if (is_string($parameters) || is_object($parameters)) {
+			$this->defaults['controller'] = $parameters;
+		}
+		
+		return $this->defaults;
+	}
+	
+	/**
+	 * Determine whether the route has been matched by a router.
+	 * 
+	 * @return bool
+	 */
+	public function matched() {
+		return !!$this->matches;
+	}
+	
+	/**
+	 * Set route matches and parameters using the given matches array.
+	 * 
+	 * This completely replaces any existing matches and parameters.
+	 * 
+	 * Returns the currently set matches.
+	 * 
+	 * @param array $matches
+	 * @return array
+	 */
+	public function matches(array $matches = array()) {
+		$this->matches = static::prepareMatches($matches);
+		
+		$this->parameters = static::prepareParameters($matches);
+		
+		return $this->matches;
+	}
+	
+	/**
+	 * Merge route parameters using the given array.
+	 * 
+	 * Returns the currently set parameters merged into defaults.
+	 * 
+	 * @param array $parameters [optional]
+	 * @return array Route parameters
+	 */
+	public function parameters(array $parameters = array()) {
+		$this->parameters = array_merge($this->parameters, $parameters);
+		
+		return array_merge($this->defaults, $this->parameters);
+	}
+	
+	/**
+	 * Retrieve the path that matches the route.
+	 * 
+	 * @return string
+	 */
+	public function path() {
+		return $this->path;
+	}
+	
+	/**
+	 * Retrieve the URL that the route was matched by.
+	 * 
+	 * @return string
+	 */
+	public function url() {
+		if ($this->router) {
+			return $this->router->url($this->path, $this->matches);
+		}
 	}
 	
 }

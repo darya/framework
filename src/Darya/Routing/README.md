@@ -22,6 +22,39 @@ RewriteRule .* index.php [L,QSA]
 
 ### Router
 
+#### Defining and matching routes
+
+You can define routes in an array when instantiating a router using request
+paths for keys and route parameters defaults values.
+
+Reserved route parameters are as follows:
+
+- `namespace`  - The namespace to prepend to a matched controller
+- `controller` - The class to use as a controller
+- `action`     - The anonymous function or controller method to run when the
+                 route is dispatched
+- `params`     - Slash-delimited parameters to pass to actions as arguments.
+                 This one is always optional and should be used at the end of a
+                 route's request path.
+
+Here is an example of instantiating the router with an initial route definition.
+The anonymous function becomes the route's `action` parameter.
+
+```php
+use Darya\Routing\Router;
+
+$router = new Router(array(
+	'/' => function() {
+		return 'Hello world!';
+	}
+));
+
+/**
+ * @var Darya\Routing\Route 
+ */
+$route = $router->match('/'); // $route->action == function() {return 'Hello world!';}
+```
+
 #### Route matching
 
 Now that our `index.php` receives all requests for any files that don't exist, let's instantiate a router with its first route!
@@ -240,51 +273,3 @@ $router->respond('/test'); // Displays 'Test action!';
 You can also suffix a method name with Action and it will still be matched in
 the same way. This is useful in the case of using reserved words as action
 names. For example, `newAction` would be matched by the URL `/new`.
-
-### Dispatcher
-
-Darya's dispatcher exists to decorate the functionality of the router. It 
-instantiates controllers and provides them with `Request` and `Response` 
-instances. See the HTTP component documentation for more information on these.
-
-```php
-use Darya\Http\Request;
-use Darya\Http\Response;
-use Darya\Routing\Dispatcher;
-use Darya\Routing\Router;
-
-class MyClass {
-	
-	protected $request;
-	protected $response;
-	
-	public function __construct(Request $request, Response $response) {
-		$this->request = $request;
-		$this->response = $response;
-	}
-	
-	public function index() {
-		return 'Index!'
-	}
-	
-	public function test() {
-		if ($this->request->method('post')) {
-			return 'Test post action!';
-		} else {
-			return 'Test action!';
-		}
-	}
-	
-}
-
-$router = new Router(array(
-	'/:action?' => 'MyClass'
-));
-
-$dispatcher = new Dispatcher($router);
-
-$dispatcher->dispatch(new Request('test', 'post'), new Response); // Displays 'Test post action!'
-```
-
-Passing a response object to the dispatcher's `dispatch` method is optional; one
-is automatically created if not provided.

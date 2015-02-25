@@ -1,8 +1,8 @@
 <?php
 namespace Darya\Mvc;
 
-use Darya\Mvc\View;
 use Smarty;
+use Darya\Mvc\View;
 
 /**
  * Darya's Smarty templating view.
@@ -21,8 +21,8 @@ class SmartyView extends View {
 	 */
 	protected $config = array(
 		'base'    => '',
-		'cache'   => 'temp/views_cache',
-		'compile' => 'temp/views_compiled',
+		'cache'   => 'storage/cache/views',
+		'compile' => 'storage/views',
 		'plugins' => 'plugins'
 	);
 	
@@ -32,7 +32,7 @@ class SmartyView extends View {
 	protected $vars = array(
 		'template' => array(
 			'css' => array(),
-			'js' => array()
+			'js'  => array()
 		)
 	);
 	
@@ -40,10 +40,10 @@ class SmartyView extends View {
 	 * Instantiate a new Template object.
 	 * 
 	 * @param string $file   [optional] Path to the template file to use
-	 * @param Array  $vars   [optional] Variables to assign to the template
+	 * @param array  $vars   [optional] Variables to assign to the template
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
-	public function __construct($file = null, $vars = array(), $config = array()){
+	public function __construct($file = null, $vars = array(), $config = array()) {
 		$this->smarty = new Smarty;
 		$this->smarty->error_reporting = E_ALL & ~E_NOTICE & ~E_WARNING;
 		
@@ -51,41 +51,50 @@ class SmartyView extends View {
 	}
 	
 	/**
-	 * Set the template's working directory.
+	 * Get and optionally set the template's working directory.
 	 * 
-	 * @param string $dir Template directory 
+	 * @param string $directory [optional] Working directory path
+	 * @return string
 	 */
-	protected function setDir($dir) {
-		if ($dir != $this->dir) {
-			parent::setDir($dir);
+	protected function directory($directory = null) {
+		if (!is_null($directory) && $directory != $this->directory) {
+			parent::directory($directory);
 			
-			$base = isset($this->config['base']) ? $this->config['base'] : $this->dir;
+			$base = isset($this->config['base']) ? $this->config['base'] : $this->directory;
 			
-			$this->smarty->setTemplateDir($this->dir)
-						 ->setCompileDir($base.'/'.$this->config['compile'])
-						 ->setCacheDir($base.'/'.$this->config['cache'])
-						 ->addPluginsDir($base.'/'.$this->config['plugins']);
+			$this->smarty->setTemplateDir($this->directory)
+						 ->setCacheDir($base . '/' . $this->config['cache'])
+						 ->setCompileDir($base . '/' . $this->config['compile'])
+						 ->addPluginsDir($base . '/' . $this->config['plugins']);
 		}
+		
+		return $this->directory;
+	}
+	
+	/**
+	 * Retrieve the view's smarty instance.
+	 * 
+	 * @return Smarty
+	 */
+	public function smarty() {
+		return $this->smarty;
 	}
 	
 	/**
 	 * Render the template.
 	 * 
-	 * @return string The result of the rendered template, false if it fails.
+	 * @return string The result of the rendered template
 	 */
 	public function render() {
-		$template = $this->dir . '/' . $this->file;
+		$template = $this->directory . '/' . $this->file;
 		
-		if (file_exists($template)) {
+		if (is_file($template)) {
 			$this->smarty->assign(static::$shared);
 			$this->smarty->assign($this->vars);
-			return $this->smarty->fetch($template, $this->dir, $this->dir);
+			return $this->smarty->fetch($template, $this->directory, $this->directory);
 		} else {
-			// throw new TemplateNotFoundException("Could not find template \"$template\"");
-			return "Could not find template \"$template\" when rendering<br/>";
+			throw new \Exception("Could not find template when rendering: \"$template\"");
 		}
-		
-		return false;
 	}
 	
 	/**
@@ -95,7 +104,7 @@ class SmartyView extends View {
 	 */
 	public function js($file) {
 		if ($file) {
-			array_push($this->template['js'], $file);
+			array_push($this->vars['template']['js'], $file);
 		}
 	}
 	
@@ -106,7 +115,7 @@ class SmartyView extends View {
 	 */
 	public function css($file) {
 		if ($file) {
-			array_push($this->template['css'], $file);
+			array_push($this->vars['template']['css'], $file);
 		}
 	}
 	

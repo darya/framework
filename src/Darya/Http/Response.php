@@ -24,11 +24,6 @@ class Response {
 	private $cookies = array();
 	
 	/**
-	 * @var Darya\Http\SessionInterface
-	 */
-	private $session = null;
-	
-	/**
 	 * @var string Response content
 	 */
 	private $content = null;
@@ -48,32 +43,53 @@ class Response {
 	 */
 	private $redirected = false;
 	
-	public function __construct($content = null, $headers = array()) {
-		if ($content) {
-			$this->setContent($content);
+	/**
+	 * Prepare the given response content as a string.
+	 * 
+	 * Invokes `__toString()` on objects if exposed. Encodes arrays as JSON.
+	 * Anything else is casted to a string.
+	 * 
+	 * @param mixed $content
+	 * @return string
+	 */
+	public static function prepareContent($content) {
+		if (is_object($content) && method_exists($content, '__toString')) {
+			$content = $content->__toString();
+		} else if (is_array($content)) {
+			$content = json_encode($content);
+		} else {
+			$content = (string) $content;
 		}
 		
-		if ($headers) {
-			$this->addHeaders($headers);
-		}
+		return $content;
 	}
 	
 	/**
-	 * Get the HTTP status code of the response.
+	 * Instantiate a new response with the optionally given content and headers.
 	 * 
-	 * @return int
+	 * @param mixed $content [optional]
+	 * @param array $headers [optional]
 	 */
-	public function getStatus() {
-		return $this->status;
+	public function __construct($content = null, array $headers = array()) {
+		if (!is_null($content)) {
+			$this->content($content);
+		}
+		
+		$this->headers($headers);
 	}
 	
 	/**
-	 * Set the HTTP status code of the response.
+	 * Get and optionally set the HTTP status code of the response.
 	 * 
 	 * @param int $status
+	 * @return int
 	 */
-	public function setStatus($status) {
-		$this->status = $status;
+	public function status($status) {
+		if (!is_null($status)) {
+			$this->status = $status;
+		}
+		
+		return $this->status;
 	}
 	
 	/**
@@ -81,19 +97,25 @@ class Response {
 	 * 
 	 * @param string $header
 	 */
-	public function addHeader($header) {
-		$this->headers[] = $header;
+	public function header($header) {
+		if (!is_null($header) && strlen($header)) {
+			list($name, $value) = explode(':', $header, 2);
+			$this->headers[$name] = $value;
+		}
 	}
 	
 	/**
-	 * Add headers to send with the response.
+	 * Add headers to send with the response and retrieve all response headers.
 	 * 
-	 * @param array $headers
+	 * @param array|string $headers [optional]
+	 * @return array
 	 */
-	public function addHeaders(array $headers) {
-		foreach ($headers as $header) {
-			$this->headers[] = $header;
+	public function headers($headers = array()) {
+		foreach ((array) $headers as $header) {
+			$this->header($header);
 		}
+		
+		return $this->headers;
 	}
 	
 	/**
@@ -104,7 +126,7 @@ class Response {
 	 * @param int $expire
 	 */
 	public function setCookie($key, $value, $expire, $path = '/') {
-		$this->cookies[$key] = array('value' => $value, 'expire' => $expire, 'path' => '/');
+		$this->cookies[$key] = compact('value', 'expire', 'path');
 	}
 	
 	/**
@@ -123,50 +145,26 @@ class Response {
 	 * @param string $key
 	 */
 	public function deleteCookie($key) {
-		if (isset($cookies[$key])) {
+		if (isset($this->cookies[$key])) {
 			$this->cookies[$key]['value'] = '';
 			$this->cookies[$key]['expire'] = 0;
 		}
 	}
 	
 	/**
-	 * Prepare the given response content as a string. Encodes arrays as JSON.
+	 * Get and optionally set the response content.
 	 * 
 	 * @param mixed $content
 	 * @return string
 	 */
-	public function prepareContent($content) {
-		if (is_object($content) && method_exists($content, '__toString')) {
-			$content = $content->__toString();
-		} else if (is_array($content)) {
-			$content = json_encode($content, JSON_FORCE_OBJECT);
-		} else {
-			$content = (string) $content;
-		}
-		
-		return $content;
-	}
-	
-	/**
-	 * Append to the response content.
-	 * 
-	 * @param mixed $content
-	 */
-	public function addContent($content) {
-		$this->content .= $this->prepareContent($content);
-	}
-	
-	/**
-	 * Set the response content.
-	 * 
-	 * @param mixed $content
-	 */
-	public function setContent($content) {
+	public function content($content) {
 		if (is_array($content)) {
-			$this->addHeader('Content-Type: text/json');
+			$this->header('Content-Type: text/json');
 		}
 		
 		$this->content = $this->prepareContent($content);
+		
+		return $this->content;
 	}
 	
 	/**
@@ -179,24 +177,18 @@ class Response {
 	}
 	
 	/**
-	 * Retrieve the current response content.
-	 * 
-	 * @return string
-	 */
-	public function getContent() {
-		return $this->content;
-	}
-	
-	/**
 	 * Redirect the response to another location.
 	 * 
 	 * This redirect will only happen when the response headers have been sent.
 	 * 
 	 * @param string $url
+	 * @return $this
 	 */
 	public function redirect($url) {
-		$this->addHeader("Location: $url");
+		$this->header("Location: $url");
 		$this->redirected = true;
+		
+		return $this;
 	}
 	
 	/**
@@ -209,73 +201,88 @@ class Response {
 	}
 	
 	/**
-	 * Send the response headers to the client, provided that they have not yet 
-	 * been sent. This sends cookies.
-	 * 
-	 * Optionally adds the given headers to the response before sending.
-	 * 
-	 * @param array $headers
+	 * Sends the current HTTP status of the response.
 	 */
-	public function sendHeaders(array $headers = array()) {
-		if (!$this->headersSent && !headers_sent()) {
-			if (function_exists('http_response_code')) {
-				http_response_code($this->status);
-			} else {
-				header(':', true, $this->status);
-			}
+	protected function sendStatus() {
+		if (function_exists('http_response_code')) {
+			http_response_code($this->status);
+		} else {
+			header(':', true, $this->status);
+		}
+	}
+	
+	/**
+	 * Sends all the currently set cookies.
+	 */
+	protected function sendCookies() {
+		foreach ($this->cookies as $key => $values) {
+			setcookie($key, $values['value'], $values['expire'], $values['path'] ?: '/');
+		}
+	}
+	
+	/**
+	 * Determine whether any headers have been sent by this response or another.
+	 * 
+	 * @return bool
+	 */
+	protected function headersSent() {
+		return $this->headersSent || headers_sent();
+	}
+	
+	/**
+	 * Send the response headers to the client, provided that they have not yet
+	 * been sent.
+	 * 
+	 * HTTP status and cookies are sent before the headers.
+	 * 
+	 * @return bool
+	 */
+	public function sendHeaders() {
+		if (!$this->headersSent()) {
+			$this->sendStatus();
+			$this->sendCookies();
 			
-			foreach ($this->cookies as $cookieKey => $cookieValues) {				
-				setcookie($cookieKey, $cookieValues['value'], $cookieValues['expire'], $cookieValues['path'] ?: '/');
-			}
-			
-			$this->addHeaders($headers);
-			
-			foreach ($this->headers as $header) {
-				header($header, true);
+			foreach ($this->headers as $name => $value) {
+				header("$name: $value", true);
 			}
 			
 			$this->headersSent = true;
 		}
+		
+		return $this->headersSent;
 	}
 	
 	/**
 	 * Send the response content to the client.
 	 * 
-	 * This will only succeed provided that response headers have been sent,
+	 * This will only succeed if response headers have been sent, response
 	 * content has not yet been sent, and the response has not been redirected.
 	 * 
-	 * Optionally sets the given response content before sending.
-	 * 
-	 * @param string $content
+	 * @return bool
 	 */
-	public function sendContent($content = null) {
-		if ($this->headersSent && !$this->contentSent && !$this->redirected) {
-			if (!is_null($content)) {
-				$this->setContent($content);
-			}
-			
+	public function sendContent() {
+		if ($this->headersSent() && !$this->contentSent && !$this->redirected) {
 			echo $this->content;
 			
 			$this->contentSent = true;
 		}
+		
+		return $this->contentSent;
 	}
 	
 	/**
 	 * Sends the response to the client.
 	 * 
-	 * If the response has been redirected, only headers will be sent, not
-	 * content.
+	 * Sends the response headers and response content.
 	 * 
-	 * @param string $content [optional] Response content to send
-	 * @param array  $headers [optional] Response headers to send
+	 * If the response has been redirected, only headers will be sent.
 	 */
-	public function send($content = null, $headers = array()) {
-		$this->sendHeaders($headers);
+	public function send() {
+		$this->sendHeaders();
 		
 		if (!$this->redirected) {
-			$this->sendContent($content);
+			$this->sendContent();
 		}
 	}
 	
 }
-?>

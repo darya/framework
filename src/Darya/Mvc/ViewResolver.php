@@ -2,7 +2,7 @@
 namespace Darya\Mvc;
 
 /**
- * Finds and instantiates Views of the given ViewInterface using the given base 
+ * Finds and instantiates Views of the given ViewInterface using the given base
  * paths and extensions.
  * 
  * Optionally shares variables and configurations with all templates that are
@@ -51,7 +51,7 @@ class ViewResolver {
 			$this->registerBasePaths($basePath);
 		}
 		
-		if ($extensions) {
+		if (!empty($extensions)) {
 			$this->registerExtensions($extensions);
 		}
 	}
@@ -62,7 +62,7 @@ class ViewResolver {
 	 * @param string $engine
 	 */
 	public function setEngine($engine) {
-		if (class_exists($engine) && in_array('Darya\Mvc\ViewInterface', class_implements($engine))) {
+		if (class_exists($engine) && is_subclass_of($engine, 'Darya\Mvc\ViewInterface')) {
 			$this->engine = $engine;
 		}
 	}
@@ -86,7 +86,7 @@ class ViewResolver {
 	 * @param string|array $extensions
 	 */
 	public function registerExtensions($extensions) {
-		foreach ((array)$extensions as $extension) {
+		foreach ((array) $extensions as $extension) {
 			$this->extensions[] = '.' . ltrim($extension, '.');
 		}
 	}
@@ -96,10 +96,8 @@ class ViewResolver {
 	 * 
 	 * @param array $vars
 	 */
-	public function share($vars = array()) {
-		if (is_array($vars)) {
-			$this->shared = array_merge($this->shared, $vars);
-		}
+	public function share(array $vars = array()) {
+		$this->shared = array_merge($this->shared, $vars);
 	}
 	
 	/**
@@ -107,10 +105,8 @@ class ViewResolver {
 	 * 
 	 * @param array $config
 	 */
-	public function shareConfig($config = array()) {
-		if (is_array($config)) {
-			$this->config = array_merge($this->config, $config);
-		}
+	public function shareConfig(array $config = array()) {
+		$this->config = array_merge($this->config, $config);
 	}
 	
 	/**

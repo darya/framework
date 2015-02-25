@@ -23,9 +23,9 @@ It assumes that you'll be including it from the root directory of a composer pro
 require_once 'vendor/darya/framework/autoloader.php';
 ```
 
-You can configure the autoloader created by this script if desired. 
+You can configure the autoloader created by this script if desired.
 
-Using the `registerNamespaces` function you can map namespaces to their relevant base directories or even fully qualified class names directly to PHP files.
+Using the `namespaces()` method you can map namespaces to their relevant base directories or even fully qualified class names directly to PHP files.
 
 Use namespaces as keys and directories as values for the array you pass to this function.
 

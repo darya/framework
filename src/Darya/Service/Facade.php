@@ -1,35 +1,67 @@
 <?php
 namespace Darya\Service;
 
-use Darya\Service\Container;
+use \Exception;
+use Darya\Service\ContainerInterface;
 
 /**
- * Darya's service facade implementation, very similar to Laravel's approach.
+ * Darya's service facade implementation. Very similar to Laravel's approach.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class Facade {
 	
-	protected static $serviceContainer = null;
+	/**
+	 * @var \Darya\Service\ContainerInterface
+	 */
+	protected static $serviceContainer;
 	
-	public static function setServiceContainer(Container $container){
+	/**
+	 * Set the service container to use for all facades.
+	 * 
+	 * @param \Darya\Service\ContainerInterface $container
+	 */
+	public static function setServiceContainer(ContainerInterface $container) {
 		static::$serviceContainer = $container;
 	}
 	
-	public static function getServiceName(){
-		throw new Exception('Facade does not implement getServiceName()');
+	/**
+	 * Return the service interface or alias to resolve from the container.
+	 * 
+	 * All facades must override this method.
+	 * 
+	 * @return string
+	 */
+	public static function getServiceName() {
+		$class = get_class(new static);
+		throw new Exception('Facade "' . $class . '" does not implement getServiceName()');
 	}
 	
-	public static function __callStatic($method, $parameters){
+	/**
+	 * Magic method that redirects static calls to the facade's related service.
+	 * 
+	 * @param string $method
+	 * @param array  $parameters
+	 * @return mixed
+	 */
+	public static function __callStatic($method, $parameters) {
 		$service = static::getServiceName();
 		
-		if (static::$serviceContainer) {
-			$instance = static::$serviceContainer->resolve($service);
-		} else {
-			$instance = Services::instance()->resolve($service);
+		if (!static::$serviceContainer) {
+			throw new Exception('Tried to use a facade without setting a service container');
 		}
 		
-		return call_user_func_array(array($instance, $method), $parameters);
+		$instance = static::$serviceContainer->resolve($service);
+		
+		if (!is_object($instance)) {
+			throw new Exception('Facade resolved non-object from the service container');
+		}
+		
+		if (!method_exists($instance, $method)) {
+			throw new Exception('Call to non-existent method "' . $method . '" on facade instance');
+		}
+		
+		return static::$serviceContainer->call(array($instance, $method), $parameters);
 	}
 	
 }

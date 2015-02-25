@@ -2,14 +2,13 @@
 namespace Darya\Mvc;
 
 use ArrayAccess;
-use ArrayIterator;
 use Countable;
 use IteratorAggregate;
 use Serializable;
 use Darya\Common\Tools;
 
 /**
- * Darya's MVC model.
+ * Darya's abstract model implementation.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -33,17 +32,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * @var string The key of the field that uniquely identifies the model
 	 */
-	protected $key; 
+	protected $key;
 	
 	/**
-	 * @var string A prefix for model data keys 
+	 * @var string A prefix for model data keys
 	 */
 	protected $fieldPrefix;
 	
 	/**
-	 * Instantiates a new model
+	 * Instantiates a new model.
 	 * 
-	 * @param array $data Set of properties to set on the model
+	 * @param array $data [optional] Set of properties to set on the model
 	 */
 	public function __construct($data = null) {
 		if ($data && is_array($data)) {
@@ -52,7 +51,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Return the base name of the current class (static)
+	 * Return the base name of the current class (static).
 	 * 
 	 * @return string
 	 */
@@ -61,7 +60,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Generates multiple instances using an array of data arrays
+	 * Generates multiple instances using an array of data arrays.
 	 * 
 	 * @param  array $rows
 	 * @return array Instances generated
@@ -77,7 +76,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Returns the prefix for properties of this model
+	 * Returns the prefix for properties of this model.
 	 * 
 	 * @return string
 	 */
@@ -96,7 +95,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Returns the unique ID of this model
+	 * Returns the unique ID of this model.
 	 * 
 	 * @return mixed
 	 */
@@ -105,7 +104,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Returns whether a property is set on the model
+	 * Determine whether a property is set on the model
 	 * 
 	 * @param string $property
 	 * @return bool
@@ -115,8 +114,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Get a property from the model. Essentially a
-	 * shortcut for get() and getId().
+	 * Get a property from the model. Shortcut for `get()` and `getId()`.
 	 * 
 	 * @param string $property
 	 * @return mixed
@@ -154,7 +152,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param mixed $value
 	 */
 	public function offsetSet($offset, $value) {
-		return $this->set($offset, $value);
+		$this->set($offset, $value);
 	}
 	
 	/**
@@ -172,13 +170,15 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * @return Traversable
+	 * @return \Traversable
 	 */
 	public function getIterator() {
 		return new ArrayIterator($this->data);
 	}
 	
 	/**
+	 * Serialize the model.
+	 * 
 	 * @return string
 	 */
 	public function serialize() {
@@ -186,10 +186,21 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Unserialize the model.
+	 * 
 	 * @param string $serialized
 	 */
 	public function unserialize($serialized) {
-		$this->data = unserialize($data);
+		$this->data = unserialize($serialized);
+	}
+	
+	/**
+	 * Retrieve all of the model's attributes.
+	 * 
+	 * @return array
+	 */
+	public function data() {
+		return $this->data;
 	}
 	
 	/**
@@ -212,32 +223,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve all properties from the model
-	 * 
-	 * @return array
-	 */
-	public function getAll() {
-		$data = array();
-		
-		foreach ($this->data as $key => $value) {
-			$data[$key] = $value;
-		}
-		
-		return $data;
-	}
-	
-	/**
-	 * Return a field as an integer
+	 * Return a field as an integer.
 	 * 
 	 * @param  string $key
 	 * @return int
 	 */
 	public function getInt($key) {
-		return (int)$this->get($key);
+		return (int) $this->get($key);
 	}
 	
 	/**
-	 * Return a field in the configured time format
+	 * Return a field in the configured time format.
 	 *
 	 * @param  string $key
 	 * @param  string $format
@@ -248,7 +244,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Return a field in the configured date format
+	 * Return a field in the configured date format.
 	 *
 	 * @param  string $key
 	 * @param  string $format
@@ -259,7 +255,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Return a field in the configured date/time format
+	 * Return a field in the configured date/time format.
 	 *
 	 * @param  string $key
 	 * @param  string $format
@@ -270,7 +266,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the value of a field
+	 * Set the value of a field.
 	 * 
 	 * @param string $key
 	 * @param mixed  $value
@@ -281,7 +277,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the values of multiple fields using a key/value array
+	 * Set the values of multiple fields using a key/value array.
 	 * 
 	 * @param array $data
 	 */
@@ -294,19 +290,22 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the value of a date field with the correct formatting for MySQL
-	 * TODO: This should not be specific to MySQL, create a config for model date setting format
+	 * Set the value of a date field with the correct formatting for MySQL.
+	 * 
+	 * TODO: This does not need to be specific to MySQL. Create a config for
+	 *       model date formats?
 	 * 
 	 * @param string $key
 	 * @param string $date Date to be parsed using strtotime()
 	 */
 	public function setDate($key, $date) {
-		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/','-',$date)) : $date));
+		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/', '-', $date)) : $date));
 	}
 	
 	/**
-	 * Sets the created and modified dates according to the time given
-	 * Defaults to the current system time if none is given
+	 * Sets the created and modified dates according to the time given.
+	 * 
+	 * Defaults to the current system time if none is given.
 	 * 
 	 * @param int $time [optional] Timestamp
 	 */
@@ -338,7 +337,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Recursively convert an object to an array. If no $object is given, the
+	 * Recursively convert an object to an array. If no `$object` is given, the
 	 * model is assumed as the object.
 	 * 
 	 * @param mixed $object

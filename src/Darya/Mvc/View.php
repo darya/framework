@@ -1,8 +1,11 @@
 <?php
 namespace Darya\Mvc;
 
+use Darya\Mvc\ViewInterface;
+use Darya\Mvc\ViewResolver;
+
 /**
- * Base functionality for Views.
+ * Darya's abstract view implementation.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -14,7 +17,7 @@ abstract class View implements ViewInterface {
 	protected static $basePath;
 	
 	/**
-	 * @var array Set of template file extensions compatible with this view 
+	 * @var array Set of template file extensions compatible with this view
 	 */
 	protected static $extensions = array();
 	
@@ -24,27 +27,27 @@ abstract class View implements ViewInterface {
 	protected static $shared = array();
 	
 	/**
-	 * @var ViewResolver Shared resolver for selecting template files
+	 * @var \Darya\Mvc\ViewResolver Shared resolver for selecting template files
 	 */
 	protected static $sharedResolver;
 	
 	/**
-	 * @var ViewResolver Instance resolver for selecting template files
+	 * @var \Darya\Mvc\ViewResolver Instance resolver for selecting template files
 	 */
 	protected $resolver;
 	
-    /**
-     * @var array Variables for configuring the view
-     */
-    protected $config = array();
+	/**
+	 * @var array Variables for configuring the view
+	 */
+	protected $config = array();
 	
 	/**
 	 * @var string Path to the directory containing the view template
 	 */
-	protected $dir;
+	protected $directory;
 	
 	/**
-	 * @var Filename of the view template
+	 * @var string Filename of the view template
 	 */
 	protected $file;
 	
@@ -60,65 +63,63 @@ abstract class View implements ViewInterface {
 	 */
 	public static function setBasePath($path) {
 		$path = realpath($path);
+		
 		if (is_dir($path)) {
 			static::$basePath = $path;
 		}
 	}
 	
 	/**
-	 * Register valid template file extensions.
+	 * Sets a ViewResolver for all views.
 	 * 
-	 * @param string|array $extensions 
+	 * @param \Darya\Mvc\ViewResolver $resolver
 	 */
-	public function registerExtensions($extensions) {
-		$newExtensions = array();
+	public static function setSharedResolver(ViewResolver $resolver) {
+		static::$sharedResolver = $resolver;
+	}
+	
+	/**
+	 * Register template file extensions.
+	 * 
+	 * @param string|array $extensions
+	 */
+	public static function registerExtensions($extensions) {
+		$extensions = array_map(function($extension) {
+			return '.' . ltrim(trim($extension), '.');
+		}, (array) $extensions);
 		
-		foreach ((array)$extensions as $extension) {
-			$extension = '.' . ltrim(trim($extension), '.');
-			$newExtensions[] = $extension;
-		}
-		
-		static::$extensions = array_merge(static::$extensions, $newExtensions);
+		static::$extensions = array_merge(static::$extensions, $extensions);
 	}
 	
 	/**
 	 * Instantiate a new View object.
 	 * 
 	 * @param string $file   [optional] Path to the template file to use
-	 * @param Array  $vars   [optional] Variables to assign to the template
+	 * @param array  $vars   [optional] Variables to assign to the template
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
 	public function __construct($file = null, $vars = array(), $config = array()) {
-		if ($file) {
-		    $this->select($file, $vars, $config);
-		} else {
-		    $this->setConfig($config);
-		    $this->assign($vars);
-		}
+		$this->select($file, $vars, $config);
 	}
 	
-	public function __toString() {
-	    return $this->render();
-	}
-
 	/**
-	 * Sets a ViewResolver for all views.
+	 * Evaluate the template as a string by rendering it.
 	 * 
-	 * @param Darya\Mvc\ViewResolver $resolver
+	 * @return string
 	 */
-	public static function setSharedResolver(ViewResolver $resolver) {
-	    static::$sharedResolver = $resolver;
+	public function __toString() {
+		return $this->render();
 	}
 	
 	/**
 	 * Sets a ViewResolver for this view.
 	 * 
-	 * @param Darya\Mvc\ViewResolver $resolver
+	 * @param \Darya\Mvc\ViewResolver $resolver
 	 */
 	public function setResolver(ViewResolver $resolver) {
-	    $this->resolver = $resolver;
+		$this->resolver = $resolver;
 	}
-
+	
 	/**
 	 * Select a template, optionally assigning variables and config values.
 	 * 
@@ -126,17 +127,17 @@ abstract class View implements ViewInterface {
 	 * @param array  $vars 	 [optional] Variables to assign to the template immediately
 	 * @param array  $config [optional] Config variables for the view
 	 */
-	public function select($file, $vars = array(), $config = array()) {
-		if ($config) {
-		    $this->setConfig($config);
+	public function select($file, array $vars = array(), array $config = array()) {
+		if (!empty($config)) {
+			$this->config($config);
 		}
 		
-		if ($vars) {
+		if (!empty($vars)) {
 			$this->assign($vars);
 		}
 		
 		if ($file) {
-			$this->setFile($file);
+			$this->file($file);
 		}
 	}
 	
@@ -151,12 +152,30 @@ abstract class View implements ViewInterface {
 		
 		if ($path && is_file($path)) {
 			$dirname = dirname($path);
-			$this->setDir($dirname != '.' ? $dirname : '');
+			$this->directory($dirname);
 			$this->file = basename($path);
+			
 			return true;
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Attempt to resolve the given view path to a file path using the view's
+	 * resolver or that class's shared resolver.
+	 * 
+	 * @param string $path
+	 * @return string
+	 */
+	protected function resolve($path) {
+		if ($this->resolver) {
+			return $this->resolver->resolve($path);
+		} else if (static::$sharedResolver) {
+			return static::$sharedResolver->resolve($path);
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -166,21 +185,18 @@ abstract class View implements ViewInterface {
 	 * @param string $path Path to template file
 	 * @return bool
 	 */
-	public function setFile($path) {
+	public function file($path) {
 		$paths = array();
-
-		if ($this->resolver) {
-			$paths[] = $this->resolver->resolve($path);
-		} else if (static::$sharedResolver) {
-			$paths[] = static::$sharedResolver->resolve($path);
-		}
 		
-		$extensions = array_merge(array(''), static::$extensions);
+		$paths[] = $this->resolve($path);
+		
+		$extensions = array_merge(static::$extensions, array(''));
 		
 		foreach ($extensions as $extension) {
 			if (static::$basePath) {
 				$paths[] = static::$basePath . "/$path$extension";
 			}
+			
 			$paths[] = "$path$extension";
 		}
 		
@@ -194,30 +210,29 @@ abstract class View implements ViewInterface {
 	}
 	
 	/**
-	 * Set the template's working directory.
+	 * Get and optionally set the template's working directory.
 	 * 
-	 * @param string $dir Template directory 
+	 * @param string $directory [optional] Working directory path
+	 * @return string
 	 */
-	protected function setDir($dir) {
-		$this->dir = $dir;
+	protected function directory($directory = null) {
+		$this->directory = $directory != '.' ? $directory : '';
+		
+		return $this->directory;
 	}
 	
 	/**
-	 * Get view configuration variables.
+	 * Get and optionally set view configuration variables.
 	 * 
+	 * This merges given variables with any that have been previously set.
+	 * 
+	 * @param array $config [optional]
 	 * @return array
 	 */
-	public function getConfig() {
-	    return $this->config;
-	}
-	
-	/**
-	 * Set view configuration variables. This merges with any previously set.
-	 * 
-	 * @param array $config
-	 */
-	public function setConfig(array $config) {
+	public function config(array $config = array()) {
 		$this->config = array_merge($this->config, $config);
+		
+		return $this->config;
 	}
 
 	/**
@@ -226,9 +241,7 @@ abstract class View implements ViewInterface {
 	 * @param array $vars
 	 */
 	public function assign(array $vars = array()) {
-		if (is_array($vars)) {
-			$this->vars = array_merge($this->vars, $vars);
-		}
+		$this->vars = array_merge($this->vars, $vars);
 	}
 	
 	/**
@@ -237,8 +250,8 @@ abstract class View implements ViewInterface {
 	 * @param string $key Key of a variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public function getAssigned($key = null) {
-		return $key && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
+	public function assigned($key = null) {
+		return !is_null($key) && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
 	}
 	
 	/**
@@ -251,13 +264,13 @@ abstract class View implements ViewInterface {
 	}
 	
 	/**
-	 * Get all variables or a particular variable shared to all templates.
+	 * Get all variables or a particular variable shared with all templates.
 	 * 
 	 * @param string $key Key of a variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public static function getShared($key = null) {
-		return $key && isset(static::$shared[$key]) ? static::$shared[$key] : static::$shared;
+	public static function shared($key = null) {
+		return !is_null($key) && isset(static::$shared[$key]) ? static::$shared[$key] : static::$shared;
 	}
-
+	
 }
