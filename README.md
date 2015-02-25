@@ -299,7 +299,7 @@ case-insensitively
 
 This prefix does not need to be used when accessing attributes; only when
 setting data. To prevent the use of a prefix simply set the
-`protected $fieldPrefix = '';` property on your model.
+`protected $prefix = '';` property on your model.
 
 ```php
 use Darya\Mvc\Model;

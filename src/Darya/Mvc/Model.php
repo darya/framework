@@ -15,12 +15,27 @@ use Darya\Common\Tools;
 abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Serializable {
 	
 	/**
+	 * @var array Attribute names and types
+	 */
+	protected $attributes = array();
+	
+	/**
+	 * @var array Relationships to other models
+	 */
+	protected $relations = array();
+	
+	/**
+	 * @var array Types for casting attributes when setting and getting values
+	 */
+	protected $mutations = array();
+	
+	/**
 	 * @var array Model data
 	 */
 	protected $data;
 	
 	/**
-	 * @var bool Whether the model has passed validation
+	 * @var bool Whether the model is currently in a valid state
 	 */
 	protected $valid = false;
 	
@@ -30,28 +45,42 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $errors = array();
 	
 	/**
-	 * @var string The key of the field that uniquely identifies the model
+	 * @var string The attribute that uniquely identifies the model, if any
 	 */
 	protected $key;
 	
 	/**
-	 * @var string A prefix for model data keys
+	 * @var string Prefix for model attributes
 	 */
-	protected $fieldPrefix;
+	protected $prefix;
 	
 	/**
-	 * Instantiates a new model.
-	 * 
-	 * @param array $data [optional] Set of properties to set on the model
+	 * @var bool Whether to use the model's class name to prefix attributes if a
+	 *           custom prefix is not set
 	 */
-	public function __construct($data = null) {
-		if ($data && is_array($data)) {
-			$this->setAll($data);
-		}
+	protected $classPrefix = true;
+	
+	/**
+	 * Instantiate a new model.
+	 * 
+	 * @param array $data [optional] Set of attributes to set on the model
+	 */
+	public function __construct(array $data = null) {
+		$this->set($data);
 	}
 	
 	/**
-	 * Return the base name of the current class (static).
+	 * Parse the given data type definition.
+	 * 
+	 * @param string $type
+	 * @return string
+	 */
+	public static function parseType($type) {
+		return strtolower($type);
+	}
+	
+	/**
+	 * Retrieve the base name of the current class.
 	 * 
 	 * @return string
 	 */
@@ -60,47 +89,81 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Generates multiple instances using an array of data arrays.
+	 * Generate multiple instances of the model using multiple data arrays.
 	 * 
 	 * @param  array $rows
-	 * @return array Instances generated
+	 * @return array
 	 */
 	public static function output($rows = array()) {
 		$instances = array();
 		
-		foreach ($rows as $k => $row) {
-			$instances[] = new static($row);
+		foreach ($rows as $key => $row) {
+			$instances[$key] = new static($row);
 		}
 		
 		return $instances;
 	}
 	
 	/**
-	 * Returns the prefix for properties of this model.
+	 * Recursively convert a model to an array. If no object is given, the
+	 * model is assumed as the object.
 	 * 
-	 * @return string
+	 * @param mixed $object
+	 * @return array
 	 */
-	public function getFieldPrefix() {
-		return !is_null($this->fieldPrefix) ? $this->fieldPrefix : Tools::camelToDelim(static::basename(), '_') . '_';
+	public static function convertToArray($model = null) {
+		if (is_object($model)) {
+			if (method_exists($model, 'toArray')) {
+				$model = $model->toArray();
+			} else {
+				$model = (array) $model;
+			}
+		}
+		
+		if (is_array($model)) {
+			foreach ($model as $key => $value) {
+				$model[$key] = $value ? static::toArray($value) : $value;
+			}
+		}
+		
+		return $model;
 	}
 	
 	/**
-	 * Returns the name of the property that represents the unique ID of this model
-	 * Uses "{fieldPrefix}id" if key is unset.
+	 * Retrieve the prefix for this model's attributes.
 	 * 
 	 * @return string
 	 */
-	public function getKey() {
-		return !is_null($this->key) ? $this->key : $this->getFieldPrefix() . 'id';
+	public function prefix() {
+		if ($this->prefix !== null) {
+			return $this->prefix;
+		}
+		
+		if ($this->classPrefix) {
+			return Tools::camelToDelim(static::basename(), '_') . '_';
+		}
+		
+		return '';
 	}
 	
 	/**
-	 * Returns the unique ID of this model.
+	 * Retrieve the name of the attribute that uniquely identifies this model.
+	 * 
+	 * Defaults to `id` preceded by the attribute prefix if `key` is unset.
+	 * 
+	 * @return string
+	 */
+	public function key() {
+		return !is_null($this->key) ? $this->key : $this->prefix() . 'id';
+	}
+	
+	/**
+	 * Retrieve the attribute that uniquely identifies this model.
 	 * 
 	 * @return mixed
 	 */
-	public function getId() {
-		return $this->get($this->getKey());
+	public function id() {
+		return $this->get($this->key());
 	}
 	
 	/**
@@ -114,14 +177,14 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Get a property from the model. Shortcut for `get()` and `getId()`.
+	 * Get a property from the model. Shortcut for `get()` and `id()`.
 	 * 
 	 * @param string $property
 	 * @return mixed
 	 */
 	public function __get($property) {
 		if ($property == 'id') {
-			return $this->getId();
+			return $this->id();
 		} else {
 			if (property_exists($this, $property)) {
 				return $this->$property;
@@ -204,93 +267,122 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Determine whether the given attribute is set on the model.
+	 * 
+	 * @param string $attribute
+	 * @return bool
+	 */
+	public function has($attribute) {
+		$attribute = strtolower($attribute);
+		return isset($this->data[$this->prefix() . $attribute]);
+	}
+	
+	/**
 	 * Get a property from the model
 	 * 
-	 * @param  string $property
+	 * @param string $attribute
 	 * @return mixed
 	 */
-	public function get($property) {
-		$property = strtolower($property);
-		$value = false;
+	public function get($attribute) {
+		$property = strtolower($attribute);
 		
-		if (isset($this->data[$property])) {
-			$value = $this->data[$property];
-		} else if (isset($this->data[$this->getFieldPrefix() . $property])) {
-			$value = $this->data[$this->getFieldPrefix() . $property];
+		if (isset($this->data[$attribute])) {
+			return $this->data[$attribute];
+		} else if (isset($this->data[$this->prefix() . $attribute])) {
+			return $this->data[$this->prefix() . $attribute];
 		}
+		
+		return null;
+	}
+	
+	/**
+	 * Determine whether the given attribute has a type and is mutatable.
+	 * 
+	 * @return bool
+	 */
+	protected function mutable($attribute) {
+		return isset($this->attributes[$attribute]) && isset($this->mutations[$attribute]);
+	}
+	
+	/**
+	 * Retrieve the given attribute casted.
+	 * 
+	 * @param string $attribute
+	 * @return mixed
+	 */
+	protected function castGet($attribute) {
+		if ($this->has($attribute)) {
+			$value = $this->data[$attribute];
+			
+			if ($this->mutable($attribute)) {
+				$type = $this->attributes[$attribute];
+				$mutation = $this->mutations[$attribute];
+				
+				switch ($type) {
+					case 'array':
+						return json_decode($value);
+						break;
+				}
+			}
+			
+			return $value;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Cast the given attribute to set.
+	 * 
+	 * @param string $attribute
+	 * @param mixed  $value [optional]
+	 * @return mixed
+	 */
+	protected function castSet($attribute, $value = null) {
+		if ($this->mutable($attribute)) {
+			$type = $this->attributes[$attribute];
+			$mutation = $this->mutations[$attribute];
+			
+			switch ($type) {
+				case 'date': case 'datetime': case 'time':
+					if (!$value instanceof DateTimeInterface) {
+						$value = new DateTime($value) ?: new DateTime("@$value");
+					}
+					
+					$value = $value->getTimestamp();
+					break;
+				case 'array':
+					if (is_array($value)) {
+						$value = json_encode($value);
+					}
+					break;
+			}
+		}
+		
+		$this->data[$attribute] = $value;
 		
 		return $value;
 	}
 	
 	/**
-	 * Return a field as an integer.
+	 * Set the value of a attribute.
 	 * 
-	 * @param  string $key
-	 * @return int
-	 */
-	public function getInt($key) {
-		return (int) $this->get($key);
-	}
-	
-	/**
-	 * Return a field in the configured time format.
-	 *
-	 * @param  string $key
-	 * @param  string $format
-	 * @return string
-	 */
-	public function getTime($key, $format = null) {
-		return date($format ? $format : 'H:i:s', strtotime($this->get($key)));
-	}
-	
-	/**
-	 * Return a field in the configured date format.
-	 *
-	 * @param  string $key
-	 * @param  string $format
-	 * @return string
-	 */
-	public function getDate($key, $format = null) {
-		return date($format ? $format : "jS M 'y", strtotime($this->get($key)));
-	}
-	
-	/**
-	 * Return a field in the configured date/time format.
-	 *
-	 * @param  string $key
-	 * @param  string $format
-	 * @return string
-	 */
-	public function getDateTime($key, $format = null) {
-		return date($format ? $format : 'd/m/y H:i', strtotime($this->get($key)));
-	}
-	
-	/**
-	 * Set the value of a field.
-	 * 
-	 * @param string $key
-	 * @param mixed  $value
+	 * @param string $attribute
+	 * @param mixed  $value [optional]
 	 */
 	public function set($key, $value) {
-		$key = strtolower($key);
-		$this->data[$key] = $value;
-	}
-	
-	/**
-	 * Set the values of multiple fields using a key/value array.
-	 * 
-	 * @param array $data
-	 */
-	public function setAll($data = array()) {
-		if (is_array($data)) {
-			foreach ($data as $key => $value) {
-				$this->set($key, $value);
+		if (is_array($key)) {
+			foreach ($key as $attribute => $value) {
+				$this->set($attribute, $value);
 			}
+		} else {
+			$attribute = strtolower($key);
+			$this->data[$attribute] = $this->castSet($value);
 		}
 	}
 	
 	/**
-	 * Set the value of a date field with the correct formatting for MySQL.
+	 * Set the value of a date attribute with the correct formatting for MySQL.
 	 * 
 	 * TODO: This does not need to be specific to MySQL. Create a config for
 	 *       model date formats?
@@ -303,7 +395,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Sets the created and modified dates according to the time given.
+	 * Set the `created` and `modified` attributes using the given timestamp.
 	 * 
 	 * Defaults to the current system time if none is given.
 	 * 
@@ -311,15 +403,15 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function setCreatedModified($time = null) {
 		$time = $time ?: time();
-		$this->setDate($this->getFieldPrefix() . 'modified', $time);
+		$this->setDate($this->prefix() . 'modified', $time);
 		
-		if (!$this->getId()) {
-			$this->setDate($this->getFieldPrefix() . 'created', $time);
+		if (!$this->id()) {
+			$this->setDate($this->prefix() . 'created', $time);
 		}
 	}
 	
 	/**
-	 * Validates all of the properties of the model
+	 * Validate all of the model's attributes.
 	 * 
 	 * @return bool
 	 */
@@ -328,7 +420,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Returns an array of error strings from the previous attempt at validation
+	 * Retrieve an array of error strings generate by the last validation
+	 * attempt.
 	 * 
 	 * @return array
 	 */
@@ -337,30 +430,14 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Recursively convert an object to an array. If no `$object` is given, the
+	 * Recursively convert an object to an array. If no object is given, the
 	 * model is assumed as the object.
 	 * 
 	 * @param mixed $object
 	 * @return array
 	 */
 	public function toArray($object = null) {
-		$object = $object ?: $this->data;
-		
-		if (is_object($object)) {
-			if (method_exists($object, 'toArray')) {
-				$object = $object->toArray();
-			} else {
-				$object = (array) $object;
-			}
-		}
-		
-		if (is_array($object)) {
-			foreach ($object as $key => $value) {
-				$object[$key] = $value ? $this->toArray($value) : $value;
-			}
-		}
-		
-		return $object;
+		return static::convertToArray($this->data);
 	}
 	
 	/**
@@ -373,7 +450,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Prepare the model's properties for JSON serialization.
+	 * Prepare the model's attributes for JSON serialization.
 	 * 
 	 * @return array
 	 */

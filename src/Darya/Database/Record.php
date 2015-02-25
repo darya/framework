@@ -40,8 +40,8 @@ class Record extends Model {
 	 * @param mixed $data An array of key-value fields or a primary key to load by
 	 */
 	public function __construct($data = null) {
-		if ($data && is_array($data)) {
-			$this->setAll($data);
+		if (is_array($data)) {
+			$this->set($data);
 		} else if(is_numeric($data) || is_string($data)) {
 			$this->data = static::loadData($data);
 		}
