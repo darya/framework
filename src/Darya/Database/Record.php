@@ -327,7 +327,7 @@ class Record extends Model {
 		if ($this->validate()) {
 			$connection = $this->getConnection();
 			$data = $this->data;
-			$keys = array_keys($this->data);
+			$keys = array_intersect_key(array_keys($this->data), $this->attributes);
 			
 			// Escape values
 			$data = array_map(function($value) use ($connection) {
@@ -411,7 +411,7 @@ class Record extends Model {
 				$filters = array_merge(array($this->getKey() => $this->getId()), $filters);
 				$where = static::processFilters($filters);
 				$orderby = static::processOrders($orders);
-                
+				
 				$joins = array();
 				for ($i = 0; $i < count($class) - 1; $i++) {
 					$c = $class[$i];

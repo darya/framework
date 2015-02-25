@@ -3,6 +3,8 @@ namespace Darya\Mvc;
 
 use ArrayAccess;
 use Countable;
+use DateTime;
+use DateTimeInterface;
 use IteratorAggregate;
 use Serializable;
 use Darya\Common\Tools;
@@ -284,42 +286,40 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return mixed
 	 */
 	public function get($attribute) {
-		$property = strtolower($attribute);
+		$attribute = $this->prefix() . strtolower($attribute);
 		
 		if (isset($this->data[$attribute])) {
 			return $this->data[$attribute];
-		} else if (isset($this->data[$this->prefix() . $attribute])) {
-			return $this->data[$this->prefix() . $attribute];
 		}
 		
 		return null;
 	}
 	
 	/**
-	 * Determine whether the given attribute has a type and is mutatable.
+	 * Determine whether the given attribute is mutatable.
 	 * 
+	 * @param string $attribute
 	 * @return bool
 	 */
 	protected function mutable($attribute) {
-		return isset($this->attributes[$attribute]) && isset($this->mutations[$attribute]);
+		return isset($this->mutations[$attribute]);
 	}
 	
 	/**
-	 * Retrieve the given attribute casted.
+	 * Retrieve the given mutated attribute.
 	 * 
 	 * @param string $attribute
 	 * @return mixed
 	 */
-	protected function castGet($attribute) {
+	protected function getMutated($attribute) {
 		if ($this->has($attribute)) {
 			$value = $this->data[$attribute];
 			
 			if ($this->mutable($attribute)) {
-				$type = $this->attributes[$attribute];
 				$mutation = $this->mutations[$attribute];
 				
-				switch ($type) {
-					case 'array':
+				switch ($mutation) {
+					case 'array': case 'json':
 						return json_decode($value);
 						break;
 				}
@@ -332,34 +332,31 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Cast the given attribute to set.
+	 * Mutate the given attribute to set on the model.
 	 * 
 	 * @param string $attribute
 	 * @param mixed  $value [optional]
 	 * @return mixed
 	 */
-	protected function castSet($attribute, $value = null) {
+	protected function mutate($attribute, $value = null) {
 		if ($this->mutable($attribute)) {
-			$type = $this->attributes[$attribute];
 			$mutation = $this->mutations[$attribute];
 			
-			switch ($type) {
+			switch ($mutation) {
 				case 'date': case 'datetime': case 'time':
-					if (!$value instanceof DateTimeInterface) {
-						$value = new DateTime($value) ?: new DateTime("@$value");
+					if (!$value instanceof DateTimeInterface && is_string($value)) {
+						$value = (new DateTime($value))->getTimestamp();
 					}
 					
-					$value = $value->getTimestamp();
 					break;
-				case 'array':
+				case 'array': case 'json':
 					if (is_array($value)) {
 						$value = json_encode($value);
 					}
+					
 					break;
 			}
 		}
-		
-		$this->data[$attribute] = $value;
 		
 		return $value;
 	}
@@ -370,14 +367,14 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param string $attribute
 	 * @param mixed  $value [optional]
 	 */
-	public function set($key, $value) {
+	public function set($key, $value = null) {
 		if (is_array($key)) {
 			foreach ($key as $attribute => $value) {
 				$this->set($attribute, $value);
 			}
 		} else {
 			$attribute = strtolower($key);
-			$this->data[$attribute] = $this->castSet($value);
+			$this->data[$attribute] = $this->mutate($attribute, $value);
 		}
 	}
 	
