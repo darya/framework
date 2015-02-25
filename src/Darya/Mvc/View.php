@@ -217,6 +217,8 @@ abstract class View implements ViewInterface {
 	 */
 	protected function directory($directory = null) {
 		$this->directory = $directory != '.' ? $directory : '';
+		
+		return $this->directory;
 	}
 	
 	/**

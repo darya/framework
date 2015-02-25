@@ -72,6 +72,15 @@ class SmartyView extends View {
 	}
 	
 	/**
+	 * Retrieve the view's smarty instance.
+	 * 
+	 * @return Smarty
+	 */
+	public function smarty() {
+		return $this->smarty;
+	}
+	
+	/**
 	 * Render the template.
 	 * 
 	 * @return string The result of the rendered template
@@ -84,8 +93,7 @@ class SmartyView extends View {
 			$this->smarty->assign($this->vars);
 			return $this->smarty->fetch($template, $this->directory, $this->directory);
 		} else {
-			throw new \Exception("Could not find template \"$template\"");
-			// return "Could not find template \"$template\" when rendering<br/>";
+			throw new \Exception("Could not find template when rendering: \"$template\"");
 		}
 	}
 	
