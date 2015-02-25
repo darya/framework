@@ -1,6 +1,6 @@
 # Darya Framework Changelog
 
-## v0.4.0 - Feb ?, 2015
+## v0.4.0 - Feb 25, 2015
 - Minor `Autoloader` improvement
 - Major `Router` refactoring using method extraction
 - `Session` objects can now be accessed like arrays, and as a result through
@@ -10,7 +10,7 @@
 - Added `ContainerInterface::all()` and `SessionInterface::has()`
 - `Container` now automatically injects itself to any `ContainerAwareInterface`
   implementors that it instantiates
-- **TODO:** Simplify `Request`/`Response` API
+- Simplified `Request`/`Response` API
 
 ## v0.4.0-beta - Jan 29, 2015
 - `Autoloader` refactoring
