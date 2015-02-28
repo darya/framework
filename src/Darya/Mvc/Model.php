@@ -22,6 +22,11 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $attributes = array();
 	
 	/**
+	 * @var array Attributes that should never be prefixed
+	 */
+	protected $prefixless = array();
+	
+	/**
 	 * @var array Relationships to other models
 	 */
 	protected $relations = array();
@@ -47,7 +52,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $errors = array();
 	
 	/**
-	 * @var string The attribute that uniquely identifies the model, if any
+	 * @var string The attribute that uniquely identifies the model
 	 */
 	protected $key;
 	
@@ -60,7 +65,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @var bool Whether to use the model's class name to prefix attributes if a
 	 *           custom prefix is not set
 	 */
-	protected $classPrefix = true;
+	protected $classPrefix = false;
 	
 	/**
 	 * Instantiate a new model.
@@ -78,7 +83,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return string
 	 */
 	public static function parseType($type) {
-		return strtolower($type);
+		return explode(' ', strtolower($type));
 	}
 	
 	/**
@@ -138,7 +143,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function prefix() {
 		if ($this->prefix !== null) {
-			return $this->prefix;
+			return strtolower($this->prefix);
 		}
 		
 		if ($this->classPrefix) {
@@ -149,6 +154,32 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Determine whether the given attribute must be prefixless.
+	 * 
+	 * @param string $attribute
+	 * @return bool
+	 */
+	protected function prefixless($attribute) {
+		return in_array($attribute, $this->prefixless);
+	}
+	
+	/**
+	 * Prepare the given attribute name.
+	 * 
+	 * @param string $attribute
+	 * @return string
+	 */
+	protected function prepareAttribute($attribute) {
+		$attribute = strtolower($attribute);
+		
+		if (strlen($this->prefix()) && !$this->prefixless($attribute) && strpos($attribute, $this->prefix()) !== 0) {
+			$attribute = $this->prefix() . $attribute;
+		}
+		
+		return $attribute;
+	}
+	
+	/**
 	 * Retrieve the name of the attribute that uniquely identifies this model.
 	 * 
 	 * Defaults to `id` preceded by the attribute prefix if `key` is unset.
@@ -156,7 +187,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return string
 	 */
 	public function key() {
-		return !is_null($this->key) ? $this->key : $this->prefix() . 'id';
+		$attribute = !is_null($this->key) ? $this->key : 'id';
+		
+		return $this->prepareAttribute($attribute);
 	}
 	
 	/**
@@ -169,17 +202,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Determine whether a property is set on the model
+	 * Determine whether a property is set on the model.
 	 * 
 	 * @param string $property
 	 * @return bool
 	 */
 	public function __isset($property) {
-		return isset($this->data[strtolower($property)]) || (property_exists($this, $property) && isset($this->$property) && !is_null($this->$property));
+		return $this->has($property);
 	}
 	
 	/**
-	 * Get a property from the model. Shortcut for `get()` and `id()`.
+	 * Retrieve an attribute from the model. Shortcut for `get()` and `id()`.
 	 * 
 	 * @param string $property
 	 * @return mixed
@@ -188,12 +221,18 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		if ($property == 'id') {
 			return $this->id();
 		} else {
-			if (property_exists($this, $property)) {
-				return $this->$property;
-			} else {
-				return $this->get($property);
-			}
+			return $this->get($property);
 		}
+	}
+	
+	/**
+	 * Set an attribute's value. Shortcut for `set()`.
+	 * 
+	 * @param string $property
+	 * @param mixed  $value
+	 */
+	public function __set($property, $value) {
+		$this->set($property, $value);
 	}
 	
 	/**
@@ -224,7 +263,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param mixed $offset
 	 */
 	public function offsetUnset($offset) {
-		unset($this->data[strtolower($offset)]);
+		unset($this->data[$this->prepareAttribute($offset)]);
 	}
 	
 	/**
@@ -238,7 +277,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return \Traversable
 	 */
 	public function getIterator() {
-		return new ArrayIterator($this->data);
+		return new ArrayIterator($this->data());
 	}
 	
 	/**
@@ -260,18 +299,14 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve all of the model's attributes.
+	 * Retrieve the model's raw attributes.
+	 * 
+	 * The keys will include prefixes and values will be as stored.
 	 * 
 	 * @return array
 	 */
 	public function data() {
-		$data = array();
-		
-		foreach ($this->data as $key => $value) {
-			$data[$key] = $this->access($key);
-		}
-		
-		return $data;
+		return $this->data;
 	}
 	
 	/**
@@ -281,8 +316,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return bool
 	 */
 	public function has($attribute) {
-		$attribute = strtolower($attribute);
-		return isset($this->data[$this->prefix() . $attribute]);
+		return isset($this->data[$this->prepareAttribute($attribute)]);
 	}
 	
 	/**
@@ -306,7 +340,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return bool
 	 */
 	protected function mutable($attribute) {
-		return isset($this->mutations[$attribute]);
+		return isset($this->mutations[$this->prepareAttribute($attribute)]);
 	}
 	
 	/**
@@ -316,10 +350,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return mixed
 	 */
 	protected function access($attribute) {
-		$attribute = strtolower($attribute);
-		
-		if (isset($this->data[$attribute])) {
-			$value = $this->data[$attribute];
+		if ($this->has($attribute)) {
+			$value = $this->data[$this->prepareAttribute($attribute)];
 			
 			if ($this->mutable($attribute)) {
 				$mutation = $this->mutations[$attribute];
@@ -345,23 +377,29 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return mixed
 	 */
 	protected function mutate($attribute, $value = null) {
-		if ($this->mutable($attribute)) {
-			$mutation = $this->mutations[$attribute];
-			
-			switch ($mutation) {
-				case 'date': case 'datetime': case 'time':
-					if (!is_string($value)) {
-						$value = strtotime(str_replace('/', '-', $value));
-					}
-					
-					break;
-				case 'array': case 'json':
-					if (is_array($value)) {
-						$value = json_encode($value);
-					}
-					
-					break;
-			}
+		if (!$this->mutable($attribute)) {
+			return $value;
+		}
+		
+		$mutation = $this->mutations[$this->prepareAttribute($attribute)];
+		
+		switch ($mutation) {
+			case 'date': case 'datetime': case 'time':
+				if (is_string($value)) {
+					$value = strtotime(str_replace('/', '-', $value));
+				}
+				
+				if ($value instanceof DateTimeInterface) {
+					$value = $value->getTimestamp();
+				}
+				
+				break;
+			case 'array': case 'json':
+				if (is_array($value)) {
+					$value = json_encode($value);
+				}
+				
+				break;
 		}
 		
 		return $value;
@@ -379,7 +417,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 				$this->set($attribute, $value);
 			}
 		} else {
-			$attribute = strtolower($key);
+			$attribute = $this->prepareAttribute($key);
 			$this->data[$attribute] = $this->mutate($attribute, $value);
 		}
 	}

@@ -17,27 +17,27 @@ class Record extends Model {
 	
 	/**
 	 * Override for the name of the database table that persists the model. If
-	 * this is not set, the model's class name in lower case is used.
+	 * this is not set, the model's lowercased class name is used.
 	 * 
 	 * @var string Database table name
 	 */
 	protected $table;
 	
 	/**
-	 * @var Darya\Database\DatabaseInterface Instance database connection
+	 * @var \Darya\Database\DatabaseInterface Instance database connection
 	 */
 	protected $connection;
 	
 	/**
-	 * @var Darya\Database\DatabaseInterface Shared database connection
+	 * @var \Darya\Database\DatabaseInterface Shared database connection
 	 */
-	protected static $defaultConnection;
+	protected static $sharedConnection;
 	
 	/**
 	 * Instantiate a new record with the given data or load an instance from the
 	 * database if the given data is a valid primary key.
 	 * 
-	 * @param mixed $data An array of key-value fields or a primary key to load by
+	 * @param mixed $data An array of key-value attributes to set or a primary key to load by
 	 */
 	public function __construct($data = null) {
 		if (is_array($data)) {
@@ -49,9 +49,11 @@ class Record extends Model {
 	
 	/**
 	 * Returns the name of the database table this record belongs to.
+	 * 
 	 * If none is set, it defaults to creating it from the class name.
+	 * 
 	 * For example:
-	 *     Page -> pages
+	 *     Page        -> pages
 	 *     PageSection -> page_sections
 	 */
 	public function getTable() {
@@ -59,39 +61,39 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Returns a database connection for the model
+	 * Retreive the model's database connection.
 	 * 
-	 * @return Database The connection assigned to this model instance, or the models static connection
+	 * @return \Darya\Database\DatabaseInterface The connection assigned to this model instance, or the models static connection
 	 */
 	public function getConnection() {
-		return isset($this->connection) ? $this->connection : static::getDefaultConnection();
+		return isset($this->connection) ? $this->connection : static::getSharedConnection();
 	}
 	
 	/**
-	 * Set the database connection to use for the model instance
+	 * Set the model's database connection.
 	 * 
-	 * @param Darya\Database\DatabaseInterface $connection
+	 * @param \Darya\Database\DatabaseInterface $connection
 	 */
 	public function setConnection(DatabaseInterface $connection) {
 		$this->connection = $connection;
 	}
 	
 	/**
-	 * Get the default database connection to use for instances of this model
+	 * Get the database connection shared to all instances of this model.
 	 * 
-	 * @return Darya\Database\DatabaseInterface
+	 * @return \Darya\Database\DatabaseInterface
 	 */
-	public static function getDefaultConnection() {
-		return static::$defaultConnection;
+	public static function getSharedConnection() {
+		return static::$sharedConnection;
 	}
 	
 	/**
-	 * Set the default database connection to use instances of this model
+	 * Share the given database connection to all instances of this model.
 	 * 
-	 * @param Darya\Database\DatabaseInterface $connection
+	 * @param \Darya\Database\DatabaseInterface $connection
 	 */
-	public static function setDefaultConnection(DatabaseInterface $connection) {
-		static::$defaultConnection = $connection;
+	public static function setSharedConnection(DatabaseInterface $connection) {
+		static::$sharedConnection = $connection;
 	}
 	
 	/**
@@ -104,7 +106,7 @@ class Record extends Model {
 	 * @return string
 	 */
 	protected static function processFilters($filters, $operator = 'AND', $excludeWhere = false) {
-		$instance = new static();
+		$instance = new static;
 		$connection = $instance->getConnection();
 		$where = '';
 		
@@ -117,21 +119,21 @@ class Record extends Model {
 					$op = !$connection->endsWithOperator($field) ? '=' : '';
 					
 					if (is_array($v)) {
-					    $v = array_map(array($connection, 'escape'), $v);
-					    $value = "('" . implode("','", $v) . "')";
+						$v = array_map(array($connection, 'escape'), $v);
+						$value = "('" . implode("','", $v) . "')";
 					} else {
-					    $value = "'".$connection->escape($v)."'";
+						$value = "'".$connection->escape($v)."'";
 					}
 					
 					$conditions[] = "$field $op $value";
 				}
 				
-				$where = (!$excludeWhere?' WHERE ':'') . implode(" $operator ", $conditions);
+				$where = (!$excludeWhere ? ' WHERE ' : '') . implode(" $operator ", $conditions);
 			}
 		} else { // By key
 			if (!empty($filters)) {
 				$filters = $connection->escape($filters);
-				$where .= (!$excludeWhere?' WHERE ':'') . $instance->getKey() . " = '$filters'";
+				$where = (!$excludeWhere ? ' WHERE ' : '') . $instance->key() . " = '$filters'";
 			}
 		}
 		
@@ -150,7 +152,7 @@ class Record extends Model {
 	 * @return string
 	 */
 	protected static function processOrders($orders = array()){
-		$connection = static::getDefaultConnection();
+		$connection = static::getSharedConnection();
 		$orderby = '';
 		
 		if (is_array($orders)) {
@@ -205,12 +207,14 @@ class Record extends Model {
 	 */
 	public static function load($filters = array(), $orders = array()) {
 		$data = static::loadData($filters, $orders);
-		return $data ? new static($data[0]) : false;
+		
+		return $data && isset($data[0]) ? new static($data[0]) : false;
 	}
 	
 	/**
-	 * Loads a new instance of the Record from the database
-	 * Returns a new Record instance if the Record cannot be found in the database
+	 * Loads a new instance of the record from the database.
+	 * 
+	 * Returns a new instance if the record cannot be found.
 	 * 
 	 * @static
 	 * @param mixed $filters
@@ -219,7 +223,8 @@ class Record extends Model {
 	 */
 	public static function loadOrNew($filters = array(), $orders = array()) {
 		$data = static::loadData($filters, $orders);
-		return $data && isset($data[0]) ? new static($data[0]) : new static(); // from qst. good/bad idea?
+		
+		return $data && isset($data[0]) ? new static($data[0]) : new static;
 	}
 	
 	/**
@@ -334,11 +339,11 @@ class Record extends Model {
 				return $connection->escape($value);
 			}, $data);
 			
-			if (!$this->getId()) {
+			if (!$this->id()) {
 				$q = $connection->query("INSERT INTO " . $this->getTable() . " (" . implode(',', $keys) . ") VALUES ('" . implode("','", $data) . "')", true);
 				
 				if (!$connection->error()) {
-					$this->set($this->getKey(), $q['insert_id']);
+					$this->set($this->key(), $q['insert_id']);
 					return $q['insert_id'];
 				}
 				
@@ -354,7 +359,7 @@ class Record extends Model {
 					$update[$key] = "$key = '$value'";
 				}
 				
-				$q = $connection->query("UPDATE " . $this->getTable() . " SET " . implode(', ', $update) . " WHERE " . $this->getKey() . " = '{$this->getId()}'");
+				$q = $connection->query("UPDATE " . $this->getTable() . " SET " . implode(', ', $update) . " WHERE " . $this->key() . " = '{$this->id()}'");
 				
 				if ($connection->error()) {
 					$this->errors['database'] = $connection->error();
@@ -373,10 +378,10 @@ class Record extends Model {
 	 * @return bool
 	 */
 	public function delete() {
-		if ($id = $this->getId()) {
+		if ($id = $this->id()) {
 			$connection = $this->getConnection();
 			
-			$connection->query("DELETE FROM " . $this->getTable() . " WHERE " . $this->getKey() . " = '$id' LIMIT 1");
+			$connection->query("DELETE FROM " . $this->getTable() . " WHERE " . $this->key() . " = '$id' LIMIT 1");
 			
 			if ($connection->error()) {
 				$this->errors['database'] = $connection->error();
@@ -403,12 +408,12 @@ class Record extends Model {
 		$instances = array();
 		if (!is_array($class)) {
 			if (class_exists($class)) {
-				$filters = array_merge(array($this->getKey() => $this->getId()), $filters);
+				$filters = array_merge(array($this->key() => $this->id()), $filters);
 				$instances = $class::loadAll($filters, $orders);
 			}
 		} else {
 			if (count($class) > 1) {
-				$filters = array_merge(array($this->getKey() => $this->getId()), $filters);
+				$filters = array_merge(array($this->key() => $this->id()), $filters);
 				$where = static::processFilters($filters);
 				$orderby = static::processOrders($orders);
 				
@@ -419,7 +424,7 @@ class Record extends Model {
 					if (class_exists($c) && class_exists($d)) {
 						$ci = new $c;
 						$di = new $d;
-						$joins[] = ' INNER JOIN ' . $ci->getTable() . ' USING (' . $di->getKey() . ')';
+						$joins[] = ' INNER JOIN ' . $ci->getTable() . ' USING (' . $di->key() . ')';
 					}
 				}
 				
@@ -456,7 +461,7 @@ class Record extends Model {
 	 * @return bool
 	 */
 	public function saveRelated($rClass, $mClass, array $relations) {
-		if ($this->getId() && count($relations) && class_exists($rClass) && class_exists($mClass)) {
+		if ($this->id() && count($relations) && class_exists($rClass) && class_exists($mClass)) {
 			$relationQueries = array();
 			
 			foreach ($relations as $key => $model) {
@@ -468,10 +473,10 @@ class Record extends Model {
 					if ($model->id) {
 						$relation = new $rClass();
 						
-						if ($relation->getKey()) { // Simple key (single field)
+						if ($relation->key()) { // Simple key (single field)
 							$relation = $rClass::loadOrNew(array(
-								$this->getKey() => $this->id,
-								$model->getKey() => $model->id
+								$this->key() => $this->id,
+								$model->key() => $model->id
 							));
 							
 							if ($relation) {
@@ -491,7 +496,7 @@ class Record extends Model {
 				
 				$connection->query(
 					'REPLACE INTO ' . $relation->getTable()
-					. ' (' . ($relation->getKey() ? $relation->getKey() . ',' : '') . $this->getKey() . ',' . $model->getKey() . ')'
+					. ' (' . ($relation->key() ? $relation->key() . ',' : '') . $this->key() . ',' . $model->key() . ')'
 					. ' VALUES ' . implode(', ', $relationQueries)
 				);
 				
@@ -509,12 +514,12 @@ class Record extends Model {
 	/**
 	 * Delete records related to $this
 	 *
-	 * @param string $rClass    Relation class 
+	 * @param string $rClass    Relation class
 	 * @param string $mClass    Model class
 	 * @param Array  $relations Instances of records to delete in relation to $this 
 	 */
 	public function deleteRelated($rClass, $mClass, $relations) {
-		if ($this->getId() && !empty($relations) && class_exists($rClass) && class_exists($mClass)) {
+		if ($this->id() && !empty($relations) && class_exists($rClass) && class_exists($mClass)) {
 			$deleteQueries = array();
 			
 			foreach ($relations as $key => $model) {
@@ -522,17 +527,17 @@ class Record extends Model {
 					if ($model->id) {
 						$relation = new $rClass();
 						
-						if ($relation->getKey()) {
+						if ($relation->key()) {
 							$relation = $rClass::load(array(
-								$this->getKey() => $this->id,
-								$model->getKey() => $model->id
+								$this->key() => $this->id,
+								$model->key() => $model->id
 							));
 							
 							if ($relation) {
-								$deleteQueries[] = $relation->getKey() . "='" . $relation->id . "'";
+								$deleteQueries[] = $relation->key() . "='" . $relation->id . "'";
 							}
 						} else { // Compound key
-							$deleteQueries[] = $model->getKey() . "='" . $model->id . "'";
+							$deleteQueries[] = $model->key() . "='" . $model->id . "'";
 						}
 					}
 				}
@@ -541,7 +546,7 @@ class Record extends Model {
 			$relation = new $rClass();
 			$this->getConnection()->query(
 				'DELETE FROM ' . $relation->getTable()
-				.' WHERE ' . $this->getKey() . "='" . $this->id . "' AND (" . implode(' OR ', $deleteQueries) . ')'
+				.' WHERE ' . $this->key() . "='" . $this->id . "' AND (" . implode(' OR ', $deleteQueries) . ')'
 			);
 			
 			return !$this->getConnection()->error();

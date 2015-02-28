@@ -11,13 +11,13 @@ class Factory {
 	/**
 	 * @var class|string Class name or database name to use by default
 	 */
-	protected $default;
+	protected $default = 'mysql';
 	
 	/**
 	 * @param class|string $default
 	 */
 	public function __construct($default = null) {
-		$this->default = $default;
+		$this->default = $default ?: $this->default;
 	}
 	
 	/**
@@ -28,6 +28,7 @@ class Factory {
 	 * @return Darya\Database\DatabaseInterface
 	 */
 	public function create($name = null, $options = array()) {
+		$name = $name ?: $this->default;
 		$class = null;
 		
 		if (class_exists($name)) {
@@ -37,10 +38,8 @@ class Factory {
 		if (!$class) {
 			switch ($name) {
 				case 'mysql':
-					$class = 'Darya\Database\MySQLi'; 
+					$class = 'Darya\Database\MySQLi';
 					break;
-				default:
-					$class = $this->default;
 			}
 		}
 		
