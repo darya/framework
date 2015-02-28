@@ -265,7 +265,13 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return array
 	 */
 	public function data() {
-		return $this->data;
+		$data = array();
+		
+		foreach ($this->data as $key => $value) {
+			$data[$key] = $this->access($key);
+		}
+		
+		return $data;
 	}
 	
 	/**
@@ -286,10 +292,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return mixed
 	 */
 	public function get($attribute) {
-		$attribute = $this->prefix() . strtolower($attribute);
-		
-		if (isset($this->data[$attribute])) {
-			return $this->data[$attribute];
+		if ($this->has($attribute)) {
+			return $this->access($attribute);
 		}
 		
 		return null;
@@ -306,13 +310,15 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve the given mutated attribute.
+	 * Unmutate the given attribute to be retrieved.
 	 * 
 	 * @param string $attribute
 	 * @return mixed
 	 */
-	protected function getMutated($attribute) {
-		if ($this->has($attribute)) {
+	protected function access($attribute) {
+		$attribute = strtolower($attribute);
+		
+		if (isset($this->data[$attribute])) {
 			$value = $this->data[$attribute];
 			
 			if ($this->mutable($attribute)) {
@@ -320,7 +326,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 				
 				switch ($mutation) {
 					case 'array': case 'json':
-						return json_decode($value);
+						return json_decode($value, true);
 						break;
 				}
 			}
@@ -332,7 +338,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Mutate the given attribute to set on the model.
+	 * Mutate the given attribute to be set on the model.
 	 * 
 	 * @param string $attribute
 	 * @param mixed  $value [optional]
@@ -344,8 +350,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			
 			switch ($mutation) {
 				case 'date': case 'datetime': case 'time':
-					if (!$value instanceof DateTimeInterface && is_string($value)) {
-						$value = (new DateTime($value))->getTimestamp();
+					if (!is_string($value)) {
+						$value = strtotime(str_replace('/', '-', $value));
 					}
 					
 					break;
