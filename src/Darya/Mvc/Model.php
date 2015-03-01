@@ -3,11 +3,9 @@ namespace Darya\Mvc;
 
 use ArrayAccess;
 use Countable;
-use DateTime;
 use DateTimeInterface;
 use IteratorAggregate;
 use Serializable;
-use Darya\Common\Tools;
 
 /**
  * Darya's abstract model implementation.
@@ -17,14 +15,9 @@ use Darya\Common\Tools;
 abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Serializable {
 	
 	/**
-	 * @var array Attribute names and types
+	 * @var array Attribute names as keys and types as values
 	 */
 	protected $attributes = array();
-	
-	/**
-	 * @var array Attributes that should never be prefixed
-	 */
-	protected $prefixless = array();
 	
 	/**
 	 * @var array Relationships to other models
@@ -55,17 +48,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @var string The attribute that uniquely identifies the model
 	 */
 	protected $key;
-	
-	/**
-	 * @var string Prefix for model attributes
-	 */
-	protected $prefix;
-	
-	/**
-	 * @var bool Whether to use the model's class name to prefix attributes if a
-	 *           custom prefix is not set
-	 */
-	protected $classPrefix = false;
 	
 	/**
 	 * Instantiate a new model.
@@ -137,46 +119,13 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve the prefix for this model's attributes.
-	 * 
-	 * @return string
-	 */
-	public function prefix() {
-		if ($this->prefix !== null) {
-			return strtolower($this->prefix);
-		}
-		
-		if ($this->classPrefix) {
-			return Tools::camelToDelim(static::basename(), '_') . '_';
-		}
-		
-		return '';
-	}
-	
-	/**
-	 * Determine whether the given attribute must be prefixless.
-	 * 
-	 * @param string $attribute
-	 * @return bool
-	 */
-	protected function prefixless($attribute) {
-		return in_array($attribute, $this->prefixless);
-	}
-	
-	/**
 	 * Prepare the given attribute name.
 	 * 
 	 * @param string $attribute
 	 * @return string
 	 */
 	protected function prepareAttribute($attribute) {
-		$attribute = strtolower($attribute);
-		
-		if (strlen($this->prefix()) && !$this->prefixless($attribute) && strpos($attribute, $this->prefix()) !== 0) {
-			$attribute = $this->prefix() . $attribute;
-		}
-		
-		return $attribute;
+		return strtolower($attribute);
 	}
 	
 	/**
@@ -202,7 +151,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Determine whether a property is set on the model.
+	 * Determine whether an attribute is set on the model. Shortcut for `set()`.
 	 * 
 	 * @param string $property
 	 * @return bool
@@ -236,19 +185,19 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * @param  mixed $offset
+	 * @param mixed $offset
 	 * @return bool
 	 */
 	public function offsetExists($offset) {
-		return isset($this->$offset);
+		return $this->has($offset);
 	}
 	
 	/**
-	 * @param  mixed $offset
-	 * @return bool
+	 * @param mixed $offset
+	 * @return mixed
 	 */
 	public function offsetGet($offset) {
-		return $this->$offset;
+		return $this->get($offset);
 	}
 	
 	/**
@@ -320,7 +269,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Get a property from the model
+	 * Retrieve the given attribute from the model.
 	 * 
 	 * @param string $attribute
 	 * @return mixed
@@ -444,10 +393,10 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function setCreatedModified($time = null) {
 		$time = $time ?: time();
-		$this->setDate($this->prefix() . 'modified', $time);
+		$this->setDate($this->prepareAttribute('modified'), $time);
 		
 		if (!$this->id()) {
-			$this->setDate($this->prefix() . 'created', $time);
+			$this->setDate($this->prepareAttribute('created'), $time);
 		}
 	}
 	
@@ -498,4 +447,5 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	public function jsonSerialize() {
 		return $this->toArray();
 	}
+	
 }

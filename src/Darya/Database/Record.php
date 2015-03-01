@@ -34,6 +34,27 @@ class Record extends Model {
 	protected static $sharedConnection;
 	
 	/**
+	 * @var string Prefix for record attributes when saving
+	 */
+	protected $prefix;
+	
+	/**
+	 * @var array Attributes that should never be prefixed
+	 */
+	protected $prefixless = array();
+	
+	/**
+	 * @var bool Whether to use the record's class name to prefix attributes if
+	 *           an explicit prefix is not set
+	 */
+	protected $classPrefix = false;
+	
+	/**
+	 * @var array Prefixed attributes cache
+	 */
+	protected $prefixedAttributes = array();
+	
+	/**
 	 * Instantiate a new record with the given data or load an instance from the
 	 * database if the given data is a valid primary key.
 	 * 
@@ -56,7 +77,7 @@ class Record extends Model {
 	 *     Page        -> pages
 	 *     PageSection -> page_sections
 	 */
-	public function getTable() {
+	public function table() {
 		return $this->table ? $this->table : Tools::camelToDelim(static::basename(), '_').'s';
 	}
 	
@@ -65,17 +86,10 @@ class Record extends Model {
 	 * 
 	 * @return \Darya\Database\DatabaseInterface The connection assigned to this model instance, or the models static connection
 	 */
-	public function getConnection() {
+	public function connection(DatabaseInterface $connection = null) {
+		$this->connection = $connection ?: $this->connection;
+		
 		return isset($this->connection) ? $this->connection : static::getSharedConnection();
-	}
-	
-	/**
-	 * Set the model's database connection.
-	 * 
-	 * @param \Darya\Database\DatabaseInterface $connection
-	 */
-	public function setConnection(DatabaseInterface $connection) {
-		$this->connection = $connection;
 	}
 	
 	/**
@@ -97,7 +111,65 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Processes filters array or primary key into a WHERE statement 
+	 * Retrieve the prefix for this model's attributes.
+	 * 
+	 * @return string
+	 */
+	public function prefix() {
+		if ($this->prefix !== null) {
+			return strtolower($this->prefix);
+		}
+		
+		if ($this->classPrefix) {
+			return Tools::camelToDelim(static::basename(), '_') . '_';
+		}
+		
+		return '';
+	}
+	
+	/**
+	 * Determine whether the given attribute should not be prefixed.
+	 * 
+	 * @param string $attribute
+	 * @return bool
+	 */
+	protected function prefixless($attribute) {
+		return in_array($attribute, $this->prefixless);
+	}
+	
+	/**
+	 * Retrieve attribute definitions with the prefix applied to keys.
+	 * 
+	 * @return array
+	 */
+	protected function prefixedAttributes() {
+		if (!$this->prefixedAttributes) {
+			foreach ($this->attributes as $key => $value) {
+				$this->prefixedAttributes[$this->prepareAttribute($key)] = $value;
+			}
+		}
+		
+		return $this->prefixedAttributes;
+	}
+	
+	/**
+	 * Prepare the given attribute name.
+	 * 
+	 * @param string $attribute
+	 * @return string
+	 */
+	protected function prepareAttribute($attribute) {
+		$attribute = strtolower($attribute);
+		
+		if (strlen($this->prefix()) && !$this->prefixless($attribute) && strpos($attribute, $this->prefix()) !== 0) {
+			$attribute = $this->prefix() . $attribute;
+		}
+		
+		return $attribute;
+	}
+	
+	/**
+	 * Prepare the given filters array or primary key as a WHERE statement.
 	 *
 	 * @static
 	 * @param mixed  $filters
@@ -107,7 +179,7 @@ class Record extends Model {
 	 */
 	protected static function processFilters($filters, $operator = 'AND', $excludeWhere = false) {
 		$instance = new static;
-		$connection = $instance->getConnection();
+		$connection = $instance->connection();
 		$where = '';
 		
 		if (is_array($filters)) { // By condition array
@@ -189,10 +261,10 @@ class Record extends Model {
 	 */
 	public static function loadData($filters = array(), $orders = array()){
 		$instance = new static;
-		$connection = $instance->getConnection();
+		$connection = $instance->connection();
 		$where = static::processFilters($filters);
 		$orderby = static::processOrders($orders);
-		$data = $connection->query("SELECT * FROM " . $instance->getTable() . $where . $orderby);
+		$data = $connection->query("SELECT * FROM " . $instance->table() . $where . $orderby);
 		return $data;
 	}
 	
@@ -237,10 +309,10 @@ class Record extends Model {
 	 */
 	public static function loadAllData($filters = array(), $orders = array()) {
 		$instance = new static;
-		$connection = $instance->getConnection();
+		$connection = $instance->connection();
 		$where = static::processFilters($filters);
 		$orderby = static::processOrders($orders);
-		return $connection->query("SELECT * FROM " . $instance->getTable() . $where . $orderby);
+		return $connection->query("SELECT * FROM " . $instance->table() . $where . $orderby);
 	}
 	
 	/**
@@ -267,31 +339,14 @@ class Record extends Model {
 		return static::loadAll($filters, $orders);
 	}
 	
-	/**
-	 * Save multiple Record instances to the database.
-	 * 
-	 * @return int Number of instances that saved successfully
-	 */
-	public static function saveAll($instances) {
-		$failed = 0;
-		
-		foreach ($instances as $instance) {
-			if (!$instance->save()) {
-				$failed++;
-			}
-		}
-		
-		return count($instances) - $failed;
-	}
-	
 	public static function search($query, $fields = array(), $filters = array(), $orders = array()) {
 		$instance = new static;
-		$connection = $instance->getConnection();
+		$connection = $instance->connection();
 		
 		$fieldFilters = array();
 		
 		foreach ($fields as $field) {
-			$fieldFilters[$field.' LIKE'] = "%$query%";
+			$fieldFilters[$field . ' LIKE'] = "%$query%";
 		}
 		
 		$filterGroups = array(' WHERE (' . static::processFilters($fieldFilters, 'OR', true) . ')');
@@ -302,7 +357,7 @@ class Record extends Model {
 		
 		$where = implode(' AND ', $filterGroups);
 		$orderby = static::processOrders($orders);
-		return static::output($connection->query('SELECT * FROM ' . $instance->getTable() . $where . $orderby));
+		return static::output($connection->query('SELECT * FROM ' . $instance->table() . $where . $orderby));
 	}
 	
 	/**
@@ -313,7 +368,7 @@ class Record extends Model {
 	 * @return array
 	 */
 	public static function loadList($field) {
-	    $instances = static::loadAll();
+		$instances = static::loadAll();
 		$list = array();
 		
 		foreach ($instances as $instance) {
@@ -330,9 +385,9 @@ class Record extends Model {
 	 */
 	public function save() {
 		if ($this->validate()) {
-			$connection = $this->getConnection();
-			$data = $this->data;
-			$keys = array_intersect_key(array_keys($this->data), $this->attributes);
+			$connection = $this->connection();
+			$data = array_intersect_key($this->data, $this->prefixedAttributes());
+			$keys = array_keys($data);
 			
 			// Escape values
 			$data = array_map(function($value) use ($connection) {
@@ -340,7 +395,7 @@ class Record extends Model {
 			}, $data);
 			
 			if (!$this->id()) {
-				$q = $connection->query("INSERT INTO " . $this->getTable() . " (" . implode(',', $keys) . ") VALUES ('" . implode("','", $data) . "')", true);
+				$q = $connection->query("INSERT INTO " . $this->table() . " (" . implode(',', $keys) . ") VALUES ('" . implode("','", $data) . "')", true);
 				
 				if (!$connection->error()) {
 					$this->set($this->key(), $q['insert_id']);
@@ -359,7 +414,7 @@ class Record extends Model {
 					$update[$key] = "$key = '$value'";
 				}
 				
-				$q = $connection->query("UPDATE " . $this->getTable() . " SET " . implode(', ', $update) . " WHERE " . $this->key() . " = '{$this->id()}'");
+				$q = $connection->query("UPDATE " . $this->table() . " SET " . implode(', ', $update) . " WHERE " . $this->key() . " = '{$this->id()}'");
 				
 				if ($connection->error()) {
 					$this->errors['database'] = $connection->error();
@@ -373,15 +428,35 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Save multiple record instances to the database.
+	 * 
+	 * Returns the number of instances that saved successfully.
+	 * 
+	 * @param array $instances
+	 * @return int
+	 */
+	public static function saveMany($instances) {
+		$failed = 0;
+		
+		foreach ($instances as $instance) {
+			if (!$instance->save()) {
+				$failed++;
+			}
+		}
+		
+		return count($instances) - $failed;
+	}
+	
+	/**
 	 * Delete the record from the database.
 	 * 
 	 * @return bool
 	 */
 	public function delete() {
 		if ($id = $this->id()) {
-			$connection = $this->getConnection();
+			$connection = $this->connection();
 			
-			$connection->query("DELETE FROM " . $this->getTable() . " WHERE " . $this->key() . " = '$id' LIMIT 1");
+			$connection->query("DELETE FROM " . $this->table() . " WHERE " . $this->key() . " = '$id' LIMIT 1");
 			
 			if ($connection->error()) {
 				$this->errors['database'] = $connection->error();
@@ -424,17 +499,17 @@ class Record extends Model {
 					if (class_exists($c) && class_exists($d)) {
 						$ci = new $c;
 						$di = new $d;
-						$joins[] = ' INNER JOIN ' . $ci->getTable() . ' USING (' . $di->key() . ')';
+						$joins[] = ' INNER JOIN ' . $ci->table() . ' USING (' . $di->key() . ')';
 					}
 				}
 				
 				$lastClass = $class[count($class)-1];
 				$lastInstance = new $lastClass;
 				
-				$connection = $this->getConnection();
+				$connection = $this->connection();
 				
 				$data = $connection->query(
-					'SELECT ' . $lastInstance->getTable() . '.* FROM '.$lastInstance->getTable()
+					'SELECT ' . $lastInstance->table() . '.* FROM '.$lastInstance->table()
 					. implode(' AND ',$joins)
 					. $where . $orderby
 				);
@@ -490,12 +565,12 @@ class Record extends Model {
 			}
 			
 			if (count($relationQueries)) {
-				$connection = $this->getConnection();
+				$connection = $this->connection();
 				$relation = new $rClass();
 				$model = new $mClass();
 				
 				$connection->query(
-					'REPLACE INTO ' . $relation->getTable()
+					'REPLACE INTO ' . $relation->table()
 					. ' (' . ($relation->key() ? $relation->key() . ',' : '') . $this->key() . ',' . $model->key() . ')'
 					. ' VALUES ' . implode(', ', $relationQueries)
 				);
@@ -544,12 +619,12 @@ class Record extends Model {
 			}
 			
 			$relation = new $rClass();
-			$this->getConnection()->query(
-				'DELETE FROM ' . $relation->getTable()
+			$this->connection()->query(
+				'DELETE FROM ' . $relation->table()
 				.' WHERE ' . $this->key() . "='" . $this->id . "' AND (" . implode(' OR ', $deleteQueries) . ')'
 			);
 			
-			return !$this->getConnection()->error();
+			return !$this->connection()->error();
 		}
 		
 		return false;

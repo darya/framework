@@ -44,13 +44,13 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 		$result = $this->connection->query($sql);
 		
 		if ($error = $this->error()) {
-			echo $error['error'].'<br/>SQL: ' . $sql;
+			echo $error['error'] . '<br/>SQL: ' . $sql;
 			
 			return array();
 		}
 		
-		if($result) {
-			if (@get_class($result) == 'mysqli_result') {
+		if ($result) {
+			if (get_class($result) == 'mysqli_result') {
 				$this->lastResult = array(
 					'data' => $result->fetch_all(MYSQL_ASSOC),
 					'fields' => $result->fetch_fields(),
