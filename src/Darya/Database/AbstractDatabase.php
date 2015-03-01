@@ -19,7 +19,7 @@ abstract class AbstractDatabase implements DatabaseInterface {
 	/**
 	 * @var string The last query error
 	 */
-	protected $error; 
+	protected $error;
 	
 	/**
 	 * @var string The last query executed
@@ -67,12 +67,17 @@ abstract class AbstractDatabase implements DatabaseInterface {
 		return Tools::endsWith($haystack, $this->operators);
 	}
 	
+	/**
+	 * Get the error produced by the last query, if any.
+	 * 
+	 * @return string
+	 */
 	public function error() {
 		return $this->error;
 	}
 	
 	/**
-	 * Get the last query made by this connection
+	 * Get the last query made by this connection.
 	 * 
 	 * @return string Database query
 	 */
@@ -81,13 +86,12 @@ abstract class AbstractDatabase implements DatabaseInterface {
 	}
 	
 	/**
-	 * Get the detailed result array corresponding to the last query made by this connection
+	 * Get a detailed result array for the last query made by this connection.
 	 * 
-	 * @return array Result array
+	 * @return array
 	 */
 	public function lastResult(){
 		return $this->lastResult;
 	}
 	
 }
-?>

@@ -49,8 +49,8 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 			return array();
 		}
 		
-		if ($result) {
-			if (get_class($result) == 'mysqli_result') {
+		if($result) {
+			if (is_object($result) && get_class($result) == 'mysqli_result') {
 				$this->lastResult = array(
 					'data' => $result->fetch_all(MYSQL_ASSOC),
 					'fields' => $result->fetch_fields(),
@@ -89,4 +89,5 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 	public function error() {
 		return $this->connection->errno ? array('errno' => $this->connection->errno, 'error' => $this->connection->error) : false;
 	}
+	
 }
