@@ -386,7 +386,7 @@ class Record extends Model {
 	public function save() {
 		if ($this->validate()) {
 			$connection = $this->connection();
-			$data = array_intersect_key($this->data, $this->prefixedAttributes());
+			$data = array_intersect_key($this->data, $this->prefixedAttributes()) ?: $this->data;
 			$keys = array_keys($data);
 			
 			// Escape values
