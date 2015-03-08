@@ -138,28 +138,13 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Retrieve attribute definitions with the prefix applied to keys.
-	 * 
-	 * @return array
-	 */
-	protected function prefixedAttributes() {
-		if (!$this->prefixedAttributes) {
-			foreach ($this->attributes as $key => $value) {
-				$this->prefixedAttributes[$this->prepareAttribute($key)] = $value;
-			}
-		}
-		
-		return $this->prefixedAttributes;
-	}
-	
-	/**
-	 * Prepare the given attribute name.
+	 * Prefix the given attribute name if needed.
 	 * 
 	 * @param string $attribute
 	 * @return string
 	 */
-	protected function prepareAttribute($attribute) {
-		$attribute = strtolower($attribute);
+	public function prefixAttribute($attribute) {
+		$attribute = $this->prepareAttribute($attribute);
 		
 		if (strlen($this->prefix()) && !$this->prefixless($attribute) && strpos($attribute, $this->prefix()) !== 0) {
 			$attribute = $this->prefix() . $attribute;
@@ -168,16 +153,88 @@ class Record extends Model {
 		return $attribute;
 	}
 	
+	public function unprefixAttribute($attribute) {
+		$attribute = $this->prepareAttribute($attribute);
+		
+		if (strlen($this->prefix()) && strpos($attribute, $this->prefix()) === 0) {
+			return substr($attribute, strlen($this->prefix()));
+		}
+		
+		return $attribute;
+	}
+	
+	public function unprefixLoadedData($data) {
+		foreach ($data as $i => $instance) {
+			foreach ($instance as $key => $value) {
+				// $instance[$]
+			}
+		}
+	}
+	
+	protected function prefixedAttributes() {
+		if (!$this->prefixedAttributes) {
+			foreach ($this->attributes as $key => $value) {
+				$this->prefixedAttributes[$this->prefixAttribute($key)] = $value;
+			}
+		}
+		
+		return $this->prefixedAttributes;
+	}
+	
+	protected function prepareMutations() {
+		$mutations = array();
+		
+		foreach ($this->mutations as $key => $value) {
+			$mutations[$this->prefixAttribute($key)] = $value;
+		}
+		
+		return $mutations;
+	}
+	
+	/**
+	 * Prepare the record's data for saving to the database. This is here
+	 * until repositories are implemented.
+	 * 
+	 * @return array
+	 */
+	protected function prepareData() {
+		$mutations = $this->prepareMutations();
+		
+		$data = array_intersect_key($this->data, $this->attributes) ?: $this->data;
+		
+		foreach ($data as $key => $value) {
+			if (isset($mutations[$key])) {
+				$mutation = $mutations[$key];
+				
+				switch ($mutation) {
+					case 'date':
+						$value = date('Y-m-d', $value);
+						break;
+					case 'datetime':
+						vard($value);
+						$value = date('Y-m-d H:i:s', $value);
+						break;
+					case 'time':
+						$value = date('H:i:s', $value);
+						break;
+				}
+				
+				$data[$key] = $value;
+			}
+		}
+		
+		return $data;
+	}
+	
 	/**
 	 * Prepare the given filters array or primary key as a WHERE statement.
-	 *
-	 * @static
+	 * 
 	 * @param mixed  $filters
 	 * @param string $operator
 	 * @param bool   $excludeWhere
 	 * @return string
 	 */
-	protected static function processFilters($filters, $operator = 'AND', $excludeWhere = false) {
+	protected static function prepareFilters($filters, $operator = 'AND', $excludeWhere = false) {
 		$instance = new static;
 		$connection = $instance->connection();
 		$where = '';
@@ -187,7 +244,7 @@ class Record extends Model {
 				$conditions = array();
 				
 				foreach ($filters as $k => $v) {
-					$field = $connection->escape($k);
+					$field = $connection->escape($instance->prefixAttribute($k));
 					$op = !$connection->endsWithOperator($field) ? '=' : '';
 					
 					if (is_array($v)) {
@@ -219,11 +276,10 @@ class Record extends Model {
 	 * Have column names as keys and [ASC|DESC] as values
 	 * Have column names as values, where ASC is assumed
 	 * 
-	 * @static
 	 * @param array|string $orders
 	 * @return string
 	 */
-	protected static function processOrders($orders = array()){
+	protected static function prepareOrders($orders = array()){
 		$connection = static::getSharedConnection();
 		$orderby = '';
 		
@@ -232,12 +288,12 @@ class Record extends Model {
 				$conditions = array();
 				
 				foreach ($orders as $k => $v) {
-					$v = $connection->escape($v);
+					$v = $connection->escape($this->prefixAttribute($v));
 					
 					if (is_numeric($k)) { // Value is field, assume ascending
 						$conditions[] = $v . ' ASC';
-					} else { // Key is field, use value as order
-						$conditions[] = $connection->escape($k).' '.($v ? $v : 'ASC');
+					} else { // Key is field, use value as order, fall back to ascending
+						$conditions[] = $connection->escape($k) . ' ' . ($v ? $v : 'ASC');
 					}
 				}
 				
@@ -262,8 +318,8 @@ class Record extends Model {
 	public static function loadData($filters = array(), $orders = array()){
 		$instance = new static;
 		$connection = $instance->connection();
-		$where = static::processFilters($filters);
-		$orderby = static::processOrders($orders);
+		$where = static::prepareFilters($filters);
+		$orderby = static::prepareOrders($orders);
 		$data = $connection->query("SELECT * FROM " . $instance->table() . $where . $orderby);
 		return $data;
 	}
@@ -310,8 +366,8 @@ class Record extends Model {
 	public static function loadAllData($filters = array(), $orders = array()) {
 		$instance = new static;
 		$connection = $instance->connection();
-		$where = static::processFilters($filters);
-		$orderby = static::processOrders($orders);
+		$where = static::prepareFilters($filters);
+		$orderby = static::prepareOrders($orders);
 		return $connection->query("SELECT * FROM " . $instance->table() . $where . $orderby);
 	}
 	
@@ -349,14 +405,14 @@ class Record extends Model {
 			$fieldFilters[$field . ' LIKE'] = "%$query%";
 		}
 		
-		$filterGroups = array(' WHERE (' . static::processFilters($fieldFilters, 'OR', true) . ')');
+		$filterGroups = array(' WHERE (' . static::prepareFilters($fieldFilters, 'OR', true) . ')');
 		
 		if ($filters) {
-			$filterGroups[] = static::processFilters($filters, null, true);
+			$filterGroups[] = static::prepareFilters($filters, null, true);
 		}
 		
 		$where = implode(' AND ', $filterGroups);
-		$orderby = static::processOrders($orders);
+		$orderby = static::prepareOrders($orders);
 		return static::output($connection->query('SELECT * FROM ' . $instance->table() . $where . $orderby));
 	}
 	
@@ -386,7 +442,7 @@ class Record extends Model {
 	public function save() {
 		if ($this->validate()) {
 			$connection = $this->connection();
-			$data = array_intersect_key($this->data, $this->prefixedAttributes()) ?: $this->data;
+			$data = $this->prepareData();
 			$keys = array_keys($data);
 			
 			// Escape values
@@ -489,8 +545,8 @@ class Record extends Model {
 		} else {
 			if (count($class) > 1) {
 				$filters = array_merge(array($this->key() => $this->id()), $filters);
-				$where = static::processFilters($filters);
-				$orderby = static::processOrders($orders);
+				$where = static::prepareFilters($filters);
+				$orderby = static::prepareOrders($orders);
 				
 				$joins = array();
 				for ($i = 0; $i < count($class) - 1; $i++) {

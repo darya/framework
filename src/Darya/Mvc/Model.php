@@ -289,7 +289,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return bool
 	 */
 	protected function mutable($attribute) {
-		return isset($this->mutations[$this->prepareAttribute($attribute)]);
+		return isset($this->attributes[$this->prepareAttribute($attribute)]);
 	}
 	
 	/**
@@ -302,17 +302,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		if ($this->has($attribute)) {
 			$value = $this->data[$this->prepareAttribute($attribute)];
 			
-			if ($this->mutable($attribute)) {
-				$mutation = $this->mutations[$attribute];
-				
-				switch ($mutation) {
-					case 'array': case 'json':
-						return json_decode($value, true);
-						break;
-				}
+			if (!$this->mutable($attribute)) {
+				return $value;
 			}
 			
-			return $value;
+			$type = $this->attributes[$attribute];
+			
+			switch ($type) {
+				case 'array': case 'json':
+					return json_decode($value, true);
+					break;
+			}
 		}
 		
 		return null;
@@ -330,9 +330,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			return $value;
 		}
 		
-		$mutation = $this->mutations[$this->prepareAttribute($attribute)];
+		$type = $this->attributes[$attribute];
 		
-		switch ($mutation) {
+		switch ($type) {
 			case 'date': case 'datetime': case 'time':
 				if (is_string($value)) {
 					$value = strtotime(str_replace('/', '-', $value));
