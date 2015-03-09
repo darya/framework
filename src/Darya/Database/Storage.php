@@ -5,7 +5,7 @@ use Darya\Database\DatabaseInterface;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 
-class Storage implements Readable {
+class Storage implements Readable, Modifiable {
 	
 	/**
 	 * @var \Darya\Database\DatabaseInterface
@@ -78,7 +78,22 @@ class Storage implements Readable {
 		return count($conditions) ? 'ORDER BY ' . implode(', ', $conditions) : null;
 	}
 	
-	protected function prepareSelect($columns, $table, $where = null, $order = null, $limit = null) {
+	protected function prepareLimit($limit = null, $offset = 0) {
+		if (!is_numeric($limit)) {
+			return null;
+		}
+		
+		$query = 'LIMIT ';
+		
+		if ($offset > 0) {
+			$query .= "$offset, ";
+		}
+		
+		return $query . $limit;
+	}
+	
+	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null) {
+		$table = $this->connection->escape($table);
 		$columns = is_array($columns) ? implode(', ', $columns) : $columns;
 		$query = "SELECT $columns FROM $table";
 		
@@ -92,15 +107,77 @@ class Storage implements Readable {
 	}
 	
 	public function read($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
-		$query = $this->prepareSelect('*', $table, $this->prepareWhere($filter), $this->prepareOrderBy($order));
+		$query = $this->prepareSelect($table, "$table.*", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
 		return $this->connection->query($query);
 	}
 	
 	public function count($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
-		$query = $this->prepareSelect('1', $table, $this->prepareWhere($filter), $this->prepareOrderBy($order));
+		$query = $this->prepareSelect($table, '1', $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
 		return count($this->connection->query($query));
+	}
+	
+	protected function prepareValues(array $values) {
+		return array_map(array($this->connection, 'escape'), $values);
+	}
+	
+	protected function prepareInsert($table, array $data) {
+		$table = $this->connection->escape($table);
+		
+		$columns = $this->prepareValues(array_keys($data));
+		$values  = $this->prepareValues(array_values($data));
+		
+		$columns = "(" . implode(", ", $columns) . ")";
+		$values  = "('" . implode("', '", $values) . "')";
+		
+		$query = "INSERT INTO $table $columns VALUES $values";
+		
+		return $query;
+	}
+	
+	public function create($table, $data) {
+		return $this->connection->query($this->prepareInsert($table, $data));
+	}
+	
+	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
+		$table = $this->connection->escape($table);
+		
+		foreach ($data as $key => $value) {
+			$data[$key] = "$key = '$value'";
+		}
+		
+		$values = implode(', ', $data);
+		
+		return "UPDATE $table SET $values $where $limit";
+	}
+	
+	public function update($table, $data, array $filter = array(), $limit = null) {
+		$where = $this->prepareWhere($filter);
+		$limit = $this->prepareLimit($limit);
+		
+		if (!$where) {
+			return null;
+		}
+		
+		$query = $this->prepareUpdate($table, $data, $where, $limit);
+		
+		return $this->connection->query($query);
+	}
+	
+	public function delete($table, array $filter = array(), $limit = null) {
+		$table = $this->connection->escape($table);
+		$where = $this->prepareWhere($filter);
+		
+		if ($table == '*' || !$table || !$where) {
+			return null;
+		}
+		
+		$limit = $this->prepareLimit($limit);
+		
+		$query = "DELETE FROM $table $where $limit";
+		
+		return $this->connection->query($query);
 	}
 	
 }

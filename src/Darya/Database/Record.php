@@ -458,9 +458,7 @@ class Record extends Model {
 					return $q['insert_id'];
 				}
 				
-				if ($connection->error()) {
-					$this->errors['database'] = $connection->error();
-				}
+				$this->errors['database'] = $connection->error();
 				
 				return false;
 			} else {
