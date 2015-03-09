@@ -5,7 +5,7 @@ use Darya\Database\DatabaseInterface;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 
-class Storage implements Readable, Modifiable {
+class Storage implements Readable {
 	
 	/**
 	 * @var \Darya\Database\DatabaseInterface
@@ -29,7 +29,7 @@ class Storage implements Readable, Modifiable {
 	 * @return string
 	 */
 	protected function prepareFilter($column, $value) {
-		list($column, $operator) = explode(' ', $column, 2);
+		list($column, $operator) = array_pad(explode(' ', $column, 2), 2, null);
 		$column = $this->connection->escape($column);
 		$operator = in_array(strtolower($operator), $this->operators) ? $operator : '=';
 		
@@ -47,26 +47,60 @@ class Storage implements Readable, Modifiable {
 		return "$column $operator $value";
 	}
 	
-	protected function prepareWhere($filter, $comparison = 'AND') {
+	protected function prepareWhere(array $filter, $comparison = 'AND') {
 		$conditions = array();
 		
 		foreach ($filter as $column => $value) {
 			$conditions[] = $this->prepareFilter($column, $value);
 		}
 		
-		return implode(" $comparison ", $conditions);
+		return count($conditions) ? 'WHERE ' . implode(" $comparison ", $conditions) : null;
 	}
 	
-	public function read($table, $filter = array(), $order = null, $limit = null, $offset = 0) {
-		$where = $this->prepareWhere($filter);
+	protected function prepareOrder($column, $direction = null) {
+		$column = $this->connection->escape($column);
+		$direction = !is_null($direction) ? $this->connection->escape($direction) : 'ASC';
 		
-		$query = "SELECT * FROM $table";
+		return !empty($column) ? "$column $direction" : null;
+	}
+	
+	protected function prepareOrderBy($order) {
+		$conditions = array();
 		
-		if ($where) {
-			$query .= "WHERE $where";
+		foreach ((array) $order as $key => $value) {
+			if (is_numeric($key)) {
+				$conditions[] = $this->prepareOrder($value);
+			} else {
+				$conditions[] = $this->prepareOrder($key, $value);
+			}
 		}
 		
+		return count($conditions) ? 'ORDER BY ' . implode(', ', $conditions) : null;
+	}
+	
+	protected function prepareSelect($columns, $table, $where = null, $order = null, $limit = null) {
+		$columns = is_array($columns) ? implode(', ', $columns) : $columns;
+		$query = "SELECT $columns FROM $table";
+		
+		foreach (array($where, $order, $limit) as $clause) {
+			if (!empty($clause)) {
+				$query .= " $clause";
+			}
+		}
+		
+		return $query;
+	}
+	
+	public function read($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
+		$query = $this->prepareSelect('*', $table, $this->prepareWhere($filter), $this->prepareOrderBy($order));
+		
 		return $this->connection->query($query);
+	}
+	
+	public function count($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
+		$query = $this->prepareSelect('1', $table, $this->prepareWhere($filter), $this->prepareOrderBy($order));
+		
+		return count($this->connection->query($query));
 	}
 	
 }
