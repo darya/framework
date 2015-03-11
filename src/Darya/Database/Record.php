@@ -245,6 +245,8 @@ class Record extends Model {
 	/**
 	 * Save the record to storage.
 	 * 
+	 * TODO: $storage->error();
+	 * 
 	 * @return bool
 	 */
 	public function save() {
@@ -266,17 +268,17 @@ class Record extends Model {
 					return true;
 				}
 				
-				$this->errors['storage'] = 'Failed to save record to storage'; // $storage->error();
+				$this->errors['storage'] = 'Failed to save record to storage';
 				
 				return false;
 			} else {
-				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), null, 1);
+				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
 				
 				if ($updated) {
 					return true;
 				}
 				
-				$this->errors['storage'] = 'Failed to update record in storage'; // $storage->error();
+				$this->errors['storage'] = 'Failed to update record in storage';
 				
 				return false;
 			}
