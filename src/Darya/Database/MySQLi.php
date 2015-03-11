@@ -49,7 +49,7 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 			return array();
 		}
 		
-		if($result) {
+		if ($result) {
 			if (is_object($result) && get_class($result) == 'mysqli_result') {
 				$this->lastResult = array(
 					'data' => $result->fetch_all(MYSQL_ASSOC),
