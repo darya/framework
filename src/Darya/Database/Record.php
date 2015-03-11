@@ -35,31 +35,6 @@ class Record extends Model {
 	protected static $sharedStorage;
 	
 	/**
-	 * @var string Prefix for record attributes when interacting with storage
-	 */
-	protected $prefix;
-	
-	/**
-	 * Attributes that should never be prefixed when interacting with storage.
-	 * 
-	 * @var array
-	 */
-	protected $prefixless = array();
-	
-	/**
-	 * Whether to use the record's class name to prefix attributes if an
-	 * explicit prefix is not set.
-	 * 
-	 * @var bool
-	 */
-	protected $classPrefix = false;
-	
-	/**
-	 * @var array Prefixed attributes cache
-	 */
-	protected $prefixedAttributes = array();
-	
-	/**
 	 * Instantiate a new record with the given data or load an instance from the
 	 * database if the given data is a valid primary key.
 	 * 
@@ -69,7 +44,7 @@ class Record extends Model {
 		if (is_array($data)) {
 			$this->set($data);
 		} else if(is_numeric($data) || is_string($data)) {
-			$this->data = static::loadData($data);
+			$this->data = static::load($data);
 		}
 	}
 	
@@ -248,18 +223,20 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Return an array of key => value pairs using id for keys
-	 * and the given field for values.
+	 * Retrieve key => value pairs using `id` for keys and the given attribute
+	 * for values.
 	 * 
-	 * @param string $field
+	 * TODO: Filter, order, limit, offset.
+	 * 
+	 * @param string $attribute
 	 * @return array
 	 */
-	public static function listing($field) {
+	public static function listing($attribute) {
 		$instances = static::all();
 		$list = array();
 		
 		foreach ($instances as $instance) {
-			$list[$instance->id] = $instance->$field;
+			$list[$instance->id] = $instance->$attribute;
 		}
 			
 		return $list;
