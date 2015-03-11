@@ -15,11 +15,6 @@ class MySQLi extends \Darya\Database\AbstractDatabase {
 	 */
 	protected $connected;
 	
-	/**
-	 * @var array
-	 */
-	protected $operators = array('>=','<=','>','<','=','!=','<>','IN','NOT IN','IS','IS NOT','LIKE','NOT LIKE');
-	
 	public function __construct($host, $user, $pass, $name, $port = null) {
 		$this->connect($host, $user, $pass, $name, $port);
 	}

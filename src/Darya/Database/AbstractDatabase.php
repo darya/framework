@@ -2,7 +2,6 @@
 namespace Darya\Database;
 
 use Darya\Database\DatabaseInterface;
-use Darya\Common\Tools;
 
 /**
  * Darya's abstract database connection.
@@ -55,16 +54,6 @@ abstract class AbstractDatabase implements DatabaseInterface {
 	 */
 	public function query($query) {
 		$this->lastQuery = $query;
-	}
-	
-	/**
-	 * Determine whether a given string ends with a query comparison operator.
-	 * 
-	 * @param string $haystack
-	 * @return bool
-	 */
-	public function endsWithOperator($haystack){
-		return Tools::endsWith($haystack, $this->operators);
 	}
 	
 	/**
