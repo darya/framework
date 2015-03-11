@@ -243,46 +243,42 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Save the record to the database.
+	 * Save the record to storage.
 	 * 
 	 * @return bool
 	 */
 	public function save() {
 		if ($this->validate()) {
-			$connection = $this->connection();
-			$data = $this->prepareData();
-			$keys = array_keys($data);
+			$storage = $this->storage();
 			
-			// Escape values
-			$data = array_map(function($value) use ($connection) {
-				return $connection->escape($value);
-			}, $data);
+			if (!$storage instanceof Modifiable) {
+				throw new \Exception(get_class($this) . ' storage is not modifiable');
+			}
+			
+			$data = $this->prepareData();
 			
 			if (!$this->id()) {
-				$q = $connection->query("INSERT INTO " . $this->table() . " (" . implode(',', $keys) . ") VALUES ('" . implode("','", $data) . "')", true);
+				$id = $storage->create($this->table(), $data);
 				
-				if (!$connection->error()) {
-					$this->set($this->key(), $q['insert_id']);
-					return $q['insert_id'];
+				if ($id) {
+					$this->set($this->key(), $id);
+					
+					return true;
 				}
 				
-				$this->errors['database'] = $connection->error();
+				$this->errors['storage'] = 'Failed to save record to storage'; // $storage->error();
 				
 				return false;
 			} else {
-				$update = array();
+				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), null, 1);
 				
-				foreach ($data as $key => $value) {
-					$update[$key] = "$key = '$value'";
+				if ($updated) {
+					return true;
 				}
 				
-				$q = $connection->query("UPDATE " . $this->table() . " SET " . implode(', ', $update) . " WHERE " . $this->key() . " = '{$this->id()}'");
+				$this->errors['storage'] = 'Failed to update record in storage'; // $storage->error();
 				
-				if ($connection->error()) {
-					$this->errors['database'] = $connection->error();
-				}
-				
-				return !$connection->error();
+				return false;
 			}
 		}
 		
