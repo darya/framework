@@ -1,10 +1,16 @@
 <?php
 namespace Darya\Storage;
 
+/**
+ * Darya's searchable data store interface.
+ * 
+ * @author Chris Andrew <chris@hexus.io>
+ */
 interface Searchable {
 	
 	/**
-	 * Search for resources on the given fields using the given criteria.
+	 * Search for resource data with fields that match the given query and
+	 * criteria.
 	 * 
 	 * @param string       $resource
 	 * @param string       $query

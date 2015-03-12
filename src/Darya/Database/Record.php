@@ -238,7 +238,7 @@ class Record extends Model {
 		$list = array();
 		
 		foreach ($instances as $instance) {
-			$list[$instance->id] = $instance->$attribute;
+			$list[$instance->id()] = $instance->$attribute;
 		}
 			
 		return $list;

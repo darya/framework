@@ -370,8 +370,6 @@ class Storage implements Readable, Modifiable, Searchable {
 		$limit = $this->prepareLimit($limit, $offset);
 		$query = $this->prepareSelect($table, "$table.*", $where, $orderby, $limit);
 		
-		var_dump($query);
-		
 		return $this->connection->query($query);
 	}
 	
