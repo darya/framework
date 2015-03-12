@@ -4,7 +4,9 @@ namespace Darya\Database;
 use Darya\Common\Tools;
 use Darya\Database\DatabaseInterface;
 use Darya\Mvc\Model;
+use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
+use Darya\Storage\Searchable;
 
 /**
  * Darya's active record implementation for models.
@@ -78,7 +80,7 @@ class Record extends Model {
 	 * @return \Darya\Storage\Readable
 	 */
 	public static function getSharedStorage() {
-		return static::$sharedConnection;
+		return static::$sharedStorage;
 	}
 	
 	/**
@@ -211,13 +213,13 @@ class Record extends Model {
 	 */
 	public static function search($query, $attributes = array(), $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$instance = new static;
-		$storage = $instance->connection();
+		$storage = $instance->storage();
 		
-		if (!$storage instanceof Darya\Storage\Searchable) {
+		if (!$storage instanceof Searchable) {
 			throw new \Exception(get_class($instance) . ' storage is not searchable');
 		}
 		
-		$data = $storage->search($query, $attributes, $filter, $order, $limit, $offset);
+		$data = $storage->search($instance->table(), $query, $attributes, $filter, $order, $limit, $offset);
 		
 		return static::output($data);
 	}

@@ -4,8 +4,9 @@ namespace Darya\Database;
 use Darya\Database\DatabaseInterface;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
+use Darya\Storage\Searchable;
 
-class Storage implements Readable, Modifiable {
+class Storage implements Readable, Modifiable, Searchable {
 	
 	/**
 	 * @var \Darya\Database\DatabaseInterface
@@ -36,18 +37,18 @@ class Storage implements Readable, Modifiable {
 	 */
 	protected function prepareFilter($column, $value) {
 		list($column, $operator) = array_pad(explode(' ', $column, 2), 2, null);
-		$column = $this->connection->escape($column);
-		$operator = in_array(strtolower($operator), $this->operators) ? $operator : '=';
+		$column = $this->escape($column);
+		$operator = in_array(strtolower($operator), $this->operators) ? $this->escape($operator) : '=';
+		$value = $this->escape($value);
 		
 		if (is_array($value)) {
-			$value = array_map(array($this->connection, 'escape'), $value);
 			$value = "('" . implode("','", $value) . "')";
 			
 			if ($operator === '=') {
 				$operator = 'IN';
 			}
 		} else {
-			$value = "'" . $this->connection->escape($value) . "'";
+			$value = "'" . $value . "'";
 		}
 		
 		return "$column $operator $value";
@@ -67,16 +68,24 @@ class Storage implements Readable, Modifiable {
 	 * 
 	 * @param array  $filter
 	 * @param string $comparison [optional]
+	 * @param bool   $excludeWhere
 	 * @return string
 	 */
-	protected function prepareWhere(array $filter, $comparison = 'AND') {
+	protected function prepareWhere(array $filter, $comparison = 'AND', $excludeWhere = false) {
 		$conditions = array();
 		
 		foreach ($filter as $column => $value) {
 			$conditions[] = $this->prepareFilter($column, $value);
 		}
 		
-		return count($conditions) ? 'WHERE ' . implode(" $comparison ", $conditions) : null;
+		if (!count($conditions)) {
+			return null;
+		}
+		
+		$where = $excludeWhere ? '' : 'WHERE ';
+		$where .= implode(" $comparison ", $conditions);
+		
+		return $where;
 	}
 	
 	/**
@@ -87,8 +96,8 @@ class Storage implements Readable, Modifiable {
 	 * @return string
 	 */
 	protected function prepareOrder($column, $direction = null) {
-		$column = $this->connection->escape($column);
-		$direction = !is_null($direction) ? $this->connection->escape($direction) : 'ASC';
+		$column = $this->escape($column);
+		$direction = !is_null($direction) ? $this->escape($direction) : 'ASC';
 		
 		return !empty($column) ? "$column $direction" : null;
 	}
@@ -132,6 +141,9 @@ class Storage implements Readable, Modifiable {
 			return null;
 		}
 		
+		$limit = $this->escape($limit);
+		$offset = $this->escape($offset);
+		
 		$query = 'LIMIT ';
 		
 		if ($offset > 0) {
@@ -144,15 +156,22 @@ class Storage implements Readable, Modifiable {
 	/**
 	 * Prepare a SELECT statement using the given columns, table and clauses.
 	 * 
-	 * @param array|string $columns
 	 * @param string       $table
-	 * @param string       $where
-	 * @param string       $order
-	 * @param string       $limit
+	 * @param array|string $columns
+	 * @param string       $where [optional]
+	 * @param string       $order [optional]
+	 * @param string       $limit [optional]
 	 */
 	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null) {
-		$table = $this->connection->escape($table);
-		$columns = is_array($columns) ? implode(', ', $columns) : $columns;
+		$table = $this->escape($table);
+		
+		if (is_array($columns)) {
+			$columns = $this->escape($columns);
+			$columns = is_array($columns) ? implode(', ', $columns) : $columns;
+		} else {
+			$columns = $this->escape($columns);
+		}
+		
 		$query = "SELECT $columns FROM $table";
 		
 		foreach (array($where, $order, $limit) as $clause) {
@@ -194,13 +213,21 @@ class Storage implements Readable, Modifiable {
 	}
 	
 	/**
-	 * Escape the the values of the given array.
+	 * Escape the given value.
 	 * 
-	 * @param array $values
+	 * If the value is an array, it is recursively escaped.
+	 * 
+	 * @param array|string $values
 	 * @return array
 	 */
-	protected function prepareValues(array $values) {
-		return array_map(array($this->connection, 'escape'), $values);
+	protected function escape($value) {
+		if (is_array($value)) {
+			return array_map(array($this, 'escape'), $value);
+		} else if (!is_object($value)) {
+			return $this->connection->escape($value);
+		}
+		
+		return $value;
 	}
 	
 	/**
@@ -211,10 +238,10 @@ class Storage implements Readable, Modifiable {
 	 * @return string
 	 */
 	protected function prepareInsert($table, array $data) {
-		$table = $this->connection->escape($table);
+		$table = $this->escape($table);
 		
-		$columns = $this->prepareValues(array_keys($data));
-		$values  = $this->prepareValues(array_values($data));
+		$columns = $this->escape(array_keys($data));
+		$values  = $this->escape(array_values($data));
 		
 		$columns = "(" . implode(", ", $columns) . ")";
 		$values  = "('" . implode("', '", $values) . "')";
@@ -250,7 +277,7 @@ class Storage implements Readable, Modifiable {
 	 * @return string
 	 */
 	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
-		$table = $this->connection->escape($table);
+		$table = $this->escape($table);
 		
 		foreach ($data as $key => $value) {
 			$data[$key] = "$key = '$value'";
@@ -304,7 +331,7 @@ class Storage implements Readable, Modifiable {
 	 * @return int
 	 */
 	public function delete($table, array $filter = array(), $limit = null) {
-		$table = $this->connection->escape($table);
+		$table = $this->escape($table);
 		$where = $this->prepareWhere($filter);
 		
 		if ($table == '*' || !$table || !$where) {
@@ -317,6 +344,35 @@ class Storage implements Readable, Modifiable {
 		$result = $this->connection->query($query, true);
 		
 		return isset($result['affected']) ? $result['affected'] : 0;
+	}
+	
+	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		if (empty($query) || empty($columns)) {
+			return $this->read($table, $filter, $order, $limit, $offset);
+		}
+		
+		list($table, $query) = $this->escape(array($table, $query));
+		
+		$searchFilter = array();
+		
+		foreach ((array) $columns as $column) {
+			$searchFilter[$this->escape($column) . ' like'] = '%' . $this->escape($query) . '%';
+		}
+		
+		$where = 'WHERE (' . $this->prepareWhere($searchFilter, 'OR', true) . ')';
+		$filterConditions = $this->prepareWhere($filter, 'AND', true);
+		
+		if (!empty($filterConditions)) {
+			$where .= ' AND ' . $filterConditions;
+		}
+		
+		$orderby = $this->prepareOrderBy($order);
+		$limit = $this->prepareLimit($limit, $offset);
+		$query = $this->prepareSelect($table, "$table.*", $where, $orderby, $limit);
+		
+		var_dump($query);
+		
+		return $this->connection->query($query);
 	}
 	
 }
