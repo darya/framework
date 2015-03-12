@@ -10,14 +10,8 @@ interface DatabaseInterface {
 	
 	/**
 	 * Make a connection to the database.
-	 * 
-	 * @param string $host Hostname to connect to
-	 * @param string $user Username to authenticate with
-	 * @param string $pass Password to authenticate with
-	 * @param string $name Database to select
-	 * @param int    $port [optional] Port to connect to
 	 */
-	public function connect($host, $user, $pass, $name, $port = null);
+	public function connect();
 	
 	/**
 	 * Determine whether there is an active connection to the database.

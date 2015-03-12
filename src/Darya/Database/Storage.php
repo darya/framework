@@ -29,6 +29,24 @@ class Storage implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
+	 * Escape the given value.
+	 * 
+	 * If the value is an array, it is recursively escaped.
+	 * 
+	 * @param array|string $values
+	 * @return array
+	 */
+	protected function escape($value) {
+		if (is_array($value)) {
+			return array_map(array($this, 'escape'), $value);
+		} else if (!is_object($value)) {
+			return $this->connection->escape($value);
+		}
+		
+		return $value;
+	}
+	
+	/**
 	 * Prepare an individual filter condition.
 	 * 
 	 * @param string       $column
@@ -184,6 +202,48 @@ class Storage implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
+	 * Prepare an INSERT INTO statement using the given table and data.
+	 * 
+	 * @param string $table
+	 * @param array  $data
+	 * @return string
+	 */
+	protected function prepareInsert($table, array $data) {
+		$table = $this->escape($table);
+		
+		$columns = $this->escape(array_keys($data));
+		$values  = $this->escape(array_values($data));
+		
+		$columns = "(" . implode(", ", $columns) . ")";
+		$values  = "('" . implode("', '", $values) . "')";
+		
+		$query = "INSERT INTO $table $columns VALUES $values";
+		
+		return $query;
+	}
+	
+	/**
+	 * Prepare an UPDATE statement with the given table, data and clauses.
+	 * 
+	 * @param string $table
+	 * @param array  $data
+	 * @param string $where
+	 * @param string $limit
+	 * @return string
+	 */
+	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
+		$table = $this->escape($table);
+		
+		foreach ($data as $key => $value) {
+			$data[$key] = "$key = '$value'";
+		}
+		
+		$values = implode(', ', $data);
+		
+		return "UPDATE $table SET $values $where $limit";
+	}
+	
+	/**
 	 * Retrieve database rows that match the given criteria.
 	 * 
 	 * @param string       $table
@@ -213,45 +273,6 @@ class Storage implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
-	 * Escape the given value.
-	 * 
-	 * If the value is an array, it is recursively escaped.
-	 * 
-	 * @param array|string $values
-	 * @return array
-	 */
-	protected function escape($value) {
-		if (is_array($value)) {
-			return array_map(array($this, 'escape'), $value);
-		} else if (!is_object($value)) {
-			return $this->connection->escape($value);
-		}
-		
-		return $value;
-	}
-	
-	/**
-	 * Prepare an INSERT INTO statement using the given table and data.
-	 * 
-	 * @param string $table
-	 * @param array  $data
-	 * @return string
-	 */
-	protected function prepareInsert($table, array $data) {
-		$table = $this->escape($table);
-		
-		$columns = $this->escape(array_keys($data));
-		$values  = $this->escape(array_values($data));
-		
-		$columns = "(" . implode(", ", $columns) . ")";
-		$values  = "('" . implode("', '", $values) . "')";
-		
-		$query = "INSERT INTO $table $columns VALUES $values";
-		
-		return $query;
-	}
-	
-	/**
 	 * Insert a record with the given data into the given table.
 	 * 
 	 * Returns the ID of the new row or false if an error occurred.
@@ -265,27 +286,6 @@ class Storage implements Readable, Modifiable, Searchable {
 		$result = $this->connection->query($query, true);
 		
 		return isset($result['insert_id']) ? $result['insert_id'] : false;
-	}
-	
-	/**
-	 * Prepare an UPDATE statement with the given table, data and clauses.
-	 * 
-	 * @param string $table
-	 * @param array  $data
-	 * @param string $where
-	 * @param string $limit
-	 * @return string
-	 */
-	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
-		$table = $this->escape($table);
-		
-		foreach ($data as $key => $value) {
-			$data[$key] = "$key = '$value'";
-		}
-		
-		$values = implode(', ', $data);
-		
-		return "UPDATE $table SET $values $where $limit";
 	}
 	
 	/**
