@@ -2,12 +2,17 @@
 namespace Darya\Mvc;
 
 /**
- * Darya's simple PHP view (uses PHP as a templating language).
+ * Darya's simple PHP view.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class PhpView extends View {
 	
+	/**
+	 * Render the template.
+	 * 
+	 * @return string
+	 */
 	public function render() {
 		chdir($this->directory);
 		extract($this->vars);

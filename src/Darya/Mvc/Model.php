@@ -131,7 +131,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Retrieve the name of the attribute that uniquely identifies this model.
 	 * 
-	 * Defaults to `id` preceded by the attribute prefix if `key` is unset.
+	 * Defaults to 'id' if the `key` property is unset.
 	 * 
 	 * @return string
 	 */
@@ -249,8 +249,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	
 	/**
 	 * Retrieve the model's raw attributes.
-	 * 
-	 * The keys will include prefixes and values will be as stored.
 	 * 
 	 * @return array
 	 */
