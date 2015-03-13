@@ -2,7 +2,6 @@
 namespace Darya\Routing;
 
 use ReflectionClass;
-use Darya\Common\Tools;
 use Darya\Events\DispatcherInterface;
 use Darya\Events\SubscriberInterface;
 use Darya\Http\Request;
@@ -83,7 +82,7 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Prepares a controller name by CamelCasing the given value and appending
+	 * Prepares a controller name by PascalCasing the given value and appending
 	 * 'Controller', if the provided name does not already end as such. The
 	 * resulting string will start with an uppercase letter.
 	 * 
@@ -93,7 +92,13 @@ class Router implements ContainerAwareInterface {
 	 * @return string Controller class name
 	 */
 	public static function prepareController($controller) {
-		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller) . 'Controller';
+		if (strpos($controller, 'Controller') === strlen($controller) - 10) {
+			return $controller;
+		}
+		
+		return preg_replace_callback('/^(.)|-(.)/', function ($matches) {
+			return strtoupper($matches[1] ?: $matches[2]);
+		}, $controller) . 'Controller';
 	}
 	
 	/**
@@ -106,7 +111,9 @@ class Router implements ContainerAwareInterface {
 	 * @return string Action method name
 	 */
 	public static function prepareAction($action) {
-		return lcfirst(Tools::delimToCamel($action));
+		return preg_replace_callback('/-(.)/', function ($matches) {
+			return strtoupper($matches[1]);
+		}, $action);
 	}
 	
 	/**
