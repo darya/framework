@@ -25,11 +25,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $relations = array();
 	
 	/**
-	 * @var array Types for casting attributes when setting and getting values
-	 */
-	protected $mutations = array();
-	
-	/**
 	 * @var array Model data
 	 */
 	protected $data;
@@ -59,16 +54,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Parse the given data type definition.
-	 * 
-	 * @param string $type
-	 * @return string
-	 */
-	public static function parseType($type) {
-		return explode(' ', strtolower($type));
-	}
-	
-	/**
 	 * Retrieve the base name of the current class.
 	 * 
 	 * @return string
@@ -78,16 +63,16 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Generate multiple instances of the model using multiple data arrays.
+	 * Generate multiple instances of the model using arrays of attributes.
 	 * 
 	 * @param  array $rows
 	 * @return array
 	 */
-	public static function output($rows = array()) {
+	public static function generate($rows = array()) {
 		$instances = array();
 		
-		foreach ($rows as $key => $row) {
-			$instances[$key] = new static($row);
+		foreach ($rows as $key => $attributes) {
+			$instances[$key] = new static($attributes);
 		}
 		
 		return $instances;
@@ -136,13 +121,13 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return string
 	 */
 	public function key() {
-		$attribute = !is_null($this->key) ? $this->key : 'id';
+		$attribute = $this->key !== null ? $this->key : 'id';
 		
 		return $this->prepareAttribute($attribute);
 	}
 	
 	/**
-	 * Retrieve the attribute that uniquely identifies this model.
+	 * Retrieve the value of the attribute that uniquely identifies this model.
 	 * 
 	 * @return mixed
 	 */
@@ -226,7 +211,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return \Traversable
 	 */
 	public function getIterator() {
-		return new ArrayIterator($this->data());
+		return new ArrayIterator($this->data);
 	}
 	
 	/**
@@ -307,7 +292,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			$type = $this->attributes[$attribute];
 			
 			switch ($type) {
-				case 'array': case 'json':
+				case 'array':
+				case 'json':
 					return json_decode($value, true);
 					break;
 			}
@@ -331,7 +317,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		$type = $this->attributes[$attribute];
 		
 		switch ($type) {
-			case 'date': case 'datetime': case 'time':
+			case 'date':
+			case 'datetime':
+			case 'time':
 				if (is_string($value)) {
 					$value = strtotime(str_replace('/', '-', $value));
 				}
@@ -341,7 +329,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 				}
 				
 				break;
-			case 'array': case 'json':
+			case 'array':
+			case 'json':
 				if (is_array($value)) {
 					$value = json_encode($value);
 				}
@@ -355,7 +344,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Set the value of a attribute.
 	 * 
-	 * @param string $attribute
+	 * @param string $key
 	 * @param mixed  $value [optional]
 	 */
 	public function set($key, $value = null) {

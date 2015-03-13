@@ -2,7 +2,6 @@
 namespace Darya\Database;
 
 use Darya\Common\Tools;
-use Darya\Database\DatabaseInterface;
 use Darya\Mvc\Model;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
@@ -60,7 +59,13 @@ class Record extends Model {
 	 *     PageSection -> page_sections
 	 */
 	public function table() {
-		return $this->table ? $this->table : Tools::camelToDelim(static::basename(), '_').'s';
+		if ($this->table) {
+			return $this->table;
+		}
+		
+		return preg_replace_callback('/([A-Z])/', function ($matches) {
+			return '_' . strtolower($matches[1]);
+		}, lcfirst(static::basename())) . 's';
 	}
 	
 	/**
@@ -93,26 +98,36 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Retrieve the model attribute to storage field mappings for this model.
+	 * 
+	 * Returns an empty array if there is no mapping.
+	 * 
+	 * @return array
+	 */
+	public static function getStorageMapping() {
+		return array();
+	}
+	
+	/**
 	 * Prepare the record's data for storage. This is here until repositories
 	 * are implemented.
 	 * 
 	 * @return array
 	 */
 	protected function prepareData() {
-		$mutations = $this->prepareMutations();
+		$types = $this->attributes;
 		
 		$data = array_intersect_key($this->data, $this->attributes) ?: $this->data;
 		
-		foreach ($data as $key => $value) {
-			if (isset($mutations[$key])) {
-				$mutation = $mutations[$key];
+		foreach ($data as $attribute => $value) {
+			if (isset($types[$attribute])) {
+				$type = $types[$attribute];
 				
-				switch ($mutation) {
+				switch ($type) {
 					case 'date':
 						$value = date('Y-m-d', $value);
 						break;
 					case 'datetime':
-						vard($value);
 						$value = date('Y-m-d H:i:s', $value);
 						break;
 					case 'time':
@@ -120,7 +135,7 @@ class Record extends Model {
 						break;
 				}
 				
-				$data[$key] = $value;
+				$data[$attribute] = $value;
 			}
 		}
 		
@@ -128,7 +143,10 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Prepare the given filters array or primary key as a WHERE statement.
+	 * Prepare the given filter.
+	 * 
+	 * Creates a filter for the record's key attribute if the given value is not
+	 * an array.
 	 * 
 	 * @param mixed  $filters
 	 * @param string $operator
@@ -136,9 +154,8 @@ class Record extends Model {
 	 * @return string
 	 */
 	protected static function prepareFilter($filter) {
-		$instance = new static;
-		
 		if (!is_array($filter)) {
+			$instance = new static;
 			$filter = array($instance->key() => $filter);
 		}
 		
@@ -146,7 +163,7 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Load the record data from storage using the given criteria.
+	 * Load record data from storage using the given criteria.
 	 * 
 	 * @param array|string|int $filter [optional]
 	 * @param array|string     $order  [optional]
@@ -197,7 +214,7 @@ class Record extends Model {
 	 * @return array
 	 */
 	public static function all($filter = array(), $order = array(), $limit = null, $offset = 0) {
-		return static::output(static::load($filter, $order, $limit, $offset));
+		return static::generate(static::load($filter, $order, $limit, $offset));
 	}
 	
 	/**
@@ -221,7 +238,7 @@ class Record extends Model {
 		
 		$data = $storage->search($instance->table(), $query, $attributes, $filter, $order, $limit, $offset);
 		
-		return static::output($data);
+		return static::generate($data);
 	}
 	
 	/**
@@ -380,7 +397,7 @@ class Record extends Model {
 					$this->errors['database'] = $connection->error();
 				}
 				
-				$instances = $lastClass::output($data);
+				$instances = $lastClass::generate($data);
 			} else {
 				$instances = $this->loadRelated($class[0]);
 			}
