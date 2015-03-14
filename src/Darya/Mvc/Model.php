@@ -10,6 +10,8 @@ use Serializable;
 /**
  * Darya's abstract model implementation.
  * 
+ * TODO: Extract relation handling methods to a Relation class.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Serializable {
@@ -20,7 +22,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $attributes = array();
 	
 	/**
-	 * @var array Relationships to other models
+	 * @var array Definitions of related models
 	 */
 	protected $relations = array();
 	
@@ -28,6 +30,11 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @var array Model data
 	 */
 	protected $data;
+	
+	/**
+	 * @var array Related model data
+	 */
+	protected $related = array();
 	
 	/**
 	 * @var bool Whether the model is currently in a valid state
@@ -110,7 +117,13 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return string
 	 */
 	protected function prepareAttribute($attribute) {
-		return strtolower($attribute);
+		$attribute = strtolower($attribute);
+		
+		if ($attribute === 'id') {
+			$attribute = $this->key();
+		}
+		
+		return $attribute;
 	}
 	
 	/**
@@ -132,7 +145,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return mixed
 	 */
 	public function id() {
-		return $this->get($this->key());
+		return $this->access($this->key());
 	}
 	
 	/**
@@ -152,11 +165,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return mixed
 	 */
 	public function __get($property) {
-		if ($property == 'id') {
-			return $this->id();
-		} else {
-			return $this->get($property);
-		}
+		return $this->get($property);
 	}
 	
 	/**
@@ -167,6 +176,15 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function __set($property, $value) {
 		$this->set($property, $value);
+	}
+	
+	/**
+	 * Unset an attribute's value. Shortcut for `remove()`.
+	 * 
+	 * @param string $property
+	 */
+	public function __unset($property) {
+		$this->remove($property);
 	}
 	
 	/**
@@ -197,7 +215,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param mixed $offset
 	 */
 	public function offsetUnset($offset) {
-		unset($this->data[$this->prepareAttribute($offset)]);
+		$this->remove($offset);
 	}
 	
 	/**
@@ -252,21 +270,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve the given attribute from the model.
-	 * 
-	 * @param string $attribute
-	 * @return mixed
-	 */
-	public function get($attribute) {
-		if ($this->has($attribute)) {
-			return $this->access($attribute);
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Determine whether the given attribute is mutatable.
+	 * Determine whether the given attribute has a defined type.
 	 * 
 	 * @param string $attribute
 	 * @return bool
@@ -314,7 +318,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			return $value;
 		}
 		
-		$type = $this->attributes[$attribute];
+		$type = $this->attributes[$this->prepareAttribute($attribute)];
 		
 		switch ($type) {
 			case 'date':
@@ -327,6 +331,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 				if ($value instanceof DateTimeInterface) {
 					$value = $value->getTimestamp();
 				}
+				
+				$value = date($this->dateFormat(), (int) $value);
 				
 				break;
 			case 'array':
@@ -342,6 +348,22 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Retrieve the given attribute from the model.
+	 * 
+	 * @param string $attribute
+	 * @return mixed
+	 */
+	public function get($attribute) {
+		if ($attribute === 'id') {
+			return $this->id();
+		} else if ($this->hasRelation($attribute)) {
+			return $this->getRelated($attribute);
+		}
+		
+		return $this->access($attribute);
+	}
+	
+	/**
 	 * Set the value of a attribute.
 	 * 
 	 * @param string $key
@@ -352,6 +374,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			foreach ($key as $attribute => $value) {
 				$this->set($attribute, $value);
 			}
+		} else if ($this->hasRelation($attribute)) {
+			$this->setRelated($attribute, $value);
 		} else {
 			$attribute = $this->prepareAttribute($key);
 			$this->data[$attribute] = $this->mutate($attribute, $value);
@@ -359,16 +383,21 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Set the value of a date attribute with the correct formatting for MySQL.
+	 * Remove the value of an attribute.
 	 * 
-	 * TODO: This does not need to be specific to MySQL. Create a config for
-	 *       model date formats?
-	 * 
-	 * @param string $key
-	 * @param string $date Date to be parsed using strtotime()
+	 * @param string $attribute
 	 */
-	public function setDate($key, $date) {
-		$this->set($key, date('Y-m-d H:i:s', is_string($date) ? strtotime(str_replace('/', '-', $date)) : $date));
+	public function remove($attribute) {
+		unset($this->data[$this->prepareAttribute($attribute)]);
+	}
+	
+	/**
+	 * Retrieve the format to use for date attributes.
+	 * 
+	 * @return string
+	 */
+	public function dateFormat() {
+		return 'Y-m-d H:i:s';
 	}
 	
 	/**
@@ -385,6 +414,111 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		if (!$this->id()) {
 			$this->setDate($this->prepareAttribute('created'), $time);
 		}
+	}
+	
+	/**
+	 * Determine whether the given attribute is a relation.
+	 * 
+	 * @param string $attribute
+	 * @return bool
+	 */
+	public function hasRelation($attribute) {
+		$attribute = $this->prepareAttribute($attribute);
+		
+		return isset($this->relations[$attribute]);
+	}
+	
+	/**
+	 * Retrieve the given relation.
+	 * 
+	 * @param string $attribute
+	 * @return array
+	 */
+	protected function relation($attribute) {
+		if ($this->hasRelation($attribute)) {
+			$attribute = $this->prepareAttribute($attribute);
+			
+			$relation = $this->relations[$attribute];
+			
+			if (is_array($relation) && count($relation) >= 2) {
+				return $relation;
+			}
+		}
+		
+		return array();
+	}
+	
+	/**
+	 * Retrieve the type of the given relation.
+	 * 
+	 * @param string $attribute
+	 * @return string
+	 */
+	protected function relationType($attribute) {
+		if ($relation = $this->relation($attribute)) {
+			return $relation[0];
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Retrieve the class name of the given relation attribute.
+	 * 
+	 * @param string $attribute
+	 * @return string
+	 */
+	protected function relationClass($attribute) {
+		if ($relation = $this->relation($attribute)) {
+			return $relation[1];
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Determine whether the given relation has any set model(s).
+	 * 
+	 * @param string $attribute
+	 * @return bool
+	 */
+	public function hasRelated($attribute) {
+		return $this->hasRelation($attribute) && isset($this->related($this->prepareAttribute($attribute)));
+	}
+	
+	/**
+	 * Retrieve the model(s) of the given relation.
+	 * 
+	 * @param string $attribute
+	 * @return mixed
+	 */
+	public function getRelated($attribute) {
+		if ($this->hasRelated($attribute)) {
+			return $this->related[$this->prepareAttribute($attribute)];
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Set the given related model(s).
+	 * 
+	 * @param string $attribute
+	 * @param string $value
+	 */
+	public function setRelated($attribute, $value) {
+		if (!$this->hasRelation($attribute)) {
+			return;
+		}
+		
+		$type = $this->relationType($attribute);
+		$class = $this->relationClass($attribute);
+		
+		if (!$value instanceof $class && !is_array($value)) {
+			return;
+		}
+		
+		$this->related[$this->prepareAttribute($attribute)] = $value;
 	}
 	
 	/**

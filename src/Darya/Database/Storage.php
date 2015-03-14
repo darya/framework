@@ -6,6 +6,13 @@ use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
 
+/**
+ * Darya's database storage implementation.
+ * 
+ * TODO: Extract prepare methods as a query builder or fluent query class.
+ * 
+ * @author Chris Andrew <chris@hexus.io>
+ */
 class Storage implements Readable, Modifiable, Searchable {
 	
 	/**
