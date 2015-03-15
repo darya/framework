@@ -5,7 +5,9 @@ use ArrayAccess;
 use Countable;
 use DateTimeInterface;
 use IteratorAggregate;
+use ReflectionClass;
 use Serializable;
+use Darya\Mvc\Relation;
 
 /**
  * Darya's abstract model implementation.
@@ -374,8 +376,8 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			foreach ($key as $attribute => $value) {
 				$this->set($attribute, $value);
 			}
-		} else if ($this->hasRelation($attribute)) {
-			$this->setRelated($attribute, $value);
+		} else if ($this->hasRelation($key)) {
+			$this->setRelated($key, $value);
 		} else {
 			$attribute = $this->prepareAttribute($key);
 			$this->data[$attribute] = $this->mutate($attribute, $value);
@@ -416,6 +418,10 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		}
 	}
 	
+	protected function hasMany($model) {
+		
+	}
+	
 	/**
 	 * Determine whether the given attribute is a relation.
 	 * 
@@ -432,45 +438,21 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * Retrieve the given relation.
 	 * 
 	 * @param string $attribute
-	 * @return array
+	 * @return \Darya\Mvc\Relation
 	 */
 	protected function relation($attribute) {
 		if ($this->hasRelation($attribute)) {
 			$attribute = $this->prepareAttribute($attribute);
-			
 			$relation = $this->relations[$attribute];
 			
-			if (is_array($relation) && count($relation) >= 2) {
-				return $relation;
+			if (!$relation instanceof Relation) {
+				$args = array_merge(array(get_class($this)), $relation);
+				$reflection = new ReflectionClass('Darya\Mvc\Relation');
+				$relation = $reflection->newInstanceArgs((array) $args);
+				$this->relations[$attribute] = $relation;
 			}
-		}
-		
-		return array();
-	}
-	
-	/**
-	 * Retrieve the type of the given relation.
-	 * 
-	 * @param string $attribute
-	 * @return string
-	 */
-	protected function relationType($attribute) {
-		if ($relation = $this->relation($attribute)) {
-			return $relation[0];
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Retrieve the class name of the given relation attribute.
-	 * 
-	 * @param string $attribute
-	 * @return string
-	 */
-	protected function relationClass($attribute) {
-		if ($relation = $this->relation($attribute)) {
-			return $relation[1];
+			
+			return $relation;
 		}
 		
 		return null;
@@ -483,14 +465,14 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return bool
 	 */
 	public function hasRelated($attribute) {
-		return $this->hasRelation($attribute) && isset($this->related($this->prepareAttribute($attribute)));
+		return $this->hasRelation($attribute) && isset($this->related[$this->prepareAttribute($attribute)]);
 	}
 	
 	/**
 	 * Retrieve the model(s) of the given relation.
 	 * 
 	 * @param string $attribute
-	 * @return mixed
+	 * @return array
 	 */
 	public function getRelated($attribute) {
 		if ($this->hasRelated($attribute)) {
@@ -511,10 +493,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			return;
 		}
 		
-		$type = $this->relationType($attribute);
-		$class = $this->relationClass($attribute);
+		$relation = $this->relation($attribute);
 		
-		if (!$value instanceof $class && !is_array($value)) {
+		if (!$value instanceof $relation->model && !is_array($value)) {
 			return;
 		}
 		

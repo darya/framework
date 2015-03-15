@@ -3,6 +3,7 @@ namespace Darya\Database;
 
 use Darya\Common\Tools;
 use Darya\Mvc\Model;
+use Darya\Mvc\Relation;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
@@ -307,7 +308,7 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Save multiple record instances to the database.
+	 * Save multiple record instances to storage.
 	 * 
 	 * Returns the number of instances that saved successfully.
 	 * 
@@ -327,24 +328,70 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Delete the record from the database.
+	 * Delete the record from storage.
 	 * 
 	 * @return bool
 	 */
 	public function delete() {
 		if ($id = $this->id()) {
-			$connection = $this->connection();
+			$storage = $this->storage();
 			
-			$connection->query("DELETE FROM " . $this->table() . " WHERE " . $this->key() . " = '$id' LIMIT 1");
-			
-			if ($connection->error()) {
-				$this->errors['database'] = $connection->error();
+			if ($storage instanceof Modifiable) {
+				$storage->delete($this->table(), array($this->key() => $this->id()), 1);
+				
+				return true;
 			}
-			
-			return !$connection->error();
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param string $attribute
+	 * @return array
+	 */
+	protected function prepareRelationFilter($attribute) {
+		if ($this->hasRelation($attribute)) {
+			$relation = $this->relation($attribute);
+			
+			switch ($relation->type) {
+				case Relation::HAS:
+					return array($relation->foreignKey => $this->get($relation->foreignKey));
+					break;
+				case Relation::HAS_MANY:
+					
+					break;
+				case Relation::BELONGS_TO:
+					
+					break;
+				case Relation::BELONGS_TO_MANY:
+					
+					break;
+			}
+		}
+	}
+	
+	/**
+	 * Retrieve the model(s) of the given relation.
+	 * 
+	 * @param string $attribute
+	 * @return array
+	 */
+	public function getRelated($attribute) {
+		if ($this->hasRelation($attribute) && !$this->hasRelated($attribute)) {
+			$relation = $this->relation($attribute);
+			$storage = $this->storage();
+			$model = new $relation->related;
+			$related = $storage->read($model->table(),
+				array($relation->foreignKey => $this->get($relation->localKey))
+				// $relation->filter()
+			);
+			$this->related[$this->prepareAttribute($attribute)] = $related;
+		}
+		
+		return parent::getRelated($attribute);
 	}
 	
 	/**
@@ -360,6 +407,7 @@ class Record extends Model {
 	 */
 	public function loadRelated($class, $filters = array(), $orders = array()) {
 		$instances = array();
+		
 		if (!is_array($class)) {
 			if (class_exists($class)) {
 				$filters = array_merge(array($this->key() => $this->id()), $filters);
