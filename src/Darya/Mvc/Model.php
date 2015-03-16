@@ -122,7 +122,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		$attribute = strtolower($attribute);
 		
 		if ($attribute === 'id') {
-			$attribute = $this->key();
+			return $this->key();
 		}
 		
 		return $attribute;
@@ -136,9 +136,11 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @return string
 	 */
 	public function key() {
-		$attribute = $this->key !== null ? $this->key : 'id';
+		if (!isset($this->key)) {
+			return 'id';
+		}
 		
-		return $this->prepareAttribute($attribute);
+		return $this->prepareAttribute($this->key);
 	}
 	
 	/**

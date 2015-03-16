@@ -7,7 +7,7 @@ use Darya\Mvc\Model;
 /**
  * Darya's model relation representation.
  * 
- * TODO: Relation::getFilter()? if we store the parent model (instance?)...
+ * TODO: Camel-to-delim.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -34,12 +34,12 @@ class Relation {
 	protected $type;
 	
 	/**
-	 * @var string Foreign key on the related model
+	 * @var string Foreign key on the "belongs-to" model
 	 */
 	protected $foreignKey;
 	
 	/**
-	 * @var string Local key on the parent model
+	 * @var string Local key on the "has" model
 	 */
 	protected $localKey;
 	
@@ -59,8 +59,8 @@ class Relation {
 	 * @param string $table
 	 */
 	public function __construct(Model $parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
-		if (!class_exists($related)) {
-			throw new Exception("Related class $related does not exist");
+		if (!class_exists($related) && !is_subclass_of($related, 'Darya\Mvc\Model')) {
+			throw new Exception("Related class $related does not exist or does not extend Darya\Mvc\Model");
 		}
 		
 		$this->related = $related;
@@ -78,7 +78,7 @@ class Relation {
 	 * Read-only access for relation properties.
 	 * 
 	 * @param string $property
-	 * @return string
+	 * @return mixed
 	 */
 	public function __get($property) {
 		if (property_exists($this, $property)) {
@@ -94,6 +94,10 @@ class Relation {
 	 * @return string|null
 	 */
 	protected function relatedKey() {
+		if ($this->type === Relation::BELONGS_TO_MANY) {
+			return strtolower(basename(get_class($this->parent))) . '_id';
+		}
+		
 		if (is_subclass_of($this->related, 'Darya\Mvc\Model')) {
 			$related = new $this->related;
 			
@@ -112,14 +116,13 @@ class Relation {
 		switch ($this->type) {
 			case Relation::HAS:
 			case Relation::HAS_MANY:
-				$foreignKey = 
 				$this->foreignKey = strtolower(basename(get_class($this->parent))) . '_id';
 				$this->localKey = $this->parent->key();
 				break;
 			case Relation::BELONGS_TO;
 			case Relation::BELONGS_TO_MANY;
-				$this->foreignKey = $this->relatedKey();
-				$this->localKey = strtolower(basename($this->related)) . '_id';
+				$this->foreignKey = strtolower(basename($this->related)) . '_id';
+				$this->localKey = $this->relatedKey();
 				break;
 		}
 	}
@@ -133,11 +136,11 @@ class Relation {
 		switch ($this->type) {
 			case Relation::HAS:
 			case Relation::HAS_MANY:
-				return array($this->foreignKey => $this->parent->get($this->foreignKey));
+				return array($this->foreignKey => $this->parent->get($this->localKey));
 				break;
 			case Relation::BELONGS_TO:
 			case Relation::BELONGS_TO_MANY:
-				return array($this->foreignKey => $this->parent->get($this->localKey));
+				return array($this->localKey => $this->parent->get($this->foreignKey));
 				break;
 		}
 	}
