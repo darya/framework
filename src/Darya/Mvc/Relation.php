@@ -51,21 +51,26 @@ class Relation {
 	/**
 	 * Instantiate a new relation.
 	 * 
-	 * @param string $parent     Parent model class
-	 * @param string $type       Relation type
-	 * @param string $related    Related model class
+	 * @param Model  $parent
+	 * @param string $type
+	 * @param string $related
 	 * @param string $foreignKey
 	 * @param string $localKey
 	 * @param string $table
 	 */
-	public function __construct($parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
+	public function __construct(Model $parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
+		if (!class_exists($related)) {
+			throw new Exception("Related class $related does not exist");
+		}
+		
 		$this->related = $related;
 		$this->parent = $parent;
 		$this->type = $type ?: static::HAS;
 		
-		$this->foreignKey = $foreignKey ?: strtolower(basename($parent)) . '_id';
-		$this->localKey = $localKey ?: 'id';
+		$this->prepareKeys();
 		
+		$this->foreignKey = $foreignKey ?: $this->foreignKey;
+		$this->localKey = $localKey ?: $this->localKey;
 		$this->table = $table;
 	}
 	
@@ -81,8 +86,60 @@ class Relation {
 		}
 	}
 	
+	/**
+	 * Retrieve the key of the related model.
+	 * 
+	 * Returns null if the class does not extend Darya\Mvc\Model.
+	 * 
+	 * @return string|null
+	 */
+	protected function relatedKey() {
+		if (is_subclass_of($this->related, 'Darya\Mvc\Model')) {
+			$related = new $this->related;
+			
+			return $related->key();
+		}
+		
+		return 'id';
+	}
+	
+	/**
+	 * Prepare the foreign key based on the direction of the relationship type.
+	 * 
+	 * @return string
+	 */
+	protected function prepareKeys() {
+		switch ($this->type) {
+			case Relation::HAS:
+			case Relation::HAS_MANY:
+				$foreignKey = 
+				$this->foreignKey = strtolower(basename(get_class($this->parent))) . '_id';
+				$this->localKey = $this->parent->key();
+				break;
+			case Relation::BELONGS_TO;
+			case Relation::BELONGS_TO_MANY;
+				$this->foreignKey = $this->relatedKey();
+				$this->localKey = strtolower(basename($this->related)) . '_id';
+				break;
+		}
+	}
+	
+	/**
+	 * Retrieve the filter for this relation.
+	 * 
+	 * @return array
+	 */
 	public function filter() {
-		// TODO: Implement.
+		switch ($this->type) {
+			case Relation::HAS:
+			case Relation::HAS_MANY:
+				return array($this->foreignKey => $this->parent->get($this->foreignKey));
+				break;
+			case Relation::BELONGS_TO:
+			case Relation::BELONGS_TO_MANY:
+				return array($this->foreignKey => $this->parent->get($this->localKey));
+				break;
+		}
 	}
 	
 }

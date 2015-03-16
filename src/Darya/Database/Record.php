@@ -11,9 +11,6 @@ use Darya\Storage\Searchable;
 /**
  * Darya's active record implementation for models.
  * 
- * TODO: SQL doesn't belong here. Implement Query objects, a QueryBuilder,
- * and/or implement generic repositories.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Record extends Model {
@@ -358,14 +355,10 @@ class Record extends Model {
 			
 			switch ($relation->type) {
 				case Relation::HAS:
+				case Relation::HAS_MANY:
 					return array($relation->foreignKey => $this->get($relation->foreignKey));
 					break;
-				case Relation::HAS_MANY:
-					
-					break;
 				case Relation::BELONGS_TO:
-					
-					break;
 				case Relation::BELONGS_TO_MANY:
 					
 					break;
@@ -385,8 +378,7 @@ class Record extends Model {
 			$storage = $this->storage();
 			$model = new $relation->related;
 			$related = $storage->read($model->table(),
-				array($relation->foreignKey => $this->get($relation->localKey))
-				// $relation->filter()
+				$relation->filter()
 			);
 			$this->related[$this->prepareAttribute($attribute)] = $related;
 		}

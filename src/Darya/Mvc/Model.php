@@ -446,7 +446,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			$relation = $this->relations[$attribute];
 			
 			if (!$relation instanceof Relation) {
-				$args = array_merge(array(get_class($this)), $relation);
+				$args = array_merge(array($this), $relation);
 				$reflection = new ReflectionClass('Darya\Mvc\Relation');
 				$relation = $reflection->newInstanceArgs((array) $args);
 				$this->relations[$attribute] = $relation;
