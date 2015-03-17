@@ -14,7 +14,6 @@ class RelationTest extends PHPUnit_Framework_TestCase {
 	
 	public function testHasFilter() {
 		$page = new Page(array('id' => 1));
-		var_dump($page);
 		$relation = new Relation($page, 'has', 'Section');
 		
 		$this->assertEquals(array('page_id' => 1), $relation->filter());

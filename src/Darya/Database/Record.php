@@ -376,11 +376,13 @@ class Record extends Model {
 		if ($this->hasRelation($attribute) && !$this->hasRelated($attribute)) {
 			$relation = $this->relation($attribute);
 			$storage = $this->storage();
-			$model = new $relation->related;
-			$related = $storage->read($model->table(),
+			$class = $relation->related;
+			$related = new $class;
+			$data = $storage->read($related->table(),
 				$relation->filter()
 			);
-			$this->related[$this->prepareAttribute($attribute)] = $related;
+			$instances = $class::generate($data);
+			$this->related[$this->prepareAttribute($attribute)] = $instances;
 		}
 		
 		return parent::getRelated($attribute);

@@ -420,10 +420,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		}
 	}
 	
-	protected function hasMany($model) {
-		
-	}
-	
 	/**
 	 * Determine whether the given attribute is a relation.
 	 * 
