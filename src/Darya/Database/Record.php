@@ -59,6 +59,43 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Determine whether the given attribute or relation is set on the record.
+	 * 
+	 * @param string $attribute
+	 */
+	public function has($attribute) {
+		return $this->hasRelated($attribute) || parent::has($attribute);
+	}
+	
+	/**
+	 * Retrieve the given attribute or relation from the record.
+	 * 
+	 * @param string $attribute
+	 * @return mixed
+	 */
+	public function get($attribute) {
+		if ($this->hasRelation($attribute)) {
+			return $this->getRelated($attribute);
+		}
+		
+		return parent::get($attribute);
+	}
+	
+	/**
+	 * Set the value of an attribute or relation on the model.
+	 * 
+	 * @param string $attribute
+	 * @param mixed  $value
+	 */
+	public function set($attribute, $value = null) {
+		if (is_string($attribute) && $this->hasRelation($attribute)) {
+			return $this->setRelated($attribute, $value);
+		}
+		
+		parent::set($attribute, $value);
+	}
+	
+	/**
 	 * Returns the name of the database table this record belongs to.
 	 * 
 	 * If none is set, it defaults to creating it from the class name.

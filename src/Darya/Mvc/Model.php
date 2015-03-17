@@ -10,8 +10,6 @@ use Serializable;
 /**
  * Darya's abstract model implementation.
  * 
- * TODO: Extract relation handling methods to a Relation class.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Serializable {
@@ -247,15 +245,13 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	public function get($attribute) {
 		if ($attribute === 'id') {
 			return $this->id();
-		} else if ($this->hasRelation($attribute)) {
-			return $this->getRelated($attribute);
 		}
 		
 		return $this->access($attribute);
 	}
 	
 	/**
-	 * Set the value of a attribute.
+	 * Set the value of an attribute on the model.
 	 * 
 	 * @param string $key
 	 * @param mixed  $value [optional]
@@ -265,8 +261,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			foreach ($key as $attribute => $value) {
 				$this->set($attribute, $value);
 			}
-		} else if ($this->hasRelation($key)) {
-			$this->setRelated($key, $value);
 		} else {
 			$attribute = $this->prepareAttribute($key);
 			$this->data[$attribute] = $this->mutate($attribute, $value);
