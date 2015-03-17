@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Database;
 
+use ReflectionClass;
 use Darya\Common\Tools;
 use Darya\Mvc\Model;
 use Darya\Mvc\Relation;
@@ -9,7 +10,7 @@ use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
 
 /**
- * Darya's active record implementation for models.
+ * Darya's active record implementation.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -32,6 +33,16 @@ class Record extends Model {
 	 * @var \Darya\Storage\Readable Shared storage
 	 */
 	protected static $sharedStorage;
+	
+	/**
+	 * @var array Definitions of related models
+	 */
+	protected $relations = array();
+	
+	/**
+	 * @var array Related model data
+	 */
+	protected $related = array();
 	
 	/**
 	 * Instantiate a new record with the given data or load an instance from the
@@ -93,17 +104,6 @@ class Record extends Model {
 	 */
 	public static function setSharedStorage(Readable $storage) {
 		static::$sharedStorage = $storage;
-	}
-	
-	/**
-	 * Retrieve the model attribute to storage field mappings for this model.
-	 * 
-	 * Returns an empty array if there is no mapping.
-	 * 
-	 * @return array
-	 */
-	public static function getStorageMapping() {
-		return array();
 	}
 	
 	/**
@@ -344,26 +344,49 @@ class Record extends Model {
 	}
 	
 	/**
-	 * 
+	 * Determine whether the given attribute is a relation.
 	 * 
 	 * @param string $attribute
-	 * @return array
+	 * @return bool
 	 */
-	protected function prepareRelationFilter($attribute) {
+	protected function hasRelation($attribute) {
+		$attribute = $this->prepareAttribute($attribute);
+		
+		return isset($this->relations[$attribute]);
+	}
+	
+	/**
+	 * Retrieve the given relation.
+	 * 
+	 * @param string $attribute
+	 * @return \Darya\Mvc\Relation
+	 */
+	public function relation($attribute) {
 		if ($this->hasRelation($attribute)) {
-			$relation = $this->relation($attribute);
+			$attribute = $this->prepareAttribute($attribute);
+			$relation = $this->relations[$attribute];
 			
-			switch ($relation->type) {
-				case Relation::HAS:
-				case Relation::HAS_MANY:
-					return array($relation->foreignKey => $this->get($relation->foreignKey));
-					break;
-				case Relation::BELONGS_TO:
-				case Relation::BELONGS_TO_MANY:
-					
-					break;
+			if (!$relation instanceof Relation) {
+				$args = array_merge(array($this), $relation);
+				$reflection = new ReflectionClass('Darya\Mvc\Relation');
+				$relation = $reflection->newInstanceArgs((array) $args);
+				$this->relations[$attribute] = $relation;
 			}
+			
+			return $relation;
 		}
+		
+		return null;
+	}
+	
+	/**
+	 * Determine whether the given relation has any set model(s).
+	 * 
+	 * @param string $attribute
+	 * @return bool
+	 */
+	protected function hasRelated($attribute) {
+		return $this->hasRelation($attribute) && isset($this->related[$this->prepareAttribute($attribute)]);
 	}
 	
 	/**
@@ -373,7 +396,13 @@ class Record extends Model {
 	 * @return array
 	 */
 	public function getRelated($attribute) {
-		if ($this->hasRelation($attribute) && !$this->hasRelated($attribute)) {
+		if (!$this->hasRelation($attribute)) {
+			return null;
+		}
+		
+		$attribute = $this->prepareAttribute($attribute);
+		
+		if (!$this->hasRelated($attribute)) {
 			$relation = $this->relation($attribute);
 			$storage = $this->storage();
 			$class = $relation->related;
@@ -382,10 +411,30 @@ class Record extends Model {
 				$relation->filter()
 			);
 			$instances = $class::generate($data);
-			$this->related[$this->prepareAttribute($attribute)] = $instances;
+			$this->related[$attribute] = $instances;
 		}
 		
-		return parent::getRelated($attribute);
+		return $this->related[$attribute];
+	}
+	
+	/**
+	 * Set the given related model(s).
+	 * 
+	 * @param string $attribute
+	 * @param string $value
+	 */
+	protected function setRelated($attribute, $value) {
+		if (!$this->hasRelation($attribute)) {
+			return;
+		}
+		
+		$relation = $this->relation($attribute);
+		
+		if (!$value instanceof $relation->model && !is_array($value)) {
+			return;
+		}
+		
+		$this->related[$this->prepareAttribute($attribute)] = $value;
 	}
 	
 	/**

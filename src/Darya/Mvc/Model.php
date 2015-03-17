@@ -5,9 +5,7 @@ use ArrayAccess;
 use Countable;
 use DateTimeInterface;
 use IteratorAggregate;
-use ReflectionClass;
 use Serializable;
-use Darya\Mvc\Relation;
 
 /**
  * Darya's abstract model implementation.
@@ -24,19 +22,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $attributes = array();
 	
 	/**
-	 * @var array Definitions of related models
-	 */
-	protected $relations = array();
-	
-	/**
 	 * @var array Model data
 	 */
 	protected $data;
-	
-	/**
-	 * @var array Related model data
-	 */
-	protected $related = array();
 	
 	/**
 	 * @var bool Whether the model is currently in a valid state
@@ -317,86 +305,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		if (!$this->id()) {
 			$this->setDate($this->prepareAttribute('created'), $time);
 		}
-	}
-	
-	/**
-	 * Determine whether the given attribute is a relation.
-	 * 
-	 * @param string $attribute
-	 * @return bool
-	 */
-	public function hasRelation($attribute) {
-		$attribute = $this->prepareAttribute($attribute);
-		
-		return isset($this->relations[$attribute]);
-	}
-	
-	/**
-	 * Retrieve the given relation.
-	 * 
-	 * @param string $attribute
-	 * @return \Darya\Mvc\Relation
-	 */
-	protected function relation($attribute) {
-		if ($this->hasRelation($attribute)) {
-			$attribute = $this->prepareAttribute($attribute);
-			$relation = $this->relations[$attribute];
-			
-			if (!$relation instanceof Relation) {
-				$args = array_merge(array($this), $relation);
-				$reflection = new ReflectionClass('Darya\Mvc\Relation');
-				$relation = $reflection->newInstanceArgs((array) $args);
-				$this->relations[$attribute] = $relation;
-			}
-			
-			return $relation;
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Determine whether the given relation has any set model(s).
-	 * 
-	 * @param string $attribute
-	 * @return bool
-	 */
-	public function hasRelated($attribute) {
-		return $this->hasRelation($attribute) && isset($this->related[$this->prepareAttribute($attribute)]);
-	}
-	
-	/**
-	 * Retrieve the model(s) of the given relation.
-	 * 
-	 * @param string $attribute
-	 * @return array
-	 */
-	public function getRelated($attribute) {
-		if ($this->hasRelated($attribute)) {
-			return $this->related[$this->prepareAttribute($attribute)];
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Set the given related model(s).
-	 * 
-	 * @param string $attribute
-	 * @param string $value
-	 */
-	public function setRelated($attribute, $value) {
-		if (!$this->hasRelation($attribute)) {
-			return;
-		}
-		
-		$relation = $this->relation($attribute);
-		
-		if (!$value instanceof $relation->model && !is_array($value)) {
-			return;
-		}
-		
-		$this->related[$this->prepareAttribute($attribute)] = $value;
 	}
 	
 	/**
