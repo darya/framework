@@ -152,107 +152,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		return $this->access($this->key());
 	}
 	
-	/**
-	 * Determine whether an attribute is set on the model. Shortcut for `set()`.
-	 * 
-	 * @param string $property
-	 * @return bool
-	 */
-	public function __isset($property) {
-		return $this->has($property);
-	}
-	
-	/**
-	 * Retrieve an attribute from the model. Shortcut for `get()` and `id()`.
-	 * 
-	 * @param string $property
-	 * @return mixed
-	 */
-	public function __get($property) {
-		return $this->get($property);
-	}
-	
-	/**
-	 * Set an attribute's value. Shortcut for `set()`.
-	 * 
-	 * @param string $property
-	 * @param mixed  $value
-	 */
-	public function __set($property, $value) {
-		$this->set($property, $value);
-	}
-	
-	/**
-	 * Unset an attribute's value. Shortcut for `remove()`.
-	 * 
-	 * @param string $property
-	 */
-	public function __unset($property) {
-		$this->remove($property);
-	}
-	
-	/**
-	 * @param mixed $offset
-	 * @return bool
-	 */
-	public function offsetExists($offset) {
-		return $this->has($offset);
-	}
-	
-	/**
-	 * @param mixed $offset
-	 * @return mixed
-	 */
-	public function offsetGet($offset) {
-		return $this->get($offset);
-	}
-	
-	/**
-	 * @param mixed $offset
-	 * @param mixed $value
-	 */
-	public function offsetSet($offset, $value) {
-		$this->set($offset, $value);
-	}
-	
-	/**
-	 * @param mixed $offset
-	 */
-	public function offsetUnset($offset) {
-		$this->remove($offset);
-	}
-	
-	/**
-	 * @return int
-	 */
-	public function count() {
-		return count($this->data);
-	}
-	
-	/**
-	 * @return \Traversable
-	 */
-	public function getIterator() {
-		return new ArrayIterator($this->data);
-	}
-	
-	/**
-	 * Serialize the model.
-	 * 
-	 * @return string
-	 */
-	public function serialize() {
-		return serialize($this->data);
-	}
-	
-	/**
-	 * Unserialize the model.
-	 * 
-	 * @param string $serialized
-	 */
-	public function unserialize($serialized) {
-		$this->data = unserialize($serialized);
-	}
 	
 	/**
 	 * Retrieve the model's raw attributes.
@@ -537,6 +436,108 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function toJson() {
 		return json_encode($this->jsonSerialize());
+	}
+	
+	/**
+	 * Determine whether an attribute is set on the model. Shortcut for `set()`.
+	 * 
+	 * @param string $property
+	 * @return bool
+	 */
+	public function __isset($property) {
+		return $this->has($property);
+	}
+	
+	/**
+	 * Retrieve an attribute from the model. Shortcut for `get()` and `id()`.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
+	public function __get($property) {
+		return $this->get($property);
+	}
+	
+	/**
+	 * Set an attribute's value. Shortcut for `set()`.
+	 * 
+	 * @param string $property
+	 * @param mixed  $value
+	 */
+	public function __set($property, $value) {
+		$this->set($property, $value);
+	}
+	
+	/**
+	 * Unset an attribute's value. Shortcut for `remove()`.
+	 * 
+	 * @param string $property
+	 */
+	public function __unset($property) {
+		$this->remove($property);
+	}
+	
+	/**
+	 * @param mixed $offset
+	 * @return bool
+	 */
+	public function offsetExists($offset) {
+		return $this->has($offset);
+	}
+	
+	/**
+	 * @param mixed $offset
+	 * @return mixed
+	 */
+	public function offsetGet($offset) {
+		return $this->get($offset);
+	}
+	
+	/**
+	 * @param mixed $offset
+	 * @param mixed $value
+	 */
+	public function offsetSet($offset, $value) {
+		$this->set($offset, $value);
+	}
+	
+	/**
+	 * @param mixed $offset
+	 */
+	public function offsetUnset($offset) {
+		$this->remove($offset);
+	}
+	
+	/**
+	 * @return int
+	 */
+	public function count() {
+		return count($this->data);
+	}
+	
+	/**
+	 * @return \Traversable
+	 */
+	public function getIterator() {
+		return new ArrayIterator($this->data);
+	}
+	
+	/**
+	 * Serialize the model.
+	 * 
+	 * @return string
+	 */
+	public function serialize() {
+		return serialize($this->data);
+	}
+	
+	/**
+	 * Unserialize the model.
+	 * 
+	 * @param string $serialized
+	 */
+	public function unserialize($serialized) {
+		$this->data = unserialize($serialized);
 	}
 	
 	/**
