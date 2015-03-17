@@ -62,9 +62,11 @@ class ViewResolver {
 	 * @param string $engine
 	 */
 	public function setEngine($engine) {
-		if (class_exists($engine) && is_subclass_of($engine, 'Darya\Mvc\ViewInterface')) {
-			$this->engine = $engine;
+		if (!class_exists($engine) || !is_subclass_of($engine, 'Darya\Mvc\ViewInterface')) {
+			throw new \Exception("View engine $engine does not exist or does not extend Darya\Mvc\ViewInterface");
 		}
+		
+		$this->engine = $engine;
 	}
 	
 	/**
