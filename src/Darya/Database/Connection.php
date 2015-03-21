@@ -6,7 +6,7 @@ namespace Darya\Database;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface DatabaseInterface {
+interface Connection {
 	
 	/**
 	 * Make a connection to the database.

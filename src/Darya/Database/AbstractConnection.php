@@ -1,14 +1,14 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database\DatabaseInterface;
+use Darya\Database\Connection;
 
 /**
  * Darya's abstract database connection.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractDatabase implements DatabaseInterface {
+abstract class AbstractConnection implements Connection {
 	
 	/**
 	 * @var mixed Connection object
@@ -53,6 +53,7 @@ abstract class AbstractDatabase implements DatabaseInterface {
 	 * @return mixed
 	 */
 	public function query($query) {
+		var_dump($query);
 		$this->lastQuery = $query;
 	}
 	

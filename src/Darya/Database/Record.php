@@ -122,7 +122,7 @@ class Record extends Model {
 	public function storage(Readable $storage = null) {
 		$this->storage = $storage ?: $this->storage;
 		
-		return isset($this->storage) ? $this->storage : static::getSharedStorage();
+		return $this->storage ?: static::getSharedStorage();
 	}
 	
 	/**
@@ -441,14 +441,7 @@ class Record extends Model {
 		
 		if (!$this->hasRelated($attribute)) {
 			$relation = $this->relation($attribute);
-			$storage = $this->storage();
-			$class = $relation->related;
-			$related = new $class;
-			$data = $storage->read($related->table(),
-				$relation->filter()
-			);
-			$instances = $class::generate($data);
-			$this->related[$attribute] = $instances;
+			$this->related[$attribute] = $relation->all();
 		}
 		
 		return $this->related[$attribute];

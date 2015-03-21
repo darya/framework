@@ -1,15 +1,16 @@
 <?php
-namespace Darya\Database;
+namespace Darya\Database\Connection;
 
 use mysqli as php_mysqli;
 use mysqli_result;
+use Darya\Database\AbstractConnection;
 
 /**
  * Darya's MySQL database interface. Uses mysqli.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class MySQLi extends \Darya\Database\AbstractDatabase {
+class MySql extends AbstractConnection {
 	
 	/**
 	 * @var bool Whether the connection is currently active

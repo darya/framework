@@ -1,13 +1,14 @@
 <?php
 namespace Darya\Mvc;
 
-use \Exception;
-use Darya\Mvc\Model;
+use Exception;
+use Darya\Database\Record;
+use Darya\Storage\Readable;
 
 /**
- * Darya's model relation representation.
+ * Darya's entity relationship representation.
  * 
- * TODO: Camel-to-delim.
+ * TODO: Give each relation type its own class.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -19,7 +20,7 @@ class Relation {
 	const BELONGS_TO_MANY = 'belongs_to_many';
 	
 	/**
-	 * @var string Parent model class
+	 * @var \Darya\Database\Record Parent model
 	 */
 	protected $parent;
 	
@@ -27,6 +28,11 @@ class Relation {
 	 * @var string Related model class
 	 */
 	protected $related;
+	
+	/**
+	 * @var \Darya\Database\Record Related model instance
+	 */
+	protected $relatedInstance;
 	
 	/**
 	 * @var string Relation type
@@ -58,12 +64,12 @@ class Relation {
 	 * @param string $localKey
 	 * @param string $table
 	 */
-	public function __construct(Model $parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
-		if (!class_exists($related) && !is_subclass_of($related, 'Darya\Mvc\Model')) {
-			throw new Exception("Related class $related does not exist or does not extend Darya\Mvc\Model");
+	public function __construct(Record $parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
+		if (!is_subclass_of($related, 'Darya\Database\Record')) {
+			throw new Exception("Related model not does not extend Darya\Database\Record");
 		}
 		
-		$this->related = $related;
+		$this->related = new $related;
 		$this->parent = $parent;
 		$this->type = $type ?: static::HAS;
 		
@@ -98,13 +104,7 @@ class Relation {
 			return $this->prepareForeignKey(get_class($this->parent));
 		}
 		
-		if (is_subclass_of($this->related, 'Darya\Mvc\Model')) {
-			$related = new $this->related;
-			
-			return $related->key();
-		}
-		
-		return 'id';
+		return $this->related->key();
 	}
 	
 	/**
@@ -133,10 +133,23 @@ class Relation {
 				break;
 			case Relation::BELONGS_TO;
 			case Relation::BELONGS_TO_MANY;
-				$this->foreignKey = $this->prepareForeignKey($this->related);
+				$this->foreignKey = $this->prepareForeignKey(get_class($this->related));
 				$this->localKey = $this->relatedKey();
 				break;
 		}
+	}
+	
+	/**
+	 * Retrieve and optionally set the storage used for the related model.
+	 * 
+	 * Falls back to related storage, then parent storage.
+	 * 
+	 * @param \Darya\Storage\Readable $storage
+	 */
+	public function storage(Readable $storage = null) {
+		$this->storage = $storage ?: $this->storage;
+		
+		return $this->storage ?: $this->related->storage() ?: $this->parent->storage();
 	}
 	
 	/**
@@ -155,6 +168,25 @@ class Relation {
 				return array($this->localKey => $this->parent->get($this->foreignKey));
 				break;
 		}
+	}
+	
+	/**
+	 * Retrieve all related model instances.
+	 * 
+	 * @return array
+	 */
+	public function all() {
+		if ($this->type === Relation::BELONGS_TO_MANY) {
+			// Query relation table, then related model table
+		}
+		
+		$class = get_class($this->related);
+		$related = $this->related;
+		$storage = $this->storage();
+		
+		$data = $storage->read($related->table(), $this->filter());
+		
+		return $class::generate($data);
 	}
 	
 }

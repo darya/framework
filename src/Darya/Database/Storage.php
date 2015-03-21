@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database\DatabaseInterface;
+use Darya\Database\Connection;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
@@ -16,7 +16,7 @@ use Darya\Storage\Searchable;
 class Storage implements Readable, Modifiable, Searchable {
 	
 	/**
-	 * @var \Darya\Database\DatabaseInterface
+	 * @var \Darya\Database\Connection
 	 */
 	protected $connection;
 	
@@ -28,10 +28,10 @@ class Storage implements Readable, Modifiable, Searchable {
 	/**
 	 * Instantiate a database-driven data store.
 	 * 
-	 * @param DatabaseInterface $connection
-	 * @param string            $prefix
+	 * @param Connection $connection
+	 * @param string     $prefix
 	 */
-	public function __construct(DatabaseInterface $connection) {
+	public function __construct(Connection $connection) {
 		$this->connection = $connection;
 	}
 	
@@ -353,6 +353,18 @@ class Storage implements Readable, Modifiable, Searchable {
 		return isset($result['affected']) ? $result['affected'] : 0;
 	}
 	
+	/**
+	 * Search for rows in the given table with fields that match the given query
+	 * and criteria.
+	 * 
+	 * @param string       $resource
+	 * @param string       $query
+	 * @param array|string $fields
+	 * @param array        $filter [optional]
+	 * @param array|string $order  [optional]
+	 * @param int          $limit  [optional]
+	 * @param int          $offset [optional]
+	 */
 	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		if (empty($query) || empty($columns)) {
 			return $this->read($table, $filter, $order, $limit, $offset);
@@ -360,17 +372,17 @@ class Storage implements Readable, Modifiable, Searchable {
 		
 		list($table, $query) = $this->escape(array($table, $query));
 		
-		$searchFilter = array();
+		$search = array();
 		
 		foreach ((array) $columns as $column) {
-			$searchFilter[$this->escape($column) . ' like'] = '%' . $this->escape($query) . '%';
+			$search[$this->escape($column) . ' like'] = '%' . $this->escape($query) . '%';
 		}
 		
-		$where = 'WHERE (' . $this->prepareWhere($searchFilter, 'OR', true) . ')';
-		$filterConditions = $this->prepareWhere($filter, 'AND', true);
+		$where = 'WHERE (' . $this->prepareWhere($search, 'OR', true) . ')';
+		$conditions = $this->prepareWhere($filter, 'AND', true);
 		
-		if (!empty($filterConditions)) {
-			$where .= ' AND ' . $filterConditions;
+		if (!empty($conditions)) {
+			$where .= ' AND ' . $conditions;
 		}
 		
 		$orderby = $this->prepareOrderBy($order);
