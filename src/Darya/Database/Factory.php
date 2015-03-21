@@ -62,11 +62,11 @@ class Factory {
 		
 		if (class_exists($class)) {
 			return new $class(
-				@$options['host'],
-				@$options['username'],
-				@$options['password'],
-				@$options['database'],
-				@$options['port']
+				$options['host'],
+				$options['username'],
+				$options['password'],
+				$options['database'],
+				$options['port']
 			);
 		}
 		

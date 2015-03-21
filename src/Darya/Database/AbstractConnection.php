@@ -53,7 +53,6 @@ abstract class AbstractConnection implements Connection {
 	 * @return mixed
 	 */
 	public function query($query) {
-		var_dump($query);
 		$this->lastQuery = $query;
 	}
 	
