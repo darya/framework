@@ -95,7 +95,7 @@ class Relation {
 	 */
 	protected function relatedKey() {
 		if ($this->type === Relation::BELONGS_TO_MANY) {
-			return strtolower(basename(get_class($this->parent))) . '_id';
+			return $this->prepareForeignKey(get_class($this->parent));
 		}
 		
 		if (is_subclass_of($this->related, 'Darya\Mvc\Model')) {
@@ -108,6 +108,18 @@ class Relation {
 	}
 	
 	/**
+	 * Prepare a foreign key from the given class name.
+	 * 
+	 * @param string $class
+	 * @return string
+	 */
+	protected function prepareForeignKey($class) {
+		return preg_replace_callback('/([A-Z])/', function ($matches) {
+			return '_' . strtolower($matches[1]);
+		}, lcfirst($class)) . '_id';
+	}
+	
+	/**
 	 * Prepare the foreign key based on the direction of the relationship type.
 	 * 
 	 * @return string
@@ -116,12 +128,12 @@ class Relation {
 		switch ($this->type) {
 			case Relation::HAS:
 			case Relation::HAS_MANY:
-				$this->foreignKey = strtolower(basename(get_class($this->parent))) . '_id';
+				$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
 				$this->localKey = $this->parent->key();
 				break;
 			case Relation::BELONGS_TO;
 			case Relation::BELONGS_TO_MANY;
-				$this->foreignKey = strtolower(basename($this->related)) . '_id';
+				$this->foreignKey = $this->prepareForeignKey($this->related);
 				$this->localKey = $this->relatedKey();
 				break;
 		}

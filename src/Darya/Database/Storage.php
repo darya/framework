@@ -122,7 +122,7 @@ class Storage implements Readable, Modifiable, Searchable {
 	 */
 	protected function prepareOrder($column, $direction = null) {
 		$column = $this->escape($column);
-		$direction = !is_null($direction) ? $this->escape($direction) : 'ASC';
+		$direction = $direction !== null ? strtoupper($this->escape($direction)) : 'ASC';
 		
 		return !empty($column) ? "$column $direction" : null;
 	}
