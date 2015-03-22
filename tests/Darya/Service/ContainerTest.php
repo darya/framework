@@ -34,11 +34,14 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$container = new Container(array(
 			'Something'     => 'Something',
 			'SomeInterface' => 'Something',
-			'some'          => 'SomeInterface'
+			'some'          => 'SomeInterface',
+			'third'         => 'SomeInterface',
+			'second'        => 'third',
+			'first'         => 'second'
 		));
 		
-		var_dump($container->some);
 		$this->assertInstanceOf('Something', $container->some);
+		$this->assertInstanceOf('Something', $container->first);
 	}
 
 }
