@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Mvc;
+namespace Darya\View;
 
 /**
  * Darya's interface for views.

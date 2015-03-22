@@ -95,8 +95,6 @@ class Relation {
 	/**
 	 * Retrieve the key of the related model.
 	 * 
-	 * Returns null if the class does not extend Darya\Mvc\Model.
-	 * 
 	 * @return string|null
 	 */
 	protected function relatedKey() {

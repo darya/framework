@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Mvc;
+namespace Darya\Routing;
 
 use Darya\Http\Request;
 use Darya\Http\Response;
@@ -24,12 +24,12 @@ abstract class Controller implements ContainerAware {
 	public $response;
 	
 	/**
-	 * @var \Darya\Service\ContainerInterface
+	 * @var \Darya\Service\Contracts\Container
 	 */
 	public $services;
 	
 	/**
-	 * @var \Darya\Mvc\ViewInterface
+	 * @var \Darya\View\ViewInterface
 	 */
 	public $template;
 	
@@ -52,8 +52,8 @@ abstract class Controller implements ContainerAware {
 	public function setServiceContainer(Container $services) {
 		$this->services = $services;
 		
-		if ($this->services->has('Darya\Mvc\ViewResolver')) {
-			$this->template = $this->services->resolve('Darya\Mvc\ViewResolver')->create();
+		if ($this->services->has('Darya\View\ViewResolver')) {
+			$this->template = $this->services->resolve('Darya\View\ViewResolver')->create();
 		}
 	}
 	

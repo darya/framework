@@ -396,7 +396,7 @@ class Record extends Model {
 	 * Retrieve the given relation.
 	 * 
 	 * @param string $attribute
-	 * @return \Darya\Mvc\Relation
+	 * @return \Darya\ORM\Relation
 	 */
 	public function relation($attribute) {
 		if ($this->hasRelation($attribute)) {
@@ -405,7 +405,7 @@ class Record extends Model {
 			
 			if (!$relation instanceof Relation) {
 				$args = array_merge(array($this), $relation);
-				$reflection = new ReflectionClass('Darya\Mvc\Relation');
+				$reflection = new ReflectionClass('Darya\ORM\Relation');
 				$relation = $reflection->newInstanceArgs((array) $args);
 				$this->relations[$attribute] = $relation;
 			}
