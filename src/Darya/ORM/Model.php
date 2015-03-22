@@ -74,13 +74,12 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Recursively convert a model to an array. If no object is given, the
-	 * model is assumed as the object.
+	 * Recursively convert a model to an array.
 	 * 
 	 * @param mixed $object
 	 * @return array
 	 */
-	public static function convertToArray($model = null) {
+	public static function convertToArray($model) {
 		if (is_object($model)) {
 			if (method_exists($model, 'toArray')) {
 				$model = $model->toArray();
@@ -91,7 +90,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		
 		if (is_array($model)) {
 			foreach ($model as $key => $value) {
-				$model[$key] = $value ? static::toArray($value) : $value;
+				$model[$key] = $value ? static::convertToArray($value) : $value;
 			}
 		}
 		
