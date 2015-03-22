@@ -1,8 +1,8 @@
 <?php
-namespace Darya\Mvc;
+namespace Darya\ORM;
 
 use Exception;
-use Darya\Database\Record;
+use Darya\ORM\Record;
 use Darya\Storage\Readable;
 
 /**
@@ -20,7 +20,7 @@ class Relation {
 	const BELONGS_TO_MANY = 'belongs_to_many';
 	
 	/**
-	 * @var \Darya\Database\Record Parent model
+	 * @var \Darya\ORM\Record Parent model
 	 */
 	protected $parent;
 	
@@ -30,7 +30,7 @@ class Relation {
 	protected $related;
 	
 	/**
-	 * @var \Darya\Database\Record Related model instance
+	 * @var \Darya\ORM\Record Related model instance
 	 */
 	protected $relatedInstance;
 	
@@ -65,8 +65,8 @@ class Relation {
 	 * @param string $table
 	 */
 	public function __construct(Record $parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
-		if (!is_subclass_of($related, 'Darya\Database\Record')) {
-			throw new Exception("Related model not does not extend Darya\Database\Record");
+		if (!is_subclass_of($related, 'Darya\ORM\Record')) {
+			throw new Exception("Related model not does not extend Darya\ORM\Record");
 		}
 		
 		$this->related = new $related;
@@ -177,7 +177,7 @@ class Relation {
 	 */
 	public function all() {
 		if ($this->type === Relation::BELONGS_TO_MANY) {
-			// Query relation table, then related model table
+			// TODO: Query relation table, then related model table
 		}
 		
 		$class = get_class($this->related);

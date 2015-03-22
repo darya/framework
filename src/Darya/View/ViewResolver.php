@@ -2,7 +2,7 @@
 namespace Darya\Mvc;
 
 /**
- * Finds and instantiates Views of the given ViewInterface using the given base
+ * Finds and instantiates views of the given implementation using the given base
  * paths and extensions.
  * 
  * Optionally shares variables and configurations with all templates that are

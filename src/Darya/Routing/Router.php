@@ -7,8 +7,8 @@ use Darya\Events\SubscriberInterface;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
-use Darya\Service\ContainerInterface;
-use Darya\Service\ContainerAwareInterface;
+use Darya\Service\Contracts\Container;
+use Darya\Service\Contracts\ContainerAware;
 
 /**
  * Darya's request router.
@@ -17,7 +17,7 @@ use Darya\Service\ContainerAwareInterface;
  * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router implements ContainerAwareInterface {
+class Router implements ContainerAware {
 	
 	/**
 	 * @var array Regular expression replacements for matching route paths to request URIs
@@ -57,7 +57,7 @@ class Router implements ContainerAwareInterface {
 	protected $eventDispatcher;
 	
 	/**
-	 * @var \Darya\Service\ContainerInterface
+	 * @var \Darya\Service\Contracts\Container
 	 */
 	protected $services;
 	
@@ -175,9 +175,9 @@ class Router implements ContainerAwareInterface {
 	 * Set an optional service container for resolving the dependencies of
 	 * controllers and actions.
 	 * 
-	 * @param \Darya\Service\ContainerInterface $container
+	 * @param \Darya\Service\Contracts\Container $container
 	 */
-	public function setServiceContainer(ContainerInterface $container) {
+	public function setServiceContainer(Container $container) {
 		$this->services = $container;
 	}
 	

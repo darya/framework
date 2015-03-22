@@ -1,6 +1,6 @@
 <?php
-use Darya\Mvc\Model;
-use Darya\Mvc\Relation;
+use Darya\ORM\Record;
+use Darya\ORM\Relation;
 
 class RelationTest extends PHPUnit_Framework_TestCase {
 	
@@ -24,18 +24,18 @@ class RelationTest extends PHPUnit_Framework_TestCase {
 	}
 }
 
-class Page extends Model {
+class Page extends Record {
 	
 }
 
-class Section extends Model {
+class Section extends Record {
 	
 }
 
-class ParentStub extends Model {
+class ParentStub extends Record {
 	
 }
 
-class ChildStub extends Model {
+class ChildStub extends Record {
 	
 }

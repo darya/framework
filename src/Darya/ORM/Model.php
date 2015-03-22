@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Mvc;
+namespace Darya\ORM;
 
 use ArrayAccess;
 use Countable;

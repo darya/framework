@@ -1,8 +1,8 @@
 <?php
-namespace Darya\Mvc;
+namespace Darya\View;
 
-use Darya\Mvc\ViewInterface;
-use Darya\Mvc\ViewResolver;
+use Darya\View\ViewInterface;
+use Darya\View\ViewResolver;
 
 /**
  * Darya's abstract view implementation.
@@ -27,12 +27,12 @@ abstract class View implements ViewInterface {
 	protected static $shared = array();
 	
 	/**
-	 * @var \Darya\Mvc\ViewResolver Shared resolver for selecting template files
+	 * @var \Darya\View\ViewResolver Shared resolver for selecting template files
 	 */
 	protected static $sharedResolver;
 	
 	/**
-	 * @var \Darya\Mvc\ViewResolver Instance resolver for selecting template files
+	 * @var \Darya\View\ViewResolver Instance resolver for selecting template files
 	 */
 	protected $resolver;
 	
@@ -72,7 +72,7 @@ abstract class View implements ViewInterface {
 	/**
 	 * Sets a ViewResolver for all views.
 	 * 
-	 * @param \Darya\Mvc\ViewResolver $resolver
+	 * @param \Darya\View\ViewResolver $resolver
 	 */
 	public static function setSharedResolver(ViewResolver $resolver) {
 		static::$sharedResolver = $resolver;
@@ -114,7 +114,7 @@ abstract class View implements ViewInterface {
 	/**
 	 * Sets a ViewResolver for this view.
 	 * 
-	 * @param \Darya\Mvc\ViewResolver $resolver
+	 * @param \Darya\View\ViewResolver $resolver
 	 */
 	public function setResolver(ViewResolver $resolver) {
 		$this->resolver = $resolver;

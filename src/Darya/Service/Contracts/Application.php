@@ -1,8 +1,8 @@
 <?php
-namespace Darya\Service;
+namespace Darya\Service\Contracts;
 
-use Darya\Service\ContainerInterface;
-use Darya\Service\ProviderInterface;
+use Darya\Service\Contracts\Container;
+use Darya\Service\Contracts\Provider;
 
 /**
  * Darya's application interface.
@@ -11,14 +11,14 @@ use Darya\Service\ProviderInterface;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface ApplicationInterface extends ContainerInterface {
+interface Application extends Container {
 	
 	/**
 	 * Register a service provider with the application.
 	 * 
-	 * @param \Darya\Service\ProviderInterface $provider
+	 * @param \Darya\Service\Contracts\Provider $provider
 	 */
-	public function provide(ProviderInterface $provider);
+	public function provide(Provider $provider);
 	
 	/**
 	 * Boot all registered service providers.

@@ -1,5 +1,5 @@
 <?php
-use Darya\Mvc\Model;
+use Darya\ORM\Model;
 
 class ModelTest extends PHPUnit_Framework_TestCase {
 	

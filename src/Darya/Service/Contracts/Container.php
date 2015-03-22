@@ -1,12 +1,12 @@
 <?php
-namespace Darya\Service;
+namespace Darya\Service\Contracts;
 
 /**
  * Darya's service container interface.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface ContainerInterface {
+interface Container {
 	
 	/**
 	 * Determine whether the container has a service registered for the given

@@ -6,9 +6,9 @@ use \ReflectionClass;
 use \ReflectionMethod;
 use \ReflectionFunction;
 use \ReflectionParameter;
-use Darya\Service\ContainerAwareInterface;
 use Darya\Service\ContainerException;
-use Darya\Service\ContainerInterface;
+use Darya\Service\Contracts\ContainerAware;
+use Darya\Service\Contracts\Container as ContainerInterface;
 
 /**
  * Darya's service container.
@@ -40,8 +40,8 @@ class Container implements ContainerInterface {
 	 */
 	public function __construct(array $services = array()) {
 		$this->register(array(
-			'Darya\Service\ContainerInterface' => $this,
-			'Darya\Service\Container'          => $this
+			'Darya\Service\Contracts\Container' => $this,
+			'Darya\Service\Container'           => $this
 		));
 		
 		$this->register($services);
@@ -238,7 +238,7 @@ class Container implements ContainerInterface {
 		
 		$instance = $reflection->newInstanceArgs($arguments);
 		
-		if ($instance instanceof ContainerAwareInterface) {
+		if ($instance instanceof ContainerAware) {
 			$instance->setServiceContainer($this);
 		}
 		
@@ -247,6 +247,8 @@ class Container implements ContainerInterface {
 	
 	/**
 	 * Merge resolved parameters with the given arguments.
+	 * 
+	 * TODO: Make this smarter.
 	 * 
 	 * @param array $resolved
 	 * @param array $arguments
@@ -290,7 +292,7 @@ class Container implements ContainerInterface {
 	protected function resolveParameter(ReflectionParameter $parameter) {
 		$type = $this->resolveParameterType($parameter);
 		
-		if (!is_null($type)) {
+		if ($type !== null) {
 			if ($this->has($type)) {
 				return $this->resolve($type);
 			}

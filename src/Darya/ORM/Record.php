@@ -1,10 +1,10 @@
 <?php
-namespace Darya\Database;
+namespace Darya\ORM;
 
 use ReflectionClass;
 use Darya\Common\Tools;
-use Darya\Mvc\Model;
-use Darya\Mvc\Relation;
+use Darya\ORM\Model;
+use Darya\ORM\Relation;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;

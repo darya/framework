@@ -1,8 +1,8 @@
 <?php
-namespace Darya\Service;
+namespace Darya\Service\Contracts;
 
-use Darya\Service\ApplicationInterface;
-use Darya\Service\ProviderInterface;
+use Darya\Service\Interfaces\Application as ApplicationInterface;
+use Darya\Service\Interfaces\Provider as ProviderInterface;
 
 /**
  * Darya's application implementation.
