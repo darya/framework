@@ -29,10 +29,23 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertSomething($something);
 	}
+	
+	public function testRecursiveAlias() {
+		$container = new Container(array(
+			'Something'     => 'Something',
+			'SomeInterface' => 'Something',
+			'some'          => 'SomeInterface'
+		));
+		
+		var_dump($container->some);
+		$this->assertInstanceOf('Something', $container->some);
+	}
 
 }
 
-class Something {
+interface SomeInterface {}
+
+class Something implements SomeInterface {
 	public $another;
 	public $else;
 	public function __construct(AnotherThing $another, SomethingElse $else) {

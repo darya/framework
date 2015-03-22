@@ -158,8 +158,16 @@ class Container implements ContainerInterface {
 		
 		if ($concrete instanceof Closure || is_callable($concrete)) {
 			return $this->call($concrete, $arguments ?: array($this));
-		} else if (is_string($concrete) && class_exists($concrete)) {
-			return $this->create($concrete, $arguments);
+		}
+		
+		if (is_string($concrete)) {
+			if ($abstract !== $concrete && $this->has($concrete)) {
+				return $this->resolve($concrete);
+			}
+			
+			if (class_exists($concrete)) {
+				return $this->create($concrete, $arguments);
+			}
 		}
 		
 		return $concrete;
