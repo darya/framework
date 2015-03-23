@@ -30,6 +30,47 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$this->assertSomething($something);
 	}
 	
+	public function testCallDefaultValue() {
+		$container = new Container;
+		
+		$closure = function (Something $something, $value = 'default') {
+			return array($something, $value);
+		};
+		
+		list($something, $value) = $container->call($closure);
+		
+		$this->assertSomething($something);
+		$this->assertEquals('default', $value);
+	}
+	
+	public function testCallArgs() {
+		$container = new Container;
+		
+		$closure = function ($one, $two = 'two', $three = 'three') {
+			return func_get_args();
+		};
+		
+		list($one, $two, $three) = $container->call($closure);
+		
+		$this->assertNull($one);
+		$this->assertEquals('two', $two);
+		$this->assertEquals('three', $three);
+		
+		$result = $container->call($closure, array(
+			'three', 2, 'one'
+		));
+		
+		$this->assertEquals(array('three', 2, 'one'), $result);
+		
+		$result = $container->call($closure, array(
+			'three' => 1,
+			'two' => 2,
+			'one' => 3
+		));
+		
+		$this->assertEquals(array(3, 2, 1), $result);
+	}
+	
 	public function testRecursiveAlias() {
 		$container = new Container(array(
 			'Something'     => 'Something',
