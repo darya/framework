@@ -50,11 +50,9 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 			return func_get_args();
 		};
 		
-		list($one, $two, $three) = $container->call($closure);
+		$result = $container->call($closure);
 		
-		$this->assertNull($one);
-		$this->assertEquals('two', $two);
-		$this->assertEquals('three', $three);
+		$this->assertEquals(array(null, 'two', 'three'), $result);
 		
 		$result = $container->call($closure, array(
 			'three', 2, 'one'
