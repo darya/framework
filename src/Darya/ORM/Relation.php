@@ -57,7 +57,7 @@ class Relation {
 	/**
 	 * Instantiate a new relation.
 	 * 
-	 * @param Model  $parent
+	 * @param Record $parent
 	 * @param string $type
 	 * @param string $related
 	 * @param string $foreignKey
@@ -166,6 +166,43 @@ class Relation {
 				return array($this->localKey => $this->parent->get($this->foreignKey));
 				break;
 		}
+	}
+	
+	/**
+	 * Retrieve one or many related model instances depending on the type.
+	 * 
+	 * @return Record|Record[]
+	 */
+	public function retrieve() {
+		switch ($this->type) {
+			case static::HAS:
+			case static::BELONGS_TO:
+				return $this->one();
+			case static::HAS_MANY:
+			case static::BELONGS_TO_MANY;
+				return $this->all();
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Retrieve one related model instance.
+	 * 
+	 * @return Record
+	 */
+	public function one() {
+		if ($this->type === static::HAS_MANY || $this->type === static::BELONGS_TO_MANY) {
+			return null;
+		}
+		
+		$class = get_class($this->related);
+		$related = $this->related;
+		$storage = $this->storage();
+		
+		$data = $storage->read($related->table(), $this->filter(), null, 1);
+		
+		return new $class($data);
 	}
 	
 	/**

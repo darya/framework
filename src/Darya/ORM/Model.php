@@ -2,6 +2,7 @@
 namespace Darya\ORM;
 
 use ArrayAccess;
+use ArrayIterator;
 use Countable;
 use DateTimeInterface;
 use IteratorAggregate;

@@ -441,7 +441,7 @@ class Record extends Model {
 		
 		if (!$this->hasRelated($attribute)) {
 			$relation = $this->relation($attribute);
-			$this->related[$attribute] = $relation->all();
+			$this->related[$attribute] = $relation->retrieve();
 		}
 		
 		return $this->related[$attribute];
