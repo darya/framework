@@ -45,8 +45,8 @@ class Record extends Model {
 	protected $related = array();
 	
 	/**
-	 * Instantiate a new record with the given data or load an instance from the
-	 * database if the given data is a valid primary key.
+	 * Instantiate a new record with the given data or load an instance from
+	 * storage if the given data is a valid primary key.
 	 * 
 	 * @param mixed $data An array of key-value attributes to set or a primary key to load by
 	 */
@@ -451,7 +451,7 @@ class Record extends Model {
 	 * Set the given related model(s).
 	 * 
 	 * @param string $attribute
-	 * @param string $value
+	 * @param mixed  $value
 	 */
 	protected function setRelated($attribute, $value) {
 		if (!$this->hasRelation($attribute)) {

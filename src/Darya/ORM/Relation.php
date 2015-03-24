@@ -123,18 +123,31 @@ class Relation {
 	 * @return string
 	 */
 	protected function prepareKeys() {
-		switch ($this->type) {
-			case Relation::HAS:
-			case Relation::HAS_MANY:
-				$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
-				$this->localKey = $this->parent->key();
-				break;
-			case Relation::BELONGS_TO;
-			case Relation::BELONGS_TO_MANY;
-				$this->foreignKey = $this->prepareForeignKey(get_class($this->related));
-				$this->localKey = $this->relatedKey();
-				break;
+		if (!$this->inverse()) {
+			$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
+			$this->localKey = $this->parent->key();
+		} else {
+			$this->foreignKey = $this->prepareForeignKey(get_class($this->related));
+			$this->localKey = $this->relatedKey();
 		}
+	}
+	
+	/**
+	 * Determine whether this is an inverse (belongs-to) relation.
+	 * 
+	 * @return bool
+	 */
+	protected function inverse() {
+		return $this->type === static::BELONGS_TO || $this->type === static::BELONGS_TO_MANY;
+	}
+	
+	/**
+	 * Determine whether this is a singular (has or belongs-to one) relation.
+	 * 
+	 * @return bool
+	 */
+	protected function singular() {
+		return $this->type === static::HAS || $this->type === static::BELONGS_TO;
 	}
 	
 	/**
@@ -156,34 +169,24 @@ class Relation {
 	 * @return array
 	 */
 	public function filter() {
-		switch ($this->type) {
-			case Relation::HAS:
-			case Relation::HAS_MANY:
-				return array($this->foreignKey => $this->parent->get($this->localKey));
-				break;
-			case Relation::BELONGS_TO:
-			case Relation::BELONGS_TO_MANY:
-				return array($this->localKey => $this->parent->get($this->foreignKey));
-				break;
+		if ($this->singular()) {
+			return array($this->foreignKey => $this->parent->get($this->localKey));
 		}
+		
+		return array($this->localKey => $this->parent->get($this->foreignKey));
 	}
 	
 	/**
-	 * Retrieve one or many related model instances depending on the type.
+	 * Retrieve one or many related model instances depending on the relation.
 	 * 
 	 * @return Record|Record[]
 	 */
 	public function retrieve() {
-		switch ($this->type) {
-			case static::HAS:
-			case static::BELONGS_TO:
-				return $this->one();
-			case static::HAS_MANY:
-			case static::BELONGS_TO_MANY;
-				return $this->all();
+		if ($this->singular()) {
+			return $this->one();
 		}
 		
-		return null;
+		return $this->all();
 	}
 	
 	/**
@@ -192,15 +195,12 @@ class Relation {
 	 * @return Record
 	 */
 	public function one() {
-		if ($this->type === static::HAS_MANY || $this->type === static::BELONGS_TO_MANY) {
+		if (!$this->singular()) {
 			return null;
 		}
 		
+		$data = $this->storage()->read($this->related->table(), $this->filter(), null, 1);
 		$class = get_class($this->related);
-		$related = $this->related;
-		$storage = $this->storage();
-		
-		$data = $storage->read($related->table(), $this->filter(), null, 1);
 		
 		return new $class($data);
 	}
@@ -215,11 +215,8 @@ class Relation {
 			// TODO: Query relation table, then related model table
 		}
 		
+		$data = $this->storage()->read($this->related->table(), $this->filter());
 		$class = get_class($this->related);
-		$related = $this->related;
-		$storage = $this->storage();
-		
-		$data = $storage->read($related->table(), $this->filter());
 		
 		return $class::generate($data);
 	}
