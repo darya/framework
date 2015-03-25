@@ -23,15 +23,18 @@ class RelationTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('id' => 2), $relation->filter());
 	}
 	
-	public function testTable() {
-		$page = new Page;
+	public function testManyToMany() {
+		$page = new Page(array('id' => 3));
 		$relation = new Relation($page, 'belongs_to_many', 'Section');
 		
 		$this->assertEquals('page_sections', $relation->table());
+		$this->assertEquals(array('page_id' => 3), $relation->filter());
 		
-		$section = new Section;
+		$section = new Section(array('id' => 4));
 		$relation = new Relation($section, 'belongs_to_many', 'Page');
+		
 		$this->assertEquals('page_sections', $relation->table());
+		$this->assertEquals(array('section_id' => 4), $relation->filter());
 	}
 }
 

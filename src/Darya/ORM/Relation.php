@@ -200,6 +200,10 @@ class Relation {
 			return array($this->foreignKey => $this->parent->get($this->localKey));
 		}
 		
+		if ($this->type === static::BELONGS_TO_MANY) {
+			return array($this->localKey => $this->parent->id());
+		}
+		
 		return array($this->localKey => $this->parent->get($this->foreignKey));
 	}
 	
@@ -239,10 +243,22 @@ class Relation {
 	 */
 	public function all() {
 		if ($this->type === static::BELONGS_TO_MANY) {
-			// TODO: Query relation table, then related model table
+			$relations = $this->storage()->read($this->table, $this->filter());
+			
+			$related = array();
+			
+			foreach ($relations as $relation) {
+				$related[] = $relation[$this->foreignKey];
+			}
+			
+			$data = $this->storage()->read($this->related->table(), array(
+				$this->related->key() => $related
+			));
+		} else {
+			$data = $this->storage()->read($this->related->table(), $this->filter());
 		}
 		
-		$data = $this->storage()->read($this->related->table(), $this->filter());
+		
 		$class = get_class($this->related);
 		
 		return $class::generate($data);
