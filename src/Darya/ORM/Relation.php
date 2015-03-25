@@ -8,7 +8,7 @@ use Darya\Storage\Readable;
 /**
  * Darya's entity relationship representation.
  * 
- * TODO: Give each relation type its own class.
+ * TODO: Give each relation type their own classes.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -45,7 +45,7 @@ class Relation {
 	protected $localKey;
 	
 	/**
-	 * @var string Table name for "belongs-to-many" relations
+	 * @var string Table name for "many-to-many" relations
 	 */
 	protected $table;
 	
@@ -68,11 +68,12 @@ class Relation {
 		$this->parent = $parent;
 		$this->type = $type ?: static::HAS;
 		
-		$this->prepareKeys();
+		$this->setDefaultKeys();
+		$this->setDefaultTable();
 		
 		$this->foreignKey = $foreignKey ?: $this->foreignKey;
 		$this->localKey = $localKey ?: $this->localKey;
-		$this->table = $table;
+		$this->table = $table ?: $this->table;
 	}
 	
 	/**
@@ -101,23 +102,39 @@ class Relation {
 	}
 	
 	/**
+	 * Retrieve the table of a many-to-many relation.
+	 */
+	public function table() {
+		return $this->table;
+	}
+	
+	/**
+	 * Lowercase and delimit the given PascalCase class name.
+	 * 
+	 * @param string $class
+	 * @return string
+	 */
+	protected function delimitClass($class) {
+		return preg_replace_callback('/([A-Z])/', function ($matches) {
+			return '_' . strtolower($matches[1]);
+		}, lcfirst($class));
+	}
+	
+	/**
 	 * Prepare a foreign key from the given class name.
 	 * 
 	 * @param string $class
 	 * @return string
 	 */
 	protected function prepareForeignKey($class) {
-		return preg_replace_callback('/([A-Z])/', function ($matches) {
-			return '_' . strtolower($matches[1]);
-		}, lcfirst($class)) . '_id';
+		return $this->delimitClass($class) . '_id';
 	}
 	
 	/**
-	 * Prepare the foreign key based on the direction of the relationship type.
-	 * 
-	 * @return string
+	 * Set the default foreign and local keys based on the direction of the
+	 * relationship type.
 	 */
-	protected function prepareKeys() {
+	protected function setDefaultKeys() {
 		if (!$this->inverse()) {
 			$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
 			$this->localKey = $this->parent->key();
@@ -125,6 +142,21 @@ class Relation {
 			$this->foreignKey = $this->prepareForeignKey(get_class($this->related));
 			$this->localKey = $this->relatedKey();
 		}
+	}
+	
+	/**
+	 * Set the default many-to-many relation table name.
+	 * 
+	 * Sorts parent and related class alphabetically.
+	 */
+	protected function setDefaultTable() {
+		$parent = $this->delimitClass(get_class($this->parent));
+		$related = $this->delimitClass(get_class($this->related));
+		
+		$names = array($parent, $related);
+		sort($names);
+		
+		$this->table = implode('_', $names) . 's';
 	}
 	
 	/**

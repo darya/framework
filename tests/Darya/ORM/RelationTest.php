@@ -22,6 +22,17 @@ class RelationTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(array('id' => 2), $relation->filter());
 	}
+	
+	public function testTable() {
+		$page = new Page;
+		$relation = new Relation($page, 'belongs_to_many', 'Section');
+		
+		$this->assertEquals('page_sections', $relation->table());
+		
+		$section = new Section;
+		$relation = new Relation($section, 'belongs_to_many', 'Page');
+		$this->assertEquals('page_sections', $relation->table());
+	}
 }
 
 class Page extends Record {
