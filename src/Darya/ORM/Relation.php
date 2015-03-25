@@ -164,7 +164,7 @@ class Relation {
 	 * @return array
 	 */
 	public function filter() {
-		if ($this->singular()) {
+		if (!$this->inverse()) {
 			return array($this->foreignKey => $this->parent->get($this->localKey));
 		}
 		
@@ -197,7 +197,7 @@ class Relation {
 		$data = $this->storage()->read($this->related->table(), $this->filter(), null, 1);
 		$class = get_class($this->related);
 		
-		return new $class($data);
+		return new $class(count($data) ? $data[0] : null);
 	}
 	
 	/**
