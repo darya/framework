@@ -25,14 +25,9 @@ class Relation {
 	protected $parent;
 	
 	/**
-	 * @var string Related model class
+	 * @var \Darya\ORM\Record Related model
 	 */
 	protected $related;
-	
-	/**
-	 * @var \Darya\ORM\Record Related model instance
-	 */
-	protected $relatedInstance;
 	
 	/**
 	 * @var string Relation type
@@ -50,7 +45,7 @@ class Relation {
 	protected $localKey;
 	
 	/**
-	 * @var string Table name for many-to-many relations
+	 * @var string Table name for "belongs-to-many" relations
 	 */
 	protected $table;
 	
@@ -98,7 +93,7 @@ class Relation {
 	 * @return string|null
 	 */
 	protected function relatedKey() {
-		if ($this->type === Relation::BELONGS_TO_MANY) {
+		if ($this->type === static::BELONGS_TO_MANY) {
 			return $this->prepareForeignKey(get_class($this->parent));
 		}
 		
@@ -211,7 +206,7 @@ class Relation {
 	 * @return array
 	 */
 	public function all() {
-		if ($this->type === Relation::BELONGS_TO_MANY) {
+		if ($this->type === static::BELONGS_TO_MANY) {
 			// TODO: Query relation table, then related model table
 		}
 		

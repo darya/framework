@@ -5,7 +5,7 @@ if (is_file(__DIR__ . '/../../autoload.php')) {
 }
 
 // Darya's autoloader
-include 'src/Darya/Common/Autoloader.php';
+include __DIR__ . '/src/Darya/Common/Autoloader.php';
 
 use Darya\Common\Autoloader;
 
