@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Service;
+namespace Darya\Service\Contracts;
 
 use Darya\Service\Contracts\Container;
 
