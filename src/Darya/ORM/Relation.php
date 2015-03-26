@@ -251,9 +251,9 @@ class Relation {
 				$related[] = $relation[$this->foreignKey];
 			}
 			
-			$data = $this->storage()->read($this->related->table(), array(
+			$data = $related ? $this->storage()->read($this->related->table(), array(
 				$this->related->key() => $related
-			));
+			)) : array();
 		} else {
 			$data = $this->storage()->read($this->related->table(), $this->filter());
 		}
