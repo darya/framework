@@ -16,7 +16,7 @@ class HasMany extends Has {
 	 * @return Record[]
 	 */
 	public function retrieve() {
-		$this->all();
+		return $this->all();
 	}
 	
 }

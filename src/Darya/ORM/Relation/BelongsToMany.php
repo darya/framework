@@ -58,8 +58,8 @@ class BelongsToMany extends Relation {
 			return;
 		}
 		
-		$parent = $this->delimitClass(basename(get_class($this->parent)));
-		$target = $this->delimitClass(basename(get_class($this->target)));
+		$parent = $this->delimitClass(get_class($this->parent));
+		$target = $this->delimitClass(get_class($this->target));
 		
 		$names = array($parent, $target);
 		sort($names);

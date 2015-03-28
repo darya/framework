@@ -110,7 +110,7 @@ abstract class Relation {
 	protected function delimitClass($class) {
 		return preg_replace_callback('/([A-Z])/', function ($matches) {
 			return '_' . strtolower($matches[1]);
-		}, lcfirst($class));
+		}, lcfirst(basename($class)));
 	}
 	
 	/**
