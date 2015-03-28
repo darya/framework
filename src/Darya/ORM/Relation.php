@@ -2,17 +2,16 @@
 namespace Darya\ORM;
 
 use Exception;
+use ReflectionClass;
 use Darya\ORM\Record;
 use Darya\Storage\Readable;
 
 /**
- * Darya's entity relationship representation.
- * 
- * TODO: Give each relation type their own classes.
+ * Darya's abstract entity relation.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Relation {
+abstract class Relation {
 	
 	const HAS             = 'has';
 	const HAS_MANY        = 'has_many';
@@ -25,14 +24,9 @@ class Relation {
 	protected $parent;
 	
 	/**
-	 * @var \Darya\ORM\Record Related model
+	 * @var \Darya\ORM\Record Target model
 	 */
-	protected $related;
-	
-	/**
-	 * @var string Relation type
-	 */
-	protected $type;
+	protected $target;
 	
 	/**
 	 * @var string Foreign key on the "belongs-to" model
@@ -45,35 +39,54 @@ class Relation {
 	protected $localKey;
 	
 	/**
-	 * @var string Table name for "many-to-many" relations
+	 * @var array The related instances
 	 */
-	protected $table;
+	protected $related = array();
+	
+	/**
+	 * Create a new relation of the given type using the given arguments.
+	 * 
+	 * @param string $type
+	 * @param array  $arguments
+	 * @return Relation
+	 */
+	public static function factory($type = self::HAS, array $arguments) {
+		switch ($type) {
+			case static::HAS_MANY:
+				$class = 'Darya\ORM\Relation\HasMany';
+				break;
+			case static::BELONGS_TO:
+				$class = 'Darya\ORM\Relation\BelongsTo';
+				break;
+			case static::BELONGS_TO_MANY:
+				$class = 'Darya\ORM\Relation\BelongsToMany';
+				break;
+			default:
+				$class = 'Darya\ORM\Relation\Has';
+		}
+		
+		$reflection = new ReflectionClass($class);
+		
+		return $reflection->newInstanceArgs($arguments);
+	}
 	
 	/**
 	 * Instantiate a new relation.
 	 * 
 	 * @param Record $parent
-	 * @param string $type
-	 * @param string $related
+	 * @param string $target
 	 * @param string $foreignKey
-	 * @param string $localKey
-	 * @param string $table
 	 */
-	public function __construct(Record $parent, $type, $related, $foreignKey = null, $localKey = null, $table = null) {
-		if (!is_subclass_of($related, 'Darya\ORM\Record')) {
-			throw new Exception("Related model not does not extend Darya\ORM\Record");
+	public function __construct(Record $parent, $target, $foreignKey = null) {
+		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
+			throw new Exception("Child class not does not extend Darya\ORM\Record");
 		}
 		
-		$this->related = new $related;
 		$this->parent = $parent;
-		$this->type = $type ?: static::HAS;
+		$this->target = !is_object($target) ? new $target : $target;
 		
+		$this->foreignKey = $foreignKey;
 		$this->setDefaultKeys();
-		$this->setDefaultTable();
-		
-		$this->foreignKey = $foreignKey ?: $this->foreignKey;
-		$this->localKey = $localKey ?: $this->localKey;
-		$this->table = $table ?: $this->table;
 	}
 	
 	/**
@@ -86,26 +99,6 @@ class Relation {
 		if (property_exists($this, $property)) {
 			return $this->$property;
 		}
-	}
-	
-	/**
-	 * Retrieve the key of the related model.
-	 * 
-	 * @return string|null
-	 */
-	protected function relatedKey() {
-		if ($this->type === static::BELONGS_TO_MANY) {
-			return $this->prepareForeignKey(get_class($this->parent));
-		}
-		
-		return $this->related->key();
-	}
-	
-	/**
-	 * Retrieve the table of a many-to-many relation.
-	 */
-	public function table() {
-		return $this->table;
 	}
 	
 	/**
@@ -131,63 +124,21 @@ class Relation {
 	}
 	
 	/**
-	 * Set the default foreign and local keys based on the direction of the
-	 * relationship type.
+	 * Set the default keys for the relation if they haven't already been set.
 	 */
-	protected function setDefaultKeys() {
-		if (!$this->inverse()) {
-			$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
-			$this->localKey = $this->parent->key();
-		} else {
-			$this->foreignKey = $this->prepareForeignKey(get_class($this->related));
-			$this->localKey = $this->relatedKey();
-		}
-	}
+	abstract protected function setDefaultKeys();
 	
 	/**
-	 * Set the default many-to-many relation table name.
+	 * Retrieve and optionally set the storage used for the target model.
 	 * 
-	 * Sorts parent and related class alphabetically.
-	 */
-	protected function setDefaultTable() {
-		$parent = $this->delimitClass(get_class($this->parent));
-		$related = $this->delimitClass(get_class($this->related));
-		
-		$names = array($parent, $related);
-		sort($names);
-		
-		$this->table = implode('_', $names) . 's';
-	}
-	
-	/**
-	 * Determine whether this is an inverse (belongs-to) relation.
-	 * 
-	 * @return bool
-	 */
-	protected function inverse() {
-		return $this->type === static::BELONGS_TO || $this->type === static::BELONGS_TO_MANY;
-	}
-	
-	/**
-	 * Determine whether this is a singular (has or belongs-to one) relation.
-	 * 
-	 * @return bool
-	 */
-	protected function singular() {
-		return $this->type === static::HAS || $this->type === static::BELONGS_TO;
-	}
-	
-	/**
-	 * Retrieve and optionally set the storage used for the related model.
-	 * 
-	 * Falls back to related storage, then parent storage.
+	 * Falls back to target model storage, then parent model storage.
 	 * 
 	 * @param \Darya\Storage\Readable $storage
 	 */
 	public function storage(Readable $storage = null) {
 		$this->storage = $storage ?: $this->storage;
 		
-		return $this->storage ?: $this->related->storage() ?: $this->parent->storage();
+		return $this->storage ?: $this->target->storage() ?: $this->parent->storage();
 	}
 	
 	/**
@@ -196,29 +147,24 @@ class Relation {
 	 * @return array
 	 */
 	public function filter() {
-		if (!$this->inverse()) {
-			return array($this->foreignKey => $this->parent->get($this->localKey));
-		}
-		
-		if ($this->type === static::BELONGS_TO_MANY) {
-			return array($this->localKey => $this->parent->id());
-		}
-		
-		return array($this->localKey => $this->parent->get($this->foreignKey));
+		return array($this->foreignKey => $this->parent->id());
 	}
 	
 	/**
-	 * Retrieve one or many related model instances depending on the relation.
+	 * Load related model data from storage.
+	 * 
+	 * @return array
+	 */
+	public function load($limit = null) {
+		return $this->storage()->read($this->target->table(), $this->filter(), null, $limit);
+	}
+	
+	/**
+	 * Retrieve one or many related model instances, depending on the relation.
 	 * 
 	 * @return Record|Record[]
 	 */
-	public function retrieve() {
-		if ($this->singular()) {
-			return $this->one();
-		}
-		
-		return $this->all();
-	}
+	abstract public function retrieve();
 	
 	/**
 	 * Retrieve one related model instance.
@@ -226,42 +172,28 @@ class Relation {
 	 * @return Record
 	 */
 	public function one() {
-		if (!$this->singular()) {
-			return null;
+		if (!$this->related) {
+			$data = $this->load(1);
+			$class = get_class($this->target);
+			$this->related[] = count($data) ? new $class($data[0]) : null;
 		}
 		
-		$data = $this->storage()->read($this->related->table(), $this->filter(), null, 1);
-		$class = get_class($this->related);
-		
-		return new $class(count($data) ? $data[0] : null);
+		return $this->related[0];
 	}
 	
 	/**
 	 * Retrieve all related model instances.
 	 * 
-	 * @return array
+	 * @return Record[]
 	 */
 	public function all() {
-		if ($this->type === static::BELONGS_TO_MANY) {
-			$relations = $this->storage()->read($this->table, $this->filter());
-			
-			$related = array();
-			
-			foreach ($relations as $relation) {
-				$related[] = $relation[$this->foreignKey];
-			}
-			
-			$data = $related ? $this->storage()->read($this->related->table(), array(
-				$this->related->key() => $related
-			)) : array();
-		} else {
-			$data = $this->storage()->read($this->related->table(), $this->filter());
+		if (!$this->related) {
+			$data = $this->load();
+			$class = get_class($this->target);
+			$this->related = $class::generate($data);
 		}
 		
-		
-		$class = get_class($this->related);
-		
-		return $class::generate($data);
+		return $this->related;
 	}
 	
 }

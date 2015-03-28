@@ -74,7 +74,7 @@ class Record extends Model {
 	 */
 	public function get($attribute) {
 		if ($this->hasRelation($attribute)) {
-			return $this->getRelated($attribute);
+			return $this->related($attribute);
 		}
 		
 		return parent::get($attribute);
@@ -403,9 +403,9 @@ class Record extends Model {
 			$relation = $this->relations[$attribute];
 			
 			if (!$relation instanceof Relation) {
+				$type = array_shift($relation);
 				$args = array_merge(array($this), $relation);
-				$reflection = new ReflectionClass('Darya\ORM\Relation');
-				$relation = $reflection->newInstanceArgs((array) $args);
+				$relation = Relation::factory($type, $args);
 				$this->relations[$attribute] = $relation;
 			}
 			
@@ -431,7 +431,7 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return array
 	 */
-	public function getRelated($attribute) {
+	public function related($attribute) {
 		if (!$this->hasRelation($attribute)) {
 			return null;
 		}
@@ -464,6 +464,18 @@ class Record extends Model {
 		}
 		
 		$this->related[$this->prepareAttribute($attribute)] = $value;
+	}
+	
+	/**
+	 * Retrieve a relation. Shortcut for `relation()`.
+	 * 
+	 * @param string $method
+	 * @param array  $arguments
+	 */
+	public function __call($method, $arguments) {
+		if ($this->hasRelation($method)) {
+			return $this->relation($method);
+		}
 	}
 	
 }
