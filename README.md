@@ -60,20 +60,72 @@ $autoloader->namespaces(array(
 
 ### Services
 
-Darya's service container can be used to manage dependencies within an
-application.
+Darya's service container can be used to manage and resolve dependencies within
+an application.
+
+#### Resolving dependencies automatically
+
+Out of the box, the container can be used to invoke callables or instantiate
+classes with their type-hinted dependencies automatically resolved.
+
+##### Invoking callables
+
+```php
+use Darya\Service\Container;
+
+class Foo {
+	
+	public $bar;
+	
+	public function __construct(Bar $bar) {
+		$this->bar = $bar;
+	}
+}
+
+class Bar {
+	
+	public $baz;
+	
+	public function __construct(Baz $baz) {
+		$this->baz = Baz;
+	}
+	
+}
+
+class Baz {}
+
+$container = new Container;
+
+$closure = function (Foo $foo) {
+	return $foo;
+};
+
+$foo = $container->call($closure);
+
+$foo instanceof Foo;           // true
+$foo->bar instanceof Bar;      // true
+$foo->bar->baz instanceof Baz; // true
+```
+
+##### Instantiating classes
+
+```php
+$foo = $container->create('Foo');
+
+$foo instanceof Foo;           // true
+$foo->bar instanceof Bar;      // true
+$foo->bar->baz instanceof Baz; // true
+```
 
 #### Registering services and aliases
 
-Services can be values, instances (objects), or closures that define how an
-object is instantiated.
+Services can be values, objects, or closures that define how an object is
+instantiated.
 
 You can optionally define aliases for these services after the service
 definitions themselves.
 
 ```php
-use Darya\Service\Container;
-
 $container = new Container;
 
 $container->register(array(
@@ -89,17 +141,21 @@ $container->register(array(
 #### Resolving services
 
 ```php
-// Fetch services as they were registered
-$container->get('some');     // App\SomeImplementation
-$container->get('another');  // Closure
+// Resolve services by class or interface
+$container->resolve('App\SomeInterface');    // App/SomeImplementation
+$container->resolve('App\AnotherInterface'); // App/AnotherImplementation
 
-// Resolve services
+// Resolve services by alias
 $container->resolve('some');    // App\SomeImplementation
 $container->resolve('another'); // App\AnotherImplementation
 
 // Shorter syntax
 $container->some;    // App\SomeImplementation
 $container->another; // App\AnotherImplementation
+
+// Fetch services as they were registered
+$container->get('some');     // App\SomeImplementation
+$container->get('another');  // Closure
 
 // Closures become lazy-loaded instances
 $container->another === $container->another; // true

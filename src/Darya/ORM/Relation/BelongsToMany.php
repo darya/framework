@@ -7,6 +7,8 @@ use Darya\ORM\Relation;
 /**
  * Darya's many-to-many entity relation.
  * 
+ * TODO: Association, dissociation, syncing.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class BelongsToMany extends Relation {
@@ -102,6 +104,11 @@ class BelongsToMany extends Relation {
 		));
 	}
 	
+	/**
+	 * Retrieve the related models.
+	 * 
+	 * @return Record[]
+	 */
 	public function retrieve() {
 		return $this->all();
 	}

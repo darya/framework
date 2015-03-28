@@ -3,14 +3,20 @@ namespace Darya\ORM\Relation;
 
 use Darya\ORM\Relation;
 
+/**
+ * Darya's has-many entity relation.
+ * 
+ * @author Chris Andrew <chris@hexus.io>
+ */
 class HasMany extends Has {
 	
+	/**
+	 * Retrieve the related models.
+	 * 
+	 * @return Record[]
+	 */
 	public function retrieve() {
-		if (!$this->related) {
-			$this->related = $this->all();
-		}
-		
-		return $this->related;
+		$this->all();
 	}
 	
 }

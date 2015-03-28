@@ -3,6 +3,11 @@ namespace Darya\ORM\Relation;
 
 use Darya\ORM\Relation;
 
+/**
+ * Darya's has-one entity relation.
+ * 
+ * @author Chris Andrew <chris@hexus.io>
+ */
 class Has extends Relation {
 	
 	/**
