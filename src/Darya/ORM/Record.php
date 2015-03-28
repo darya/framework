@@ -422,7 +422,9 @@ class Record extends Model {
 	 * @return bool
 	 */
 	protected function hasRelated($attribute) {
-		return $this->hasRelation($attribute) && isset($this->related[$this->prepareAttribute($attribute)]);
+		$attribute = $this->prepareAttribute($attribute);
+		
+		return $this->hasRelation($attribute) && $this->relation($attribute)->count();
 	}
 	
 	/**
@@ -438,12 +440,9 @@ class Record extends Model {
 		
 		$attribute = $this->prepareAttribute($attribute);
 		
-		if (!$this->hasRelated($attribute)) {
-			$relation = $this->relation($attribute);
-			$this->related[$attribute] = $relation->retrieve();
-		}
+		$relation = $this->relation($attribute);
 		
-		return $this->related[$attribute];
+		return $relation->retrieve();
 	}
 	
 	/**

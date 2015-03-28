@@ -196,4 +196,23 @@ abstract class Relation {
 		return $this->related;
 	}
 	
+	/**
+	 * Count the number of related model instances.
+	 * 
+	 * @return int
+	 */
+	public function count() {
+		if ($this->related) {
+			return array_reduce($this->related, function($carry, $item) {
+				if ($item instanceof Record) {
+					$carry++;
+				}
+				
+				return $carry;
+			}, 0);
+		}
+		
+		return $this->storage()->count($this->target->table(), $this->filter());
+	}
+	
 }
