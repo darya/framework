@@ -85,7 +85,7 @@ class Response {
 	 * @return int
 	 */
 	public function status($status) {
-		if (!is_null($status)) {
+		if (is_numeric($status)) {
 			$this->status = $status;
 		}
 		
@@ -98,7 +98,7 @@ class Response {
 	 * @param string $header
 	 */
 	public function header($header) {
-		if (!is_null($header) && strlen($header)) {
+		if ($header !== null && strlen($header)) {
 			list($name, $value) = explode(':', $header, 2);
 			$this->headers[$name] = $value;
 		}

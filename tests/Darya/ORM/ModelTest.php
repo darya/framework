@@ -43,6 +43,28 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertFalse(isset($model->stub_id));
 	}
 	
+	public function testAttributeMutation() {
+		$model = new AttributeStub(array(
+			'value'   => 'something',
+			'date'    => '2015-03-28 23:54',
+			'options' => array('some' => 'value')
+		));
+		
+		$this->assertTrue(isset($model->value));
+		$this->assertTrue(isset($model->date));
+		$this->assertTrue(isset($model->options));
+		
+		$this->assertEquals('something', $model->value);
+		$this->assertEquals('2015-03-28 23:54:00', $model->date);
+		$this->assertEquals(array('some' => 'value'), $model->options);
+		
+		$this->assertEquals(array(
+			'value'   => 'something',
+			'date'    => strtotime('2015-03-28 23:54'),
+			'options' => '{"some":"value"}'
+		), $model->data());
+	}
+	
 }
 
 class ModelStub extends Model {
@@ -52,5 +74,15 @@ class ModelStub extends Model {
 class KeyStub extends Model {
 	
 	protected $key = 'stub_id';
+	
+}
+
+class AttributeStub extends Model {
+	
+	protected $attributes = array(
+		'value' => 'string',
+		'date'  => 'datetime',
+		'options'  => 'json'
+	);
 	
 }

@@ -185,11 +185,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			$type = $this->attributes[$attribute];
 			
 			switch ($type) {
+				case 'date':
+				case 'datetime':
+				case 'time':
+					return date($this->dateFormat(), $value);
 				case 'array':
 				case 'json':
 					return json_decode($value, true);
 					break;
 			}
+			
+			return $value;
 		}
 		
 		return null;
@@ -220,8 +226,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 				if ($value instanceof DateTimeInterface) {
 					$value = $value->getTimestamp();
 				}
-				
-				$value = date($this->dateFormat(), (int) $value);
 				
 				break;
 			case 'array':

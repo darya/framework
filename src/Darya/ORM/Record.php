@@ -458,7 +458,7 @@ class Record extends Model {
 		
 		$relation = $this->relation($attribute);
 		
-		if (!$value instanceof $relation->model && !is_array($value)) {
+		if ($value !== null && !$value instanceof $relation->model && !is_array($value)) {
 			return;
 		}
 		
@@ -472,9 +472,7 @@ class Record extends Model {
 	 * @param array  $arguments
 	 */
 	public function __call($method, $arguments) {
-		if ($this->hasRelation($method)) {
-			return $this->relation($method);
-		}
+		return $this->relation($method);
 	}
 	
 }
