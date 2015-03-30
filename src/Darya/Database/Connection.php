@@ -37,9 +37,9 @@ interface Connection {
 	public function escape($string);
 	
 	/**
-	 * Determine whether there was an error with the last operation.
+	 * Retrieve any error that occurred with the last operation.
 	 * 
-	 * @return array|string|bool
+	 * @return array
 	 */
 	public function error();
 	

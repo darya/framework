@@ -305,12 +305,14 @@ class Record extends Model {
 	public function save() {
 		if ($this->validate()) {
 			$storage = $this->storage();
+			$class = get_class($this);
 			
 			if (!$storage instanceof Modifiable) {
-				throw new \Exception(get_class($this) . ' storage is not modifiable');
+				throw new \Exception($class . ' storage is not modifiable');
 			}
 			
 			$data = $this->prepareData();
+			$entity = strtolower(basename($class));
 			
 			if (!$this->id()) {
 				$id = $storage->create($this->table(), $data);
@@ -321,7 +323,7 @@ class Record extends Model {
 					return true;
 				}
 				
-				$this->errors['storage'] = 'Failed to save record to storage';
+				$this->errors['storage'] = "Failed to save $entity to storage";
 				
 				return false;
 			} else {
@@ -331,7 +333,7 @@ class Record extends Model {
 					return true;
 				}
 				
-				$this->errors['storage'] = 'Failed to update record in storage';
+				$this->errors['storage'] = "Failed to update $entity in storage";
 				
 				return false;
 			}

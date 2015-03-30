@@ -32,4 +32,12 @@ interface Modifiable {
 	 */
 	public function delete($resource, array $filter = array(), $limit = null);
 	
+	
+	/**
+	 * Retrieve any errors that occured during the last modification attempt.
+	 * 
+	 * @return array
+	 */
+	public function errors();
+	
 }

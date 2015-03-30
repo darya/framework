@@ -354,6 +354,17 @@ class Storage implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
+	 * Retrieve any errors that occured with the last operation.
+	 * 
+	 * @return array
+	 */
+	public function errors() {
+		$error = $this->connection->error();
+		
+		return $error['error'];
+	}
+	
+	/**
 	 * Search for rows in the given table with fields that match the given query
 	 * and criteria.
 	 * 
