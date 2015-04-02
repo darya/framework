@@ -303,6 +303,8 @@ class Storage implements Readable, Modifiable, Searchable {
 	 * Refuses to perform the operation if the given filter evaluates to an
 	 * empty where clause.
 	 * 
+	 * **Note:** updating rows with the same data will return 0.
+	 * 
 	 * @param string $table
 	 * @param array  $data
 	 * @param array  $filter

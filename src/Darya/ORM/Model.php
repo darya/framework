@@ -41,21 +41,18 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $key;
 	
 	/**
+	 * @var array Attributes that have been modified since instantiation
+	 */
+	protected $changed = array();
+	
+	/**
 	 * Instantiate a new model.
 	 * 
 	 * @param array $data [optional] Set of attributes to set on the model
 	 */
 	public function __construct(array $data = null) {
 		$this->set($data);
-	}
-	
-	/**
-	 * Retrieve the base name of the current class.
-	 * 
-	 * @return string
-	 */
-	public static function basename() {
-		return basename(str_replace('\\', '/', get_class(new static)));
+		$this->changed = array();
 	}
 	
 	/**
@@ -257,17 +254,33 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Set the value of an attribute on the model.
 	 * 
-	 * @param string $key
-	 * @param mixed  $value [optional]
+	 * If key is an array it will be forwarded to `setMany()`.
+	 * 
+	 * @param array|string $key
+	 * @param mixed        $value [optional]
 	 */
 	public function set($key, $value = null) {
 		if (is_array($key)) {
-			foreach ($key as $attribute => $value) {
-				$this->set($attribute, $value);
-			}
-		} else {
-			$attribute = $this->prepareAttribute($key);
-			$this->data[$attribute] = $this->mutate($attribute, $value);
+			return $this->setMany($key);
+		}
+		
+		$attribute = $this->prepareAttribute($key);
+		$value     = $this->mutate($attribute, $value);
+		
+		if (!$this->has($attribute) || $value !== $this->data[$attribute]) {
+			$this->data[$attribute] = $value;
+			$this->changed = array_merge($this->changed, array($attribute));
+		}
+	}
+	
+	/**
+	 * Set the values of the given attributes on the model.
+	 * 
+	 * @param array $values
+	 */
+	public function setMany($values) {
+		foreach ($values as $attribute => $value) {
+			$this->set($attribute, $value);
 		}
 	}
 	
@@ -292,16 +305,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Set the `created` and `modified` attributes using the given timestamp.
 	 * 
-	 * Defaults to the current system time if none is given.
+	 * Defaults to the current system time if none is given. Only sets `created`
+	 * attribute if `id` evaluates to false.
 	 * 
-	 * @param int $time [optional] Timestamp
+	 * @param int $time [optional]
 	 */
-	public function setCreatedModified($time = null) {
+	public function setTimestamps($time = null) {
 		$time = $time ?: time();
-		$this->setDate($this->prepareAttribute('modified'), $time);
+		$this->set('modified', $time);
 		
 		if (!$this->id()) {
-			$this->setDate($this->prepareAttribute('created'), $time);
+			$this->set('created', $time);
 		}
 	}
 	

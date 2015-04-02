@@ -50,11 +50,11 @@ class Record extends Model {
 	 * @param mixed $data An array of key-value attributes to set or a primary key to load by
 	 */
 	public function __construct($data = null) {
-		if (is_array($data)) {
-			$this->set($data);
-		} else if(is_numeric($data) || is_string($data)) {
+		if (is_numeric($data) || is_string($data)) {
 			$this->data = static::load($data);
 		}
+		
+		parent::__construct($data);
 	}
 	
 	/**
@@ -110,7 +110,7 @@ class Record extends Model {
 		
 		return preg_replace_callback('/([A-Z])/', function ($matches) {
 			return '_' . strtolower($matches[1]);
-		}, lcfirst(static::basename())) . 's';
+		}, lcfirst(basename(get_class($this)))) . 's';
 	}
 	
 	/**
@@ -151,7 +151,7 @@ class Record extends Model {
 	protected function prepareData() {
 		$types = $this->attributes;
 		
-		$data = array_intersect_key($this->data, $this->attributes) ?: $this->data;
+		$data = array_intersect_key($this->data, array_flip($this->changed));
 		
 		foreach ($data as $attribute => $value) {
 			if (isset($types[$attribute])) {
@@ -298,8 +298,6 @@ class Record extends Model {
 	/**
 	 * Save the record to storage.
 	 * 
-	 * TODO: $storage->error();
-	 * 
 	 * @return bool
 	 */
 	public function save() {
@@ -308,7 +306,7 @@ class Record extends Model {
 			$class = get_class($this);
 			
 			if (!$storage instanceof Modifiable) {
-				throw new \Exception($class . ' storage is not modifiable');
+				throw new \Exception(basename($class) . ' storage is not modifiable');
 			}
 			
 			$data = $this->prepareData();
@@ -322,21 +320,17 @@ class Record extends Model {
 					
 					return true;
 				}
-				
-				$this->errors['storage'] = "Failed to save $entity to storage";
-				
-				return false;
 			} else {
-				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
+				$updated = $data ? $storage->update($this->table(), $data, array($this->key() => $this->id()), 1) : true;
 				
 				if ($updated) {
 					return true;
 				}
-				
-				$this->errors['storage'] = "Failed to update $entity in storage";
-				
-				return false;
 			}
+			
+			$verb = $this->id() ? "update" : "save";
+			$this->errors['storage'] = "Failed to $verb $entity";
+			$this->errors['storage'] .= ': ' .$this->storage()->errors() ?: null;
 		}
 		
 		return false;
@@ -460,7 +454,7 @@ class Record extends Model {
 		
 		$relation = $this->relation($attribute);
 		
-		if ($value !== null && !$value instanceof $relation->model && !is_array($value)) {
+		if ($value !== null && !$value instanceof $relation->target && !is_array($value)) {
 			return;
 		}
 		
