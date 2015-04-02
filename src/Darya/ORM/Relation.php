@@ -214,5 +214,4 @@ abstract class Relation {
 		
 		return $this->storage()->count($this->target->table(), $this->filter());
 	}
-	
 }

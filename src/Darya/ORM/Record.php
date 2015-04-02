@@ -422,21 +422,21 @@ class Record extends Model {
 	 * @return \Darya\ORM\Relation
 	 */
 	public function relation($attribute) {
-		if ($this->hasRelation($attribute)) {
-			$attribute = $this->prepareAttribute($attribute);
-			$relation = $this->relations[$attribute];
-			
-			if (!$relation instanceof Relation) {
-				$type = array_shift($relation);
-				$args = array_merge(array($this), $relation);
-				$relation = Relation::factory($type, $args);
-				$this->relations[$attribute] = $relation;
-			}
-			
-			return $relation;
+		if (!$this->hasRelation($attribute)) {
+			return null;
 		}
 		
-		return null;
+		$attribute = $this->prepareAttribute($attribute);
+		$relation = $this->relations[$attribute];
+		
+		if (!$relation instanceof Relation) {
+			$type = array_shift($relation);
+			$args = array_merge(array($this), $relation);
+			$relation = Relation::factory($type, $args);
+			$this->relations[$attribute] = $relation;
+		}
+		
+		return $relation;
 	}
 	
 	/**
@@ -494,6 +494,7 @@ class Record extends Model {
 	 * 
 	 * @param string $method
 	 * @param array  $arguments
+	 * @return Relation
 	 */
 	public function __call($method, $arguments) {
 		return $this->relation($method);
