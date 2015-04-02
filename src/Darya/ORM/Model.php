@@ -51,7 +51,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param array $data [optional] Set of attributes to set on the model
 	 */
 	public function __construct(array $data = null) {
-		$this->set($data);
+		$this->setMany($data);
 		$this->changed = array();
 	}
 	
@@ -279,7 +279,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * @param array $values
 	 */
 	public function setMany($values) {
-		foreach ($values as $attribute => $value) {
+		foreach ((array) $values as $attribute => $value) {
 			$this->set($attribute, $value);
 		}
 	}

@@ -235,7 +235,7 @@ class Record extends Model {
 	 * @return Record
 	 */
 	public static function findOrNew($filter = array(), $order = array()) {
-		$instance = static::one($filter, $order);
+		$instance = static::find($filter, $order);
 		return $instance === false ? new static : $instance;
 	}
 	
@@ -330,7 +330,10 @@ class Record extends Model {
 			
 			$verb = $this->id() ? "update" : "save";
 			$this->errors['storage'] = "Failed to $verb $entity";
-			$this->errors['storage'] .= ': ' .$this->storage()->errors() ?: null;
+			
+			if ($this->storage()->errors()) {
+				$this->errors['storage'] .= ': ' .$this->storage()->errors();
+			}
 		}
 		
 		return false;
