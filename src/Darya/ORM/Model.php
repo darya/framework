@@ -310,7 +310,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * 
 	 * @param int $time [optional]
 	 */
-	public function setTimestamps($time = null) {
+	public function stamp($time = null) {
 		$time = $time ?: time();
 		$this->set('modified', $time);
 		

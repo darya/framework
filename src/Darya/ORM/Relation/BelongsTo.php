@@ -36,7 +36,9 @@ class BelongsTo extends Relation {
 	 * @return \Darya\ORM\Record
 	 */
 	public function retrieve() {
-		return $this->one();
+		if ($this->parent->get($this->foreignKey)) {
+			return $this->one();
+		}
 	}
 	
 }

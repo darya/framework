@@ -298,20 +298,23 @@ class Storage implements Readable, Modifiable, Searchable {
 	/**
 	 * Update rows that match the given criteria using the given data.
 	 * 
-	 * Returns the number of rows affected by the update operation.
+	 * Returns the number of rows affected by the update operation. If no rows
+	 * are affected, returns true if there were no errors, false otherwise.
 	 * 
-	 * Refuses to perform the operation if the given filter evaluates to an
+	 * Refuses to perform the query if the given filter evaluates to an
 	 * empty where clause.
-	 * 
-	 * **Note:** updating rows with the same data will return 0.
 	 * 
 	 * @param string $table
 	 * @param array  $data
 	 * @param array  $filter
 	 * @param int    $limit
-	 * @return int
+	 * @return int|bool
 	 */
 	public function update($table, $data, array $filter = array(), $limit = null) {
+		if (!$data) {
+			return true;
+		}
+			
 		$where = $this->prepareWhere($filter);
 		$limit = $this->prepareLimit($limit);
 		
@@ -320,10 +323,9 @@ class Storage implements Readable, Modifiable, Searchable {
 		}
 		
 		$query = $this->prepareUpdate($table, $data, $where, $limit);
-		
 		$result = $this->connection->query($query, true);
 		
-		return isset($result['affected']) ? $result['affected'] : 0;
+		return $result['affected'] ?: !$this->errors();
 	}
 	
 	/**
@@ -363,7 +365,7 @@ class Storage implements Readable, Modifiable, Searchable {
 	public function errors() {
 		$error = $this->connection->error();
 		
-		return $error['error'];
+		return $error['msg'];
 	}
 	
 	/**

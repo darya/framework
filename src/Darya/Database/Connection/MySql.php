@@ -90,13 +90,21 @@ class MySql extends AbstractConnection {
 	 * Query the database.
 	 * 
 	 * Returns an associative array of data if the query retrieves any data.
-	 * Expect an empty away otherwise, unless verbose is true.
 	 * 
-	 * If verbose is true, expect the keys 'data', 'affected', 'fields',
-	 * 'insert_id' and 'num_rows'.
+	 * Returns an empty away otherwise, unless verbose is true.
 	 * 
-	 * Reads set 'data', 'fields', and 'num_rows'. Writes set 'insert_id' and
-	 * 'affected'.
+	 * If verbose is true, expect the keys `'data'`, `'affected'`, `'fields'`,
+	 * `'insert_id'`, `'num_rows'` and `'error'`.
+	 * 
+	 * Reads will set:
+	 *   - `'data'`
+	 *   - `'fields'`
+	 *   - `'num_rows'`
+	 * Writes will set:
+	 *   - `'insert_id'`
+	 *   - `'affected'`
+	 * Both will set:
+	 *   - `'error'`
 	 * 
 	 * @param string $sql
 	 * @param bool   $verbose
@@ -107,17 +115,18 @@ class MySql extends AbstractConnection {
 		$this->connect();
 		$result = $this->connection->query($sql);
 		
-		if ($result === false || $this->error()) {
-			return array();
-		}
-		
 		$lastResult = array(
 			'data'      => array(),
 			'affected'  => null,
 			'fields'    => array(),
 			'insert_id' => null,
 			'num_rows'  => null,
+			'error'     => $this->error()
 		);
+		
+		if ($result === false || $this->error()) {
+			return $verbose ? $lastResult : array();
+		}
 		
 		if (is_object($result) && $result instanceof mysqli_result) {
 			$lastResult['data'] = $result->fetch_all(MYSQL_ASSOC);
@@ -160,16 +169,16 @@ class MySql extends AbstractConnection {
 		
 		if ($this->connection->connect_errno) {
 			return array(
-				'errno' => $this->connection->connect_errno,
-				'error' => $this->connection->connect_error,
+				'no'    => $this->connection->connect_errno,
+				'msg'   => $this->connection->connect_error,
 				'query' => null
 			);
 		}
 		
 		if ($this->connection->errno) {
 			return array(
-				'errno' => $this->connection->errno,
-				'error' => $this->connection->error,
+				'no'    => $this->connection->errno,
+				'msg'   => $this->connection->error,
 				'query' => $this->lastQuery
 			);
 		}

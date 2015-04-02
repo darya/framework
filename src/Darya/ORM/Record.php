@@ -58,6 +58,35 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Generate instances of the model with the given sets of attributes.
+	 * 
+	 * If an attribute set contains the record's primary key, it will first be
+	 * loaded from the database and then the attributes will be set. This allows
+	 * the record to keep track of its changed attributes.
+	 * 
+	 * @param array $rows
+	 * @return Record[]
+	 */
+	public static function generate($rows = array()) {
+		$instance = new static;
+		$instances = array();
+		
+		foreach ($rows as $key => $attributes) {
+			if (!empty($attributes[$instance->key()])) {
+				$instances[$key] = static::find($attributes[$instance->key()]);
+			}
+			
+			if (empty($instances[$key])) {
+				$instances[$key] = new static;
+			}
+			
+			$instances[$key]->setMany($attributes);
+		}
+		
+		return $instances;
+	}
+	
+	/**
 	 * Determine whether the given attribute or relation is set on the record.
 	 * 
 	 * @param string $attribute
@@ -151,7 +180,7 @@ class Record extends Model {
 	protected function prepareData() {
 		$types = $this->attributes;
 		
-		$data = array_intersect_key($this->data, array_flip($this->changed));
+		$data = array_intersect_key($this->data, array_flip($this->changed)) ?: $this->data;
 		
 		foreach ($data as $attribute => $value) {
 			if (isset($types[$attribute])) {
@@ -321,19 +350,15 @@ class Record extends Model {
 					return true;
 				}
 			} else {
-				$updated = $data ? $storage->update($this->table(), $data, array($this->key() => $this->id()), 1) : true;
+				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
 				
 				if ($updated) {
 					return true;
 				}
 			}
 			
-			$verb = $this->id() ? "update" : "save";
-			$this->errors['storage'] = "Failed to $verb $entity";
-			
-			if ($this->storage()->errors()) {
-				$this->errors['storage'] .= ': ' .$this->storage()->errors();
-			}
+			$this->errors['save'] = "Failed to save $entity";
+			$this->errors['storage'] = $this->storage()->errors();
 		}
 		
 		return false;
