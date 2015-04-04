@@ -214,4 +214,18 @@ abstract class Relation {
 		
 		return $this->storage()->count($this->target->table(), $this->filter());
 	}
+	
+	/**
+	 * Verify that the given instance is an instance of the relation's target.
+	 * 
+	 * Throws an exception if it isn't.
+	 * 
+	 * @param Record $instance
+	 * @throws Exception
+	 */
+	protected function verify(Record $instance) {
+		if (!$instance instanceof $this->target) {
+			throw new Exception('Related model must be an instance of ' . get_class($this->target));
+		}
+	}
 }

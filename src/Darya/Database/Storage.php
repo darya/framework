@@ -226,6 +226,8 @@ class Storage implements Readable, Modifiable, Searchable {
 		
 		$query = "INSERT INTO $table $columns VALUES $values";
 		
+		vard($query);
+		
 		return $query;
 	}
 	
@@ -242,6 +244,8 @@ class Storage implements Readable, Modifiable, Searchable {
 		$table = $this->escape($table);
 		
 		foreach ($data as $key => $value) {
+			$key = $this->escape($key);
+			$value = $this->escape($value);
 			$data[$key] = "$key = '$value'";
 		}
 		

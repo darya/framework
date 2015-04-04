@@ -486,7 +486,7 @@ class Record extends Model {
 			return;
 		}
 		
-		$this->related[$this->prepareAttribute($attribute)] = $value;
+		$relation->associate($value);
 	}
 	
 	/**
