@@ -21,6 +21,8 @@ interface Modifiable {
 	 * 
 	 * @param string $resource
 	 * @param array  $data
+	 * @param array  $filter   [optional]
+	 * @param int    $limit    [optional]
 	 */
 	public function update($resource, $data, array $filter = array(), $limit = null);
 	
@@ -28,7 +30,8 @@ interface Modifiable {
 	 * Delete resource instances from the data store.
 	 * 
 	 * @param string $resource
-	 * @param array  $data
+	 * @param array  $filter   [optional]
+	 * @param int    $limit    [optional]
 	 */
 	public function delete($resource, array $filter = array(), $limit = null);
 	

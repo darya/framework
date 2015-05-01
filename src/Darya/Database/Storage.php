@@ -2,6 +2,7 @@
 namespace Darya\Database;
 
 use Darya\Database\Connection;
+use Darya\Storage\Aggregational;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
@@ -9,11 +10,11 @@ use Darya\Storage\Searchable;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Extract prepare methods as a query builder or fluent query class.
+ * TODO: Extract preparation methods as a query builder or fluent query class.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Storage implements Readable, Modifiable, Searchable {
+class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	
 	/**
 	 * @var \Darya\Database\Connection
@@ -255,13 +256,29 @@ class Storage implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
+	 * Retrieve the distinct values of the given resource field.
+	 * 
+	 * @param string $resource
+	 * @param string $field
+	 * @param array  $filter   [optional]
+	 * @param array  $order    [optional]
+	 * @param int    $limit    [optional]
+	 * @param int    $offset   [optional]
+	 */
+	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		$query = $this->prepareSelect($table, "DISTINCT $field", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
+		
+		return $this->connection->query($query);
+	}
+	
+	/**
 	 * Retrieve database rows that match the given criteria.
 	 * 
 	 * @param string       $table
-	 * @param array        $filter
-	 * @param array|string $order
-	 * @param int          $limit
-	 * @param int          $offset
+	 * @param array        $filter [optional]
+	 * @param array|string $order  [optional]
+	 * @param int          $limit  [optional]
+	 * @param int          $offset [optional]
 	 * @return array
 	 */
 	public function read($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
@@ -274,7 +291,10 @@ class Storage implements Readable, Modifiable, Searchable {
 	 * Count the rows that match the given filter.
 	 * 
 	 * @param string $table
-	 * @param array  $filter
+	 * @param array  $filter [optional]
+	 * @param array  $order  [optional]
+	 * @param int    $limit  [optional]
+	 * @param int    $offset [optional]
 	 * @return int
 	 */
 	public function count($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
@@ -310,8 +330,8 @@ class Storage implements Readable, Modifiable, Searchable {
 	 * 
 	 * @param string $table
 	 * @param array  $data
-	 * @param array  $filter
-	 * @param int    $limit
+	 * @param array  $filter [optional]
+	 * @param int    $limit  [optional]
 	 * @return int|bool
 	 */
 	public function update($table, $data, array $filter = array(), $limit = null) {
@@ -341,8 +361,8 @@ class Storage implements Readable, Modifiable, Searchable {
 	 * or if the given filter evaluates to an empty where clause.
 	 * 
 	 * @param string $table
-	 * @param array  $filter
-	 * @param int    $limit
+	 * @param array  $filter [optional]
+	 * @param int    $limit  [optional]
 	 * @return int
 	 */
 	public function delete($table, array $filter = array(), $limit = null) {

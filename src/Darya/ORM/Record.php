@@ -325,6 +325,23 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Retrieve the distinct values of the given attribute.
+	 * 
+	 * @param string $attribute
+	 * @return array
+	 */
+	public static function distinct($attribute) {
+		$instance = new static;
+		$storage = $instance->storage();
+		
+		if (!$storage instanceof Aggregational) {
+			return array_unique(static::listing($attribute));
+		}
+		
+		return $storage->distinct($instance->table(), $attribute);
+	}
+	
+	/**
 	 * Save the record to storage.
 	 * 
 	 * @return bool
