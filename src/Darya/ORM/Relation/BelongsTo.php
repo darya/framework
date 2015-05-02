@@ -45,19 +45,24 @@ class BelongsTo extends Relation {
 	 * Associate the given model.
 	 * 
 	 * @param \Darya\ORM\Record $instance
+	 * @return bool
 	 */
 	public function associate(Record $instance) {
 		$this->verify($instance);
 		$this->parent->set($this->foreignKey, $instance->id());
-		$this->parent->save();
+		
+		return $this->parent->save();
 	}
 	
 	/**
 	 * Dissociate the related model.
+	 * 
+	 * @return bool
 	 */
 	public function dissociate() {
 		$this->parent->set($this->foreignKey, 0);
-		$this->parent->save();
+		
+		return $this->parent->save();
 	}
 	
 }

@@ -33,37 +33,47 @@ class Has extends Relation {
 	
 	/**
 	 * Save the related models.
+	 * 
+	 * @return int
 	 */
 	public function save() {
+		$successful = 0;
+		
 		foreach ($this->related as $model) {
 			$model->set($this->foreignKey, $this->parent->id());
-			$model->save();
+			$successful += $model->save();
 		}
+		
+		return $successful;
 	}
 	
 	/**
 	 * Associate the given model.
 	 * 
+	 * Returns true if the model was successfully associated.
+	 * 
 	 * @param \Darya\ORM\Record $instance
+	 * @return bool
 	 */
 	public function associate($instance) {
 		$this->verify($instance);
 		$this->related = array($instance);
-		$this->save();
+		
+		return !!$this->save();
 	}
 	
 	/**
 	 * Dissociate the related model.
 	 * 
-	 * If no model is given, one will be loaded.
+	 * Returns true if the model was successfully dissociated.
 	 * 
-	 * @param \Darya\ORM\Record $instance [optional]
+	 * @return bool
 	 */
-	public function dissociate($instance = null) {
-		if ($associated = $instance ?: $this->retrieve()) {
-			$associated->set($this->foreignKey, 0);
-			$associated->save();
-		}
+	public function dissociate() {
+		$associated = $this->retrieve();
+		$associated->set($this->foreignKey, 0);
+		
+		return $associated->save();
 	}
 	
 }

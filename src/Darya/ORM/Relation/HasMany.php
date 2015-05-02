@@ -53,7 +53,10 @@ class HasMany extends Has {
 	/**
 	 * Associate the given models.
 	 * 
+	 * Returns the number of models successfully associated.
+	 * 
 	 * @param \Darya\ORM\Record[]|\Darya\ORM\Record $instances
+	 * @return int
 	 */
 	public function associate($instances) {
 		foreach ((array) $instances as $instance) {
@@ -61,7 +64,7 @@ class HasMany extends Has {
 			$this->replace($instance);
 		}
 		
-		$this->save();
+		return $this->save();
 	}
 	
 	/**
@@ -69,18 +72,26 @@ class HasMany extends Has {
 	 * 
 	 * If no models are given, all related models are dissociated.
 	 * 
+	 * Returns the number of models successfully dissociated.
+	 * 
 	 * @param \Darya\ORM\Record[]|\Darya\ORM\Record $instances [optional]
+	 * @return int
 	 */
 	public function dissociate($instances = null) {
 		$ids = array();
 		
 		$instances = $instances ?: $this->retrieve();
 		
+		$successful = 0;
+		
 		foreach ((array) $instances as $instance) {
 			$this->verify($instance);
 			$instance->set($this->foreignKey, 0);
-			$instance->save();
-			$ids[] = $instance->id();
+			
+			if ($instance->save()) {
+				$ids[] = $instance->id();
+				$successful++;
+			}
 		}
 		
 		$keys = array();
@@ -92,6 +103,8 @@ class HasMany extends Has {
 		}
 		
 		$this->related = array_intersect_key($this->related, array_flip($keys));
+		
+		return $successful;
 	}
 	
 }

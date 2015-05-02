@@ -9,6 +9,9 @@ use Darya\Storage\Readable;
 /**
  * Darya's abstract entity relation.
  * 
+ * TODO: constraint method for specifying a default filter for related models.
+ * TODO: errors method.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class Relation {
@@ -79,7 +82,7 @@ abstract class Relation {
 	 */
 	public function __construct(Record $parent, $target, $foreignKey = null) {
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
-			throw new Exception("Child class not does not extend Darya\ORM\Record");
+			throw new Exception("Target class not does not extend Darya\ORM\Record");
 		}
 		
 		$this->parent = $parent;
@@ -152,6 +155,8 @@ abstract class Relation {
 	
 	/**
 	 * Load related model data from storage.
+	 * 
+	 * TODO: $filter, $order, $offset
 	 * 
 	 * @return array
 	 */
@@ -228,4 +233,5 @@ abstract class Relation {
 			throw new Exception('Related model must be an instance of ' . get_class($this->target));
 		}
 	}
+
 }
