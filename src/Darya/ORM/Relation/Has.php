@@ -34,14 +34,19 @@ class Has extends Relation {
 	/**
 	 * Save the related models.
 	 * 
+	 * Optionally only save models with the given IDs.
+	 * 
+	 * @param array $ids [optional]
 	 * @return int
 	 */
-	public function save() {
+	public function save($ids = array()) {
 		$successful = 0;
 		
 		foreach ($this->related as $model) {
-			$model->set($this->foreignKey, $this->parent->id());
-			$successful += $model->save();
+			if (!$ids || in_array($model->id(), $ids)) {
+				$model->set($this->foreignKey, $this->parent->id());
+				$successful += $model->save();
+			}
 		}
 		
 		return $successful;

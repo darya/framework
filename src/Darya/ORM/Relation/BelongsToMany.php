@@ -113,4 +113,30 @@ class BelongsToMany extends Relation {
 		return $this->all();
 	}
 	
+	/**
+	 * Associate the given models.
+	 * 
+	 * Returns the number of models successfully associated.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @return int
+	 */
+	public function associate($instances) {
+		
+	}
+	
+	/**
+	 * Dissociate the given models.
+	 * 
+	 * If no models are given, all related models are dissociated.
+	 * 
+	 * Returns the number of models successfully dissociated.
+	 * 
+	 * @param Record[]|Record $instances [optional]
+	 * @return int
+	 */
+	public function dissociate($instances = null) {
+		
+	}
+	
 }

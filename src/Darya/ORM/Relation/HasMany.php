@@ -59,12 +59,15 @@ class HasMany extends Has {
 	 * @return int
 	 */
 	public function associate($instances) {
+		$ids = array();
+		
 		foreach ((array) $instances as $instance) {
 			$this->verify($instance);
 			$this->replace($instance);
+			$ids = $instance->id();
 		}
 		
-		return $this->save();
+		return $this->save($ids);
 	}
 	
 	/**
