@@ -156,8 +156,12 @@ class Request {
 		
 		$data['server']['http_host'] = $components['host'];
 		$data['server']['path_info'] = $components['path'];
-		$data['server']['request_uri'] = $components['path'] . '?' . $components['query'];
+		$data['server']['request_uri'] = $components['path'];
 		$data['server']['request_method'] = strtoupper($method);
+		
+		if ($components['query']) {
+			$data['server']['request_uri'] .= '?' . $components['query'];
+		}
 		
 		$request = new Request(
 			$data['get'],
