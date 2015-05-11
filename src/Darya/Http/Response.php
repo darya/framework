@@ -154,15 +154,17 @@ class Response {
 	/**
 	 * Get and optionally set the response content.
 	 * 
-	 * @param mixed $content
+	 * @param mixed $content [optional]
 	 * @return string
 	 */
-	public function content($content) {
+	public function content($content = null) {
 		if (is_array($content)) {
 			$this->header('Content-Type: text/json');
 		}
 		
-		$this->content = $this->prepareContent($content);
+		if ($content !== null) {
+			$this->content = $this->prepareContent($content);
+		}
 		
 		return $this->content;
 	}

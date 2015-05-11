@@ -562,7 +562,7 @@ class Router implements ContainerAware {
 	 * @return bool
 	 */
 	protected function testMatch(Request $request, Route $route, $callback = null) {
-		$path = $this->stripBase($request->path());
+		$path = $this->stripBase($request->uri());
 		$pattern = $this->preparePattern($route->path());
 		
 		if (preg_match($pattern, $path, $matches)) {
