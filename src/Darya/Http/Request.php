@@ -107,10 +107,10 @@ class Request {
 	 * can safely expect the keys 'scheme', 'host', 'port', 'user', 'pass',
 	 * 'query' and 'fragment' to exist.
 	 * 
-	 * @param string $uri
+	 * @param string $url
 	 * @return array
 	 */
-	protected static function parseUri($uri) {
+	protected static function parseUrl($url) {
 		return array_merge(array(
 			'scheme' => null,
 			'host'   => null,
@@ -120,7 +120,7 @@ class Request {
 			'path'   => null,
 			'query'  => null,
 			'fragment' => null
-		), parse_url($uri));
+		), parse_url($url));
 	}
 	
 	/**
@@ -137,16 +137,16 @@ class Request {
 	}
 	
 	/**
-	 * Create a new request with the given URI, method and data.
+	 * Create a new request with the given URL, method and data.
 	 * 
-	 * @param string           $uri
+	 * @param string           $url
 	 * @param string           $method  [optional]
 	 * @param array            $data    [optional]
 	 * @param SessionInterface $session [optional]
 	 * @return Request
 	 */
-	public static function create($uri, $method = 'GET', $data = array(), SessionInterface $session = null) {
-		$components = static::parseUri($uri);
+	public static function create($url, $method = 'GET', $data = array(), SessionInterface $session = null) {
+		$components = static::parseUrl($url);
 		$data = static::prepareData($data);
 		
 		$data['get'] = array_merge(
@@ -156,7 +156,7 @@ class Request {
 		
 		$data['server']['http_host'] = $components['host'];
 		$data['server']['path_info'] = $components['path'];
-		$data['server']['request_uri'] = $uri;
+		$data['server']['request_uri'] = $components['path'] . '?' . $components['query'];
 		$data['server']['request_method'] = strtoupper($method);
 		
 		$request = new Request(
@@ -257,8 +257,8 @@ class Request {
 	/**
 	 * Retrieve request data of the given type using the given key.
 	 * 
-	 * If no key is set, all request data of the given type will be returned. If
-	 * neither are set, all request data will be returned.
+	 * If $key is not set, all request data of the given type will be returned.
+	 * If neither $type or $key are set, all request data will be returned.
 	 * 
 	 * @param string $type [optional]
 	 * @param string $key  [optional]
