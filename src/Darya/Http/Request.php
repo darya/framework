@@ -202,8 +202,14 @@ class Request {
 	 * @return \Darya\Http\Request
 	 */
 	public static function createFromGlobals(SessionInterface $session = null) {
-		$request =  new Request($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER, static::headersFromGlobals($_SERVER));
-		$request->setSession($session);
+		$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
+			'get'    => $_GET,
+			'post'   => $_POST,
+			'cookie' => $_COOKIE,
+			'file'   => $_FILES,
+			'server' => $_SERVER,
+			'header' => static::headersFromGlobals($_SERVER)
+		), $session);
 		
 		return $request;
 	}
