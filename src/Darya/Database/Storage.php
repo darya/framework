@@ -227,8 +227,6 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 		
 		$query = "INSERT INTO $table $columns VALUES $values";
 		
-		vard($query);
-		
 		return $query;
 	}
 	
