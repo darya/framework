@@ -142,9 +142,7 @@ abstract class Relation {
 	 * @return array
 	 */
 	protected static function arrayify($value) {
-		if (!is_array($value)) {
-			return array($value);
-		}
+		return !is_array($value) ? array($value) : $value;
 	}
 	
 	/**

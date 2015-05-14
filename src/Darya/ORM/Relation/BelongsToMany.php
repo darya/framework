@@ -40,12 +40,13 @@ class BelongsToMany extends Relation {
 	 * table, given models that are already related and models that should be
 	 * associated.
 	 * 
-	 * @param Record[] $old
-	 * @param Record[] $new
+	 * @param array $old
+	 * @param array $new
 	 * @return array
 	 */
 	protected static function insertIds($old, $new) {
 		$oldIds = array();
+		$newIds = array();
 		
 		foreach ($old as $instance) {
 			$oldIds[] = $instance->id();
