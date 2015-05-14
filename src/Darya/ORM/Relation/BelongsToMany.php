@@ -8,6 +8,7 @@ use Darya\ORM\Relation;
  * Darya's many-to-many entity relation.
  * 
  * TODO: Association, dissociation, syncing.
+ * TODO: Filter, limit, offset.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -33,6 +34,25 @@ class BelongsToMany extends Relation {
 		
 		$this->table = $table;
 		$this->setDefaultTable();
+	}
+	
+	/**
+	 * Retrieve the IDs of models that should be inserted into the relation
+	 * table, given models that are already related and models that should be
+	 * associated.
+	 * 
+	 * @param Record[] $old
+	 * @param Record[] $new
+	 * @return array
+	 */
+	protected static function insertIds($old, $new) {
+		$oldIds = array();
+		
+		foreach ($old as $instance) {
+			$oldIds[] = $instance->id();
+		}
+		
+		return $oldIds;
 	}
 	
 	/**
@@ -88,6 +108,7 @@ class BelongsToMany extends Relation {
 	/**
 	 * Retrieve the data of the related models.
 	 * 
+	 * @param int $limit
 	 * @return array
 	 */
 	public function load($limit = null) {
@@ -122,7 +143,24 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function associate($instances) {
+		$insert = static::insertIds($this->all(), $instances);
 		
+		$successful = 0;
+		
+		foreach ($instances as $instance) {
+			$this->verify($instance);
+			
+			if (in_array($instance->id(), $insert)) {
+				$this->storage()->create($this->table, array(
+					$this->localKey   => $this->parent->id(),
+					$this->foreignKey => $instance->id()
+				));
+			}
+			
+			$successful += $instance->save();
+		}
+		
+		return $successful;
 	}
 	
 	/**
@@ -136,6 +174,18 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function dissociate($instances = null) {
+		
+	}
+	
+	/**
+	 * Dissociate all models and associate the given models.
+	 * 
+	 * Returns the number of models successfully associated.
+	 * 
+	 * @param Record[]|Record $instances [optional]
+	 * @return int
+	 */
+	public function sync($instances) {
 		
 	}
 	
