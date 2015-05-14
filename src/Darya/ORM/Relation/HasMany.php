@@ -21,36 +21,6 @@ class HasMany extends Has {
 	}
 	
 	/**
-	 * Replace a related model with the same ID.
-	 * 
-	 * If the related model does not have an ID or it is not found, it is simply
-	 * appended.
-	 * 
-	 * @param \Darya\ORM\Record $instance
-	 */
-	protected function replace(Record $instance) {
-		if (!$instance->id()) {
-			return $this->related[] = $instance;
-		}
-		
-		$replace = null;
-		
-		foreach ($this->related as $key => $related) {
-			if ($related->id() === $instance->id()) {
-				$replace = $key;
-				
-				break;
-			}
-		}
-		
-		if ($replace === null) {
-			return $this->related[] = $instance;
-		}
-		
-		$this->related[$replace] = $instance;
-	}
-	
-	/**
 	 * Associate the given models.
 	 * 
 	 * Returns the number of models successfully associated.
@@ -61,7 +31,7 @@ class HasMany extends Has {
 	public function associate($instances) {
 		$ids = array();
 		
-		foreach ((array) $instances as $instance) {
+		foreach (static::arrayify($instances) as $instance) {
 			$this->verify($instance);
 			$this->replace($instance);
 			$ids = $instance->id();
@@ -87,7 +57,7 @@ class HasMany extends Has {
 		
 		$successful = 0;
 		
-		foreach ((array) $instances as $instance) {
+		foreach (static::arrayify($instances) as $instance) {
 			$this->verify($instance);
 			$instance->set($this->foreignKey, 0);
 			

@@ -8,7 +8,6 @@ use Darya\ORM\Relation;
  * Darya's many-to-many entity relation.
  * 
  * TODO: Association, dissociation, syncing.
- * TODO: Filter, limit, offset.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -52,7 +51,13 @@ class BelongsToMany extends Relation {
 			$oldIds[] = $instance->id();
 		}
 		
-		return $oldIds;
+		foreach ($new as $instance) {
+			$newIds[] = $instance->id();
+		}
+		
+		$insert = array_diff($newIds, $oldIds);
+		
+		return $insert;
 	}
 	
 	/**
@@ -143,11 +148,11 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function associate($instances) {
-		$insert = static::insertIds($this->all(), $instances);
+		$insert = static::insertIds($this->retrieve(), $instances);
 		
 		$successful = 0;
 		
-		foreach ($instances as $instance) {
+		foreach (static::arrayify($instances) as $instance) {
 			$this->verify($instance);
 			
 			if (in_array($instance->id(), $insert)) {
@@ -157,7 +162,10 @@ class BelongsToMany extends Relation {
 				));
 			}
 			
-			$successful += $instance->save();
+			if ($instance->save()) {
+				$successful++;
+				$this->replace($instance);
+			};
 		}
 		
 		return $successful;
@@ -166,15 +174,53 @@ class BelongsToMany extends Relation {
 	/**
 	 * Dissociate the given models.
 	 * 
-	 * If no models are given, all related models are dissociated.
-	 * 
 	 * Returns the number of models successfully dissociated.
 	 * 
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
 	public function dissociate($instances = null) {
+		$instances = static::arrayify($instances);
 		
+		$ids = array();
+		
+		$this->verify($instances);
+		
+		foreach ($instances as $instance) {
+			$ids[] = $instance->id();
+		}
+		
+		$successful = $this->storage()->delete($this->table, array(
+			$this->localKey => $this->parent->id(),
+			$this->foreignKey => $ids
+		));
+		
+		$keys = array();
+		
+		foreach ($this->related as $key => $instance) {
+			if (!in_array($instance->id(), $ids)) {
+				$keys[] = $key;
+			}
+		}
+		
+		$this->related = array_intersect_key($this->related, array_flip($keys));
+		
+		return $successful;
+	}
+	
+	/**
+	 * Dissociate all currently associated models.
+	 * 
+	 * Returns the number of models successfully dissociated.
+	 * 
+	 * @return int
+	 */
+	public function purge() {
+		$this->related = array();
+		
+		return (int) $this->storage()->delete(array(
+			$this->localKey => $this->parent->id()
+		));
 	}
 	
 	/**
@@ -186,7 +232,9 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function sync($instances) {
+		$this->purge();
 		
+		return $this->associate($instances);
 	}
 	
 }

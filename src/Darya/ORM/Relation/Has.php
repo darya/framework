@@ -2,6 +2,7 @@
 namespace Darya\ORM\Relation;
 
 use Exception;
+use Darya\ORM\Record;
 use Darya\ORM\Relation;
 
 /**
@@ -14,12 +15,21 @@ class Has extends Relation {
 	/**
 	 * Set the default keys for the relation if they have not yet been set.
 	 */
-	public function setDefaultKeys() {
+	protected function setDefaultKeys() {
 		if (!$this->foreignKey) {
 			$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
 		}
 		
 		$this->localKey = $this->parent->key();
+	}
+	
+	/**
+	 * Replace the in-memory related model with the given instance.
+	 * 
+	 * @param \Darya\ORM\Record $instance
+	 */
+	protected function replace(Record $instance) {
+		$this->related = array($instance);
 	}
 	
 	/**
@@ -62,9 +72,9 @@ class Has extends Relation {
 	 */
 	public function associate($instance) {
 		$this->verify($instance);
-		$this->related = array($instance);
+		$this->replace($instance);
 		
-		return !!$this->save();
+		return (bool) $this->save();
 	}
 	
 	/**
@@ -78,7 +88,7 @@ class Has extends Relation {
 		$associated = $this->retrieve();
 		$associated->set($this->foreignKey, 0);
 		
-		return $associated->save();
+		return (bool) $associated->save();
 	}
 	
 }

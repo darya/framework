@@ -22,6 +22,15 @@ class BelongsTo extends Relation {
 	}
 	
 	/**
+	 * Replace the in-memory related model with the given instance.
+	 * 
+	 * @param \Darya\ORM\Record $instance
+	 */
+	protected function replace($instance) {
+		$this->related = array($instance);
+	}
+	
+	/**
 	 * Retrieve the filter for this relation.
 	 * 
 	 * @return array

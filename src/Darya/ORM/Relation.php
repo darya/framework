@@ -9,8 +9,9 @@ use Darya\Storage\Readable;
 /**
  * Darya's abstract entity relation.
  * 
- * TODO: constraint method for specifying a default filter for related models.
- * TODO: errors method.
+ * TODO: constraint() method for specifying a default filter for related models.
+ * TODO: errors() method.
+ * TODO: load() and retrieve() could do with filter, limit, offset maybe.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -132,6 +133,69 @@ abstract class Relation {
 	abstract protected function setDefaultKeys();
 	
 	/**
+	 * Helper method for methods that accept single or multiple values.
+	 * 
+	 * Returns a array with the given value as its sole element, if it is not an
+	 * array already.
+	 * 
+	 * @param mixed $value
+	 * @return array
+	 */
+	protected static function arrayify($value) {
+		if (!is_array($value)) {
+			return array($value);
+		}
+	}
+	
+	/**
+	 * Replace a related model with the same ID.
+	 * 
+	 * If the related model does not have an ID or it is not found, it is simply
+	 * appended.
+	 * 
+	 * @param \Darya\ORM\Record $instance
+	 */
+	protected function replace(Record $instance) {
+		if (!$instance->id()) {
+			return $this->related[] = $instance;
+		}
+		
+		$replace = null;
+		
+		foreach ($this->related as $key => $related) {
+			if ($related->id() === $instance->id()) {
+				$replace = $key;
+				
+				break;
+			}
+		}
+		
+		if ($replace === null) {
+			return $this->related[] = $instance;
+		}
+		
+		$this->related[$replace] = $instance;
+	}
+	
+	/**
+	 * Verify that the given instance is an instance of the relation's target.
+	 * 
+	 * Throws an exception if it isn't.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @throws Exception
+	 */
+	protected function verify($instances) {
+		$instances = static::arrayify($instances);
+		
+		foreach ((array) $instances as $instance) {
+			if (!$instance instanceof $this->target) {
+				throw new Exception('Related model must be an instance of ' . get_class($this->target));
+			}
+		}
+	}
+	
+	/**
 	 * Retrieve and optionally set the storage used for the target model.
 	 * 
 	 * Falls back to target model storage, then parent model storage.
@@ -218,20 +282,6 @@ abstract class Relation {
 		}
 		
 		return $this->storage()->count($this->target->table(), $this->filter());
-	}
-	
-	/**
-	 * Verify that the given instance is an instance of the relation's target.
-	 * 
-	 * Throws an exception if it isn't.
-	 * 
-	 * @param Record $instance
-	 * @throws Exception
-	 */
-	protected function verify(Record $instance) {
-		if (!$instance instanceof $this->target) {
-			throw new Exception('Related model must be an instance of ' . get_class($this->target));
-		}
 	}
 
 }
