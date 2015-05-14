@@ -9,7 +9,7 @@ namespace Darya\Database;
 interface Connection {
 	
 	/**
-	 * Make a connection to the database.
+	 * Initiate a connection to the database.
 	 */
 	public function connect();
 	

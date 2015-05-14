@@ -30,7 +30,6 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	 * Instantiate a database-driven data store.
 	 * 
 	 * @param Connection $connection
-	 * @param string     $prefix
 	 */
 	public function __construct(Connection $connection) {
 		$this->connection = $connection;
@@ -41,7 +40,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	 * 
 	 * If the value is an array, it is recursively escaped.
 	 * 
-	 * @param array|string $values
+	 * @param array|string $value
 	 * @return array
 	 */
 	protected function escape($value) {
@@ -256,14 +255,14 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	/**
 	 * Retrieve the distinct values of the given resource field.
 	 * 
-	 * @param string $resource
+	 * @param string $table
 	 * @param string $field
 	 * @param array  $filter   [optional]
 	 * @param array  $order    [optional]
 	 * @param int    $limit    [optional]
 	 * @param int    $offset   [optional]
 	 */
-	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function distinct($table, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$query = $this->prepareSelect($table, "DISTINCT $field", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
 		return $this->connection->query($query);
