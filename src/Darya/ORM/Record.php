@@ -7,6 +7,7 @@ use Darya\ORM\Relation;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
+use Darya\Storage\Aggregational;
 
 /**
  * Darya's active record implementation.
@@ -211,9 +212,7 @@ class Record extends Model {
 	 * Creates a filter for the record's key attribute if the given value is not
 	 * an array.
 	 * 
-	 * @param mixed  $filters
-	 * @param string $operator
-	 * @param bool   $excludeWhere
+	 * @param mixed $filter
 	 * @return string
 	 */
 	protected static function prepareFilter($filter) {
@@ -252,7 +251,7 @@ class Record extends Model {
 	 */
 	public static function find($filter = array(), $order = array()) {
 		$data = static::load($filter, $order, 1);
-		return $data && isset($data[0]) ? new static($data[0]) : false;
+		return !empty($data[0]) ? new static($data[0]) : false;
 	}
 	
 	/**
@@ -271,9 +270,10 @@ class Record extends Model {
 	/**
 	 * Load multiple record instances from storage using the given criteria.
 	 * 
-	 * @static
-	 * @param mixed $filters
-	 * @param array|string $orders
+	 * @param array|string|int $filter [optional]
+	 * @param array|string     $order  [optional]
+	 * @param int              $limit  [optional]
+	 * @param int              $offset [optional]
 	 * @return array
 	 */
 	public static function all($filter = array(), $order = array(), $limit = null, $offset = 0) {
@@ -284,11 +284,11 @@ class Record extends Model {
 	 * Search for record instances in storage using the given criteria.
 	 * 
 	 * @param string           $query
-	 * @param array            $attributes
-	 * @param array|string|int $filter
-	 * @param array|string     $order
-	 * @param int              $limit
-	 * @param int              $offset
+	 * @param array            $attributes [optional]
+	 * @param array|string|int $filter     [optional]
+	 * @param array|string     $order      [optional]
+	 * @param int              $limit      [optional]
+	 * @param int              $offset     [optional]
 	 * @return array
 	 */
 	public static function search($query, $attributes = array(), $filter = array(), $order = array(), $limit = null, $offset = 0) {
@@ -407,7 +407,7 @@ class Record extends Model {
 	 * @return bool
 	 */
 	public function delete() {
-		if ($id = $this->id()) {
+		if ($this->id()) {
 			$storage = $this->storage();
 			
 			if ($storage instanceof Modifiable) {
