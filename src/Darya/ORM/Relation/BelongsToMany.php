@@ -149,11 +149,13 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function associate($instances) {
+		$instances = static::arrayify($instances);
+		
 		$insert = static::insertIds($this->retrieve(), $instances);
 		
 		$successful = 0;
 		
-		foreach (static::arrayify($instances) as $instance) {
+		foreach ($instances as $instance) {
 			$this->verify($instance);
 			
 			if (in_array($instance->id(), $insert)) {
@@ -198,7 +200,7 @@ class BelongsToMany extends Relation {
 		
 		$this->reduce($ids);
 		
-		return $successful;
+		return (int) $successful;
 	}
 	
 	/**
@@ -211,7 +213,7 @@ class BelongsToMany extends Relation {
 	public function purge() {
 		$this->related = array();
 		
-		return (int) $this->storage()->delete(array(
+		return (int) $this->storage()->delete($this->table, array(
 			$this->localKey => $this->parent->id()
 		));
 	}

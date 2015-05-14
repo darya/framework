@@ -4,7 +4,7 @@ namespace Darya\ORM;
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
-use DateTimeInterface;
+use DateTime;
 use IteratorAggregate;
 use Serializable;
 
@@ -50,7 +50,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * 
 	 * @param array $data [optional] Set of attributes to set on the model
 	 */
-	public function __construct(array $data = null) {
+	public function __construct(array $data = array()) {
 		$this->setMany($data);
 		$this->changed = array();
 	}
@@ -58,10 +58,10 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Generate multiple instances of the model using arrays of attributes.
 	 * 
-	 * @param  array $rows
+	 * @param array $rows
 	 * @return array
 	 */
-	public static function generate($rows = array()) {
+	public static function generate(array $rows = array()) {
 		$instances = array();
 		
 		foreach ($rows as $key => $attributes) {
@@ -74,7 +74,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Recursively convert a model to an array.
 	 * 
-	 * @param mixed $object
+	 * @param mixed $model
 	 * @return array
 	 */
 	public static function convertToArray($model) {
@@ -213,6 +213,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		$type = $this->attributes[$this->prepareAttribute($attribute)];
 		
 		switch ($type) {
+			case 'int':
+				$value = (int) $value;
+				break;
 			case 'date':
 			case 'datetime':
 			case 'time':
@@ -220,7 +223,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 					$value = strtotime(str_replace('/', '-', $value));
 				}
 				
-				if ($value instanceof DateTimeInterface) {
+				if ($value instanceof DateTime) {
 					$value = $value->getTimestamp();
 				}
 				

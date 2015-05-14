@@ -72,4 +72,22 @@ class HasMany extends Has {
 		return $successful;
 	}
 	
+	/**
+	 * Dissociate all currently associated models.
+	 * 
+	 * Returns the number of models successfully dissociated.
+	 * 
+	 * @return int
+	 */
+	public function purge() {
+		$successful = 0;
+		
+		foreach ($this->related as $instance) {
+			$instance->set($this->foreignKey, 0);
+			$successful += $instance->save();
+		}
+		
+		return $successful;
+	}
+	
 }

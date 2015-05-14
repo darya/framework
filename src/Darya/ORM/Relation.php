@@ -48,6 +48,11 @@ abstract class Relation {
 	protected $related = array();
 	
 	/**
+	 * @var Readable Storage interface
+	 */
+	protected $storage;
+	
+	/**
 	 * Create a new relation of the given type using the given arguments.
 	 * 
 	 * @param string $type
@@ -146,7 +151,7 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Reduce the related models in memory to those with the given IDs.
+	 * Reduce the cached related models to those with the given IDs.
 	 * 
 	 * If no IDs are given then all of the in-memory models will be removed.
 	 * 
@@ -165,7 +170,7 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Replace a related model with the same ID.
+	 * Replace a cached related model.
 	 * 
 	 * If the related model does not have an ID or it is not found, it is simply
 	 * appended.
@@ -248,7 +253,7 @@ abstract class Relation {
 	/**
 	 * Retrieve one or many related model instances, depending on the relation.
 	 * 
-	 * @return Record|Record[]
+	 * @return Record[]|Record
 	 */
 	abstract public function retrieve();
 	
