@@ -146,6 +146,25 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Reduce the related models in memory to those with the given IDs.
+	 * 
+	 * If no IDs are given then all of the in-memory models will be removed.
+	 * 
+	 * @param int[] $ids
+	 */
+	protected function reduce(array $ids = array()) {
+		$keys = array();
+		
+		foreach ($this->related as $key => $instance) {
+			if (!in_array($instance->id(), $ids)) {
+				$keys[] = $key;
+			}
+		}
+		
+		$this->related = array_intersect_key($this->related, array_flip($keys));
+	}
+	
+	/**
 	 * Replace a related model with the same ID.
 	 * 
 	 * If the related model does not have an ID or it is not found, it is simply

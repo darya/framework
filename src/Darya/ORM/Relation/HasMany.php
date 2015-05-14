@@ -67,15 +67,7 @@ class HasMany extends Has {
 			}
 		}
 		
-		$keys = array();
-		
-		foreach ($this->related as $key => $instance) {
-			if (!in_array($instance->id(), $ids)) {
-				$keys[] = $key;
-			}
-		}
-		
-		$this->related = array_intersect_key($this->related, array_flip($keys));
+		$this->reduce($ids);
 		
 		return $successful;
 	}
