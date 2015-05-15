@@ -93,10 +93,16 @@ class Result {
 	 * @param array $info
 	 */
 	protected function setInfo(array $info) {
-		$this->count    = isset($info['count']) ? $info['count'] : 0;
-		$this->fields   = isset($info['fields']) ? $info['fields'] : array();
-		$this->affected = isset($info['affected']) ? $info['affected'] : 0;
-		$this->insertId = isset($info['insert_id']) ? $info['insert_id'] : 0;
+		$defaults = array(
+			'count' => 0,
+			'fields' => array(),
+			'affected' => 0,
+			'insert_id' => 0
+		);
+		
+		foreach ($defaults as $key => $default) {
+			$this->$field = isset($info[$field]) ? $info[$field] : $default;
+		}
 	}
 	
 	/**
@@ -105,8 +111,9 @@ class Result {
 	 * @param array $error
 	 */
 	protected function setError(array $error) {
-		$this->errorNumber = isset($error['number']) ? $error['number'] : null;
-		$this->errorMessage = isset($error['message']) ? $error['message'] : '';
+		$number = isset($error['number']) ? $error['number'] : 0;
+		$message = isset($error['message']) ? $error['message'] : '';
+		$this->error = new Error($number, $message);
 	}
 	
 	/**
