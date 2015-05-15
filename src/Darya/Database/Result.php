@@ -71,6 +71,18 @@ class Result {
 	protected $error;
 	
 	/**
+	 * Convert a string from snake_case to camelCase.
+	 * 
+	 * @param string $string
+	 * @return string
+	 */
+	protected static function snakeToCamel($string) {
+		return preg_replace_callback('/_(.)/', function ($matches) {
+			return strtoupper($matches[1]);
+		}, $string);
+	}
+	
+	/**
 	 * Instantiate a new database result.
 	 * 
 	 * $error array expects the keys 'number' and 'message'.
@@ -103,7 +115,8 @@ class Result {
 		);
 		
 		foreach ($defaults as $key => $default) {
-			$this->$key = isset($info[$key]) ? $info[$key] : $default;
+			$property = static::snakeToCamel($key);
+			$this->$property = isset($info[$key]) ? $info[$key] : $default;
 		}
 	}
 	

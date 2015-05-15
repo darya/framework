@@ -42,7 +42,7 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals("UPDATE swag SET swag='b0ss'", $result->query);
 		$this->assertEquals(0, $result->count);
 		$this->assertEquals(3, $result->affected);
-		$this->assertEquals(0, $result->insert_id);
+		$this->assertEquals(0, $result->insertId);
 		$this->assertEquals(array(), $result->fields);
 	}
 	
@@ -57,7 +57,7 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals("INSERT INTO swag (swag) VALUES ('b0ss')", $result->query);
 		$this->assertEquals(0, $result->count);
 		$this->assertEquals(1, $result->affected);
-		$this->assertEquals(4, $result->insert_id);
+		$this->assertEquals(4, $result->insertId);
 		$this->assertEquals(array(), $result->fields);
 	}
 	
