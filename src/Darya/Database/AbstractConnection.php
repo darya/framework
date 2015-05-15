@@ -16,24 +16,9 @@ abstract class AbstractConnection implements Connection {
 	protected $connection;
 	
 	/**
-	 * @var string The last query error
-	 */
-	protected $error;
-	
-	/**
-	 * @var string The last query executed
-	 */
-	protected $lastQuery;
-	
-	/**
-	 * @var array Detailed result array corresponding to the last query
+	 * @var \Darya\Database\Result Detailed result array corresponding to the last query
 	 */
 	protected $lastResult;
-	
-	/**
-	 * @var array Set of operators used by the database query language
-	 */
-	protected $operators = array();
 	
 	/**
 	 * Instantiate a new Database object and initialise its connection.
@@ -59,10 +44,10 @@ abstract class AbstractConnection implements Connection {
 	/**
 	 * Get the error produced by the last query, if any.
 	 * 
-	 * @return string
+	 * @return \Darya\Database\Error
 	 */
 	public function error() {
-		return $this->error;
+		return $this->lastResult->error;
 	}
 	
 	/**
@@ -70,8 +55,8 @@ abstract class AbstractConnection implements Connection {
 	 * 
 	 * @return string Database query
 	 */
-	public function lastQuery(){
-		return $this->lastQuery;
+	public function lastQuery() {
+		return $this->lastResult->query;
 	}
 	
 	/**
@@ -79,7 +64,7 @@ abstract class AbstractConnection implements Connection {
 	 * 
 	 * @return array
 	 */
-	public function lastResult(){
+	public function lastResult() {
 		return $this->lastResult;
 	}
 	

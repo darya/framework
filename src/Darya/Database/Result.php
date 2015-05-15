@@ -90,9 +90,9 @@ class Result {
 	 * $info expects the keys 'affected', 'count', 'insert_id' and 'fields'.
 	 * 
 	 * @param string $query
-	 * @param array  $data   [optional]
-	 * @param array  $info   [optional]
-	 * @param Error  $error  [optional]
+	 * @param array  $data  [optional]
+	 * @param array  $info  [optional]
+	 * @param Error  $error [optional]
 	 */
 	public function __construct($query, array $data = array(), array $info = array(), Error $error = null) {
 		$this->data = $data;
@@ -125,7 +125,11 @@ class Result {
 	 * 
 	 * @param Error $error
 	 */
-	protected function setError($error) {
+	protected function setError(Error $error = null) {
+		if ($error === null) {
+			return;
+		}
+		
 		if ($error instanceof Error) {
 			$this->error = $error;
 			
@@ -134,6 +138,7 @@ class Result {
 		
 		$number = isset($error['number']) ? $error['number'] : 0;
 		$message = isset($error['message']) ? $error['message'] : '';
+		
 		$this->error = new Error($number, $message);
 	}
 	
