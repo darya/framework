@@ -1,6 +1,7 @@
 <?php
 namespace Darya\ORM\Relation;
 
+use Darya\ORM\Record;
 use Darya\ORM\Relation;
 
 /**
@@ -26,7 +27,7 @@ class BelongsTo extends Relation {
 	 * 
 	 * @param \Darya\ORM\Record $instance
 	 */
-	protected function replace($instance) {
+	protected function replace(Record $instance) {
 		$this->related = array($instance);
 	}
 	

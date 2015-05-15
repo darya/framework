@@ -48,9 +48,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Instantiate a new model.
 	 * 
-	 * @param array $data [optional] Set of attributes to set on the model
+	 * @param array $data [optional] Attributes to set on the model
 	 */
-	public function __construct(array $data = array()) {
+	public function __construct($data = array()) {
 		$this->setMany($data);
 		$this->changed = array();
 	}

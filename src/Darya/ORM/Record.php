@@ -68,7 +68,7 @@ class Record extends Model {
 	 * @param array $rows
 	 * @return Record[]
 	 */
-	public static function generate($rows = array()) {
+	public static function generate(array $rows = array()) {
 		$instance = new static;
 		$instances = array();
 		

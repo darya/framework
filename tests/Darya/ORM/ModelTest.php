@@ -65,6 +65,31 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		), $model->data());
 	}
 	
+	public function testGeneration() {
+		$models = AttributeStub::generate(
+			array(
+				array(
+					'value'    => 'something',
+					'date'     => '2015-05-15 11:28',
+					'options'  => array('one', 'two')
+				),
+				array(
+					'value'    => 'another_thing',
+					'date'     => '2015-05-15 11:30',
+					'options'  => null
+				)
+			)
+		);
+		
+		$this->assertEquals('something', $models[0]->value);
+		$this->assertEquals('2015-05-15 11:28:00', $models[0]->date);
+		$this->assertEquals(array('one', 'two'), $models[0]->options);
+		
+		$this->assertEquals('another_thing', $models[1]->value);
+		$this->assertEquals('2015-05-15 11:30:00', $models[1]->date);
+		$this->assertEquals(null, $models[1]->options);
+	}
+	
 }
 
 class ModelStub extends Model {
