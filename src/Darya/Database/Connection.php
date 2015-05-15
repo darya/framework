@@ -21,6 +21,11 @@ interface Connection {
 	public function connected();
 	
 	/**
+	 * Close the connection to the database.
+	 */
+	public function disconnect();
+	
+	/**
 	 * Query the database and return the result.
 	 * 
 	 * @param string $query

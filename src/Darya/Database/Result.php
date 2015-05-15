@@ -6,7 +6,7 @@ use Darya\Database\Error;
 /**
  * Darya's database result representation.
  * 
- * TODO: Make class iterable for result data.
+ * TODO: Make this iterable for result data.
  * 
  * @property array  $data     Result data
  * @property string $query    Query that produced this result
@@ -89,12 +89,12 @@ class Result {
 	 * 
 	 * $info expects the keys 'affected', 'count', 'insert_id' and 'fields'.
 	 * 
-	 * @param string      $query
-	 * @param array       $data
-	 * @param array       $info
-	 * @param array|Error $error
+	 * @param string $query
+	 * @param array  $data   [optional]
+	 * @param array  $info   [optional]
+	 * @param Error  $error  [optional]
 	 */
-	public function __construct($query, array $data = array(), array $info = array(), $error = array()) {
+	public function __construct($query, array $data = array(), array $info = array(), Error $error = null) {
 		$this->data = $data;
 		$this->query = $query;
 		$this->setInfo($info);
@@ -123,7 +123,7 @@ class Result {
 	/**
 	 * Set the result error.
 	 * 
-	 * @param array|Error $error
+	 * @param Error $error
 	 */
 	protected function setError($error) {
 		if ($error instanceof Error) {

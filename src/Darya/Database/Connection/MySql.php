@@ -101,10 +101,10 @@ class MySql extends AbstractConnection {
 		
 		$result = array(
 			'data'      => array(),
-			'affected'  => null,
 			'fields'    => array(),
-			'insert_id' => null,
-			'num_rows'  => null
+			'affected'  => null,
+			'num_rows'  => null,
+			'insert_id' => null
 		);
 		
 		$error = $this->error();
@@ -149,10 +149,11 @@ class MySql extends AbstractConnection {
 	/**
 	 * Retrieve error information regarding the last operation.
 	 * 
-	 * The returned array will have the keys 'errno', 'error' and 'query'.
-	 * Returns false if there is no error.
+	 * The returned array will have the keys 'number' and 'message'.
 	 * 
-	 * @return array
+	 * Returns an empty array if there is no error.
+	 * 
+	 * @return Error
 	 */
 	public function error() {
 		if (!$this->connection) {
@@ -160,17 +161,11 @@ class MySql extends AbstractConnection {
 		}
 		
 		if ($this->connection->connect_errno) {
-			return array(
-				'number'  => $this->connection->connect_errno,
-				'message' => $this->connection->connect_error
-			);
+			return new Error($this->connection->connect_errno, $this->connection->connect_error);
 		}
 		
 		if ($this->connection->errno) {
-			return array(
-				'number'  => $this->connection->errno,
-				'message' => $this->connection->error
-			);
+			return new Error($this->connection->errno, $this->connection->error);
 		}
 		
 		return null;
