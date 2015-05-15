@@ -61,4 +61,18 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(), $result->fields);
 	}
 	
+	public function testErrorResult() {
+		$info = array();
+		
+		$error = array(
+			'number' => 1007,
+			'message' => "Can't created database 'swag'; database exists"
+		);
+		
+		$result = new Result('CREATE TABLE swag (id INT UNSIGNED, swag TEXT)', array(), $info, $error);
+		
+		$this->assertEquals(1007, $result->error->number);
+		$this->assertEquals("Can't created database 'swag'; database exists", $result->error->message);
+	}
+	
 }
