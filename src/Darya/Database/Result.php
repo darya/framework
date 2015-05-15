@@ -101,7 +101,7 @@ class Result {
 		);
 		
 		foreach ($defaults as $key => $default) {
-			$this->$field = isset($info[$key]) ? $info[$key] : $default;
+			$this->$key = isset($info[$key]) ? $info[$key] : $default;
 		}
 	}
 	
