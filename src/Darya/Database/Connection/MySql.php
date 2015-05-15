@@ -4,6 +4,7 @@ namespace Darya\Database\Connection;
 use mysqli as php_mysqli;
 use mysqli_result;
 use Darya\Database\AbstractConnection;
+use Darya\Database\Error;
 use Darya\Database\Result;
 
 /**
@@ -103,12 +104,13 @@ class MySql extends AbstractConnection {
 			'affected'  => null,
 			'fields'    => array(),
 			'insert_id' => null,
-			'num_rows'  => null,
-			'error'     => $this->error()
+			'num_rows'  => null
 		);
 		
-		if ($mysqli_result === false || $this->error()) {
-			return new Result($sql, array(), array(), $this->error());
+		$error = $this->error();
+		
+		if ($mysqli_result === false || $error) {
+			return new Result($sql, array(), array(), $error);
 		}
 		
 		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
@@ -128,7 +130,7 @@ class MySql extends AbstractConnection {
 			'insert_id' => $result['insert_id']
 		);
 		
-		$this->lastResult = new Result($sql, $result['data'], $info, $result['error']);
+		$this->lastResult = new Result($sql, $result['data'], $info, $error);
 		
 		return $this->lastResult;
 	}
@@ -150,11 +152,11 @@ class MySql extends AbstractConnection {
 	 * The returned array will have the keys 'errno', 'error' and 'query'.
 	 * Returns false if there is no error.
 	 * 
-	 * @return array|bool
+	 * @return array
 	 */
 	public function error() {
 		if (!$this->connection) {
-			return false;
+			return null;
 		}
 		
 		if ($this->connection->connect_errno) {
@@ -171,7 +173,7 @@ class MySql extends AbstractConnection {
 			);
 		}
 		
-		return false;
+		return null;
 	}
 	
 }

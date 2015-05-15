@@ -39,7 +39,7 @@ interface Connection {
 	/**
 	 * Retrieve any error that occurred with the last operation.
 	 * 
-	 * @return array
+	 * @return \Darya\Database\Error
 	 */
 	public function error();
 	
