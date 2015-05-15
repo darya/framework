@@ -24,7 +24,7 @@ interface Connection {
 	 * Query the database and return the result.
 	 * 
 	 * @param string $query
-	 * @return mixed
+	 * @return \Darya\Database\Result
 	 */
 	public function query($query);
 	

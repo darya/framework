@@ -86,14 +86,14 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	 *     'id'        => 1,       // id = '1'
 	 *     'name like' => 'Chris', // name LIKE 'Chris'
 	 *     'count >'   => 10,      // count > '10'
-	 *     'type in'   => [1, 2]   // type IN (1, 2)
+	 *     'type in'   => [1, 2],  // type IN (1, 2)
 	 *     'type'      => [3, 4]   // type IN (3, 4)
 	 * 
 	 * Comparison operator between conditions defaults to `'AND'`.
 	 * 
 	 * @param array  $filter
-	 * @param string $comparison [optional]
-	 * @param bool   $excludeWhere
+	 * @param string $comparison   [optional]
+	 * @param bool   $excludeWhere [optional]
 	 * @return string
 	 */
 	protected function prepareWhere(array $filter, $comparison = 'AND', $excludeWhere = false) {
@@ -265,7 +265,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	public function distinct($table, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$query = $this->prepareSelect($table, "DISTINCT $field", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
-		return $this->connection->query($query);
+		return $this->connection->query($query)->data;
 	}
 	
 	/**
@@ -281,7 +281,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	public function read($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
 		$query = $this->prepareSelect($table, "$table.*", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
-		return $this->connection->query($query);
+		return $this->connection->query($query)->data;
 	}
 	
 	/**
@@ -297,7 +297,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	public function count($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
 		$query = $this->prepareSelect($table, '1', $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
-		return count($this->connection->query($query));
+		return $this->connection->query($query)->count;
 	}
 	
 	/**
@@ -311,9 +311,8 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	 */
 	public function create($table, $data) {
 		$query = $this->prepareInsert($table, $data);
-		$result = $this->connection->query($query, true);
 		
-		return isset($result['insert_id']) ? $result['insert_id'] : false;
+		return $this->connection->query($query)->insertId;
 	}
 	
 	/**
@@ -344,9 +343,9 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 		}
 		
 		$query = $this->prepareUpdate($table, $data, $where, $limit);
-		$result = $this->connection->query($query, true);
+		$result = $this->connection->query($query);
 		
-		return $result['affected'] ?: !$this->errors();
+		return $result->affected ?: !$this->errors();
 	}
 	
 	/**
@@ -373,9 +372,9 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 		$limit = $this->prepareLimit($limit);
 		$query = "DELETE FROM $table $where $limit";
 		
-		$result = $this->connection->query($query, true);
+		$result = $this->connection->query($query);
 		
-		return isset($result['affected']) ? $result['affected'] : 0;
+		return $result->affected;
 	}
 	
 	/**
@@ -393,9 +392,9 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	 * Search for rows in the given table with fields that match the given query
 	 * and criteria.
 	 * 
-	 * @param string       $resource
+	 * @param string       $table
 	 * @param string       $query
-	 * @param array|string $fields
+	 * @param array|string $columns
 	 * @param array        $filter [optional]
 	 * @param array|string $order  [optional]
 	 * @param int          $limit  [optional]
@@ -425,7 +424,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 		$limit = $this->prepareLimit($limit, $offset);
 		$query = $this->prepareSelect($table, "$table.*", $where, $orderby, $limit);
 		
-		return $this->connection->query($query);
+		return $this->connection->query($query)->data;
 	}
 	
 }

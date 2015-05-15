@@ -6,6 +6,8 @@ use Darya\Database\Error;
 /**
  * Darya's database result representation.
  * 
+ * TODO: Make class iterable for result data.
+ * 
  * @property array  $data     Result data
  * @property string $query    Query that produced this result
  * @property int    $count    Result count
@@ -71,16 +73,16 @@ class Result {
 	/**
 	 * Instantiate a new database result.
 	 * 
-	 * $error expects the keys 'number' and 'message'.
+	 * $error array expects the keys 'number' and 'message'.
 	 * 
 	 * $info expects the keys 'affected', 'count', 'insert_id' and 'fields'.
 	 * 
-	 * @param string $query
-	 * @param array  $data
-	 * @param array  $info
-	 * @param array  $error
+	 * @param string      $query
+	 * @param array       $data
+	 * @param array       $info
+	 * @param array|Error $error
 	 */
-	public function __construct($query, array $data = array(), array $info = array(), array $error = array()) {
+	public function __construct($query, array $data = array(), array $info = array(), $error = array()) {
 		$this->data = $data;
 		$this->query = $query;
 		$this->setInfo($info);
@@ -108,9 +110,15 @@ class Result {
 	/**
 	 * Set the result error.
 	 * 
-	 * @param array $error
+	 * @param array|Error $error
 	 */
-	protected function setError(array $error) {
+	protected function setError($error) {
+		if ($error instanceof Error) {
+			$this->error = $error;
+			
+			return;
+		}
+		
 		$number = isset($error['number']) ? $error['number'] : 0;
 		$message = isset($error['message']) ? $error['message'] : '';
 		$this->error = new Error($number, $message);

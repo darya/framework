@@ -50,7 +50,7 @@ abstract class AbstractConnection implements Connection {
 	 * Query the database and return any resulting data.
 	 * 
 	 * @param string $query
-	 * @return mixed
+	 * @return \Darya\Database\Result
 	 */
 	public function query($query) {
 		$this->lastQuery = $query;

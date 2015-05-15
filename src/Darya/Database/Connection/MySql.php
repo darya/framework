@@ -4,6 +4,7 @@ namespace Darya\Database\Connection;
 use mysqli as php_mysqli;
 use mysqli_result;
 use Darya\Database\AbstractConnection;
+use Darya\Database\Result;
 
 /**
  * Darya's MySQL database interface. Uses mysqli.
@@ -89,33 +90,15 @@ class MySql extends AbstractConnection {
 	/**
 	 * Query the database.
 	 * 
-	 * Returns an associative array of data if the query retrieves any data.
-	 * 
-	 * Returns an empty away otherwise, unless verbose is true.
-	 * 
-	 * If verbose is true, expect the keys `'data'`, `'affected'`, `'fields'`,
-	 * `'insert_id'`, `'num_rows'` and `'error'`.
-	 * 
-	 * Reads will set:
-	 *   - `'data'`
-	 *   - `'fields'`
-	 *   - `'num_rows'`
-	 * Writes will set:
-	 *   - `'insert_id'`
-	 *   - `'affected'`
-	 * Both will set:
-	 *   - `'error'`
-	 * 
 	 * @param string $sql
-	 * @param bool   $verbose
-	 * @return array
+	 * @return Result
 	 */
-	public function query($sql, $verbose = false) {
-		parent::query($sql, $verbose);
+	public function query($sql) {
+		parent::query($sql);
 		$this->connect();
-		$result = $this->connection->query($sql);
+		$mysqli_result = $this->connection->query($sql);
 		
-		$lastResult = array(
+		$result = array(
 			'data'      => array(),
 			'affected'  => null,
 			'fields'    => array(),
@@ -124,23 +107,30 @@ class MySql extends AbstractConnection {
 			'error'     => $this->error()
 		);
 		
-		if ($result === false || $this->error()) {
-			return $verbose ? $lastResult : array();
+		if ($mysqli_result === false || $this->error()) {
+			return new Result($sql, array(), array(), $this->error());
 		}
 		
-		if (is_object($result) && $result instanceof mysqli_result) {
-			$lastResult['data'] = $result->fetch_all(MYSQL_ASSOC);
-			$lastResult['fields'] = $result->fetch_fields();
-			$lastResult['num_rows'] = $result->num_rows;
+		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
+			$result['data'] = $mysqli_result->fetch_all(MYSQL_ASSOC);
+			$result['fields'] = $mysqli_result->fetch_fields();
+			$result['num_rows'] = $mysqli_result->num_rows;
 		} else {
-			$lastResult['data'] = array();
-			$lastResult['affected'] = $this->connection->affected_rows;
-			$lastResult['insert_id'] = $this->connection->insert_id;
+			$result['data'] = array();
+			$result['affected'] = $this->connection->affected_rows;
+			$result['insert_id'] = $this->connection->insert_id;
 		}
 		
-		$this->lastResult = $lastResult;
+		$info = array(
+			'count'     => $result['num_rows'],
+			'fields'    => $result['fields'],
+			'affected'  => $result['affected'],
+			'insert_id' => $result['insert_id']
+		);
 		
-		return $verbose ? $this->lastResult : $this->lastResult['data'];
+		$this->lastResult = new Result($sql, $result['data'], $info, $result['error']);
+		
+		return $this->lastResult;
 	}
 	
 	/**
@@ -169,17 +159,15 @@ class MySql extends AbstractConnection {
 		
 		if ($this->connection->connect_errno) {
 			return array(
-				'no'    => $this->connection->connect_errno,
-				'msg'   => $this->connection->connect_error,
-				'query' => null
+				'number'  => $this->connection->connect_errno,
+				'message' => $this->connection->connect_error
 			);
 		}
 		
 		if ($this->connection->errno) {
 			return array(
-				'no'    => $this->connection->errno,
-				'msg'   => $this->connection->error,
-				'query' => $this->lastQuery
+				'number'  => $this->connection->errno,
+				'message' => $this->connection->error
 			);
 		}
 		

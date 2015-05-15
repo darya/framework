@@ -4,7 +4,7 @@ namespace Darya\Database;
 /**
  * Darya's database connection factory.
  * 
- * @author Chris Andrew
+ * @author Chris Andrew <chris@hexus.io>
  */
 class Factory {
 	
