@@ -385,7 +385,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	public function errors() {
 		$error = $this->connection->error();
 		
-		return $error['msg'];
+		return array($error->message);
 	}
 	
 	/**
@@ -394,11 +394,11 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	 * 
 	 * @param string       $table
 	 * @param string       $query
-	 * @param array|string $columns
-	 * @param array        $filter [optional]
-	 * @param array|string $order  [optional]
-	 * @param int          $limit  [optional]
-	 * @param int          $offset [optional]
+	 * @param array|string $columns [optional]
+	 * @param array        $filter  [optional]
+	 * @param array|string $order   [optional]
+	 * @param int          $limit   [optional]
+	 * @param int          $offset  [optional]
 	 */
 	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		if (empty($query) || empty($columns)) {

@@ -181,7 +181,9 @@ class Record extends Model {
 	protected function prepareData() {
 		$types = $this->attributes;
 		
-		$data = array_intersect_key($this->data, array_flip($this->changed)) ?: $this->data;
+		$changed = array_intersect_key($this->data, array_flip($this->changed));
+		
+		$data = $this->id() && $changed ? $changed : $this->data;
 		
 		foreach ($data as $attribute => $value) {
 			if (isset($types[$attribute])) {

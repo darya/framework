@@ -151,23 +151,25 @@ class BelongsToMany extends Relation {
 	public function associate($instances) {
 		$instances = static::arrayify($instances);
 		
-		$insert = static::insertIds($this->retrieve(), $instances);
+		$existing = $this->storage()->read($this->table, array(
+			$this->localKey => $this->parent->id()
+		));
 		
 		$successful = 0;
 		
 		foreach ($instances as $instance) {
 			$this->verify($instance);
 			
-			if (in_array($instance->id(), $insert)) {
-				$this->storage()->create($this->table, array(
-					$this->localKey   => $this->parent->id(),
-					$this->foreignKey => $instance->id()
-				));
-			}
-			
 			if ($instance->save()) {
 				$successful++;
 				$this->replace($instance);
+				
+				if (!in_array($instance->id(), $existing)) {
+					$this->storage()->create($this->table, array(
+						$this->localKey   => $this->parent->id(),
+						$this->foreignKey => $instance->id()
+					));
+				}
 			};
 		}
 		
