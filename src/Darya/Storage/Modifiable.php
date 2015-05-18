@@ -37,10 +37,12 @@ interface Modifiable {
 	
 	
 	/**
-	 * Retrieve any errors that occured during the last modification attempt.
+	 * Retrieve the error that occured with the last operation.
 	 * 
-	 * @return array
+	 * Returns false if there was no error.
+	 * 
+	 * @return string
 	 */
-	public function errors();
+	public function error();
 	
 }

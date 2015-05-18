@@ -126,20 +126,7 @@ class Result {
 	 * @param Error $error
 	 */
 	protected function setError(Error $error = null) {
-		if ($error === null) {
-			return;
-		}
-		
-		if ($error instanceof Error) {
-			$this->error = $error;
-			
-			return;
-		}
-		
-		$number = isset($error['number']) ? $error['number'] : 0;
-		$message = isset($error['message']) ? $error['message'] : '';
-		
-		$this->error = new Error($number, $message);
+		$this->error = $error;
 	}
 	
 	/**

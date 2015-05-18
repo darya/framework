@@ -377,7 +377,7 @@ class Record extends Model {
 			}
 			
 			$this->errors['save'] = "Failed to save $entity";
-			$this->errors['storage'] = $this->storage()->errors();
+			$this->errors['storage'] = $this->storage()->error();
 		}
 		
 		return false;

@@ -345,7 +345,7 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 		$query = $this->prepareUpdate($table, $data, $where, $limit);
 		$result = $this->connection->query($query);
 		
-		return $result->affected ?: !$this->errors();
+		return $result->affected ?: !$this->error();
 	}
 	
 	/**
@@ -378,14 +378,18 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	}
 	
 	/**
-	 * Retrieve any errors that occured with the last operation.
+	 * Retrieve the error that occured with the last operation.
 	 * 
-	 * @return array
+	 * Returns false if there was no error.
+	 * 
+	 * @return string|bool
 	 */
-	public function errors() {
-		$error = $this->connection->error();
+	public function error() {
+		if ($error = $this->connection->error()) {
+			return $error->message;
+		}
 		
-		return array($error->message);
+		return false;
 	}
 	
 	/**
