@@ -135,6 +135,14 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		return $this->access($this->key());
 	}
 	
+	/**
+	 * Retrieve raw attributes that have changed since instantiation.
+	 * 
+	 * @return array
+	 */
+	public function changed() {
+		return array_intersect_key($this->data, array_flip($this->changed));
+	}
 	
 	/**
 	 * Retrieve the model's raw attributes.

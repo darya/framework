@@ -61,26 +61,14 @@ class Record extends Model {
 	/**
 	 * Generate instances of the model with the given sets of attributes.
 	 * 
-	 * If an attribute set contains the record's primary key, it will first be
-	 * loaded from the database and then the attributes will be set. This allows
-	 * the record to keep track of its changed attributes.
-	 * 
 	 * @param array $rows
 	 * @return Record[]
 	 */
 	public static function generate(array $rows = array()) {
-		$instance = new static;
 		$instances = array();
 		
 		foreach ($rows as $key => $attributes) {
-			if (!empty($attributes[$instance->key()])) {
-				$instances[$key] = static::find($attributes[$instance->key()]);
-			}
-			
-			if (empty($instances[$key])) {
-				$instances[$key] = new static;
-			}
-			
+			$instances[$key] = new static;
 			$instances[$key]->setMany($attributes);
 		}
 		
@@ -125,7 +113,7 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Returns the name of the database table this record belongs to.
+	 * Retrieve the name of the table this model belongs to.
 	 * 
 	 * If none is set, it defaults to creating it from the class name.
 	 * 
@@ -190,6 +178,8 @@ class Record extends Model {
 				$type = $types[$attribute];
 				
 				switch ($type) {
+					case 'int':
+						$value = (int) $value;
 					case 'date':
 						$value = date('Y-m-d', $value);
 						break;
