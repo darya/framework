@@ -194,7 +194,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			switch ($type) {
 				case 'int':
 					return (int) $value;
-					break;
 				case 'date':
 				case 'datetime':
 				case 'time':

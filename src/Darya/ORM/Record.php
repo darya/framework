@@ -180,6 +180,7 @@ class Record extends Model {
 				switch ($type) {
 					case 'int':
 						$value = (int) $value;
+						break;
 					case 'date':
 						$value = date('Y-m-d', $value);
 						break;
