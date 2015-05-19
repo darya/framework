@@ -181,7 +181,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	protected function access($attribute) {
 		if ($this->has($attribute)) {
-			$value = $this->data[$this->prepareAttribute($attribute)];
+			$attribute = $this->prepareAttribute($attribute);
+			
+			$value = $this->data[$attribute];
 			
 			if (!$this->mutable($attribute)) {
 				return $value;
@@ -190,6 +192,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			$type = $this->attributes[$attribute];
 			
 			switch ($type) {
+				case 'int':
+					return (int) $value;
+					break;
 				case 'date':
 				case 'datetime':
 				case 'time':
