@@ -1,14 +1,14 @@
 <?php
 namespace Darya\View;
 
-use Darya\View\View;
+use Darya\View\AbstractView;
 
 /**
  * Darya's simple PHP view.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Php extends View {
+class Php extends AbstractView {
 	
 	/**
 	 * Render the template.
