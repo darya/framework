@@ -9,7 +9,7 @@ use Darya\View\Resolver;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class View implements View {
+abstract class AbstractView implements View {
 	
 	/**
 	 * @var string Optional shared base path for selecting template files
