@@ -2,8 +2,8 @@
 namespace Darya\Routing;
 
 use ReflectionClass;
-use Darya\Events\DispatcherInterface;
-use Darya\Events\SubscriberInterface;
+use Darya\Events\Dispatchable;
+use Darya\Events\Subscriber;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
@@ -52,7 +52,7 @@ class Router implements ContainerAware {
 	protected $filters = array();
 	
 	/**
-	 * @var \Darya\Events\DispatcherInterface
+	 * @var \Darya\Events\Dispatchable
 	 */
 	protected $eventDispatcher;
 	
@@ -165,9 +165,9 @@ class Router implements ContainerAware {
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 * 
-	 * @param \Darya\Events\DispatcherInterface $dispatcher
+	 * @param \Darya\Events\Dispatchable $dispatcher
 	 */
-	public function setEventDispatcher(DispatcherInterface $dispatcher) {
+	public function setEventDispatcher(Dispatchable $dispatcher) {
 		$this->eventDispatcher = $dispatcher;
 	}
 	
@@ -274,13 +274,13 @@ class Router implements ContainerAware {
 	/**
 	 * Helper method for subscribing objects to the router's event dispatcher.
 	 * 
-	 * Silent if $subscriber does not implement `SubscriberInterface`.
+	 * Silent if $subscriber does not implement `Subscriber`.
 	 * 
 	 * @param mixed $subscriber
 	 * @return bool
 	 */
 	protected function subscribe($subscriber) {
-		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
 			$this->eventDispatcher->subscribe($subscriber);
 			return true;
 		}
@@ -292,13 +292,13 @@ class Router implements ContainerAware {
 	 * Helper method for unsubscribing objects from the router's event
 	 * dispatcher.
 	 * 
-	 * Silent if $subscriber does not implement `SubscriberInterface`.
+	 * Silent if $subscriber does not implement `Subscriber`.
 	 * 
 	 * @param mixed $subscriber
 	 * @return bool
 	 */
 	protected function unsubscribe($subscriber) {
-		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
 			$this->eventDispatcher->unsubscribe($subscriber);
 			return true;
 		}

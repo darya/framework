@@ -10,10 +10,10 @@ namespace Darya\View;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class ViewResolver {
+class Resolver {
 	
 	/**
-	 * @var string ViewInterface implementor to resolve
+	 * @var string View implementor to resolve
 	 */
 	protected $engine;
 	
@@ -38,9 +38,9 @@ class ViewResolver {
 	protected $config = array();
 	
 	/**
-	 * Create a new ViewResolver.
+	 * Create a new view resolver.
 	 * 
-	 * @param string $engine ViewInterface implementor to resolve
+	 * @param string $engine View implementor to resolve
 	 * @param string|array [optional] $path Single path or set of paths
 	 * @param string|array [optional] $extensions Template file extensions
 	 */
@@ -57,13 +57,13 @@ class ViewResolver {
 	}
 	
 	/**
-	 * Set the engine (ViewInterface implementor) to resolve.
+	 * Set the engine (View implementor) to resolve.
 	 * 
 	 * @param string $engine
 	 */
 	public function setEngine($engine) {
-		if (!class_exists($engine) || !is_subclass_of($engine, 'Darya\View\ViewInterface')) {
-			throw new \Exception("View engine $engine does not exist or does not extend Darya\View\ViewInterface");
+		if (!class_exists($engine) || !is_subclass_of($engine, 'Darya\View\View')) {
+			throw new \Exception("View engine $engine does not exist or does not extend Darya\View\View");
 		}
 		
 		$this->engine = $engine;
@@ -147,7 +147,7 @@ class ViewResolver {
 	 * 
 	 * @param string $path [optional] Template path
 	 * @param array  $vars [optional] Variables to assign to the View
-	 * @return ViewInterface
+	 * @return View
 	 */
 	public function create($path = null, $vars = array()) {
 		$file = $this->resolve($path);

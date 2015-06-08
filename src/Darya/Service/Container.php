@@ -1,11 +1,11 @@
 <?php
 namespace Darya\Service;
 
-use \Closure;
-use \ReflectionClass;
-use \ReflectionMethod;
-use \ReflectionFunction;
-use \ReflectionParameter;
+use Closure;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionFunction;
+use ReflectionParameter;
 use Darya\Service\ContainerException;
 use Darya\Service\Contracts\ContainerAware;
 use Darya\Service\Contracts\Container as ContainerInterface;

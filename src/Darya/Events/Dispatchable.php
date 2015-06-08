@@ -2,11 +2,22 @@
 namespace Darya\Events;
 
 /**
- * Event listener manager interface for Darya's event system.
+ * Darya's event dispatcher interface.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface ListenableInterface {
+interface Dispatchable {
+	
+	/**
+	 * Dispatch the given event.
+	 * 
+	 * Optionally accepts arguments to pass to the event's registered listeners.
+	 * 
+	 * @param string $event
+	 * @param array  $arguments [optional]
+	 * @return mixed
+	 */
+	public function dispatch($event, array $arguments = array());
 	
 	/**
 	 * Register a listener with the given event.

@@ -29,7 +29,7 @@ abstract class Controller implements ContainerAware {
 	public $services;
 	
 	/**
-	 * @var \Darya\View\ViewInterface
+	 * @var \Darya\View\View
 	 */
 	public $template;
 	
@@ -52,8 +52,8 @@ abstract class Controller implements ContainerAware {
 	public function setServiceContainer(Container $services) {
 		$this->services = $services;
 		
-		if ($this->services->has('Darya\View\ViewResolver')) {
-			$this->template = $this->services->resolve('Darya\View\ViewResolver')->create();
+		if ($this->services->has('Darya\View\Resolver')) {
+			$this->template = $this->services->resolve('Darya\View\Resolver')->create();
 		}
 	}
 	
