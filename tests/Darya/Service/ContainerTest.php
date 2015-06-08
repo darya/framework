@@ -3,7 +3,7 @@ use Darya\Service\Container;
 
 class ContainerTest extends PHPUnit_Framework_TestCase {
 	
-	protected function assertSomething(Something $something) {
+	protected function assertSomething($something) {
 		$this->assertInstanceOf('Something', $something);
 		$this->assertInstanceOf('AnotherThing', $something->another);
 		$this->assertInstanceOf('SomethingElse', $something->else);
@@ -69,25 +69,51 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(3, 2, 1), $result);
 	}
 	
-	public function testRecursiveAlias() {
+	public function testRecursiveServices() {
 		$container = new Container(array(
-			'Something'     => 'Something',
-			'SomeInterface' => 'Something',
-			'some'          => 'SomeInterface',
-			'third'         => 'SomeInterface',
-			'second'        => 'third',
-			'first'         => 'second'
+			'SomeInterface'  => 'Something',
+			'OtherInterface' => 'SomeInterface',
+			'some'           => 'SomeInterface',
+			'second'         => 'some',
+			'first'          => 'second',
+			'other'          => 'OtherInterface'
 		));
 		
-		$this->assertInstanceOf('Something', $container->some);
-		$this->assertInstanceOf('Something', $container->first);
+		$this->assertInstanceOf('SomeInterface', $container->some);
+		$this->assertInstanceOf('SomeInterface', $container->first);
+		$this->assertInstanceOf('SomeInterface', $container->second);
+		$this->assertInstanceOf('OtherInterface', $container->other);
+		
+		$this->assertSomething($container->some);
+		$this->assertSomething($container->first);
+		$this->assertSomething($container->second);
+		$this->assertSomething($container->other);
+		
 	}
-
+	
+	public function testExplicitRecursiveAliases() {
+		$container = new Container(array(
+			'Something'      => 'Something',
+			'SomeInterface'  => 'Something',
+			'OtherInterface' => 'Something'
+		));
+		
+		$container->alias('some', 'SomeInterface');
+		$container->alias('other', 'OtherInterface');
+		
+		$this->assertInstanceOf('SomeInterface', $container->some);
+		$this->assertInstanceOf('OtherInterface', $container->other);
+		
+		$this->assertSomething($container->some);
+		$this->assertSomething($container->other);
+	}
 }
 
 interface SomeInterface {}
 
-class Something implements SomeInterface {
+interface OtherInterface {}
+
+class Something implements SomeInterface, OtherInterface {
 	public $another;
 	public $else;
 	public function __construct(AnotherThing $another, SomethingElse $else) {
