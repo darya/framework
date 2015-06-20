@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Http;
 
-use Darya\Http\SessionInterface;
+use Darya\Http\Session;
 
 /**
  * Darya's HTTP request representation.
@@ -42,7 +42,7 @@ class Request {
 	);
 	
 	/**
-	 * @var \Darya\Http\SessionInterface
+	 * @var \Darya\Http\Session
 	 */
 	protected $session;
 	
@@ -139,13 +139,13 @@ class Request {
 	/**
 	 * Create a new request with the given URL, method and data.
 	 * 
-	 * @param string           $url
-	 * @param string           $method  [optional]
-	 * @param array            $data    [optional]
-	 * @param SessionInterface $session [optional]
+	 * @param string  $url
+	 * @param string  $method  [optional]
+	 * @param array   $data    [optional]
+	 * @param Session $session [optional]
 	 * @return Request
 	 */
-	public static function create($url, $method = 'GET', $data = array(), SessionInterface $session = null) {
+	public static function create($url, $method = 'GET', $data = array(), Session $session = null) {
 		$components = static::parseUrl($url);
 		$data = static::prepareData($data);
 		
@@ -202,10 +202,10 @@ class Request {
 	/**
 	 * Create a new request using PHP's super globals.
 	 * 
-	 * @param \Darya\Http\SessionInterface $session [optional]
+	 * @param \Darya\Http\Session $session [optional]
 	 * @return \Darya\Http\Request
 	 */
-	public static function createFromGlobals(SessionInterface $session = null) {
+	public static function createFromGlobals(Session $session = null) {
 		$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
 			'get'    => $_GET,
 			'post'   => $_POST,
@@ -247,9 +247,9 @@ class Request {
 	 * Set the session interface for the request. Starts the session if it
 	 * hasn't been already.
 	 * 
-	 * @param \Darya\Http\SessionInterface $session
+	 * @param \Darya\Http\Session $session
 	 */
-	public function setSession(SessionInterface $session = null) {
+	public function setSession(Session $session = null) {
 		if (is_object($session) && !$session->started()) {
 			$session->start();
 		}
