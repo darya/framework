@@ -230,6 +230,7 @@ class Record extends Model {
 		$instance = new static;
 		$storage = $instance->storage();
 		$filter = static::prepareFilter($filter);
+		
 		return $storage->read($instance->table(), $filter, $order, $limit, $offset);
 	}
 	
@@ -244,6 +245,7 @@ class Record extends Model {
 	 */
 	public static function find($filter = array(), $order = array()) {
 		$data = static::load($filter, $order, 1);
+		
 		return !empty($data[0]) ? new static($data[0]) : false;
 	}
 	
@@ -257,6 +259,7 @@ class Record extends Model {
 	 */
 	public static function findOrNew($filter = array(), $order = array()) {
 		$instance = static::find($filter, $order);
+		
 		return $instance === false ? new static : $instance;
 	}
 	
@@ -271,6 +274,25 @@ class Record extends Model {
 	 */
 	public static function all($filter = array(), $order = array(), $limit = null, $offset = 0) {
 		return static::generate(static::load($filter, $order, $limit, $offset));
+	}
+	
+	/**
+	 * Eagerly load the given relations of multiple record instances.
+	 * 
+	 * @param array|string $relations
+	 * @return array
+	 */
+	public static function eager($relations) {
+		$instance = new static;
+		$instances = static::all();
+		
+		foreach ((array) $relations as $relation) {
+			if ($instance->relation($relation)) {
+				$instances = $instance->relation($relation)->eager($instances);
+			}
+		}
+		
+		return $instances;
 	}
 	
 	/**

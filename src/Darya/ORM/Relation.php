@@ -305,5 +305,17 @@ abstract class Relation {
 		
 		return $this->storage()->count($this->target->table(), $this->filter());
 	}
-
+	
+	/**
+	 * Eagerly load the related models for the given parent instances.
+	 * 
+	 * Returns the same instances with the related models loaded.
+	 * 
+	 * @param array $instances
+	 * @return array
+	 */
+	public function eager(array $instances) {
+		return $instances;
+	}
+	
 }
