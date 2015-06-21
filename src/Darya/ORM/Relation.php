@@ -200,9 +200,10 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Verify that the given instance is an instance of the relation's target.
+	 * Verify that the given models are instances of the relation's target
+	 * class.
 	 * 
-	 * Throws an exception if it isn't.
+	 * Throws an exception if any of them aren't.
 	 * 
 	 * @param Record[]|Record $instances
 	 * @throws Exception
@@ -210,9 +211,28 @@ abstract class Relation {
 	protected function verify($instances) {
 		$instances = static::arrayify($instances);
 		
-		foreach ((array) $instances as $instance) {
+		foreach ($instances as $instance) {
 			if (!$instance instanceof $this->target) {
-				throw new Exception('Related model must be an instance of ' . get_class($this->target));
+				throw new Exception('Related models must be an instance of ' . get_class($this->target));
+			}
+		}
+	}
+	
+	/**
+	 * Verify that the given models are instances of the relation's parent
+	 * class.
+	 * 
+	 * Throws an exception if any of them aren't.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @throws Exception
+	 */
+	protected function verifyParents($instances) {
+		$instances = static::arrayify($instances);
+		
+		foreach ($instances as $instance) {
+			if (!$instance instanceof $this->parent) {
+				throw new Exception('Parent models must be an instance of ' . get_class($this->parent));
 			}
 		}
 	}
@@ -249,6 +269,17 @@ abstract class Relation {
 	public function load($limit = null) {
 		return $this->storage()->read($this->target->table(), $this->filter(), null, $limit);
 	}
+	
+	/**
+	 * Eagerly load the related models for the given parent instances.
+	 * 
+	 * Returns the given instances with their related models loaded.
+	 * 
+	 * @param array $instances
+	 * @param string $name TODO: Remove this and store as a property
+	 * @return array
+	 */
+	abstract public function eager(array $instances, $name);
 	
 	/**
 	 * Retrieve one or many related model instances, depending on the relation.
@@ -304,18 +335,6 @@ abstract class Relation {
 		}
 		
 		return $this->storage()->count($this->target->table(), $this->filter());
-	}
-	
-	/**
-	 * Eagerly load the related models for the given parent instances.
-	 * 
-	 * Returns the same instances with the related models loaded.
-	 * 
-	 * @param array $instances
-	 * @return array
-	 */
-	public function eager(array $instances) {
-		return $instances;
 	}
 	
 }

@@ -41,6 +41,44 @@ class BelongsTo extends Relation {
 	}
 	
 	/**
+	 * Eagerly load the related models for the given parent instances.
+	 * 
+	 * Returns the given instances with their related models loaded.
+	 * 
+	 * @param array $instances
+	 * @param string $name TODO: Remove this and store as a property
+	 * @return array
+	 */
+	public function eager(array $instances, $name) {
+		$ids = array();
+		$this->verifyParents($instances);
+		
+		foreach ($instances as $instance) {
+			$ids[] = $instance->get($this->foreignKey);
+		}
+		
+		$filter = array($this->localKey => array_unique($ids));
+		$data = $this->storage()->read($this->target->table(), $filter);
+		$class = get_class($this->target);
+		$generated = $class::generate($data);
+		$related = array();
+		
+		foreach ($generated as $model) {
+			$related[$model->id()] = $model;
+		}
+		
+		foreach ($instances as $instance) {
+			$key = $instance->get($this->foreignKey);
+			
+			if (isset($related[$key])) {
+				$instance->set($name, $related[$key]);
+			}
+		}
+		
+		return $instances;
+	}
+	
+	/**
 	 * Retrieve the related model.
 	 * 
 	 * @return \Darya\ORM\Record

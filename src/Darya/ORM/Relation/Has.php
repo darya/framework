@@ -33,6 +33,19 @@ class Has extends Relation {
 	}
 	
 	/**
+	 * Eagerly load the related models for the given parent instances.
+	 * 
+	 * Returns the given instances with their related models loaded.
+	 * 
+	 * @param array $instances
+	 * @param string $name TODO: Remove this and store as a property
+	 * @return array
+	 */
+	public function eager(array $instances, $name) {
+		return $instances;
+	}
+	
+	/**
 	 * Retrieve the related model.
 	 * 
 	 * @return Record
