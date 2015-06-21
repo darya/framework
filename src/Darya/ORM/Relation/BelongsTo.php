@@ -23,21 +23,12 @@ class BelongsTo extends Relation {
 	}
 	
 	/**
-	 * Replace the in-memory related model with the given instance.
-	 * 
-	 * @param \Darya\ORM\Record $instance
-	 */
-	protected function replace(Record $instance) {
-		$this->related = array($instance);
-	}
-	
-	/**
-	 * Retrieve the filter for this relation.
+	 * Retrieve the default filter for this relation.
 	 * 
 	 * @return array
 	 */
-	public function filter() {
-		return array($this->target->key() => $this->parent->get($this->foreignKey));
+	protected function defaultConstraints() {
+		return array($this->localKey => $this->parent->get($this->foreignKey));
 	}
 	
 	/**
@@ -50,17 +41,18 @@ class BelongsTo extends Relation {
 	 * @return array
 	 */
 	public function eager(array $instances, $name) {
-		$ids = array();
 		$this->verifyParents($instances);
+		$ids = static::attributeList($instances, $this->foreignKey);
 		
-		foreach ($instances as $instance) {
-			$ids[] = $instance->get($this->foreignKey);
-		}
+		$filter = array_merge($this->filter(), array(
+			$this->localKey => array_unique($ids)
+		));
 		
-		$filter = array($this->localKey => array_unique($ids));
 		$data = $this->storage()->read($this->target->table(), $filter);
+		
 		$class = get_class($this->target);
 		$generated = $class::generate($data);
+		
 		$related = array();
 		
 		foreach ($generated as $model) {
@@ -69,10 +61,8 @@ class BelongsTo extends Relation {
 		
 		foreach ($instances as $instance) {
 			$key = $instance->get($this->foreignKey);
-			
-			if (isset($related[$key])) {
-				$instance->set($name, $related[$key]);
-			}
+			$value = isset($related[$key]) ? array($related[$key]) : array();
+			$instance->relation($name)->set($value);
 		}
 		
 		return $instances;
@@ -81,7 +71,7 @@ class BelongsTo extends Relation {
 	/**
 	 * Retrieve the related model.
 	 * 
-	 * @return \Darya\ORM\Record
+	 * @return \Darya\ORM\Record|null
 	 */
 	public function retrieve() {
 		if ($this->parent->get($this->foreignKey)) {
@@ -96,7 +86,7 @@ class BelongsTo extends Relation {
 	 * @return bool
 	 */
 	public function associate(Record $instance) {
-		$this->verify($instance);
+		$this->set(array($instance));
 		$this->parent->set($this->foreignKey, $instance->id());
 		
 		return $this->parent->save();
@@ -108,6 +98,7 @@ class BelongsTo extends Relation {
 	 * @return bool
 	 */
 	public function dissociate() {
+		$this->set();
 		$this->parent->set($this->foreignKey, 0);
 		
 		return $this->parent->save();

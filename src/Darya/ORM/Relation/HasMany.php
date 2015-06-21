@@ -45,7 +45,6 @@ class HasMany extends Has {
 		$ids = array();
 		
 		foreach (static::arrayify($instances) as $instance) {
-			$this->verify($instance);
 			$this->replace($instance);
 			$ids = $instance->id();
 		}

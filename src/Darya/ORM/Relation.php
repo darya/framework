@@ -43,9 +43,14 @@ abstract class Relation {
 	protected $localKey;
 	
 	/**
-	 * @var array The related instances
+	 * @var array Filters for constraining related models loaded from storage
 	 */
-	protected $related = array();
+	protected $constraints = array();
+	
+	/**
+	 * @var array|null The related instances
+	 */
+	protected $related = null;
 	
 	/**
 	 * @var Readable Storage interface
@@ -82,9 +87,9 @@ abstract class Relation {
 	/**
 	 * Instantiate a new relation.
 	 * 
-	 * @param Record $parent
-	 * @param string $target
-	 * @param string $foreignKey
+	 * @param Record $parent     Parent class
+	 * @param string $target     Related class that extends \Darya\ORM\Record
+	 * @param string $foreignKey Custom foreign key
 	 */
 	public function __construct(Record $parent, $target, $foreignKey = null) {
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
@@ -96,18 +101,6 @@ abstract class Relation {
 		
 		$this->foreignKey = $foreignKey;
 		$this->setDefaultKeys();
-	}
-	
-	/**
-	 * Read-only access for relation properties.
-	 * 
-	 * @param string $property
-	 * @return mixed
-	 */
-	public function __get($property) {
-		if (property_exists($this, $property)) {
-			return $this->$property;
-		}
 	}
 	
 	/**
@@ -133,6 +126,17 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Retrieve the default filter for this relation.
+	 * 
+	 * @return array
+	 */
+	protected function defaultConstraints() {
+		return array(
+			$this->foreignKey => $this->parent->id()
+		);
+	}
+	
+	/**
 	 * Set the default keys for the relation if they haven't already been set.
 	 */
 	abstract protected function setDefaultKeys();
@@ -148,6 +152,46 @@ abstract class Relation {
 	 */
 	protected static function arrayify($value) {
 		return !is_array($value) ? array($value) : $value;
+	}
+	
+	/**
+	 * Retrieve the values of the given attribute of the given instances.
+	 * 
+	 * Ignores objects that don't extend Record. Does not remove duplicates.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @param string $attribute
+	 * @return array
+	 */
+	protected static function attributeList($instances, $attribute) {
+		$values = array();
+		
+		foreach (static::arrayify($instances) as $instance) {
+			if ($instance instanceof Record) {
+				$values[] = $instance->get($attribute);
+			}
+		}
+		
+		return $values;
+	}
+	
+	/**
+	 * Verify that the given objects are all instances of the given class.
+	 * 
+	 * @param object[]|object $objects
+	 * @param string          $class
+	 * @throws Exception
+	 */
+	protected static function verifyModels($instances, $class) {
+		if (!class_exists($class)) {
+			return;
+		}
+		
+		foreach (static::arrayify($instances) as $instance) {
+			if (!$instance instanceof $class) {
+				throw new Exception('Models must be an instance of ' . $class);
+			}
+		}
 	}
 	
 	/**
@@ -179,7 +223,9 @@ abstract class Relation {
 	 */
 	protected function replace(Record $instance) {
 		if (!$instance->id()) {
-			return $this->related[] = $instance;
+			$this->related[] = $instance;
+			
+			return;
 		}
 		
 		$replace = null;
@@ -193,7 +239,9 @@ abstract class Relation {
 		}
 		
 		if ($replace === null) {
-			return $this->related[] = $instance;
+			$this->related[] = $instance;
+			
+			return;
 		}
 		
 		$this->related[$replace] = $instance;
@@ -209,13 +257,7 @@ abstract class Relation {
 	 * @throws Exception
 	 */
 	protected function verify($instances) {
-		$instances = static::arrayify($instances);
-		
-		foreach ($instances as $instance) {
-			if (!$instance instanceof $this->target) {
-				throw new Exception('Related models must be an instance of ' . get_class($this->target));
-			}
-		}
+		static::verifyModels($instances, get_class($this->target));
 	}
 	
 	/**
@@ -228,13 +270,7 @@ abstract class Relation {
 	 * @throws Exception
 	 */
 	protected function verifyParents($instances) {
-		$instances = static::arrayify($instances);
-		
-		foreach ($instances as $instance) {
-			if (!$instance instanceof $this->parent) {
-				throw new Exception('Parent models must be an instance of ' . get_class($this->parent));
-			}
-		}
+		static::verifyModels($instances, get_class($this->parent));
 	}
 	
 	/**
@@ -251,12 +287,30 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Set a filter to constrain related models loaded from storage.
+	 * 
+	 * @param array $filter
+	 */
+	public function constrain(array $filter) {
+		$this->contraints = $filter;
+	}
+	
+	/**
+	 * Retrieve the custom filters used to constrain related models.
+	 * 
+	 * @return array
+	 */
+	public function constraints() {
+		return $this->constraints;
+	}
+	
+	/**
 	 * Retrieve the filter for this relation.
 	 * 
 	 * @return array
 	 */
 	public function filter() {
-		return array($this->foreignKey => $this->parent->id());
+		return array_merge($this->defaultConstraints(), $this->constraints());
 	}
 	
 	/**
@@ -294,13 +348,13 @@ abstract class Relation {
 	 * @return Record
 	 */
 	public function one() {
-		if (!$this->related) {
+		if ($this->related === null) {
 			$data = $this->load(1);
 			$class = get_class($this->target);
-			$this->related[] = count($data) ? new $class($data[0]) : null;
+			$this->related = $class::generate($data);
 		}
 		
-		return $this->related[0];
+		return count($this->related) ? $this->related[0] : null;
 	}
 	
 	/**
@@ -309,7 +363,7 @@ abstract class Relation {
 	 * @return Record[]
 	 */
 	public function all() {
-		if (!$this->related) {
+		if ($this->related === null) {
 			$data = $this->load();
 			$class = get_class($this->target);
 			$this->related = $class::generate($data);
@@ -335,6 +389,35 @@ abstract class Relation {
 		}
 		
 		return $this->storage()->count($this->target->table(), $this->filter());
+	}
+	
+	/**
+	 * Set the related models.
+	 * 
+	 * @param mixed $instances
+	 */
+	public function set($instances) {
+		if ($instances === null) {
+			$this->related = null;
+			
+			return;
+		}
+		
+		$this->verify($instances);
+		$this->related = static::arrayify($instances);
+	}
+	
+	
+	/**
+	 * Read-only access for relation properties.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
+	public function __get($property) {
+		if (property_exists($this, $property)) {
+			return $this->$property;
+		}
 	}
 	
 }

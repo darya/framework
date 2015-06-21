@@ -24,15 +24,6 @@ class Has extends Relation {
 	}
 	
 	/**
-	 * Replace the in-memory related model with the given instance.
-	 * 
-	 * @param \Darya\ORM\Record $instance
-	 */
-	protected function replace(Record $instance) {
-		$this->related = array($instance);
-	}
-	
-	/**
 	 * Eagerly load the related models for the given parent instances.
 	 * 
 	 * Returns the given instances with their related models loaded.
@@ -85,7 +76,7 @@ class Has extends Relation {
 	 */
 	public function associate($instance) {
 		$this->verify($instance);
-		$this->replace($instance);
+		$this->related = array($instance);
 		
 		return (bool) $this->save();
 	}
