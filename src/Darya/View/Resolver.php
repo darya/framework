@@ -28,6 +28,11 @@ class Resolver {
 	protected $extensions = array();
 	
 	/**
+	 * @var array Extra directories to search within
+	 */
+	protected $directories = array('views');
+	
+	/**
 	 * @var array Variables to assign to all views that are resolved
 	 */
 	protected $shared = array();
@@ -36,6 +41,16 @@ class Resolver {
 	 * @var array Config variables to set for all views that are resolved
 	 */
 	protected $config = array();
+	
+	/**
+	 * Normalise the given path.
+	 * 
+	 * @param string $path
+	 * @return path
+	 */
+	public static function normalise($path) {
+		return preg_replace('~[\\\|/]+~', '/', trim($path, '\/'));
+	}
 	
 	/**
 	 * Create a new view resolver.
@@ -76,7 +91,7 @@ class Resolver {
 	 */
 	public function registerBasePaths($path) {
 		if (is_array($path)) {
-			$this->basePaths = array_merge($path, $this->basePaths);
+			$this->basePaths = array_merge($this->basePaths, $path);
 		} else {
 			$this->basePaths[] = $path;
 		}
@@ -91,6 +106,24 @@ class Resolver {
 		foreach ((array) $extensions as $extension) {
 			$this->extensions[] = '.' . ltrim($extension, '.');
 		}
+	}
+	
+	/**
+	 * Register extra directory names to search within when resolving template
+	 * files.
+	 * 
+	 * 'views' is registered by default.
+	 * 
+	 * @param string|array $directories
+	 */
+	public function registerDirectories($directories) {
+		$directories = (array) $directories;
+		
+		foreach ($directories as $key => $directory) {
+			$directories[$key] = ltrim($directory, '\/');
+		}
+		
+		$this->directories = array_merge($this->directories, $directories);
 	}
 	
 	/**
@@ -112,31 +145,48 @@ class Resolver {
 	}
 	
 	/**
+	 * Generate file paths to attempt when resolving template files.
+	 * 
+	 * @param string $path
+	 * @return array
+	 */
+	public function generate($path) {
+		$dirname = dirname($path);
+		$dir = $dirname != '.' ? $dirname : '';
+		$file = basename($path);
+		$paths = array();
+		
+		foreach ($this->basePaths as $basePath) {
+			foreach ($this->extensions as $extension) {
+				$paths[] = "$basePath/$path$extension";
+				
+				foreach ($this->directories as $directory) {
+					$paths[] = "$basePath/$dir/$directory/$file$extension";
+				}
+			}
+		}
+		
+		return $paths;
+	}
+	
+	/**
 	 * Find a template file using the given path.
 	 * 
 	 * @param  string $path
 	 * @return string
 	 */
 	public function resolve($path) {
-		$path = preg_replace('#[\\\|/]+#', '/', trim($path, '\/'));
+		$path = static::normalise($path);
 		
 		if (is_file($path)) {
 			return $path;
 		}
 		
-		$dirname = dirname($path);
-		$dir = $dirname != '.' ? $dirname : '';
-		$file = basename($path);
+		$filePaths = $this->generate($path);
 		
-		foreach ($this->basePaths as $basePath) {
-			foreach ($this->extensions as $extension) {
-				$filePaths = array("$basePath/$dir/views/$file$extension", "$basePath/$path$extension");
-				
-				foreach ($filePaths as $filePath) {
-					if (is_file($filePath)) {
-						return $filePath;
-					}
-				}
+		foreach ($filePaths as $filePath) {
+			if (is_file($filePath)) {
+				return $filePath;
 			}
 		}
 	}
