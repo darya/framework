@@ -201,11 +201,12 @@ class Router implements ContainerAware {
 	 * @param \Darya\Http\Request  $request
 	 * @param \Darya\Http\Response $response
 	 * @param string               $message [optional]
+	 * @return \Darya\Http\Response
 	 */
 	protected function handleError(Request $request, Response $response, $message = null) {
 		if ($this->errorHandler) {
 			$errorHandler = $this->errorHandler;
-			return static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
+			$response = static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
 		}
 		
 		return $response;
@@ -681,7 +682,7 @@ class Router implements ContainerAware {
 		}
 		
 		$response->status(404);
-		$this->handleError($request, $response, 'No route matches the request');
+		$response = $this->handleError($request, $response, 'No route matches the request');
 		
 		return $response;
 	}
