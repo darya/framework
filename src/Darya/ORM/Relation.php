@@ -222,6 +222,8 @@ abstract class Relation {
 	 * @param \Darya\ORM\Record $instance
 	 */
 	protected function replace(Record $instance) {
+		$this->verify($instance);
+		
 		if (!$instance->id()) {
 			$this->related[] = $instance;
 			
