@@ -92,14 +92,11 @@ class HasMany extends Has {
 	 * @return int
 	 */
 	public function purge() {
-		$successful = 0;
-		
-		foreach ($this->related as $instance) {
-			$instance->set($this->foreignKey, 0);
-			$successful += $instance->save();
-		}
-		
-		return $successful;
+		return (int) $this->storage()->update($this->target->table(), array(
+			$this->foreignKey => 0
+		), array(
+			$this->foreignKey => $this->parent->get($this->localKey)
+		));
 	}
 	
 }

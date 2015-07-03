@@ -176,25 +176,6 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Verify that the given objects are all instances of the given class.
-	 * 
-	 * @param object[]|object $objects
-	 * @param string          $class
-	 * @throws Exception
-	 */
-	protected static function verifyModels($instances, $class) {
-		if (!class_exists($class)) {
-			return;
-		}
-		
-		foreach (static::arrayify($instances) as $instance) {
-			if (!$instance instanceof $class) {
-				throw new Exception('Models must be an instance of ' . $class);
-			}
-		}
-	}
-	
-	/**
 	 * Reduce the cached related models to those with the given IDs.
 	 * 
 	 * If no IDs are given then all of the in-memory models will be removed.
@@ -260,6 +241,25 @@ abstract class Relation {
 	 */
 	protected function verify($instances) {
 		static::verifyModels($instances, get_class($this->target));
+	}
+	
+	/**
+	 * Verify that the given objects are all instances of the given class.
+	 * 
+	 * @param object[]|object $objects
+	 * @param string          $class
+	 * @throws Exception
+	 */
+	protected static function verifyModels($instances, $class) {
+		if (!class_exists($class)) {
+			return;
+		}
+		
+		foreach (static::arrayify($instances) as $instance) {
+			if (!$instance instanceof $class) {
+				throw new Exception('Models must be an instance of ' . $class);
+			}
+		}
 	}
 	
 	/**
