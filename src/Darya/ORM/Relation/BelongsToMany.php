@@ -7,7 +7,7 @@ use Darya\ORM\Relation;
 /**
  * Darya's many-to-many entity relation.
  * 
- * TODO: Association, dissociation, syncing.
+ * TODO: Eager loading.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

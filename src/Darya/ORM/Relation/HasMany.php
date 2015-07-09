@@ -21,6 +21,30 @@ class HasMany extends Has {
 	 * @return array
 	 */
 	public function eager(array $instances, $name) {
+		$this->verifyParents($instances);
+		$ids = static::attributeList($instances, $this->foreignKey);
+		
+		$filter = array_merge($this->filter(), array(
+			$this->foreignKey => array_unique($ids)
+		));
+		
+		$data = $this->storage()->read($this->target->table(), $filter);
+		
+		$class = get_class($this->target);
+		$generated = $class::generate($data);
+		
+		$related = array();
+		
+		foreach ($generated as $model) {
+			$related[$model->get($this->foreignKey)] = $model;
+		}
+		
+		foreach ($instances as $instance) {
+			$key = $instance->id();
+			$value = isset($related[$key]) ? $related[$key] : array();
+			$instance->relation($name)->set($value);
+		}
+		
 		return $instances;
 	}
 	
@@ -92,6 +116,8 @@ class HasMany extends Has {
 	 * @return int
 	 */
 	public function purge() {
+		$this->related = array();
+		
 		return (int) $this->storage()->update($this->target->table(), array(
 			$this->foreignKey => 0
 		), array(
