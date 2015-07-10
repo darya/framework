@@ -36,7 +36,7 @@ class HasMany extends Has {
 		$related = array();
 		
 		foreach ($generated as $model) {
-			$key = $model->get($this->foriegnKey);
+			$key = $model->get($this->foreignKey);
 			
 			if (!isset($related[$key])) {
 				$related[$key] = array();
