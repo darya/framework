@@ -22,7 +22,7 @@ class HasMany extends Has {
 	 */
 	public function eager(array $instances, $name) {
 		$this->verifyParents($instances);
-		$ids = static::attributeList($instances, $this->foreignKey);
+		$ids = static::attributeList($instances, 'id');
 		
 		$filter = array_merge($this->filter(), array(
 			$this->foreignKey => array_unique($ids)
@@ -36,7 +36,13 @@ class HasMany extends Has {
 		$related = array();
 		
 		foreach ($generated as $model) {
-			$related[$model->get($this->foreignKey)] = $model;
+			$key = $model->get($this->foriegnKey);
+			
+			if (!isset($related[$key])) {
+				$related[$key] = array();
+			}
+			
+			$related[$key][] = $model;
 		}
 		
 		foreach ($instances as $instance) {
