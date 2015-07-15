@@ -143,15 +143,14 @@ class MySql extends AbstractConnection {
 	 */
 	public function escape($string) {
 		$this->connect();
+		
 		return $this->connection->real_escape_string($string);
 	}
 	
 	/**
 	 * Retrieve error information regarding the last operation.
 	 * 
-	 * The returned array will have the keys 'number' and 'message'.
-	 * 
-	 * Returns an empty array if there is no error.
+	 * Returns null if there is no error.
 	 * 
 	 * @return Error
 	 */
