@@ -21,6 +21,19 @@ interface Readable {
 	public function read($resource, array $filter = array(), $order = null, $limit = null, $offset = 0);
 	
 	/**
+	 * Retrieve all values of the given resource field.
+	 * 
+	 * @param string $resource
+	 * @param string $field
+	 * @param array  $filter   [optional]
+	 * @param array  $order    [optional]
+	 * @param int    $limit    [optional]
+	 * @param int    $offset   [optional]
+	 * @return array
+	 */
+	public function listing($resource, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0);
+	
+	/**
 	 * Count the given resource using the given filter.
 	 * 
 	 * @param string $resource

@@ -253,17 +253,35 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	}
 	
 	/**
-	 * Retrieve the distinct values of the given resource field.
+	 * Retrieve the distinct values of the given database column.
 	 * 
 	 * @param string $table
-	 * @param string $field
-	 * @param array  $filter   [optional]
-	 * @param array  $order    [optional]
-	 * @param int    $limit    [optional]
-	 * @param int    $offset   [optional]
+	 * @param string $column
+	 * @param array  $filter [optional]
+	 * @param array  $order  [optional]
+	 * @param int    $limit  [optional]
+	 * @param int    $offset [optional]
+	 * @return array
 	 */
-	public function distinct($table, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = $this->prepareSelect($table, "DISTINCT $field", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
+	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		$query = $this->prepareSelect($table, "DISTINCT $column", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
+		
+		return $this->connection->query($query)->data;
+	}
+	
+	/**
+	 * Retrieve all values of the given database column.
+	 * 
+	 * @param string $table
+	 * @param string $column
+	 * @param array  $filter [optional]
+	 * @param array  $order  [optional]
+	 * @param int    $limit  [optional]
+	 * @param int    $offset [optional]
+	 * @return array
+	 */
+	public function listing($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		$query = $this->prepareSelect($table, "$column", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
 		return $this->connection->query($query)->data;
 	}
