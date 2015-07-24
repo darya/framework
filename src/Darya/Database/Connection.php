@@ -34,7 +34,7 @@ interface Connection {
 	public function query($query);
 	
 	/**
-	 * Escape a string for use in a query.
+	 * Escape the given string for use in a query.
 	 * 
 	 * @param string $string
 	 * @return string

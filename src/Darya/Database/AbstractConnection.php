@@ -11,12 +11,17 @@ use Darya\Database\Connection;
 abstract class AbstractConnection implements Connection {
 	
 	/**
-	 * @var mixed Connection object
+	 * @var mixed Connection object or link identifier
 	 */
 	protected $connection;
 	
 	/**
-	 * @var \Darya\Database\Result Detailed result array corresponding to the last query
+	 * @var bool Whether the connection is currently active
+	 */
+	protected $connected;
+	
+	/**
+	 * @var \Darya\Database\Result Detailed result corresponding to the last query
 	 */
 	protected $lastResult;
 	
@@ -24,15 +29,24 @@ abstract class AbstractConnection implements Connection {
 	 * Instantiate a new Database object and initialise its connection.
 	 * 
 	 * @param string $host Hostname to connect to
-	 * @param string $user Username to authenticate with
-	 * @param string $pass Password to authenticate with
+	 * @param string $user Username to login with
+	 * @param string $pass Password to login with
 	 * @param string $name Database to select
 	 * @param int    $port [optional] Port to connect to
 	 */
 	abstract public function __construct($host, $user, $pass, $name, $port = null);
 	
 	/**
-	 * Query the database and return any resulting data.
+	 * Determine whether there is an active connection to the database.
+	 * 
+	 * @return bool
+	 */
+	public function connected() {
+		return $this->connected;
+	}
+	
+	/**
+	 * Query the database.
 	 * 
 	 * @param string $query
 	 * @return \Darya\Database\Result
