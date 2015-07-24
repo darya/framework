@@ -37,28 +37,41 @@ class Factory {
 	}
 	
 	/**
+	 * Resolve a class name from the given string.
+	 * 
+	 * @param string $string
+	 * @return string
+	 */
+	protected function resolveClass($string) {
+		if (class_exists($string)) {
+			return $string;
+		}
+		
+		$class = null;
+		
+		switch ($name) {
+			case 'mysql':
+				$class = 'Darya\Database\Connection\MySql';
+				break;
+			case 'mssql': case 'sqlserver':
+				$class = 'Darya\Database\Connection\SqlServer';
+				break;
+		}
+		
+		return $class;
+	}
+	
+	/**
 	 * Create a new database connection using the given name/class and options.
 	 * 
 	 * @param class|string $name
 	 * @param array $options Expects keys 'host', 'username', 'password', 'database' and optionally 'port'
-	 * @return Darya\Database\Connection
+	 * @return \Darya\Database\Connection
 	 */
 	public function create($name = null, array $options = array()) {
 		$name = $name ?: $this->default;
-		$class = null;
+		$class = $this->resolveClass($name);
 		$options = $this->prepareOptions($options);
-		
-		if (class_exists($name)) {
-			$class = $name;
-		}
-		
-		if (!$class) {
-			switch ($name) {
-				case 'mysql':
-					$class = 'Darya\Database\Connection\MySql';
-					break;
-			}
-		}
 		
 		if (class_exists($class)) {
 			return new $class(
