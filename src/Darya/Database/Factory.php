@@ -49,7 +49,7 @@ class Factory {
 		
 		$class = null;
 		
-		switch ($name) {
+		switch ($string) {
 			case 'mysql':
 				$class = 'Darya\Database\Connection\MySql';
 				break;
