@@ -138,18 +138,11 @@ class SqlServer extends AbstractConnection {
 	/**
 	 * Escape the given string for use in a query.
 	 * 
-	 * @link http://stackoverflow.com/a/574821/1744006
 	 * @param string $string
 	 * @return string
 	 */
 	public function escape($string) {
-		if (is_numeric($string)) {
-			return $string;
-		}
-		
-		$unpacked = unpack('H*hex', $string);
-		
-		return '0x' . $unpacked['hex'];
+		return str_replace("'", "''", $string);
 	}
 	
 	/**
