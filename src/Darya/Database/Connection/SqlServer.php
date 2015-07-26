@@ -84,15 +84,15 @@ class SqlServer extends AbstractConnection {
 	/**
 	 * Query the database.
 	 * 
-	 * @param string $sql
+	 * @param string $query
 	 * @return \Darya\Database\Result
 	 */
-	public function query($sql) {
-		parent::query($sql);
+	public function query($query) {
+		parent::query($query);
 		
 		$this->connect();
 		
-		$mssql_result = sqlsrv_query($this->connection, $sql, array(), array(
+		$mssql_result = sqlsrv_query($this->connection, $query, array(), array(
 			'Scrollable' => SQLSRV_CURSOR_CLIENT_BUFFERED
 		));
 		
@@ -107,7 +107,7 @@ class SqlServer extends AbstractConnection {
 		$error = $this->error();
 		
 		if ($mssql_result === false || $error) {
-			return new Result($sql, array(), array(), $error);
+			return new Result($query, array(), array(), $error);
 		}
 		
 		$result['num_rows'] = sqlsrv_num_rows($mssql_result);
@@ -130,7 +130,7 @@ class SqlServer extends AbstractConnection {
 			'insert_id' => $result['insert_id']
 		);
 		
-		$this->lastResult = new Result($sql, $result['data'], $info, $error);
+		$this->lastResult = new Result($query, $result['data'], $info, $error);
 		
 		return $this->lastResult;
 	}

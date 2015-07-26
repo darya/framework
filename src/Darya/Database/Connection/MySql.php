@@ -129,12 +129,12 @@ class MySql extends AbstractConnection {
 	/**
 	 * Prepare the given query and parameters as a mysqli statement.
 	 * 
-	 * @param string $sql
+	 * @param string $query
 	 * @param array  $parameters [optional]
 	 * @return \mysqli_stmt
 	 */
-	protected function prepare($sql, $parameters = array()) {
-		$statement = $this->connection->prepare($sql);
+	protected function prepare($query, $parameters = array()) {
+		$statement = $this->connection->prepare($query);
 		
 		if (empty($parameters)) {
 			return $statement;
@@ -159,16 +159,16 @@ class MySql extends AbstractConnection {
 	/**
 	 * Query the database with the given query and optional parameters.
 	 * 
-	 * @param string $sql
+	 * @param string $query
 	 * @param array  $parameters [optional]
 	 * @return Result
 	 */
-	public function query($sql, $parameters = array()) {
-		parent::query($sql);
+	public function query($query, $parameters = array()) {
+		parent::query($query);
 		
 		$this->connect();
 		
-		$statement = $this->prepare($sql, $parameters);
+		$statement = $this->prepare($query, $parameters);
 		$statement->execute();
 		
 		$mysqli_result = $statement->get_result();
@@ -184,7 +184,7 @@ class MySql extends AbstractConnection {
 		$error = $this->error();
 		
 		if ($mysqli_result === false || $error) {
-			return new Result($sql, array(), array(), $error);
+			return new Result($query, array(), array(), $error);
 		}
 		
 		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
@@ -204,7 +204,7 @@ class MySql extends AbstractConnection {
 			'insert_id' => $result['insert_id']
 		);
 		
-		$this->lastResult = new Result($sql, $result['data'], $info, $error);
+		$this->lastResult = new Result($query, $result['data'], $info, $error);
 		
 		return $this->lastResult;
 	}
