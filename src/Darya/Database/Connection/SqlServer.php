@@ -8,8 +8,6 @@ use Darya\Database\Result;
 /**
  * Darya's SQL Server (MSSQL) database interface for Windows.
  * 
- * TODO: Insert IDs.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class SqlServer extends AbstractConnection {
@@ -58,11 +56,13 @@ class SqlServer extends AbstractConnection {
 	 * Query the database for the last ID generated, if the given query is
 	 * an insert query.
 	 * 
+	 * TODO: Use SCOPE_IDENTITY() instead?
+	 * 
 	 * @param query $query
 	 * @return int
 	 */
 	protected function queryInsertId($query) {
-		if (!preg_match('/^\s*INSERT\\s+INTO\b/i', $query)) {
+		if (!preg_match('/^\s*INSERT\s+INTO\b/i', $query)) {
 			return null;
 		}
 		
@@ -115,7 +115,7 @@ class SqlServer extends AbstractConnection {
 			}
 		}
 		
-		$result['insert_id'] = $this->queryInsertId();
+		$result['insert_id'] = $this->queryInsertId($query);
 		
 		$info = array(
 			'count'     => $result['num_rows'],
