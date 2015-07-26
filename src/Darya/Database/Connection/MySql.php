@@ -133,8 +133,12 @@ class MySql extends AbstractConnection {
 	 * @param array  $parameters [optional]
 	 * @return \mysqli_stmt
 	 */
-	protected function prepare($query, $parameters = array()) {
-		$statement = $this->connection->prepare($query);
+	protected function prepareStatement($query, $parameters = array()) {
+		$statement = $this->connection->stmt_init();
+		
+		if (!$statement->prepare($query)) {
+			return $statement;
+		}
 		
 		if (empty($parameters)) {
 			return $statement;
@@ -159,6 +163,8 @@ class MySql extends AbstractConnection {
 	/**
 	 * Query the database with the given query and optional parameters.
 	 * 
+	 * TODO: Extract prepareResult() method.
+	 * 
 	 * @param string $query
 	 * @param array  $parameters [optional]
 	 * @return Result
@@ -167,8 +173,15 @@ class MySql extends AbstractConnection {
 		parent::query($query);
 		
 		$this->connect();
+		$statement = $this->prepareStatement($query, $parameters);
 		
-		$statement = $this->prepare($query, $parameters);
+		if ($statement->error) {
+			$error = new Error($statement->errno, $statement->error);
+			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			return $this->lastResult;
+		}
+		
 		$statement->execute();
 		
 		$mysqli_result = $statement->get_result();
@@ -239,6 +252,10 @@ class MySql extends AbstractConnection {
 		
 		if ($this->connection->errno) {
 			return new Error($this->connection->errno, $this->connection->error);
+		}
+		
+		if ($this->lastResult && $this->lastResult->error) {
+			return $this->lastResult->error;
 		}
 		
 		return null;
