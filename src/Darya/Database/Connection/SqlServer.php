@@ -15,33 +15,6 @@ use Darya\Database\Result;
 class SqlServer extends AbstractConnection {
 	
 	/**
-	 * @var array Connection details
-	 */
-	protected $details;
-	
-	/**
-	 * Instantiate a new SQL Server connection with the given credentials.
-	 * 
-	 * The connection is not made upon instantiating the object, but instead
-	 * after using either the `connect()` or `query()` methods.
-	 * 
-	 * @param string $host
-	 * @param string $user
-	 * @param string $pass
-	 * @param string $name
-	 * @param int    $port [optional]
-	 */
-	public function __construct($host, $user, $pass, $name, $port = null) {
-		$this->details = array(
-			'host' => $host,
-			'user' => $user,
-			'pass' => $pass,
-			'name' => $name,
-			'port' => $port
-		);
-	}
-	
-	/**
 	 * Initiate the connection.
 	 * 
 	 * @return bool

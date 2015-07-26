@@ -21,12 +21,20 @@ abstract class AbstractConnection implements Connection {
 	protected $connected;
 	
 	/**
-	 * @var \Darya\Database\Result Detailed result corresponding to the last query
+	 * @var array Connection details
+	 */
+	protected $details;
+	
+	/**
+	 * @var \Darya\Database\Result Result of the last query
 	 */
 	protected $lastResult;
 	
 	/**
-	 * Instantiate a new Database object and initialise its connection.
+	 * Instantiate a new SQL Server connection with the given credentials.
+	 * 
+	 * The connection is not made upon instantiating the object, but instead
+	 * after using either the `connect()` or `query()` methods.
 	 * 
 	 * @param string $host Hostname to connect to
 	 * @param string $user Username to login with
@@ -34,7 +42,15 @@ abstract class AbstractConnection implements Connection {
 	 * @param string $name Database to select
 	 * @param int    $port [optional] Port to connect to
 	 */
-	abstract public function __construct($host, $user, $pass, $name, $port = null);
+	public function __construct($host, $user, $pass, $name, $port = null) {
+		$this->details = array(
+			'host' => $host,
+			'user' => $user,
+			'pass' => $pass,
+			'name' => $name,
+			'port' => $port
+		);
+	}
 	
 	/**
 	 * Determine whether there is an active connection to the database.
