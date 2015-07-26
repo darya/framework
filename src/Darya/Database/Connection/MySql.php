@@ -3,6 +3,7 @@ namespace Darya\Database\Connection;
 
 use mysqli as php_mysqli;
 use mysqli_result;
+use ReflectionClass;
 use Darya\Database\AbstractConnection;
 use Darya\Database\Error;
 use Darya\Database\Result;
@@ -89,15 +90,88 @@ class MySql extends AbstractConnection {
 	}
 	
 	/**
-	 * Query the database.
+	 * Retrieve the type of a variable for binding mysqli parameters.
+	 * 
+	 * @param mixed $parameter
+	 * @return string
+	 */
+	protected function prepareType($parameter) {
+		if (is_int($parameter)) {
+			return 'i';
+		}
+		
+		if (is_float($parameter)) {
+			return 'd';
+		}
+		
+		return 's';
+	}
+	
+	/**
+	 * Prepares an array of values as an array of references to those values.
+	 * 
+	 * Required for PHP 5.3+ to prevent warnings when dynamically invoking
+	 * mysqli_stmt::bind_param.
+	 * 
+	 * @param array $parameters
+	 * @return array
+	 */
+	protected function prepareReferences(array $parameters) {
+		$references = array();
+		
+		foreach ($parameters as $key => $value) {
+			$references[$key] = &$parameters[$key];
+		}
+		
+		return $references;
+	}
+	
+	/**
+	 * Prepare the given query and parameters as a mysqli statement.
 	 * 
 	 * @param string $sql
+	 * @param array  $parameters [optional]
+	 * @return \mysqli_stmt
+	 */
+	protected function prepare($sql, $parameters = array()) {
+		$statement = $this->connection->prepare($sql);
+		
+		if (empty($parameters)) {
+			return $statement;
+		}
+		
+		$types = '';
+		
+		foreach ((array) $parameters as $parameter) {
+			$types .= $this->prepareType($parameter);
+		}
+		
+		array_unshift($parameters, $types);
+		
+		call_user_func_array(
+			array($statement, 'bind_param'),
+			$this->prepareReferences($parameters)
+		);
+		
+		return $statement;
+	}
+	
+	/**
+	 * Query the database with the given query and optional parameters.
+	 * 
+	 * @param string $sql
+	 * @param array  $parameters [optional]
 	 * @return Result
 	 */
-	public function query($sql) {
+	public function query($sql, $parameters = array()) {
 		parent::query($sql);
+		
 		$this->connect();
-		$mysqli_result = $this->connection->query($sql);
+		
+		$statement = $this->prepare($sql, $parameters);
+		$statement->execute();
+		
+		$mysqli_result = $statement->get_result();
 		
 		$result = array(
 			'data'      => array(),
