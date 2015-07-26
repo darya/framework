@@ -55,17 +55,36 @@ class SqlServer extends AbstractConnection {
 	}
 	
 	/**
+	 * Query the database for the last ID generated, if the given query is
+	 * an insert query.
+	 * 
+	 * @param query $query
+	 * @return int
+	 */
+	protected function queryInsertId($query) {
+		if (!preg_match('/^\s*INSERT\\s+INTO\b/i', $query)) {
+			return null;
+		}
+		
+		$result = sqlsrv_query($this->connection, "SELECT @@IDENTITY id");
+		list($id) = sqlsrv_fetch_array($result, SQLSRV_FETCH_NUMERIC);
+		
+		return $id;
+	}
+	
+	/**
 	 * Query the database.
 	 * 
 	 * @param string $query
+	 * @param array  $parameters [optional]
 	 * @return \Darya\Database\Result
 	 */
-	public function query($query) {
+	public function query($query, $parameters = array()) {
 		parent::query($query);
 		
 		$this->connect();
 		
-		$mssql_result = sqlsrv_query($this->connection, $query, array(), array(
+		$mssql_result = sqlsrv_query($this->connection, $query, $parameters, array(
 			'Scrollable' => SQLSRV_CURSOR_CLIENT_BUFFERED
 		));
 		
@@ -95,6 +114,8 @@ class SqlServer extends AbstractConnection {
 				$result['data'][] = $row;
 			}
 		}
+		
+		$result['insert_id'] = $this->queryInsertId();
 		
 		$info = array(
 			'count'     => $result['num_rows'],
