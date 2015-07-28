@@ -139,7 +139,6 @@ class MySql extends AbstractConnection {
 	 */
 	public function query($query, $parameters = array()) {
 		parent::query($query);
-		
 		$this->connect();
 		$statement = $this->prepareStatement($query, $parameters);
 		
@@ -164,7 +163,7 @@ class MySql extends AbstractConnection {
 		
 		$error = $this->error();
 		
-		if ($mysqli_result === false || $error) {
+		if ($mysqli_result === false || $statement->errno || $error) {
 			return new Result($query, array(), array(), $error);
 		}
 		
@@ -174,9 +173,11 @@ class MySql extends AbstractConnection {
 			$result['num_rows'] = $mysqli_result->num_rows;
 		} else {
 			$result['data'] = array();
-			$result['affected'] = $this->connection->affected_rows;
-			$result['insert_id'] = $this->connection->insert_id;
+			$result['affected'] = $statement->affected_rows;
+			$result['insert_id'] = $statement->insert_id;
 		}
+		
+		$statement->close();
 		
 		$info = array(
 			'count'     => $result['num_rows'],
