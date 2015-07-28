@@ -2,7 +2,7 @@
 namespace Darya\Database;
 
 /**
- * Darya's database query class.
+ * Darya's immutable database query class.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
