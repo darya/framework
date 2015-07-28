@@ -11,6 +11,8 @@ use Darya\Database\Result;
 /**
  * Darya's MySQL database interface. Uses mysqli.
  * 
+ * TODO: Extract prepareResult() method from query().
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class MySql extends AbstractConnection {
@@ -130,8 +132,6 @@ class MySql extends AbstractConnection {
 	
 	/**
 	 * Query the database with the given query and optional parameters.
-	 * 
-	 * TODO: Extract prepareResult() method.
 	 * 
 	 * @param string $query
 	 * @param array  $parameters [optional]
