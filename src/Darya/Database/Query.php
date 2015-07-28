@@ -22,7 +22,7 @@ class Query {
 	 * Instantiate a new database query.
 	 * 
 	 * @param string $string
-	 * @param array $parameters [optional]
+	 * @param array  $parameters [optional]
 	 */
 	public function __construct($string, $parameters = array()) {
 		$this->string = $string;

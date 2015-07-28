@@ -58,7 +58,7 @@ class SqlServer extends AbstractConnection {
 	 * 
 	 * TODO: Use SCOPE_IDENTITY() instead?
 	 * 
-	 * @param query $query
+	 * @param string $query
 	 * @return int
 	 */
 	protected function queryInsertId($query) {
@@ -70,6 +70,23 @@ class SqlServer extends AbstractConnection {
 		list($id) = sqlsrv_fetch_array($result, SQLSRV_FETCH_NUMERIC);
 		
 		return $id;
+	}
+	
+	/**
+	 * Query the database for the number of rows affected by the last query.
+	 * 
+	 * @param string $query
+	 * @return int
+	 */
+	protected function queryAffected($query) {
+		if (preg_match('/^\s*SELECT\b/i', $query)) {
+			return null;
+		}
+		
+		$result = sqlsrv_query($this->connection, "SELECT @@ROWCOUNT affected");
+		list($affected) = sqlsrv_fetch_array($result, SQLSRV_FETCH_NUMERIC);
+		
+		return $affected;
 	}
 	
 	/**
@@ -103,7 +120,6 @@ class SqlServer extends AbstractConnection {
 		}
 		
 		$result['num_rows'] = sqlsrv_num_rows($mssql_result);
-		$result['affected'] = sqlsrv_rows_affected($mssql_result);
 		
 		if ($result['num_rows']) {
 			while ($row = sqlsrv_fetch_array($mssql_result, SQLSRV_FETCH_ASSOC)) {
@@ -116,6 +132,7 @@ class SqlServer extends AbstractConnection {
 		}
 		
 		$result['insert_id'] = $this->queryInsertId($query);
+		$result['affected'] = $this->queryAffected($query);
 		
 		$info = array(
 			'count'     => $result['num_rows'],
