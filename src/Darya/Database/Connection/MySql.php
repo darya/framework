@@ -142,7 +142,7 @@ class MySql extends AbstractConnection {
 		$this->connect();
 		$statement = $this->prepareStatement($query, $parameters);
 		
-		if ($statement->error) {
+		if ($statement->errno) {
 			$error = new Error($statement->errno, $statement->error);
 			$this->lastResult = new Result($query, array(), array(), $error);
 			
@@ -163,7 +163,7 @@ class MySql extends AbstractConnection {
 		
 		$error = $this->error();
 		
-		if ($mysqli_result === false || $statement->errno || $error) {
+		if ($error) {
 			return new Result($query, array(), array(), $error);
 		}
 		
