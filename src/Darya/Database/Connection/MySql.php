@@ -204,27 +204,47 @@ class MySql extends AbstractConnection {
 	}
 	
 	/**
-	 * Retrieve error information regarding the last operation.
+	 * Retrieve error information regarding the last query or connection
+	 * attempt.
 	 * 
 	 * Returns null if there is no error.
 	 * 
 	 * @return Error
 	 */
 	public function error() {
-		if (!$this->connection) {
-			return null;
+		$connectionError = $this->connectionError();
+		
+		if ($connectionError) {
+			return $connectionError;
 		}
 		
-		if ($this->connection->connect_errno) {
-			return new Error($this->connection->connect_errno, $this->connection->connect_error);
+		if ($this->lastResult && $this->lastResult->error) {
+			return $this->lastResult->error;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Retrieve error information from the mysqli connection object.
+	 * 
+	 * Checks for general errors first, then connection errors.
+	 * 
+	 * Returns null if there is no error.
+	 * 
+	 * @return Error
+	 */
+	protected function connectionError() {
+		if (!$this->connection) {
+			return null;
 		}
 		
 		if ($this->connection->errno) {
 			return new Error($this->connection->errno, $this->connection->error);
 		}
 		
-		if ($this->lastResult && $this->lastResult->error) {
-			return $this->lastResult->error;
+		if ($this->connection->connect_errno) {
+			return new Error($this->connection->connect_errno, $this->connection->connect_error);
 		}
 		
 		return null;
