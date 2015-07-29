@@ -153,6 +153,14 @@ class MySql extends AbstractConnection {
 		
 		$mysqli_result = $statement->get_result();
 		
+		$error = $this->error();
+		
+		if ($error) {
+			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			return $this->lastResult;
+		}
+		
 		$result = array(
 			'data'      => array(),
 			'fields'    => array(),
@@ -160,12 +168,6 @@ class MySql extends AbstractConnection {
 			'num_rows'  => null,
 			'insert_id' => null
 		);
-		
-		$error = $this->error();
-		
-		if ($error) {
-			return new Result($query, array(), array(), $error);
-		}
 		
 		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
 			$result['data'] = $mysqli_result->fetch_all(MYSQL_ASSOC);
