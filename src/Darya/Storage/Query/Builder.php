@@ -7,8 +7,8 @@ use Darya\Storage\Queryable;
 /**
  * Darya's storage query builder.
  * 
- * Forwards method calls to a storage query and reads from the given queryable
- * storage interface once the query building is complete.
+ * Forwards method calls to a storage query and executes it on the given
+ * queryable storage interface once the query building is complete.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -25,13 +25,13 @@ class Builder {
 	protected $storage;
 	
 	/**
-	 * Instantiate a new query builder for the given storage resource.
+	 * Instantiate a new query builder for the given storage and query objects.
 	 * 
+	 * @param Query     $query
 	 * @param Queryable $storage
-	 * @param string    $resource
 	 */
-	public function __construct(Queryable $storage, $resource) {
-		$this->query = new Query($resource);
+	public function __construct(Query $query, Queryable $storage) {
+		$this->query = $query;
 		$this->storage = $storage;
 	}
 	
@@ -40,9 +40,25 @@ class Builder {
 	 * 
 	 * @param string $method
 	 * @param array  $arguments
+	 * @return $this
 	 */
 	public function __call($method, $arguments) {
 		call_user_func_array(array($this->query, $method), $arguments);
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for Query::filter().
+	 * 
+	 * @param string $field
+	 * @param mixed  $value
+	 * @return $this
+	 */
+	public function where($field, $value) {
+		parent::filter($field, $value);
+		
+		return $this;
 	}
 	
 	/**
@@ -55,7 +71,7 @@ class Builder {
 	}
 	
 	/**
-	 * Alias for exectute() method.
+	 * Alias for execute() method.
 	 * 
 	 * @return array
 	 */

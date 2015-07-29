@@ -96,9 +96,7 @@ class SqlServer extends AbstractConnection {
 	 * @param array  $parameters [optional]
 	 * @return \Darya\Database\Result
 	 */
-	public function query($query, $parameters = array()) {
-		parent::query($query);
-		
+	public function query($query, array $parameters = array()) {
 		$this->connect();
 		
 		$mssql_result = sqlsrv_query($this->connection, $query, $parameters, array(

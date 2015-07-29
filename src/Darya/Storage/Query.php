@@ -4,6 +4,8 @@ namespace Darya\Storage;
 /**
  * Darya's storage query class.
  * 
+ * TODO: Maybe make a query interface?
+ * 
  * @property string   $resource
  * @property array    $filter
  * @property array    $order
@@ -56,12 +58,15 @@ class Query {
 	}
 	
 	/**
-	 * Change the resource to query.
+	 * Change the resource to be queried.
 	 * 
 	 * @param string $resource
+	 * @return $this
 	 */
 	public function resource($resource) {
 		$this->resource = $resource;
+		
+		return $this;
 	}
 	
 	/**
@@ -69,9 +74,12 @@ class Query {
 	 * 
 	 * @param string $field
 	 * @param mixed  $value
+	 * @return $this
 	 */
 	public function filter($field, $value) {
 		$this->filter = array_merge($this->filter, array($field => $value));
+		
+		return $this;
 	}
 	
 	/**
@@ -81,9 +89,12 @@ class Query {
 	 * 
 	 * @param string $field
 	 * @param string $order [optional]
+	 * @return $this
 	 */
 	public function order($field, $order = 'asc') {
 		$this->order = array_merge($this->order, array($field => $order));
+		
+		return $this;
 	}
 	
 	/**
@@ -92,6 +103,7 @@ class Query {
 	 * It is possible to optionally set an offset too.
 	 * 
 	 * @param int|null $limit
+	 * @return $this
 	 */
 	public function limit($limit, $offset = null) {
 		$this->limit = $limit;
@@ -99,6 +111,8 @@ class Query {
 		if (is_numeric($offset)) {
 			$this->offset = (int) $offset;
 		}
+		
+		return $this;
 	}
 	
 	/**
@@ -108,6 +122,8 @@ class Query {
 	 */
 	public function offset($offset) {
 		$this->offset = (int) $offset;
+		
+		return $this;
 	}
 	
 	/**

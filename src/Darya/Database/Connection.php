@@ -26,12 +26,13 @@ interface Connection {
 	public function disconnect();
 	
 	/**
-	 * Query the database and return the result.
+	 * Query the database.
 	 * 
 	 * @param string $query
+	 * @param array  $parameters [optional]
 	 * @return \Darya\Database\Result
 	 */
-	public function query($query);
+	public function query($query, array $parameters = array());
 	
 	/**
 	 * Escape the given string for use in a query.

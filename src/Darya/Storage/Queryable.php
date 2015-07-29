@@ -20,7 +20,7 @@ interface Queryable {
 	 * Open a query on the given resource.
 	 * 
 	 * @param string $resource
-	 * @return \Darya\Storage\Query\Builder;
+	 * @return \Darya\Storage\Query\Builder
 	 */
 	public function query($resource);
 	

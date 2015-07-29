@@ -10,14 +10,14 @@ use Darya\Storage\Searchable;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Extract preparation methods as a query builder or fluent query class.
+ * TODO: Extract preparation methods as a query translator.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	
 	/**
-	 * @var \Darya\Database\Connection
+	 * @var Connection
 	 */
 	protected $connection;
 	

@@ -137,9 +137,9 @@ class MySql extends AbstractConnection {
 	 * @param array  $parameters [optional]
 	 * @return Result
 	 */
-	public function query($query, $parameters = array()) {
-		parent::query($query);
+	public function query($query, array $parameters = array()) {
 		$this->connect();
+		
 		$statement = $this->prepareStatement($query, $parameters);
 		
 		if ($statement->errno) {
