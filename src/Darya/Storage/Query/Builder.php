@@ -49,19 +49,6 @@ class Builder {
 	}
 	
 	/**
-	 * Alias for Query::filter().
-	 * 
-	 * @param string $field
-	 * @param mixed  $value
-	 * @return $this
-	 */
-	public function where($field, $value) {
-		parent::filter($field, $value);
-		
-		return $this;
-	}
-	
-	/**
 	 * Execute the query on the storage interface.
 	 * 
 	 * @return array

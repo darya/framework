@@ -15,10 +15,25 @@ namespace Darya\Storage;
  */
 class Query {
 	
+	const CREATE = 'create';
+	const READ   = 'read';
+	const UPDATE = 'update';
+	const DELETE = 'delete';
+	
 	/**
 	 * @var string
 	 */
 	protected $resource;
+	
+	/**
+	 * @var int
+	 */
+	protected $type;
+	
+	/**
+	 * @var array
+	 */
+	protected $data;
 	
 	/**
 	 * @var array
@@ -51,10 +66,23 @@ class Query {
 	 */
 	public function __construct($resource, $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$this->resource = $resource;
+		$this->type = static::READ;
+		$this->data = array();
 		$this->filter = $filter;
 		$this->order  = (array) $order;
 		$this->limit  = $limit;
 		$this->offset = (int) $offset;
+	}
+	
+	/**
+	 * Change the type of this query to the given type with optional data.
+	 * 
+	 * @param mixed $type
+	 * @param array $data [optional]
+	 */
+	protected function modify($type, array $data = array()) {
+		$this->type = $type;
+		$this->data = $data;
 	}
 	
 	/**
@@ -70,6 +98,41 @@ class Query {
 	}
 	
 	/**
+	 * Make this a create query with the given data.
+	 * 
+	 * @param array $data
+	 * @return $this
+	 */
+	public function create(array $data) {
+		$this->modify(static::CREATE, $data);
+		
+		return $this;
+	}
+	
+	/**
+	 * Make this an update query with the given data.
+	 * 
+	 * @param array $data
+	 * @return $this
+	 */
+	public function update(array $data) {
+		$this->modify(static::UPDATE, $data);
+		
+		return $this;
+	}
+	
+	/**
+	 * Make this a delete query.
+	 * 
+	 * @return $this
+	 */
+	public function delete() {
+		$this->type = static::DELETE;
+		
+		return $this;
+	}
+	
+	/**
 	 * Add a filter to the query.
 	 * 
 	 * @param string $field
@@ -78,6 +141,19 @@ class Query {
 	 */
 	public function filter($field, $value) {
 		$this->filter = array_merge($this->filter, array($field => $value));
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for filter().
+	 * 
+	 * @param string $field
+	 * @param mixed  $value
+	 * @return $this
+	 */
+	public function where($field, $value) {
+		static::filter($field, $value);
 		
 		return $this;
 	}
