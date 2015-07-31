@@ -266,7 +266,17 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$query = $this->prepareSelect($table, "DISTINCT $column", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
-		return $this->connection->query($query)->data;
+		$rows = $this->connection->query($query)->data;
+		
+		$data = array();
+		
+		foreach ($rows as $row) {
+			if (isset($row[$column])) {
+				$data[] = $row[$column];
+			}
+		}
+		
+		return $data;
 	}
 	
 	/**

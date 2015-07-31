@@ -12,6 +12,8 @@ use Darya\Storage\Aggregational;
 /**
  * Darya's active record implementation.
  * 
+ * TODO: Order, limit, offset for listing() and distinct().
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Record extends Model {
@@ -323,29 +325,31 @@ class Record extends Model {
 	 * Retrieve key => value pairs using `id` for keys and the given attribute
 	 * for values.
 	 * 
-	 * TODO: Filter, order, limit, offset.
-	 * 
 	 * @param string $attribute
+	 * @param array  $filter    [optional]
+	 * @param array  $order     [optional]
+	 * @param int    $limit     [optional]
+	 * @param int    $offset    [optional]
 	 * @return array
 	 */
-	public static function listing($attribute) {
-		$instances = static::all();
-		$list = array();
+	public static function listing($attribute, $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		$instance = new static;
+		$storage = $instance->storage();
 		
-		foreach ($instances as $instance) {
-			$list[$instance->id()] = $instance->$attribute;
-		}
-			
-		return $list;
+		return $instance->storage()->listing($instance->table(), $attribute, $filter, $order, $limit, $offset);
 	}
 	
 	/**
 	 * Retrieve the distinct values of the given attribute.
 	 * 
 	 * @param string $attribute
+	 * @param array  $filter    [optional]
+	 * @param array  $order     [optional]
+	 * @param int    $limit     [optional]
+	 * @param int    $offset    [optional]
 	 * @return array
 	 */
-	public static function distinct($attribute) {
+	public static function distinct($attribute, $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$instance = new static;
 		$storage = $instance->storage();
 		
@@ -353,7 +357,7 @@ class Record extends Model {
 			return array_unique(static::listing($attribute));
 		}
 		
-		return $storage->distinct($instance->table(), $attribute);
+		return $storage->distinct($instance->table(), $attribute, $filter, $order, $limit, $offset);
 	}
 	
 	/**

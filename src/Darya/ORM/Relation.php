@@ -11,7 +11,7 @@ use Darya\Storage\Readable;
  * 
  * TODO: constraint() method for specifying a default filter for related models.
  * TODO: errors() method.
- * TODO: load() and retrieve() could do with filter, limit, offset maybe.
+ * TODO: Filter, order, limit, offset for load() and retrieve().
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -289,7 +289,7 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Set a filter to constrain related models loaded from storage.
+	 * Set a filter to constrain which models are considered related.
 	 * 
 	 * @param array $filter
 	 */
