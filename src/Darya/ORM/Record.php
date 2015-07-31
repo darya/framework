@@ -336,7 +336,7 @@ class Record extends Model {
 		$instance = new static;
 		$storage = $instance->storage();
 		
-		return $instance->storage()->listing($instance->table(), $attribute, $filter, $order, $limit, $offset);
+		return $storage->listing($instance->table(), $attribute, $filter, $order, $limit, $offset);
 	}
 	
 	/**
