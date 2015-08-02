@@ -7,6 +7,9 @@ use Countable;
 use DateTime;
 use IteratorAggregate;
 use Serializable;
+use Darya\ORM\Model\Accessor;
+use Darya\ORM\Model\Mutator;
+use Darya\ORM\Model\Transformer;
 
 /**
  * Darya's abstract model implementation.
@@ -112,6 +115,24 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Get the transformer for accessing attributes.
+	 * 
+	 * @return Transformer
+	 */
+	public function getAttributeAccessor() {
+		return new Accessor($this->dateFormat());
+	}
+	
+	/**
+	 * Get the transformer for mutating attributes.
+	 * 
+	 * @return Transformer
+	 */
+	public function getAttributeMutator() {
+		return new Mutator($this->dateFormat());
+	}
+	
+	/**
 	 * Retrieve the name of the attribute that uniquely identifies this model.
 	 * 
 	 * Defaults to 'id' if the `key` property is unset.
@@ -191,20 +212,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 			
 			$type = $this->attributes[$attribute];
 			
-			switch ($type) {
-				case 'int':
-					return (int) $value;
-				case 'date':
-				case 'datetime':
-				case 'time':
-					return date($this->dateFormat(), $value);
-				case 'array':
-				case 'json':
-					return json_decode($value, true);
-					break;
-			}
+			$accessor = $this->getAttributeAccessor();
 			
-			return $value;
+			return $accessor->transform($value, $type);
 		}
 		
 		return null;
@@ -224,32 +234,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		
 		$type = $this->attributes[$this->prepareAttribute($attribute)];
 		
-		switch ($type) {
-			case 'int':
-				$value = (int) $value;
-				break;
-			case 'date':
-			case 'datetime':
-			case 'time':
-				if (is_string($value)) {
-					$value = strtotime(str_replace('/', '-', $value));
-				}
-				
-				if ($value instanceof DateTime) {
-					$value = $value->getTimestamp();
-				}
-				
-				break;
-			case 'array':
-			case 'json':
-				if (is_array($value)) {
-					$value = json_encode($value);
-				}
-				
-				break;
-		}
+		$mutator = $this->getAttributeMutator();
 		
-		return $value;
+		return $mutator->transform($value, $type);
 	}
 	
 	/**
