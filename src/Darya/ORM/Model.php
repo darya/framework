@@ -4,7 +4,6 @@ namespace Darya\ORM;
 use ArrayAccess;
 use ArrayIterator;
 use Countable;
-use DateTime;
 use IteratorAggregate;
 use Serializable;
 use Darya\ORM\Model\Accessor;

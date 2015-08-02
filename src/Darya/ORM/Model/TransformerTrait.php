@@ -15,8 +15,9 @@ trait TransformerTrait {
 	 * 
 	 * Unrecognised types simply return the value as is.
 	 * 
-	 * @param string $value
+	 * @param mixed  $value
 	 * @param string $type  [optional]
+	 * @return mixed
 	 */
 	public function transform($value, $type = '') {
 		$method = 'transform' . ucfirst($type);
