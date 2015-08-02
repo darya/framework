@@ -14,17 +14,17 @@ use Darya\Service\Contracts\ContainerAware;
 abstract class Controller implements ContainerAware {
 	
 	/**
-	 * @var \Darya\Http\Request
+	 * @var Request
 	 */
 	public $request;
 	
 	/**
-	 * @var \Darya\Http\Response
+	 * @var Response
 	 */
 	public $response;
 	
 	/**
-	 * @var \Darya\Service\Contracts\Container
+	 * @var Container
 	 */
 	public $services;
 	
@@ -36,8 +36,8 @@ abstract class Controller implements ContainerAware {
 	/**
 	 * Instantiate a controller.
 	 * 
-	 * @param \Darya\Http\Request  $request
-	 * @param \Darya\Http\Response $response
+	 * @param Request  $request
+	 * @param Response $response
 	 */
 	public function __construct(Request $request, Response $response) {
 		$this->request = $request;
@@ -45,9 +45,20 @@ abstract class Controller implements ContainerAware {
 	}
 	
 	/**
+	 * Get the URL of the given request, or the controller's current request.
+	 * 
+	 * @param Request $request [optional]
+	 */
+	public function url(Request $request = null) {
+		$request = $request ?: $this->request;
+		
+		return $request->route->url();
+	}
+	
+	/**
 	 * Set the controller's service container and instantiate an empty view.
 	 * 
-	 * @param \Darya\Service\Contracts\Container $services
+	 * @param Container $services
 	 */
 	public function setServiceContainer(Container $services) {
 		$this->services = $services;
