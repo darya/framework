@@ -2,6 +2,7 @@
 namespace Darya\ORM\Model;
 
 use Darya\ORM\Model\Transformer;
+use Darya\ORM\Model\TransformerTrait;
 
 /**
  * Darya's model attribute mutator.

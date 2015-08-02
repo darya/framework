@@ -12,8 +12,6 @@ use Darya\Storage\Aggregational;
 /**
  * Darya's active record implementation.
  * 
- * TODO: Order, limit, offset for listing() and distinct().
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Record extends Model {
@@ -375,7 +373,6 @@ class Record extends Model {
 			}
 			
 			$data = $this->prepareData();
-			$entity = strtolower(basename($class));
 			
 			if (!$this->id()) {
 				$id = $storage->create($this->table(), $data);
@@ -393,6 +390,7 @@ class Record extends Model {
 				}
 			}
 			
+			$entity = strtolower(basename($class));
 			$this->errors['save'] = "Failed to save $entity";
 			$this->errors['storage'] = $this->storage()->error();
 		}
