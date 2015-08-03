@@ -218,6 +218,26 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Prepare the given list data.
+	 * 
+	 * @param array  $data
+	 * @param string $attribute
+	 * @return array
+	 */
+	protected static function prepareListing($data, $attribute) {
+		$instance = new static;
+		$list = array();
+		
+		foreach ($data as $row) {
+			if (isset($row[$attribute])) {
+				$list[$row[$instance->key()]] = $row[$attribute];
+			}
+		}
+		
+		return $list;
+	}
+	
+	/**
 	 * Load record data from storage using the given criteria.
 	 * 
 	 * @param array|string|int $filter [optional]
@@ -335,15 +355,8 @@ class Record extends Model {
 		$storage = $instance->storage();
 		
 		$data = $storage->listing($instance->table(), array($instance->key(), $attribute), $filter, $order, $limit, $offset);
-		$list = array();
 		
-		foreach ($data as $row) {
-			if (isset($row[$attribute])) {
-				$list[$row[$instance->key()]] = $row[$attribute];
-			}
-		}
-		
-		return $list;
+		return static::prepareListing($data, $attribute);
 	}
 	
 	/**
