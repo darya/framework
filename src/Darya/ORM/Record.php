@@ -334,7 +334,16 @@ class Record extends Model {
 		$instance = new static;
 		$storage = $instance->storage();
 		
-		return $storage->listing($instance->table(), $attribute, $filter, $order, $limit, $offset);
+		$data = $storage->listing($instance->table(), array($instance->key(), $attribute), $filter, $order, $limit, $offset);
+		$list = array();
+		
+		foreach ($data as $row) {
+			if (isset($row[$attribute])) {
+				$list[$row[$instance->key()]] = $row[$attribute];
+			}
+		}
+		
+		return $list;
 	}
 	
 	/**

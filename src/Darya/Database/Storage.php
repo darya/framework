@@ -54,6 +54,41 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	}
 	
 	/**
+	 * Flatten the given data by grabbing the values of the given key.
+	 * 
+	 * @param array  $data
+	 * @param string $key
+	 * @return array
+	 */
+	protected static function flatten(array $data, $key) {
+		$flat = array();
+		
+		foreach ($data as $row) {
+			if (isset($row[$key])) {
+				$flat[] = $row[$key];
+			}
+		}
+		
+		return $flat;
+	}
+	
+	/**
+	 * Prepare the given columns as a string.
+	 * 
+	 * @param array|string $columns
+	 * @return string
+	 */
+	protected function prepareColumns($columns) {
+		if (!is_array($columns)) {
+			return (string) $columns;
+		}
+		
+		$columns = array_map(array($this, 'escape'), $columns);
+		
+		return implode(', ', $columns);
+	}
+	
+	/**
 	 * Prepare an individual filter condition.
 	 * 
 	 * @param string       $column
@@ -255,6 +290,8 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	/**
 	 * Retrieve the distinct values of the given database column.
 	 * 
+	 * Returns a flat array of values.
+	 * 
 	 * @param string $table
 	 * @param string $column
 	 * @param array  $filter [optional]
@@ -266,48 +303,32 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$query = $this->prepareSelect($table, "DISTINCT $column", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
-		$rows = $this->connection->query($query)->data;
-		
-		$data = array();
-		
-		foreach ($rows as $row) {
-			if (isset($row[$column])) {
-				$data[] = $row[$column];
-			}
-		}
-		
-		return $data;
+		return static::flatten($this->connection->query($query)->data, $column);
 	}
 	
 	/**
-	 * Retrieve all values of the given database column.
+	 * Retrieve all values of the given database columns.
 	 * 
-	 * @param string $table
-	 * @param string $column
-	 * @param array  $filter [optional]
-	 * @param array  $order  [optional]
-	 * @param int    $limit  [optional]
-	 * @param int    $offset [optional]
+	 * Returns an array of associative arrays.
+	 * 
+	 * @param string       $table
+	 * @param array|string $columns
+	 * @param array        $filter [optional]
+	 * @param array|string $order  [optional]
+	 * @param int          $limit  [optional]
+	 * @param int          $offset [optional]
 	 * @return array
 	 */
-	public function listing($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = $this->prepareSelect($table, "$column", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
+	public function listing($table, $columns, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		$query = $this->prepareSelect($table, $this->prepareColumns($columns), $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
 		
-		$rows = $this->connection->query($query)->data;
-		
-		$data = array();
-		
-		foreach ($rows as $row) {
-			if (isset($row[$column])) {
-				$data[] = $row[$column];
-			}
-		}
-		
-		return $data;
+		return $this->connection->query($query)->data;
 	}
 	
 	/**
 	 * Retrieve database rows that match the given criteria.
+	 * 
+	 * Returns an array of associative arrays.
 	 * 
 	 * @param string       $table
 	 * @param array        $filter [optional]

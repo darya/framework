@@ -11,6 +11,8 @@ interface Aggregational {
 	/**
 	 * Retrieve the distinct values of the given resource's field.
 	 * 
+	 * Returns a flat array of values.
+	 * 
 	 * @param string $resource
 	 * @param string $field
 	 * @param array  $filter   [optional]
