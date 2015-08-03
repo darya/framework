@@ -2,6 +2,7 @@
 namespace Darya\Database;
 
 use Darya\Database\Connection;
+use Darya\Events\Dispatchable;
 
 /**
  * Darya's abstract database connection.
@@ -24,6 +25,11 @@ abstract class AbstractConnection implements Connection {
 	 * @var array Connection details
 	 */
 	protected $details;
+	
+	/**
+	 * @var Dispatchable
+	 */
+	protected $eventDispatcher;
 	
 	/**
 	 * @var \Darya\Database\Result Result of the last query
@@ -53,6 +59,31 @@ abstract class AbstractConnection implements Connection {
 	}
 	
 	/**
+	 * Set an event dispatcher for the connection to use.
+	 * 
+	 * @param Dispatchable $dispatcher
+	 */
+	public function setEventDispatcher(Dispatchable $dispatcher) {
+		$this->eventDispatcher = $dispatcher;
+	}
+	
+	/**
+	 * Helper method for dispatching events. Silent if an event dispatcher is
+	 * not set.
+	 * 
+	 * @param string $name
+	 * @param mixed  $arguments [optional]
+	 * @return array
+	 */
+	protected function event($name, array $arguments = array()) {
+		if ($this->eventDispatcher) {
+			return $this->eventDispatcher->dispatch($name, $arguments);
+		}
+		
+		return array();
+	}
+	
+	/**
 	 * Determine whether there is an active connection to the database.
 	 * 
 	 * @return bool
@@ -73,7 +104,7 @@ abstract class AbstractConnection implements Connection {
 	/**
 	 * Get a detailed result array for the last query made by this connection.
 	 * 
-	 * @return array
+	 * @return \Darya\Database\Result
 	 */
 	public function lastResult() {
 		return $this->lastResult;
