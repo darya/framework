@@ -140,6 +140,8 @@ class MySql extends AbstractConnection {
 	public function query($query, array $parameters = array()) {
 		$this->connect();
 		
+		$this->event('mysql.prequery', array($query, $parameters));
+		
 		$statement = $this->prepareStatement($query, $parameters);
 		
 		if ($statement->errno) {
@@ -189,6 +191,8 @@ class MySql extends AbstractConnection {
 		);
 		
 		$this->lastResult = new Result($query, $result['data'], $info, $error);
+		
+		$this->event('mysql.query', array($this->lastResult));
 		
 		return $this->lastResult;
 	}

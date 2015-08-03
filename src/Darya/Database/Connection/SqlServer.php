@@ -99,6 +99,8 @@ class SqlServer extends AbstractConnection {
 	public function query($query, array $parameters = array()) {
 		$this->connect();
 		
+		$this->event('sqlserver.prequery', array($query, $parameters));
+		
 		$mssql_result = sqlsrv_query($this->connection, $query, $parameters, array(
 			'Scrollable' => SQLSRV_CURSOR_CLIENT_BUFFERED
 		));
@@ -140,6 +142,8 @@ class SqlServer extends AbstractConnection {
 		);
 		
 		$this->lastResult = new Result($query, $result['data'], $info, $error);
+		
+		$this->event('sqlserver.query', array($this->lastResult));
 		
 		return $this->lastResult;
 	}
