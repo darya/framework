@@ -9,6 +9,8 @@ use Darya\Storage;
  * Darya's MySQL query translator.
  * 
  * TODO: Separate the switch statement bodies out into their own methods.
+ * TODO: Parameterised queries.
+ * TODO: Standardised operators?
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -18,6 +20,11 @@ class MySql implements Translator {
 	 * @var Database\Connection
 	 */
 	protected $connection;
+	
+	/**
+	 * @var array Filter comparison operators
+	 */
+	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
 	
 	/**
 	 * Instantiate a new MySQL query translator.
@@ -117,7 +124,7 @@ class MySql implements Translator {
 	protected function prepareFilter($column, $value) {
 		list($column, $operator) = array_pad(explode(' ', $column, 2), 2, null);
 		$column = $this->escape($column);
-		$operator = in_array(strtolower($operator), $this->operators) ? $this->escape($operator) : '=';
+		$operator = in_array(strtolower($operator), $this->operators) ? $this->escape(strtoupper($operator)) : '=';
 		$value = $this->escape($value);
 		
 		if (is_array($value)) {
