@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Storage;
+use Darya\Storage\Query as StorageQuery;
 
 /**
  * Darya's database connection interface.
@@ -30,10 +30,10 @@ interface Connection {
 	/**
 	 * Translate a storage query to a query for this connection.
 	 * 
-	 * @param Storage\Query $storageQuery
-	 * @return Database\Query
+	 * @param StorageQuery $storageQuery
+	 * @return \Darya\Database\Query
 	 */
-	public function translate(Storage\Query $storageQuery);
+	public function translate(StorageQuery $storageQuery);
 	
 	/**
 	 * Query the database.

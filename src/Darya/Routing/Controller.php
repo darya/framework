@@ -45,18 +45,23 @@ abstract class Controller implements ContainerAware {
 	}
 	
 	/**
-	 * Get the URL of the given request, or the controller's current request.
+	 * Get the URL of the controller's current request.
 	 * 
-	 * @param Request $request [optional]
+	 * Optionally accepts an array of route parameters to override.
+	 * 
+	 * @param array $parameters [optional]
+	 * @return string
 	 */
-	public function url(Request $request = null) {
+	public function url(array $parameters = array()) {
 		$request = $request ?: $this->request;
 		
-		return $request->route->url();
+		return $request->route->url($parameters);
 	}
 	
 	/**
-	 * Set the controller's service container and instantiate an empty view.
+	 * Set the controller's service container.
+	 * 
+	 * Instantiates an empty view if the container has a view resolver.
 	 * 
 	 * @param Container $services
 	 */

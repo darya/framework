@@ -1,10 +1,9 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database;
 use Darya\Database\Connection;
 use Darya\Events\Dispatchable;
-use Darya\Storage;
+use Darya\Storage\Query as StorageQuery;
 
 /**
  * Darya's abstract database connection.
@@ -109,10 +108,10 @@ abstract class AbstractConnection implements Connection {
 	/**
 	 * Translate a storage query to a query for this connection.
 	 * 
-	 * @param Storage\Query $storageQuery
-	 * @return Database\Query
+	 * @param StorageQuery $storageQuery
+	 * @return \Darya\Database\Query
 	 */
-	public function translate(Storage\Query $storageQuery) {
+	public function translate(StorageQuery $storageQuery) {
 		return $this->translator()->translate($storageQuery);
 	}
 	
