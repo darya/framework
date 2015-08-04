@@ -1,6 +1,8 @@
 <?php
 namespace Darya\Database;
 
+use Darya\Storage;
+
 /**
  * Darya's database connection interface.
  * 
@@ -24,6 +26,14 @@ interface Connection {
 	 * Close the connection to the database.
 	 */
 	public function disconnect();
+	
+	/**
+	 * Translate a storage query to a query for this connection.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	public function translate(Storage\Query $storageQuery);
 	
 	/**
 	 * Query the database.

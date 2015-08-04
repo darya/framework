@@ -155,13 +155,13 @@ class Query {
 	 * @return $this
 	 */
 	public function where($field, $value) {
-		static::filter($field, $value);
+		$this->filter($field, $value);
 		
 		return $this;
 	}
 	
 	/**
-	 * Add a sorting order to the query.
+	 * Add an order to the query.
 	 * 
 	 * $order can be 'asc' or 'desc'.
 	 * 

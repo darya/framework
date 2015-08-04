@@ -1,6 +1,8 @@
 <?php
 namespace Darya\Storage;
 
+use Darya\Storage\Query;
+
 /**
  * Darya's queryable data store interface.
  * 

@@ -1,8 +1,10 @@
 <?php
 namespace Darya\Database;
 
+use Darya\Database;
 use Darya\Database\Connection;
 use Darya\Events\Dispatchable;
+use Darya\Storage;
 
 /**
  * Darya's abstract database connection.
@@ -35,6 +37,11 @@ abstract class AbstractConnection implements Connection {
 	 * @var \Darya\Database\Result Result of the last query
 	 */
 	protected $lastResult;
+	
+	/**
+	 * @var \Darya\Database\Query\Translator
+	 */
+	protected $translator;
 	
 	/**
 	 * Instantiate a new SQL Server connection with the given credentials.
@@ -90,6 +97,23 @@ abstract class AbstractConnection implements Connection {
 	 */
 	public function connected() {
 		return $this->connected;
+	}
+	
+	/**
+	 * Retrieve the query translator to use for this connection.
+	 * 
+	 * @return \Darya\Database\Query\Translator
+	 */
+	abstract public function translator();
+	
+	/**
+	 * Translate a storage query to a query for this connection.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	public function translate(Storage\Query $storageQuery) {
+		return $this->translator()->translate($storageQuery);
 	}
 	
 	/**

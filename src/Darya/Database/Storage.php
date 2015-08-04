@@ -1,11 +1,15 @@
 <?php
 namespace Darya\Database;
 
+use Darya\Database;
 use Darya\Database\Connection;
 use Darya\Storage\Aggregational;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
+use Darya\Storage\Queryable;
 use Darya\Storage\Searchable;
+use Darya\Storage\Query as StorageQuery;
+use Darya\Storage\Query\Builder as QueryBuilder;
 
 /**
  * Darya's database storage implementation.
@@ -14,7 +18,7 @@ use Darya\Storage\Searchable;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Storage implements Aggregational, Readable, Modifiable, Searchable {
+class Storage implements Aggregational, Readable, Modifiable, Queryable, Searchable {
 	
 	/**
 	 * @var Connection
@@ -437,18 +441,27 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 	}
 	
 	/**
-	 * Retrieve the error that occured with the last operation.
+	 * Execute the given storage query.
 	 * 
-	 * Returns false if there was no error.
-	 * 
-	 * @return string|bool
+	 * @param \Darya\Storage\Query $query
+	 * @return array
 	 */
-	public function error() {
-		if ($error = $this->connection->error()) {
-			return $error->message;
-		}
+	public function execute(StorageQuery $query) {
+		$query = $this->connection->translate($query);
 		
-		return false;
+		return $this->connection->query($query->string(), $query->parameters());
+	}
+	
+	/**
+	 * Open a query on the given resource.
+	 * 
+	 * @param string $resource
+	 * @return \Darya\Storage\Query\Builder
+	 */
+	public function query($resource) {
+		$query = new StorageQuery($resource);
+		
+		return new QueryBuilder($query, $this);
 	}
 	
 	/**
@@ -488,6 +501,21 @@ class Storage implements Aggregational, Readable, Modifiable, Searchable {
 		$query = $this->prepareSelect($table, "$table.*", $where, $orderby, $limit);
 		
 		return $this->connection->query($query)->data;
+	}
+	
+	/**
+	 * Retrieve the error that occured with the last operation.
+	 * 
+	 * Returns false if there was no error.
+	 * 
+	 * @return string|bool
+	 */
+	public function error() {
+		if ($error = $this->connection->error()) {
+			return $error->message;
+		}
+		
+		return false;
 	}
 	
 }

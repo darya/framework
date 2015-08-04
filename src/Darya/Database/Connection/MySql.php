@@ -7,6 +7,7 @@ use ReflectionClass;
 use Darya\Database\AbstractConnection;
 use Darya\Database\Error;
 use Darya\Database\Result;
+use Darya\Database\Query\Translator;
 
 /**
  * Darya's MySQL database interface. Uses mysqli.
@@ -128,6 +129,19 @@ class MySql extends AbstractConnection {
 		);
 		
 		return $statement;
+	}
+	
+	/**
+	 * Retrieve the query translator.
+	 * 
+	 * @return Translator
+	 */
+	public function translator() {
+		if (!$this->translator) {
+			$this->translator = new Translator\MySql();
+		}
+		
+		return $this->translator;
 	}
 	
 	/**
