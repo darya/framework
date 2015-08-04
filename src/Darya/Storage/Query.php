@@ -8,6 +8,7 @@ namespace Darya\Storage;
  * 
  * @property string   $resource
  * @property string   $type
+ * @property array    $data
  * @property array    $filter
  * @property array    $order
  * @property int|null $limit

@@ -61,7 +61,7 @@ class MySql implements Translator {
 				break;
 			case Storage\Query::UPDATE:
 				$query = new Database\Query(
-					$this->prepareUpdate($storageQuery->resource, $data,
+					$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 					)
