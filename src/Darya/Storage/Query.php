@@ -7,6 +7,7 @@ namespace Darya\Storage;
  * TODO: Maybe make a query interface?
  * 
  * @property string   $resource
+ * @property string   $type
  * @property array    $filter
  * @property array    $order
  * @property int|null $limit
