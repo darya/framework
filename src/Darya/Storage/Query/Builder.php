@@ -8,21 +8,26 @@ use Darya\Storage\Queryable;
  * Darya's storage query builder.
  * 
  * Forwards method calls to a storage query and executes it on the given
- * queryable storage interface once the query building is complete.
+ * queryable storage interface once the query has been built.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Builder {
 	
 	/**
-	 * @var Query
+	 * @var Query The query to execute
 	 */
 	protected $query;
 	
 	/**
-	 * @var Queryable
+	 * @var Queryable The storage interface to query
 	 */
 	protected $storage;
+	
+	/**
+	 * @var array Storage query methods that should trigger query execution
+	 */
+	protected $executors = array('all', 'distinct', 'delete');
 	
 	/**
 	 * Instantiate a new query builder for the given storage and query objects.
@@ -36,14 +41,21 @@ class Builder {
 	}
 	
 	/**
-	 * Dynamically call query methods to build a query.
+	 * Dynamically invoke methods to fluently build a query.
+	 * 
+	 * If the method is an execute method, the query is executed and the result
+	 * returned.
 	 * 
 	 * @param string $method
 	 * @param array  $arguments
-	 * @return $this
+	 * @return $this|mixed
 	 */
 	public function __call($method, $arguments) {
 		call_user_func_array(array($this->query, $method), $arguments);
+		
+		if (in_array($method, $this->executors)) {
+			return $this->execute();
+		}
 		
 		return $this;
 	}
@@ -51,7 +63,7 @@ class Builder {
 	/**
 	 * Execute the query on the storage interface.
 	 * 
-	 * @return array
+	 * @return mixed
 	 */
 	public function execute() {
 		return $this->storage->execute($this->query);
@@ -60,7 +72,7 @@ class Builder {
 	/**
 	 * Alias for execute() method.
 	 * 
-	 * @return array
+	 * @return mixed
 	 */
 	public function cheers() {
 		return $this->execute();

@@ -14,7 +14,7 @@ use Darya\Storage\Query\Builder as QueryBuilder;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Extract preparation methods as a query translator.
+ * TODO: Replace usage of preparation methods with storage queries.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -305,9 +305,10 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return array
 	 */
 	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = $this->prepareSelect($table, "DISTINCT $column", $this->prepareWhere($filter), $this->prepareOrderBy($order), $this->prepareLimit($limit, $offset));
+		$query = new StorageQuery($table, array($column), $filter, $order, $limit, $offset);
+		$query->distinct();
 		
-		return static::flatten($this->connection->query($query)->data, $column);
+		return static::flatten($this->execute($query)->data, $column);
 	}
 	
 	/**
@@ -455,11 +456,14 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Open a query on the given resource.
 	 * 
-	 * @param string $resource
+	 * Optionally accepts the column(s) to retrieve in the case of a read query.
+	 * 
+	 * @param string       $resource
+	 * @param array|string $columns  [optional]
 	 * @return \Darya\Storage\Query\Builder
 	 */
-	public function query($resource) {
-		$query = new StorageQuery($resource);
+	public function query($resource, $columns = array()) {
+		$query = new StorageQuery($resource, (array) $columns);
 		
 		return new QueryBuilder($query, $this);
 	}

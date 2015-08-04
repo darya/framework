@@ -10,7 +10,6 @@ use Darya\Storage;
  * 
  * TODO: Separate the switch statement bodies out into their own methods.
  * TODO: Parameterised queries.
- * TODO: Standardised operators?
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -49,15 +48,19 @@ class MySql implements Translator {
 				$query = new Query(
 					$this->prepareInsert($storageQuery->resource, $storageQuery->data)
 				);
+				
 				break;
 			case Storage\Query::READ:
 				$query = new Database\Query(
-					$this->prepareSelect($storageQuery->resource, '*',
+					$this->prepareSelect($storageQuery->resource,
+						$this->prepareColumns($storageQuery->fields),
+						$storageQuery->distinct,
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareOrderBy($storageQuery->order),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 					)
 				);
+				
 				break;
 			case Storage\Query::UPDATE:
 				$query = new Database\Query(
@@ -66,6 +69,7 @@ class MySql implements Translator {
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 					)
 				);
+				
 				break;
 			case Storage\Query::DELETE:
 				$query = new Database\Query(
@@ -74,6 +78,7 @@ class MySql implements Translator {
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 					)
 				);
+				
 				break;
 		}
 		
@@ -86,16 +91,27 @@ class MySql implements Translator {
 	 * If the value is an array, it is recursively escaped.
 	 * 
 	 * @param array|string $value
-	 * @return array
+	 * @return array|string
 	 */
 	protected function escape($value) {
 		if (is_array($value)) {
 			return array_map(array($this, 'escape'), $value);
-		} else if (!is_object($value)) {
-			return $this->connection->escape($value);
+		}
+		
+		if (is_string($value)) {
+			return "'" . $this->connection->escape($value) . "'";
 		}
 		
 		return $value;
+	}
+	
+	/**
+	 * Escape the given identifier.
+	 * 
+	 * @param string $identifier
+	 */
+	public function backtick($identifier) {
+		return '`' . $identifier . '`';
 	}
 	
 	/**
@@ -105,17 +121,21 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareColumns($columns) {
-		if (!is_array($columns)) {
-			return (string) $columns;
+		if (empty($columns) || $columns == '*') {
+			return '*';
 		}
 		
-		$columns = $this->escape($columns);
+		if (!is_array($columns)) {
+			$columns = (array) $columns;
+		}
 		
-		return implode(', ', $columns);
+		return '`' . implode('`, `', $columns) . '`';
 	}
 	
 	/**
 	 * Prepare an individual filter condition.
+	 * 
+	 * TODO: Get rid of them quoted multi-values.
 	 * 
 	 * @param string       $column
 	 * @param array|string $value
@@ -123,18 +143,18 @@ class MySql implements Translator {
 	 */
 	protected function prepareFilter($column, $value) {
 		list($column, $operator) = array_pad(explode(' ', $column, 2), 2, null);
-		$column = $this->escape($column);
-		$operator = in_array(strtolower($operator), $this->operators) ? $this->escape(strtoupper($operator)) : '=';
+		
+		$column = $this->prepareColumns($column);
+		$operator = in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
+		
 		$value = $this->escape($value);
 		
 		if (is_array($value)) {
-			$value = "('" . implode("','", $value) . "')";
+			$value = "(" . implode(", ", $value) . ")";
 			
 			if ($operator === '=') {
 				$operator = 'IN';
 			}
-		} else {
-			$value = "'" . $value . "'";
 		}
 		
 		return "$column $operator $value";
@@ -244,21 +264,17 @@ class MySql implements Translator {
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
-	 * @param string       $where [optional]
-	 * @param string       $order [optional]
-	 * @param string       $limit [optional]
+	 * @param bool         $distinct [optional]
+	 * @param string       $where    [optional]
+	 * @param string       $order    [optional]
+	 * @param string       $limit    [optional]
 	 */
-	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null) {
-		$table = $this->escape($table);
+	protected function prepareSelect($table, $columns, $distinct = false, $where = null, $order = null, $limit = null) {
+		$table = $this->backtick($table);
 		
-		if (is_array($columns)) {
-			$columns = $this->escape($columns);
-			$columns = is_array($columns) ? implode(', ', $columns) : $columns;
-		} else {
-			$columns = $this->escape($columns);
-		}
+		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		$query = "SELECT $columns FROM $table";
+		$query = "SELECT $distinct $columns FROM $table";
 		
 		foreach (array($where, $order, $limit) as $clause) {
 			if (!empty($clause)) {
@@ -277,7 +293,7 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareInsert($table, array $data) {
-		$table = $this->escape($table);
+		$table = $this->backtick($table);
 		
 		$columns = $this->escape(array_keys($data));
 		$values  = $this->escape(array_values($data));

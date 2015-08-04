@@ -5,8 +5,10 @@ namespace Darya\Storage;
  * Darya's storage query class.
  * 
  * TODO: Maybe make a query interface?
+ * TODO: Standardised operators? Think about how this will affect translators.
  * 
  * @property string   $resource
+ * @property array    $fields
  * @property string   $type
  * @property array    $data
  * @property array    $filter
@@ -23,9 +25,19 @@ class Query {
 	const DELETE = 'delete';
 	
 	/**
+	 * @var bool
+	 */
+	protected $distinct;
+	
+	/**
 	 * @var string
 	 */
 	protected $resource;
+	
+	/**
+	 * @var array
+	 */
+	protected $fields;
 	
 	/**
 	 * @var int
@@ -61,15 +73,17 @@ class Query {
 	 * Instantiate a new storage query.
 	 * 
 	 * @param string $resource
+	 * @param array  $fields   [optional]
 	 * @param array  $filter   [optional]
 	 * @param array  $order    [optional]
 	 * @param array  $limit    [optional]
 	 * @param array  $offset   [optional]
 	 */
-	public function __construct($resource, $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function __construct($resource, array $fields = array(), array $filter = array(), array $order = array(), $limit = null, $offset = 0) {
 		$this->resource = $resource;
-		$this->type = static::READ;
-		$this->data = array();
+		$this->fields = $fields;
+		$this->type   = static::READ;
+		$this->data   = array();
 		$this->filter = $filter;
 		$this->order  = (array) $order;
 		$this->limit  = $limit;
@@ -88,6 +102,28 @@ class Query {
 	}
 	
 	/**
+	 * Set the query to result in all data.
+	 * 
+	 * @return $this
+	 */
+	public function all() {
+		$this->distinct = false;
+		
+		return $this;
+	}
+	
+	/**
+	 * Set the query to result in unique data.
+	 * 
+	 * @return $this
+	 */
+	public function distinct() {
+		$this->distinct = true;
+		
+		return $this;
+	}
+	
+	/**
 	 * Change the resource to be queried.
 	 * 
 	 * @param string $resource
@@ -95,6 +131,20 @@ class Query {
 	 */
 	public function resource($resource) {
 		$this->resource = $resource;
+		
+		return $this;
+	}
+	
+	/**
+	 * Change the resource fields to retrieve.
+	 * 
+	 * Used by read queries.
+	 * 
+	 * @param array $fields [optional]
+	 * @return $this
+	 */
+	public function fields(array $fields = array()) {
+		$this->fields = $fields;
 		
 		return $this;
 	}
@@ -171,6 +221,18 @@ class Query {
 	 */
 	public function order($field, $order = 'asc') {
 		$this->order = array_merge($this->order, array($field => $order));
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for order().
+	 * 
+	 * @param string $field
+	 * @param string $order [optional]
+	 */
+	public function sort($field, $order = 'asc') {
+		$this->order($field, $order);
 		
 		return $this;
 	}

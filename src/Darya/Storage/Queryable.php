@@ -14,7 +14,7 @@ interface Queryable {
 	 * Execute the given query.
 	 * 
 	 * @param Query $query
-	 * @return array
+	 * @return mixed
 	 */
 	public function execute(Query $query);
 	
@@ -22,8 +22,9 @@ interface Queryable {
 	 * Open a query on the given resource.
 	 * 
 	 * @param string $resource
+	 * @param array  $fields   [optional]
 	 * @return \Darya\Storage\Query\Builder
 	 */
-	public function query($resource);
+	public function query($resource, $fields = array());
 	
 }
