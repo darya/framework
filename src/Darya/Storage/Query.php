@@ -27,7 +27,7 @@ class Query {
 	/**
 	 * @var bool
 	 */
-	protected $distinct;
+	protected $distinct = false;
 	
 	/**
 	 * @var string
@@ -47,7 +47,7 @@ class Query {
 	/**
 	 * @var array
 	 */
-	protected $data;
+	protected $data = array();
 	
 	/**
 	 * @var array
@@ -83,7 +83,6 @@ class Query {
 		$this->resource = $resource;
 		$this->fields = $fields;
 		$this->type   = static::READ;
-		$this->data   = array();
 		$this->filter = $filter;
 		$this->order  = (array) $order;
 		$this->limit  = $limit;

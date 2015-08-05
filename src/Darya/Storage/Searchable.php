@@ -19,6 +19,7 @@ interface Searchable {
 	 * @param array|string $order    [optional]
 	 * @param int          $limit    [optional]
 	 * @param int          $offset   [optional]
+	 * @return array
 	 */
 	public function search($resource, $query, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0);
 	

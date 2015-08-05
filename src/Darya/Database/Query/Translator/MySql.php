@@ -109,6 +109,7 @@ class MySql implements Translator {
 	 * Escape the given identifier.
 	 * 
 	 * @param string $identifier
+	 * @return string
 	 */
 	public function backtick($identifier) {
 		return '`' . $identifier . '`';
@@ -121,7 +122,7 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareColumns($columns) {
-		if (empty($columns) || $columns == '*') {
+		if (empty($columns)) {
 			return '*';
 		}
 		
@@ -129,7 +130,13 @@ class MySql implements Translator {
 			$columns = (array) $columns;
 		}
 		
-		return '`' . implode('`, `', $columns) . '`';
+		$columns = array_map(function($column){
+			if (is_string($column)) {
+				return $this->backtick($column);
+			}
+		}, $columns);
+		
+		return implode(', ', $columns);
 	}
 	
 	/**
@@ -181,7 +188,11 @@ class MySql implements Translator {
 		$conditions = array();
 		
 		foreach ($filter as $column => $value) {
-			$conditions[] = $this->prepareFilter($column, $value);
+			if (strtolower($column) == 'or')  {
+				$conditions[] = '(' . $this->prepareWhere($value, 'OR', true) . ')';
+			} else {
+				$conditions[] = $this->prepareFilter($column, $value);
+			}
 		}
 		
 		if (!count($conditions)) {
@@ -260,16 +271,19 @@ class MySql implements Translator {
 	}
 	
 	/**
-	 * Prepare a SELECT statement using the given columns, table and clauses.
+	 * Prepare a SELECT statement using the given columns, table, clauses and
+	 * options.
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
-	 * @param bool         $distinct [optional]
 	 * @param string       $where    [optional]
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
+	 * @param bool         $distinct [optional]
+	 * @param bool         $count    [optional]
+	 * @return string
 	 */
-	protected function prepareSelect($table, $columns, $distinct = false, $where = null, $order = null, $limit = null) {
+	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false, $count = false) {
 		$table = $this->backtick($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
@@ -316,7 +330,7 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
-		$table = $this->escape($table);
+		$table = $this->backtick($table);
 		
 		foreach ($data as $key => $value) {
 			$key = $this->escape($key);
@@ -335,9 +349,10 @@ class MySql implements Translator {
 	 * @param string $table
 	 * @param string $where [optional]
 	 * @param string $limit [optional]
+	 * @return string
 	 */
 	protected function prepareDelete($table, $where = null, $limit = null) {
-		$table = $this->escape($table);
+		$table = $this->backtick($table);
 		
 		if ($table == '*' || !$table || !$where) {
 			return null;
