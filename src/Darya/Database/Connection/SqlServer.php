@@ -3,6 +3,7 @@ namespace Darya\Database\Connection;
 
 use Darya\Database\AbstractConnection;
 use Darya\Database\Error;
+use Darya\Database\Query\Translator;
 use Darya\Database\Result;
 
 /**
@@ -50,6 +51,19 @@ class SqlServer extends AbstractConnection {
 		}
 		
 		$this->connected = false;
+	}
+	
+	/**
+	 * Retrieve the query translator.
+	 * 
+	 * @return Translator
+	 */
+	public function translator() {
+		if (!$this->translator) {
+			$this->translator = new Translator\MySql($this);
+		}
+		
+		return $this->translator;
 	}
 	
 	/**
