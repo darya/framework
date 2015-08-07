@@ -333,9 +333,9 @@ class MySql implements Translator {
 		$table = $this->backtick($table);
 		
 		foreach ($data as $key => $value) {
-			$key = $this->escape($key);
+			$column = $this->escape($key);
 			$value = $this->escape($value);
-			$data[$key] = "$key = '$value'";
+			$data[$key] = "$column = $value";
 		}
 		
 		$values = implode(', ', $data);
