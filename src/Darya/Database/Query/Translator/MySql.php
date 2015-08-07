@@ -333,7 +333,7 @@ class MySql implements Translator {
 		$table = $this->backtick($table);
 		
 		foreach ($data as $key => $value) {
-			$column = $this->escape($key);
+			$column = $this->backtick($key);
 			$value = $this->escape($value);
 			$data[$key] = "$column = $value";
 		}
