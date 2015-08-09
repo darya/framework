@@ -110,14 +110,14 @@ class MySql implements Translator {
 	 * 
 	 * If the value is an array, it is recursively escaped.
 	 * 
-	 * If the value is not a string, it is returned as is.
+	 * If the value is not a string, it is returned unmodified.
 	 * 
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
 	protected function identifier($identifier) {
-		if (is_array($value)) {
-			return array_map(array($this, 'identifier', $value));
+		if (is_array($identifier)) {
+			return array_map(array($this, 'identifier', $identifier));
 		}
 		
 		if (!is_string($identifier)) {
