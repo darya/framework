@@ -108,11 +108,29 @@ class MySql implements Translator {
 	/**
 	 * Escape the given identifier.
 	 * 
-	 * @param string $identifier
-	 * @return string
+	 * If the value is an array, it is recursively escaped.
+	 * 
+	 * If the value is not a string, it is returned as is.
+	 * 
+	 * @param mixed $identifier
+	 * @return mixed
 	 */
-	public function backtick($identifier) {
-		return '`' . $identifier . '`';
+	protected function identifier($identifier) {
+		if (is_array($value)) {
+			return array_map(array($this, 'identifier', $value));
+		}
+		
+		if (!is_string($identifier)) {
+			return $identifier;
+		}
+		
+		$split = explode('.', $identifier, 2);
+		
+		foreach ($split as $index => $value) {
+			$split[$index] = '`' . $value . '`';
+		}
+		
+		return implode('.', $split);
 	}
 	
 	/**
@@ -132,7 +150,7 @@ class MySql implements Translator {
 		
 		$columns = array_map(function($column){
 			if (is_string($column)) {
-				return $this->backtick($column);
+				return $this->identifier($column);
 			}
 		}, $columns);
 		
@@ -284,7 +302,7 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false, $count = false) {
-		$table = $this->backtick($table);
+		$table = $this->identifier($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
@@ -307,7 +325,7 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareInsert($table, array $data) {
-		$table = $this->backtick($table);
+		$table = $this->identifier($table);
 		
 		$columns = $this->escape(array_keys($data));
 		$values  = $this->escape(array_values($data));
@@ -330,10 +348,10 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
-		$table = $this->backtick($table);
+		$table = $this->identifier($table);
 		
 		foreach ($data as $key => $value) {
-			$column = $this->backtick($key);
+			$column = $this->identifier($key);
 			$value = $this->escape($value);
 			$data[$key] = "$column = $value";
 		}
@@ -352,7 +370,7 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareDelete($table, $where = null, $limit = null) {
-		$table = $this->backtick($table);
+		$table = $this->identifier($table);
 		
 		if ($table == '*' || !$table || !$where) {
 			return null;

@@ -13,7 +13,7 @@ interface Translator {
 	/**
 	 * Translate the given storage query to a database-specific query.
 	 * 
-	 * @param Storage\Query
+	 * @param Storage\Query $storageQuery
 	 * @return \Darya\Database\Query
 	 */
 	public function translate(Storage\Query $storageQuery);
