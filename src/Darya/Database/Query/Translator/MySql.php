@@ -144,15 +144,11 @@ class MySql implements Translator {
 			return '*';
 		}
 		
+		$columns = $this->identifier($columns);
+		
 		if (!is_array($columns)) {
 			$columns = (array) $columns;
 		}
-		
-		$columns = array_map(function($column){
-			if (is_string($column)) {
-				return $this->identifier($column);
-			}
-		}, $columns);
 		
 		return implode(', ', $columns);
 	}
@@ -272,12 +268,12 @@ class MySql implements Translator {
 	 * @return string
 	 */
 	protected function prepareLimit($limit = null, $offset = 0) {
-		if (!is_numeric($limit)) {
+		if (!is_numeric($limit) || !is_numeric($offset)) {
 			return null;
 		}
 		
-		$limit = $this->escape($limit);
-		$offset = $this->escape($offset);
+		$limit = (int) $limit;
+		$offset = (int) $offset;
 		
 		$query = 'LIMIT ';
 		
@@ -343,8 +339,8 @@ class MySql implements Translator {
 	 * 
 	 * @param string $table
 	 * @param array  $data
-	 * @param string $where
-	 * @param string $limit
+	 * @param string $where [optional]
+	 * @param string $limit [optional]
 	 * @return string
 	 */
 	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
