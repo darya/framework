@@ -25,6 +25,11 @@ class Builder {
 	protected $storage;
 	
 	/**
+	 * @var callback
+	 */
+	protected $callback;
+	
+	/**
 	 * @var array Storage query methods that should trigger query execution
 	 */
 	protected $executors = array('all', 'distinct', 'delete');
@@ -61,12 +66,30 @@ class Builder {
 	}
 	
 	/**
+	 * Set a callback to run on results before returning them from execute
+	 * methods.
+	 * 
+	 * Callbacks should accept one parameter: the query result.
+	 * 
+	 * @param callback $callback
+	 */
+	public function callback($callback) {
+		$this->callback = $callback;
+	}
+	
+	/**
 	 * Execute the query on the storage interface.
 	 * 
 	 * @return mixed
 	 */
 	public function execute() {
-		return $this->storage->execute($this->query);
+		$result = $this->storage->execute($this->query);
+		
+		if (!is_callable($this->callback)) {
+			return $result;
+		}
+		
+		return call_user_func($this->callback, $result);
 	}
 	
 	/**
