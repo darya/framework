@@ -127,7 +127,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int          $offset [optional]
 	 * @return array
 	 */
-	public function read($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
+	public function read($table, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$query = new StorageQuery($table, array(), $filter, $order, $limit, $offset);
 		
 		return $this->execute($query)->data;
@@ -143,7 +143,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int    $offset [optional]
 	 * @return int
 	 */
-	public function count($table, array $filter = array(), $order = null, $limit = null, $offset = 0) {
+	public function count($table, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$query = new StorageQuery($table, array(1), $filter, $order, $limit, $offset);
 		
 		return $this->execute($query)->count;
