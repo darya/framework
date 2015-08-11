@@ -401,7 +401,7 @@ class Record extends Model {
 		$builder = new Builder($query, $instance->storage());
 		
 		$builder->callback(function ($result) use ($instance) {
-			return call_user_func(array(get_class($instance), 'generate'), $result->data);
+			return $instance::generate($result->data);
 		});
 		
 		return $builder;
