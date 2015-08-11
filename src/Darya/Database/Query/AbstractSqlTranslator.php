@@ -1,6 +1,10 @@
 <?php
 namespace Darya\Database\Query;
 
+use Darya\Database;
+use Darya\Database\Query\AbstractSqlTranslator;
+use Darya\Storage;
+
 /**
  * An abstract query translator that prepares SQL common across more than one
  * RDBMS.
@@ -8,6 +12,62 @@ namespace Darya\Database\Query;
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class AbstractSqlTranslator {
+	
+	/**
+	 * @var array Filter comparison operators
+	 */
+	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
+	
+	/**
+	 * Translate the given storage query into a MySQL query.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	public function translate(Storage\Query $storageQuery) {
+		$type = $storageQuery->type;
+		
+		switch ($type) {
+			case Storage\Query::CREATE:
+				$query = new Query(
+					$this->prepareInsert($storageQuery->resource, $storageQuery->data)
+				);
+				
+				break;
+			case Storage\Query::READ:
+				$query = new Database\Query(
+					$this->prepareSelect($storageQuery->resource,
+						$this->prepareColumns($storageQuery->fields),
+						$storageQuery->distinct,
+						$this->prepareWhere($storageQuery->filter),
+						$this->prepareOrderBy($storageQuery->order),
+						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
+					)
+				);
+				
+				break;
+			case Storage\Query::UPDATE:
+				$query = new Database\Query(
+					$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
+						$this->prepareWhere($storageQuery->filter),
+						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
+					)
+				);
+				
+				break;
+			case Storage\Query::DELETE:
+				$query = new Database\Query(
+					$this->prepareDelete($storageQuery->resource,
+						$this->prepareWhere($storageQuery->filter),
+						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
+					)
+				);
+				
+				break;
+		}
+		
+		return isset($query) ? $query : new Database\Query;
+	}
 	
 	/**
 	 * Escape the given identifier.

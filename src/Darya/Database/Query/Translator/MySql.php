@@ -1,10 +1,8 @@
 <?php
 namespace Darya\Database\Query\Translator;
 
-use Darya\Database;
+use Darya\Database\Connection\MySql as MySqlConnection;
 use Darya\Database\Query\AbstractSqlTranslator;
-use Darya\Database\Query\Translator;
-use Darya\Storage;
 
 /**
  * Darya's MySQL query translator.
@@ -14,7 +12,7 @@ use Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class MySql extends AbstractSqlTranslator implements Translator {
+class MySql extends AbstractSqlTranslator {
 	
 	/**
 	 * @var Database\Connection
@@ -22,68 +20,12 @@ class MySql extends AbstractSqlTranslator implements Translator {
 	protected $connection;
 	
 	/**
-	 * @var array Filter comparison operators
-	 */
-	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
-	
-	/**
 	 * Instantiate a new MySQL query translator.
 	 * 
-	 * @param Database\Connection $connection
+	 * @param MySqlConnection $connection
 	 */
-	public function __construct(Database\Connection $connection) {
+	public function __construct(MySqlConnection $connection) {
 		$this->connection = $connection;
-	}
-	
-	/**
-	 * Translate the given storage query into a MySQL query.
-	 * 
-	 * @param Storage\Query $storageQuery
-	 * @return Database\Query
-	 */
-	public function translate(Storage\Query $storageQuery) {
-		$type = $storageQuery->type;
-		
-		switch ($type) {
-			case Storage\Query::CREATE:
-				$query = new Query(
-					$this->prepareInsert($storageQuery->resource, $storageQuery->data)
-				);
-				
-				break;
-			case Storage\Query::READ:
-				$query = new Database\Query(
-					$this->prepareSelect($storageQuery->resource,
-						$this->prepareColumns($storageQuery->fields),
-						$storageQuery->distinct,
-						$this->prepareWhere($storageQuery->filter),
-						$this->prepareOrderBy($storageQuery->order),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					)
-				);
-				
-				break;
-			case Storage\Query::UPDATE:
-				$query = new Database\Query(
-					$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
-						$this->prepareWhere($storageQuery->filter),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					)
-				);
-				
-				break;
-			case Storage\Query::DELETE:
-				$query = new Database\Query(
-					$this->prepareDelete($storageQuery->resource,
-						$this->prepareWhere($storageQuery->filter),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					)
-				);
-				
-				break;
-		}
-		
-		return isset($query) ? $query : new Database\Query;
 	}
 	
 	/**

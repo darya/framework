@@ -130,7 +130,9 @@ class SqlServer extends AbstractConnection {
 		$error = $this->error();
 		
 		if ($mssql_result === false || $error) {
-			return new Result($query, array(), array(), $error);
+			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			return $this->lastResult;
 		}
 		
 		$result['num_rows'] = sqlsrv_num_rows($mssql_result);
