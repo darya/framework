@@ -14,8 +14,6 @@ use Darya\Storage\Query\Builder as QueryBuilder;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Replace usage of preparation methods with storage queries.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Storage implements Aggregational, Readable, Modifiable, Queryable, Searchable {
@@ -40,24 +38,6 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	}
 	
 	/**
-	 * Escape the given value.
-	 * 
-	 * If the value is an array, it is recursively escaped.
-	 * 
-	 * @param array|string $value
-	 * @return array
-	 */
-	protected function escape($value) {
-		if (is_array($value)) {
-			return array_map(array($this, 'escape'), $value);
-		} else if (!is_object($value)) {
-			return $this->connection->escape($value);
-		}
-		
-		return $value;
-	}
-	
-	/**
 	 * Flatten the given data by grabbing the values of the given key.
 	 * 
 	 * @param array  $data
@@ -77,6 +57,24 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	}
 	
 	/**
+	 * Prepare the given order value as an array.
+	 * 
+	 * @param array|string $order
+	 * @return array
+	 */
+	protected static function prepareOrder($order) {
+		if (is_array($order)) {
+			return $order;
+		}
+		
+		if (!is_string($order)) {
+			return array();
+		}
+		
+		return array($order => 'asc');
+	}
+	
+	/**
 	 * Retrieve the distinct values of the given database column.
 	 * 
 	 * Returns a flat array of values.
@@ -90,7 +88,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return array
 	 */
 	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = new StorageQuery($table, array($column), $filter, $order, $limit, $offset);
+		$query = new StorageQuery($table, array($column), $filter, static::prepareOrder($order), $limit, $offset);
 		$query->distinct();
 		
 		return static::flatten($this->execute($query)->data, $column);
@@ -110,7 +108,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return array
 	 */
 	public function listing($table, $columns, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = new StorageQuery($table, (array) $columns, $filter, $order, $limit, $offset);
+		$query = new StorageQuery($table, (array) $columns, $filter, static::prepareOrder($order), $limit, $offset);
 		
 		return $this->execute($query)->data;
 	}
@@ -128,23 +126,20 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return array
 	 */
 	public function read($table, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = new StorageQuery($table, array(), $filter, $order, $limit, $offset);
+		$query = new StorageQuery($table, array(), $filter, static::prepareOrder($order), $limit, $offset);
 		
 		return $this->execute($query)->data;
 	}
 	
 	/**
-	 * Count the rows that match the given filter.
+	 * Count the rows that match the given criteria.
 	 * 
 	 * @param string $table
 	 * @param array  $filter [optional]
-	 * @param array  $order  [optional]
-	 * @param int    $limit  [optional]
-	 * @param int    $offset [optional]
 	 * @return int
 	 */
-	public function count($table, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$query = new StorageQuery($table, array(1), $filter, $order, $limit, $offset);
+	public function count($table, array $filter = array()) {
+		$query = new StorageQuery($table, array(1), $filter);
 		
 		return $this->execute($query)->count;
 	}
@@ -261,6 +256,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return array
 	 */
 	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		$order = static::prepareOrder($order);
+		
 		if (empty($query) || empty($columns)) {
 			return $this->read($table, $filter, $order, $limit, $offset);
 		}
