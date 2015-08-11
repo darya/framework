@@ -1,13 +1,17 @@
 <?php
 namespace Darya\ORM;
 
+use Exception;
 use ReflectionClass;
 use Darya\ORM\Model;
 use Darya\ORM\Relation;
+use Darya\Storage\Query;
 use Darya\Storage\Readable;
+use Darya\Storage\Queryable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
 use Darya\Storage\Aggregational;
+use Darya\Storage\Query\Builder;
 
 /**
  * Darya's active record implementation.
@@ -331,7 +335,7 @@ class Record extends Model {
 		$storage = $instance->storage();
 		
 		if (!$storage instanceof Searchable) {
-			throw new \Exception(get_class($instance) . ' storage is not searchable');
+			throw new Exception(get_class($instance) . ' storage is not searchable');
 		}
 		
 		$data = $storage->search($instance->table(), $query, $attributes, $filter, $order, $limit, $offset);
@@ -381,6 +385,29 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Create a query builder for the model.
+	 * 
+	 * @return Builder
+	 */
+	public static function query() {
+		$instance = new static;
+		$storage = $instance->storage();
+		
+		if (!$storage instanceof Queryable) {
+			throw new Exception(get_class($instance) . ' storage is not queryable');
+		}
+		
+		$query = new Query($instance->table());
+		$builder = new Builder($query, $instance->storage());
+		
+		$builder->callback(function ($result) use ($instance) {
+			return call_user_func(array(get_class($instance), 'generate'), $result->data);
+		});
+		
+		return $builder;
+	}
+	
+	/**
 	 * Save the record to storage.
 	 * 
 	 * @return bool
@@ -391,7 +418,7 @@ class Record extends Model {
 			$class = get_class($this);
 			
 			if (!$storage instanceof Modifiable) {
-				throw new \Exception(basename($class) . ' storage is not modifiable');
+				throw new Exception(basename($class) . ' storage is not modifiable');
 			}
 			
 			$data = $this->prepareData();
