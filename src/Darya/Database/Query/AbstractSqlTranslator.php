@@ -173,8 +173,8 @@ abstract class AbstractSqlTranslator {
 	 * @return string
 	 */
 	protected function prepareOrder($column, $direction = null) {
-		$column = $this->escape($column);
-		$direction = $direction !== null ? strtoupper($this->escape($direction)) : 'ASC';
+		$column = $this->identifier($column);
+		$direction = $direction !== null ? strtoupper($direction) : 'ASC';
 		
 		return !empty($column) ? "$column $direction" : null;
 	}
