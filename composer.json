@@ -1,8 +1,8 @@
 {
 	"name": "darya/framework",
-	"description": "Darya core framework.",
+	"description": "Web application framework",
 	"type": "library",
-	"keywords": ["darya", "framework", "mvc"],
+	"keywords": ["darya", "framework", "library", "mvc"],
 	"license": "MIT",
 	"authors": [
 		{

@@ -2,14 +2,13 @@
 namespace Darya\Routing;
 
 use ReflectionClass;
-use Darya\Common\Tools;
-use Darya\Events\DispatcherInterface;
-use Darya\Events\SubscriberInterface;
+use Darya\Events\Dispatchable;
+use Darya\Events\Subscriber;
 use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Routing\Route;
-use Darya\Service\ContainerInterface;
-use Darya\Service\ContainerAwareInterface;
+use Darya\Service\Contracts\Container;
+use Darya\Service\Contracts\ContainerAware;
 
 /**
  * Darya's request router.
@@ -18,7 +17,7 @@ use Darya\Service\ContainerAwareInterface;
  * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router implements ContainerAwareInterface {
+class Router implements ContainerAware {
 	
 	/**
 	 * @var array Regular expression replacements for matching route paths to request URIs
@@ -53,12 +52,12 @@ class Router implements ContainerAwareInterface {
 	protected $filters = array();
 	
 	/**
-	 * @var \Darya\Events\DispatcherInterface
+	 * @var \Darya\Events\Dispatchable
 	 */
 	protected $eventDispatcher;
 	
 	/**
-	 * @var \Darya\Service\ContainerInterface
+	 * @var \Darya\Service\Contracts\Container
 	 */
 	protected $services;
 	
@@ -83,7 +82,7 @@ class Router implements ContainerAwareInterface {
 	}
 	
 	/**
-	 * Prepares a controller name by CamelCasing the given value and appending
+	 * Prepares a controller name by PascalCasing the given value and appending
 	 * 'Controller', if the provided name does not already end as such. The
 	 * resulting string will start with an uppercase letter.
 	 * 
@@ -93,7 +92,13 @@ class Router implements ContainerAwareInterface {
 	 * @return string Controller class name
 	 */
 	public static function prepareController($controller) {
-		return Tools::endsWith($controller, 'Controller') ? $controller : Tools::delimToCamel($controller) . 'Controller';
+		if (strpos($controller, 'Controller') === strlen($controller) - 10) {
+			return $controller;
+		}
+		
+		return preg_replace_callback('/^(.)|-(.)/', function ($matches) {
+			return strtoupper($matches[1] ?: $matches[2]);
+		}, $controller) . 'Controller';
 	}
 	
 	/**
@@ -106,7 +111,9 @@ class Router implements ContainerAwareInterface {
 	 * @return string Action method name
 	 */
 	public static function prepareAction($action) {
-		return lcfirst(Tools::delimToCamel($action));
+		return preg_replace_callback('/-(.)/', function ($matches) {
+			return strtoupper($matches[1]);
+		}, $action);
 	}
 	
 	/**
@@ -158,9 +165,9 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 * 
-	 * @param \Darya\Events\DispatcherInterface $dispatcher
+	 * @param \Darya\Events\Dispatchable $dispatcher
 	 */
-	public function setEventDispatcher(DispatcherInterface $dispatcher) {
+	public function setEventDispatcher(Dispatchable $dispatcher) {
 		$this->eventDispatcher = $dispatcher;
 	}
 	
@@ -168,9 +175,9 @@ class Router implements ContainerAwareInterface {
 	 * Set an optional service container for resolving the dependencies of
 	 * controllers and actions.
 	 * 
-	 * @param \Darya\Service\ContainerInterface $container
+	 * @param \Darya\Service\Contracts\Container $container
 	 */
-	public function setServiceContainer(ContainerInterface $container) {
+	public function setServiceContainer(Container $container) {
 		$this->services = $container;
 	}
 	
@@ -194,11 +201,12 @@ class Router implements ContainerAwareInterface {
 	 * @param \Darya\Http\Request  $request
 	 * @param \Darya\Http\Response $response
 	 * @param string               $message [optional]
+	 * @return \Darya\Http\Response
 	 */
 	protected function handleError(Request $request, Response $response, $message = null) {
 		if ($this->errorHandler) {
 			$errorHandler = $this->errorHandler;
-			return static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
+			$response = static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
 		}
 		
 		return $response;
@@ -267,13 +275,13 @@ class Router implements ContainerAwareInterface {
 	/**
 	 * Helper method for subscribing objects to the router's event dispatcher.
 	 * 
-	 * Silent if $subscriber does not implement `SubscriberInterface`.
+	 * Silent if $subscriber does not implement `Subscriber`.
 	 * 
 	 * @param mixed $subscriber
 	 * @return bool
 	 */
 	protected function subscribe($subscriber) {
-		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
 			$this->eventDispatcher->subscribe($subscriber);
 			return true;
 		}
@@ -285,13 +293,13 @@ class Router implements ContainerAwareInterface {
 	 * Helper method for unsubscribing objects from the router's event
 	 * dispatcher.
 	 * 
-	 * Silent if $subscriber does not implement `SubscriberInterface`.
+	 * Silent if $subscriber does not implement `Subscriber`.
 	 * 
 	 * @param mixed $subscriber
 	 * @return bool
 	 */
 	protected function unsubscribe($subscriber) {
-		if ($this->eventDispatcher && $subscriber instanceof SubscriberInterface) {
+		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
 			$this->eventDispatcher->unsubscribe($subscriber);
 			return true;
 		}
@@ -674,7 +682,7 @@ class Router implements ContainerAwareInterface {
 		}
 		
 		$response->status(404);
-		$this->handleError($request, $response, 'No route matches the request');
+		$response = $this->handleError($request, $response, 'No route matches the request');
 		
 		return $response;
 	}
