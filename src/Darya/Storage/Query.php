@@ -267,48 +267,6 @@ class Query {
 	}
 	
 	/**
-	 * Prepare the given filter as an array of prepared query parameters.
-	 * 
-	 * @return array
-	 */
-	protected static function prepareFilterParameters($filter) {
-		$parameters = array();
-		
-		foreach ($filter as $index => $value) {
-			if (is_array($value)) {
-				if ($index === 'or') {
-					$parameters = array_merge($parameters, static::prepareFilterParameters($value));
-				} else {
-					foreach ($value as $in) {
-						$parameters[] = $in;
-					}
-				}
-			} else {
-				$parameters[] = $value;
-			}
-		}
-		
-		return $parameters;
-	}
-	
-	/**
-	 * Retrieve an array of parameters to use for a prepared query.
-	 * 
-	 * @return array
-	 */
-	public function parameters() {
-		$parameters = array();
-		
-		foreach ($this->data as $value) {
-			$parameters[] = $value;
-		}
-		
-		$parameters = array_merge($parameters, static::prepareFilterParameters($this->filter));
-		
-		return $parameters;
-	}
-	
-	/**
 	 * Dynamically retrieve the query's properties.
 	 * 
 	 * @param string $property

@@ -157,7 +157,7 @@ abstract class AbstractSqlTranslator {
 	 *     'type in'   => [1, 2],  // type IN (1, 2)
 	 *     'type'      => [3, 4]   // type IN (3, 4)
 	 * 
-	 * Comparison operator between conditions defaults to `'AND'`.
+	 * Comparison operator between conditions defaults to 'AND'.
 	 * 
 	 * @param array  $filter
 	 * @param string $comparison   [optional]
@@ -281,5 +281,49 @@ abstract class AbstractSqlTranslator {
 	 * @return string
 	 */
 	abstract protected function prepareDelete($table, $where = null, $limit = null);
+	
+	/**
+	 * Prepare the given filter as an array of prepared query parameters.
+	 * 
+	 * @return array
+	 */
+	protected static function filterParameters($filter) {
+		$parameters = array();
+		
+		foreach ($filter as $index => $value) {
+			if (is_array($value)) {
+				if (strtolower($index) === 'or') {
+					$parameters = array_merge($parameters, static::filterParameters($value));
+				} else {
+					foreach ($value as $in) {
+						$parameters[] = $in;
+					}
+				}
+			} else {
+				$parameters[] = $value;
+			}
+		}
+		
+		return $parameters;
+	}
+	
+	/**
+	 * Retrieve an array of parameters from the given query for executing a
+	 * prepared query.
+	 * 
+	 * @param Storage\Query $query
+	 * @return array
+	 */
+	public static function parameters(Storage\Query $query) {
+		$parameters = array();
+		
+		foreach ($query->data as $value) {
+			$parameters[] = $value;
+		}
+		
+		$parameters = array_merge($parameters, static::filterParameters($query->filter));
+		
+		return $parameters;
+	}
 	
 }
