@@ -7,6 +7,7 @@ namespace Darya\Storage;
  * TODO: Maybe make a query interface?
  * TODO: Standardised operators? Think about how this will affect translators.
  * 
+ * @property bool     $distinct
  * @property string   $resource
  * @property array    $fields
  * @property string   $type
