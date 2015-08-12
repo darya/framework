@@ -82,6 +82,26 @@ abstract class AbstractSqlTranslator {
 	abstract protected function identifier($identifier);
 	
 	/**
+	 * Escape the given value.
+	 * 
+	 * If the value is an array, it is recursively escaped.
+	 * 
+	 * @param array|string $value
+	 * @return array|string
+	 */
+	protected function escape($value) {
+		if (is_array($value)) {
+			return array_map(array($this, 'escape'), $value);
+		}
+		
+		if (is_string($value)) {
+			return "'$value'";
+		}
+		
+		return $value;
+	}
+	
+	/**
 	 * Prepare the given columns as a string.
 	 * 
 	 * @param array|string $columns
@@ -216,10 +236,9 @@ abstract class AbstractSqlTranslator {
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
 	 * @param bool         $distinct [optional]
-	 * @param bool         $count    [optional]
 	 * @return string
 	 */
-	abstract protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false, $count = false);
+	abstract protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false);
 	
 	/**
 	 * Prepare an INSERT INTO statement using the given table and data.

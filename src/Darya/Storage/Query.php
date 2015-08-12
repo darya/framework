@@ -15,6 +15,7 @@ namespace Darya\Storage;
  * @property array    $order
  * @property int|null $limit
  * @property int      $offset
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Query {
@@ -184,7 +185,7 @@ class Query {
 	}
 	
 	/**
-	 * Add a filter to the query.
+	 * Add a filter condition to the query.
 	 * 
 	 * @param string $field
 	 * @param mixed  $value
@@ -210,7 +211,7 @@ class Query {
 	}
 	
 	/**
-	 * Add an order to the query.
+	 * Add an order condition to the query.
 	 * 
 	 * $order can be 'asc' or 'desc'.
 	 * 
