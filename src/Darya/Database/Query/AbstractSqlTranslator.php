@@ -55,10 +55,10 @@ abstract class AbstractSqlTranslator implements Translator {
 				$query = new Database\Query(
 					$this->prepareSelect($storageQuery->resource,
 						$this->prepareColumns($storageQuery->fields),
-						$storageQuery->distinct,
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareOrderBy($storageQuery->order),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
+						$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
+						$storageQuery->distinct
 					),
 					static::parameters($storageQuery)
 				);
