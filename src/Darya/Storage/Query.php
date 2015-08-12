@@ -277,7 +277,7 @@ class Query {
 		foreach ($filter as $index => $value) {
 			if (is_array($value)) {
 				if ($index === 'or') {
-					static::prepareFilterParameters($value);
+					$parameters = array_merge($parameters, static::prepareFilterParameters($value));
 				} else {
 					foreach ($value as $in) {
 						$parameters[] = $in;
@@ -303,7 +303,7 @@ class Query {
 			$parameters[] = $value;
 		}
 		
-		$parameters = array_merge($parameters, $this->prepareFilterParameters($this->filter));
+		$parameters = array_merge($parameters, static::prepareFilterParameters($this->filter));
 		
 		return $parameters;
 	}
