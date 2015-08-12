@@ -60,7 +60,7 @@ class SqlServer extends AbstractConnection {
 	 */
 	public function translator() {
 		if (!$this->translator) {
-			$this->translator = new Translator\MySql($this);
+			$this->translator = new Translator\SqlServer($this);
 		}
 		
 		return $this->translator;

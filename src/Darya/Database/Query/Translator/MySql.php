@@ -53,7 +53,7 @@ class MySql extends AbstractSqlTranslator {
 	 */
 	protected function identifier($identifier) {
 		if (is_array($identifier)) {
-			return array_map(array($this, 'identifier', $identifier));
+			return array_map(array($this, 'identifier'), $identifier);
 		}
 		
 		if (!is_string($identifier)) {

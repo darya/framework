@@ -15,6 +15,16 @@ use Darya\Storage;
 class SqlServer extends AbstractSqlTranslator {
 	
 	/**
+	 * Escape the given identifier.
+	 * 
+	 * @param mixed $identifier
+	 * @return mixed
+	 */
+	public function identifier($identifier) {
+		return $identifier;
+	}
+	
+	/**
 	 * Prepare a LIMIT clause using the given limit and offset.
 	 * 
 	 * @param int $limit  [optional]
@@ -30,6 +40,75 @@ class SqlServer extends AbstractSqlTranslator {
 		$offset = (int) $offset;
 		
 		return "TOP $limit";
+	}
+	
+	/**
+	 * Prepare a SELECT statement using the given columns, table, clauses and
+	 * options.
+	 * 
+	 * @param string       $table
+	 * @param array|string $columns
+	 * @param string       $where    [optional]
+	 * @param string       $order    [optional]
+	 * @param string       $limit    [optional]
+	 * @param bool         $distinct [optional]
+	 * @return string
+	 */
+	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false) {
+		$table = $this->identifier($table);
+		
+		$distinct = $distinct ? 'DISTINCT' : '';
+		
+		$query = "SELECT $distinct $limit $columns FROM $table";
+		
+		foreach (array($where, $order) as $clause) {
+			if (!empty($clause)) {
+				$query .= " $clause";
+			}
+		}
+		
+		return $query;
+	}
+	
+	/**
+	 * Prepare an UPDATE statement with the given table, data and clauses.
+	 * 
+	 * @param string $table
+	 * @param array  $data
+	 * @param string $where [optional]
+	 * @param string $limit [optional]
+	 * @return string
+	 */
+	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
+		$table = $this->identifier($table);
+		
+		foreach ($data as $key => $value) {
+			$column = $this->identifier($key);
+			$value = $this->escape($value);
+			$data[$key] = "$column = $value";
+		}
+		
+		$values = implode(', ', $data);
+		
+		return "UPDATE $limit $table SET $values $where";
+	}
+	
+	/**
+	 * Prepare a DELETE statement with the given table and clauses.
+	 * 
+	 * @param string $table
+	 * @param string $where [optional]
+	 * @param string $limit [optional]
+	 * @return string
+	 */
+	protected function prepareDelete($table, $where = null, $limit = null) {
+		$table = $this->identifier($table);
+		
+		if ($table == '*' || !$table || !$where) {
+			return null;
+		}
+		
+		return "DELETE $limit FROM $table $where";
 	}
 	
 }
