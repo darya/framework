@@ -130,7 +130,7 @@ class SqlServer extends AbstractConnection {
 		$error = $this->error();
 		
 		if ($mssql_result === false || $error) {
-			$this->lastResult = new Result($query, array(), array(), $error);
+			$this->lastResult = new Result($query, $parameters, array(), array(), $error);
 			
 			return $this->lastResult;
 		}
@@ -157,7 +157,7 @@ class SqlServer extends AbstractConnection {
 			'insert_id' => $result['insert_id']
 		);
 		
-		$this->lastResult = new Result($query, $result['data'], $info, $error);
+		$this->lastResult = new Result($query, $parameters, $result['data'], $info, $error);
 		
 		$this->event('sqlserver.query', array($this->lastResult));
 		

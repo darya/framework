@@ -9,6 +9,8 @@ use Darya\Storage;
  * An abstract query translator that prepares SQL common across more than one
  * RDBMS.
  * 
+ * TODO: Separate the switch statement cases out into their own methods.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class AbstractSqlTranslator implements Translator {
@@ -17,6 +19,20 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @var array Filter comparison operators
 	 */
 	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
+	
+	/**
+	 * @var bool Whether to prepare queries with parameters
+	 */
+	protected $parameterise = true;
+	
+	/**
+	 * Set whether to prepare queries with parameters.
+	 * 
+	 * @param bool $parameterise
+	 */
+	public function parameterise($parameterise) {
+		$this->parameterise = $parameterise;
+	}
 	
 	/**
 	 * Translate the given storage query into a MySQL query.
@@ -30,7 +46,8 @@ abstract class AbstractSqlTranslator implements Translator {
 		switch ($type) {
 			case Storage\Query::CREATE:
 				$query = new Query(
-					$this->prepareInsert($storageQuery->resource, $storageQuery->data)
+					$this->prepareInsert($storageQuery->resource, $storageQuery->data),
+					static::parameters($storageQuery)
 				);
 				
 				break;
@@ -42,7 +59,8 @@ abstract class AbstractSqlTranslator implements Translator {
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareOrderBy($storageQuery->order),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					)
+					),
+					static::parameters($storageQuery)
 				);
 				
 				break;
@@ -51,7 +69,8 @@ abstract class AbstractSqlTranslator implements Translator {
 					$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					)
+					),
+					static::parameters($storageQuery)
 				);
 				
 				break;
@@ -60,7 +79,8 @@ abstract class AbstractSqlTranslator implements Translator {
 					$this->prepareDelete($storageQuery->resource,
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					)
+					),
+					static::parameters($storageQuery)
 				);
 				
 				break;
@@ -92,6 +112,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	protected function escape($value) {
 		if (is_array($value)) {
 			return array_map(array($this, 'escape'), $value);
+		}
+		
+		if ($this->parameterise) {
+			return '?';
 		}
 		
 		if (is_string($value)) {

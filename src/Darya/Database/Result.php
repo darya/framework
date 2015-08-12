@@ -8,13 +8,14 @@ use Darya\Database\Error;
  * 
  * TODO: Make this iterable for result data.
  * 
- * @property array  $data     Result data
- * @property string $query    Query that produced this result
- * @property int    $count    Result count
- * @property Error  $error    Result error
- * @property array  $fields   Field names for each result data row
- * @property int    $insert   Insert ID
- * @property int    $affected Rows affected
+ * @property array  $data       Result data
+ * @property string $query      Query that produced this result
+ * @property array  $parameters Parameters that were prepared with the query
+ * @property int    $count      Result count
+ * @property Error  $error      Result error
+ * @property array  $fields     Field names for each result data row
+ * @property int    $insert     Insert ID
+ * @property int    $affected   Rows affected
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -26,6 +27,13 @@ class Result {
 	 * @var string
 	 */
 	protected $query;
+	
+	/**
+	 * Parameters that were prepared with the query.
+	 * 
+	 * @var array
+	 */
+	protected $parameters;
 	
 	/**
 	 * Associative array of the result's data.
@@ -85,17 +93,17 @@ class Result {
 	/**
 	 * Instantiate a new database result.
 	 * 
-	 * $error array expects the keys 'number' and 'message'.
-	 * 
-	 * $info expects the keys 'affected', 'count', 'insert_id' and 'fields'.
+	 * $info accepts the keys 'affected', 'count', 'insert_id' and 'fields'.
 	 * 
 	 * @param string $query
-	 * @param array  $data  [optional]
-	 * @param array  $info  [optional]
-	 * @param Error  $error [optional]
+	 * @param array  $parameters [optional]
+	 * @param array  $data       [optional]
+	 * @param array  $info       [optional]
+	 * @param Error  $error      [optional]
 	 */
-	public function __construct($query, array $data = array(), array $info = array(), Error $error = null) {
+	public function __construct($query, array $parameters = array(), array $data = array(), array $info = array(), Error $error = null) {
 		$this->data = $data;
+		$this->parameters = $parameters;
 		$this->query = $query;
 		$this->setInfo($info);
 		$this->setError($error);
@@ -103,6 +111,8 @@ class Result {
 	
 	/**
 	 * Set the result info.
+	 * 
+	 * Accepts the keys 'affected', 'count', 'insert_id' and 'fields'.
 	 * 
 	 * @param array $info
 	 */

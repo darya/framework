@@ -7,9 +7,6 @@ use Darya\Database\Query\AbstractSqlTranslator;
 /**
  * Darya's MySQL query translator.
  * 
- * TODO: Separate the switch statement bodies out into their own methods.
- * TODO: Parameterised queries.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class MySql extends AbstractSqlTranslator {
