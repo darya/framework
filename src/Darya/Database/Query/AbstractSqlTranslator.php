@@ -82,6 +82,26 @@ abstract class AbstractSqlTranslator implements Translator {
 	abstract protected function identifier($identifier);
 	
 	/**
+	 * Escape the given value.
+	 * 
+	 * If the value is an array, it is recursively escaped.
+	 * 
+	 * @param array|string $value
+	 * @return array|string
+	 */
+	protected function escape($value) {
+		if (is_array($value)) {
+			return array_map(array($this, 'escape'), $value);
+		}
+		
+		if (is_string($value)) {
+			return "'$value'";
+		}
+		
+		return $value;
+	}
+	
+	/**
 	 * Prepare the given columns as a string.
 	 * 
 	 * @param array|string $columns
@@ -137,7 +157,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 *     'type in'   => [1, 2],  // type IN (1, 2)
 	 *     'type'      => [3, 4]   // type IN (3, 4)
 	 * 
-	 * Comparison operator between conditions defaults to `'AND'`.
+	 * Comparison operator between conditions defaults to 'AND'.
 	 * 
 	 * @param array  $filter
 	 * @param string $comparison   [optional]
@@ -216,10 +236,9 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
 	 * @param bool         $distinct [optional]
-	 * @param bool         $count    [optional]
 	 * @return string
 	 */
-	abstract protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false, $count = false);
+	abstract protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false);
 	
 	/**
 	 * Prepare an INSERT INTO statement using the given table and data.
@@ -262,5 +281,49 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return string
 	 */
 	abstract protected function prepareDelete($table, $where = null, $limit = null);
+	
+	/**
+	 * Prepare the given filter as an array of prepared query parameters.
+	 * 
+	 * @return array
+	 */
+	protected static function filterParameters($filter) {
+		$parameters = array();
+		
+		foreach ($filter as $index => $value) {
+			if (is_array($value)) {
+				if (strtolower($index) === 'or') {
+					$parameters = array_merge($parameters, static::filterParameters($value));
+				} else {
+					foreach ($value as $in) {
+						$parameters[] = $in;
+					}
+				}
+			} else {
+				$parameters[] = $value;
+			}
+		}
+		
+		return $parameters;
+	}
+	
+	/**
+	 * Retrieve an array of parameters from the given query for executing a
+	 * prepared query.
+	 * 
+	 * @param Storage\Query $query
+	 * @return array
+	 */
+	public static function parameters(Storage\Query $query) {
+		$parameters = array();
+		
+		foreach ($query->data as $value) {
+			$parameters[] = $value;
+		}
+		
+		$parameters = array_merge($parameters, static::filterParameters($query->filter));
+		
+		return $parameters;
+	}
 	
 }

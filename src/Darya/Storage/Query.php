@@ -7,6 +7,7 @@ namespace Darya\Storage;
  * TODO: Maybe make a query interface?
  * TODO: Standardised operators? Think about how this will affect translators.
  * 
+ * @property bool     $distinct
  * @property string   $resource
  * @property array    $fields
  * @property string   $type
@@ -15,6 +16,7 @@ namespace Darya\Storage;
  * @property array    $order
  * @property int|null $limit
  * @property int      $offset
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Query {
@@ -184,7 +186,7 @@ class Query {
 	}
 	
 	/**
-	 * Add a filter to the query.
+	 * Add a filter condition to the query.
 	 * 
 	 * @param string $field
 	 * @param mixed  $value
@@ -210,7 +212,7 @@ class Query {
 	}
 	
 	/**
-	 * Add an order to the query.
+	 * Add an order condition to the query.
 	 * 
 	 * $order can be 'asc' or 'desc'.
 	 * 

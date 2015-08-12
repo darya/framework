@@ -37,15 +37,11 @@ class MySql extends AbstractSqlTranslator {
 	 * @return array|string
 	 */
 	protected function escape($value) {
-		if (is_array($value)) {
-			return array_map(array($this, 'escape'), $value);
-		}
-		
 		if (is_string($value)) {
-			return "'" . $this->connection->escape($value) . "'";
+			return parent::escape($this->connection->escape($value));
 		}
 		
-		return $value;
+		return parent::escape($value);
 	}
 	
 	/**
@@ -110,10 +106,9 @@ class MySql extends AbstractSqlTranslator {
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
 	 * @param bool         $distinct [optional]
-	 * @param bool         $count    [optional]
 	 * @return string
 	 */
-	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false, $count = false) {
+	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false) {
 		$table = $this->identifier($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
