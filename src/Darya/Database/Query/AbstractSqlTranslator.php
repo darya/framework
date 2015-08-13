@@ -45,7 +45,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		
 		switch ($type) {
 			case Storage\Query::CREATE:
-				$query = new Query(
+				$query = new Database\Query(
 					$this->prepareInsert($storageQuery->resource, $storageQuery->data),
 					static::parameters($storageQuery)
 				);
@@ -274,7 +274,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	protected function prepareInsert($table, array $data) {
 		$table = $this->identifier($table);
 		
-		$columns = $this->escape(array_keys($data));
+		$columns = $this->identifier(array_keys($data));
 		$values  = $this->escape(array_values($data));
 		
 		$columns = "(" . implode(", ", $columns) . ")";
