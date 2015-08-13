@@ -297,7 +297,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$values  = $this->escape(array_values($data));
 		
 		$columns = "(" . implode(", ", $columns) . ")";
-		$values  = "('" . implode("', '", $values) . "')";
+		$values  = "(" . implode(", ", $values) . ")";
 		
 		$query = "INSERT INTO $table $columns VALUES $values";
 		
