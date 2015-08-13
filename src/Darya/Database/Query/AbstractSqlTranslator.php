@@ -26,6 +26,25 @@ abstract class AbstractSqlTranslator implements Translator {
 	protected $parameterise = true;
 	
 	/**
+	 * Concatenates the given set of strings that aren't empty.
+	 * 
+	 * Runs implode() after filtering out empty elements.
+	 * 
+	 * Delimiter defaults to a single whitespace character.
+	 * 
+	 * @param array  $strings
+	 * @param string $delimiter [optional]
+	 * @return string
+	 */
+	protected static function concatenate($strings, $delimiter = ' ') {
+		$strings = array_filter($strings, function($value) {
+			return !empty($value);
+		});
+		
+		return implode($delimiter, $strings);
+	}
+	
+	/**
 	 * Set whether to prepare queries with parameters.
 	 * 
 	 * @param bool $parameterise
