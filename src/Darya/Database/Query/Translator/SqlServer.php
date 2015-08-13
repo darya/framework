@@ -32,7 +32,7 @@ class SqlServer extends AbstractSqlTranslator {
 	 * @return string
 	 */
 	protected function prepareLimit($limit = null, $offset = 0) {
-		if (!is_numeric($limit) || !is_numeric($offset)) {
+		if (!is_numeric($limit) || !is_numeric($offset) || empty($limit)) {
 			return null;
 		}
 		
@@ -59,15 +59,7 @@ class SqlServer extends AbstractSqlTranslator {
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		$query = "SELECT $distinct $limit $columns FROM $table";
-		
-		foreach (array($where, $order) as $clause) {
-			if (!empty($clause)) {
-				$query .= " $clause";
-			}
-		}
-		
-		return $query;
+		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $where, $order));
 	}
 	
 	/**
