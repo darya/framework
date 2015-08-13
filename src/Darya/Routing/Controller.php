@@ -53,9 +53,7 @@ abstract class Controller implements ContainerAware {
 	 * @return string
 	 */
 	public function url(array $parameters = array()) {
-		$request = $request ?: $this->request;
-		
-		return $request->route->url($parameters);
+		return $this->request->route->url($parameters);
 	}
 	
 	/**
