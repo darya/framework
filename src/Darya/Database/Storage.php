@@ -183,6 +183,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		}
 		
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
+		$query->update($data);
 		
 		$result = $this->execute($query);
 		
