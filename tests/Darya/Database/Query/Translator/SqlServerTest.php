@@ -40,11 +40,32 @@ class SqlServerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($result->string(), "UPDATE users SET age = ?, comment = ? WHERE age >= ? AND name LIKE ?");
 		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%'));
 		
+		$query->where('role_id', array(1, 2, '3', '4', 5));
 		$query->limit(3);
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "UPDATE TOP 3 users SET age = ?, comment = ? WHERE age >= ? AND name LIKE ?");
-		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%'));
+		$this->assertEquals($result->string(), "UPDATE TOP 3 users SET age = ?, comment = ? WHERE age >= ? AND name LIKE ? AND role_id IN (?, ?, ?, ?, ?)");
+		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%', 1, 2, '3', '4', 5));
+	}
+	
+	public function testDelete() {
+		$translator = new SqlServer;
+		
+		$query = new Query('users');
+		$query->delete()
+			->where('age <', 23)
+			->where('type !=', 'normal');
+		
+		$result = $translator->translate($query);
+		$this->assertEquals($result->string(), 'DELETE FROM users WHERE age < ? AND type != ?');
+		$this->assertEquals($result->parameters(), array(23, 'normal'));
+		
+		$query->where('role_id not in', array(1, '2'));
+		$query->limit('10');
+		
+		$result = $translator->translate($query);
+		$this->assertEquals($result->string(), 'DELETE TOP 10 FROM users WHERE age < ? AND type != ? AND role_id NOT IN (?, ?)');
+		$this->assertEquals($result->parameters(), array(23, 'normal', 1, '2'));
 	}
 	
 }
