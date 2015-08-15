@@ -82,7 +82,7 @@ class SqlServer extends AbstractSqlTranslator {
 		
 		$values = implode(', ', $data);
 		
-		return "UPDATE $limit $table SET $values $where";
+		return static::concatenate(array('UPDATE', $limit, $table, 'SET', $values, $where));
 	}
 	
 	/**
@@ -100,7 +100,7 @@ class SqlServer extends AbstractSqlTranslator {
 			return null;
 		}
 		
-		return "DELETE $limit FROM $table $where";
+		return static::concatenate(array('DELETE', $limit, 'FROM', $table, $where));
 	}
 	
 }

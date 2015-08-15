@@ -15,25 +15,36 @@ class SqlServerTest extends PHPUnit_Framework_TestCase {
 		
 		$result = $translator->translate($query);
 		$this->assertEquals($result->string(), "SELECT TOP 5 * FROM users WHERE age >= ? AND name LIKE ? ORDER BY id ASC");
-		
-		$translator->parameterise(false);
-		
-		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "SELECT TOP 5 * FROM users WHERE age >= 23 AND name LIKE '%test%' ORDER BY id ASC");
+		$this->assertEquals($result->parameters(), array(23, '%test%'));
 		
 		$query->fields(array('id', 'firstname', 'lastname'));
 		$query->where('role_id', array(1, 2, '3', '4', 5));
 		$query->limit(0);
 		
-		$translator->parameterise(true);
-		
 		$result = $translator->translate($query);
 		$this->assertEquals($result->string(), "SELECT id, firstname, lastname FROM users WHERE age >= ? AND name LIKE ? AND role_id IN (?, ?, ?, ?, ?) ORDER BY id ASC");
+		$this->assertEquals($result->parameters(), array(23, '%test%', 1, 2, '3', '4', 5));
+	}
+	
+	public function testUpdate() {
+		$translator = new SqlServer;
 		
-		$translator->parameterise(false);
+		$query = new Query('users');
+		$query->update(array(
+				'age' => 24,
+				'comment' => "Oh god I'm too old"
+			))->where('age >=', 23)
+			->where('name like', '%swag%');
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "SELECT id, firstname, lastname FROM users WHERE age >= 23 AND name LIKE '%test%' AND role_id IN (1, 2, '3', '4', 5) ORDER BY id ASC");
+		$this->assertEquals($result->string(), "UPDATE users SET age = ?, comment = ? WHERE age >= ? AND name LIKE ?");
+		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%'));
+		
+		$query->limit(3);
+		
+		$result = $translator->translate($query);
+		$this->assertEquals($result->string(), "UPDATE TOP 3 users SET age = ?, comment = ? WHERE age >= ? AND name LIKE ?");
+		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%'));
 	}
 	
 }
