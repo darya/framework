@@ -12,6 +12,7 @@ use Darya\Storage\Readable;
  * TODO: constraint() method for specifying a default filter for related models.
  * TODO: errors() method.
  * TODO: Filter, order, limit, offset for load() and retrieve().
+ * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

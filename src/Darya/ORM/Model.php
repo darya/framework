@@ -76,7 +76,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Recursively convert a model to an array.
 	 * 
-	 * @param mixed $model
+	 * @param Model|Model[] $model
 	 * @return array
 	 */
 	public static function convertToArray($model) {
@@ -255,17 +255,17 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Set the value of an attribute on the model.
 	 * 
-	 * If key is an array it will be forwarded to `setMany()`.
+	 * If attribute is an array it will be forwarded to `setMany()`.
 	 * 
-	 * @param array|string $key
+	 * @param array|string $attribute
 	 * @param mixed        $value [optional]
 	 */
-	public function set($key, $value = null) {
-		if (is_array($key)) {
-			return $this->setMany($key);
+	public function set($attribute, $value = null) {
+		if (is_array($attribute)) {
+			return $this->setMany($attribute);
 		}
 		
-		$attribute = $this->prepareAttribute($key);
+		$attribute = $this->prepareAttribute($attribute);
 		$value     = $this->mutate($attribute, $value);
 		
 		if (!$this->has($attribute) || $value !== $this->data[$attribute]) {
