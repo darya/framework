@@ -5,6 +5,7 @@ namespace Darya\Common;
  * Darya's class autoloader.
  * 
  * TODO: Simplify Autoloader::load.
+ * TODO: Maybe make attempt() a generator!
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
