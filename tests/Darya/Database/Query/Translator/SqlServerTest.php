@@ -22,8 +22,24 @@ class SqlServerTest extends PHPUnit_Framework_TestCase {
 		$query->limit(0);
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "SELECT id, firstname, lastname FROM users WHERE age >= ? AND name LIKE ? AND role_id IN (?, ?, ?, ?, ?) ORDER BY id ASC");
-		$this->assertEquals($result->parameters(), array(23, '%test%', 1, 2, '3', '4', 5));
+		$this->assertEquals("SELECT id, firstname, lastname FROM users WHERE age >= ? AND name LIKE ? AND role_id IN (?, ?, ?, ?, ?) ORDER BY id ASC", $result->string());
+		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters());
+	}
+	
+	public function testInsert() {
+		$translator = new SqlServer;
+		
+		$query = new Query('users');
+		$query->create(array(
+			'firstname' => 'Chris',
+			'lastname'  => 'Andrew',
+			'age'       => 23,
+			'role_id'   => 1
+		));
+		
+		$result = $translator->translate($query);
+		$this->assertEquals("INSERT INTO users (firstname, lastname, age, role_id) VALUES (?, ?, ?, ?)", $result->string());
+		$this->assertEquals(array('Chris', 'Andrew', 23, 1), $result->parameters());
 	}
 	
 	public function testUpdate() {

@@ -299,9 +299,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$columns = "(" . implode(", ", $columns) . ")";
 		$values  = "(" . implode(", ", $values) . ")";
 		
-		$query = "INSERT INTO $table $columns VALUES $values";
-		
-		return $query;
+		return static::concatenate(array('INSERT INTO', $table, $columns, 'VALUES', $values));
 	}
 	
 	/**
