@@ -77,7 +77,7 @@ class MySql extends AbstractSqlTranslator {
 	 * @return string
 	 */
 	protected function prepareLimit($limit = null, $offset = 0) {
-		if (!is_numeric($limit) || !is_numeric($offset)) {
+		if (!is_numeric($limit) || !is_numeric($offset) || empty($limit)) {
 			return null;
 		}
 		
@@ -110,15 +110,7 @@ class MySql extends AbstractSqlTranslator {
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		$query = "SELECT $distinct $columns FROM $table";
-		
-		foreach (array($where, $order, $limit) as $clause) {
-			if (!empty($clause)) {
-				$query .= " $clause";
-			}
-		}
-		
-		return $query;
+		return static::concatenate(array('SELECT', $distinct, $columns, 'FROM', $table, $where, $order, $limit));
 	}
 	
 	/**
@@ -141,7 +133,7 @@ class MySql extends AbstractSqlTranslator {
 		
 		$values = implode(', ', $data);
 		
-		return "UPDATE $table SET $values $where $limit";
+		return static::concatenate(array('UPDATE', $table, 'SET', $values, $where, $limit));
 	}
 	
 	/**
@@ -159,7 +151,7 @@ class MySql extends AbstractSqlTranslator {
 			return null;
 		}
 		
-		return "DELETE FROM $table $where $limit";
+		return static::concatenate(array('DELETE FROM', $table, $where, $limit));
 	}
 	
 }
