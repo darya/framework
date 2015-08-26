@@ -85,6 +85,18 @@ class Response {
 	}
 	
 	/**
+	 * Dynamically retrieve a property.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
+	public function __get($property) {
+		if ($property === 'cookies') {
+			return $this->cookies;
+		}
+	}
+	
+	/**
 	 * Get and optionally set the HTTP status code of the response.
 	 * 
 	 * @param int $status
