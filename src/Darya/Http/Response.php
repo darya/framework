@@ -142,7 +142,7 @@ class Response {
 	 * @return string
 	 */
 	public function getCookie($key) {
-		$this->cookies->get($key);
+		return $this->cookies->get($key);
 	}
 	
 	/**
