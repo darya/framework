@@ -1,8 +1,12 @@
 <?php
 namespace Darya\Http;
 
+use Darya\Http\Cookies;
+
 /**
  * Darya's HTTP response representation.
+ * 
+ * @property Cookies $cookies
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -19,9 +23,9 @@ class Response {
 	private $headers = array();
 	
 	/**
-	 * @var array Cookie key/values
+	 * @var Cookies Cookie key/values
 	 */
-	private $cookies = array();
+	private $cookies;
 	
 	/**
 	 * @var string Response content
@@ -76,6 +80,8 @@ class Response {
 		}
 		
 		$this->headers($headers);
+		
+		$this->cookies = new Cookies;
 	}
 	
 	/**
@@ -126,7 +132,7 @@ class Response {
 	 * @param int $expire
 	 */
 	public function setCookie($key, $value, $expire, $path = '/') {
-		$this->cookies[$key] = compact('value', 'expire', 'path');
+		$this->cookies->set($key, $value, $expire, $path);
 	}
 	
 	/**
@@ -136,7 +142,7 @@ class Response {
 	 * @return string
 	 */
 	public function getCookie($key) {
-		return isset($this->cookies[$key]) && isset($this->cookies[$key]['value']) ? $this->cookies[$key]['value'] : null;
+		$this->cookies->get($key);
 	}
 	
 	/**
@@ -145,10 +151,7 @@ class Response {
 	 * @param string $key
 	 */
 	public function deleteCookie($key) {
-		if (isset($this->cookies[$key])) {
-			$this->cookies[$key]['value'] = '';
-			$this->cookies[$key]['expire'] = 0;
-		}
+		$this->cookies->delete($key);
 	}
 	
 	/**
@@ -217,9 +220,7 @@ class Response {
 	 * Sends all the currently set cookies.
 	 */
 	protected function sendCookies() {
-		foreach ($this->cookies as $key => $values) {
-			setcookie($key, $values['value'], $values['expire'], $values['path'] ?: '/');
-		}
+		$this->cookies->send();
 	}
 	
 	/**
