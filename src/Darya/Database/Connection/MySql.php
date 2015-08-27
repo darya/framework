@@ -29,7 +29,7 @@ class MySql extends AbstractConnection {
 	protected function fetchAll(mysqli_result $result)
 	{
 		if (method_exists($result, 'fetch_all')) {
-			return $result->fetch_all();
+			return $result->fetch_all(MYSQL_ASSOC);
 		}
 		
 		$rows = array();
