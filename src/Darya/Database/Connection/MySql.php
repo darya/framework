@@ -19,6 +19,100 @@ use Darya\Database\Query\Translator;
 class MySql extends AbstractConnection {
 	
 	/**
+	 * Fetch all rows of a mysqli result.
+	 * 
+	 * Falls back to fetch_assoc in a loop if fetch_all isn't available.
+	 * 
+	 * @param mysqli_result $result
+	 * @return array
+	 */
+	protected function fetchAll(mysqli_result $result)
+	{
+		if (method_exists($result, 'fetch_all')) {
+			return $result->fetch_all();
+		}
+		
+		$rows = array();
+		
+		while ($row = $result->fetch_assoc()) {
+			$rows[] = $row;
+		}
+		
+		return $rows;
+	}
+	
+	/**
+	 * Retrieve the type of a variable for binding mysqli parameters.
+	 * 
+	 * @param mixed $parameter
+	 * @return string
+	 */
+	protected function prepareType($parameter) {
+		if (is_int($parameter)) {
+			return 'i';
+		}
+		
+		if (is_float($parameter)) {
+			return 'd';
+		}
+		
+		return 's';
+	}
+	
+	/**
+	 * Prepares an array of values as an array of references to those values.
+	 * 
+	 * Required for PHP 5.3+ to prevent warnings when dynamically invoking
+	 * mysqli_stmt::bind_param().
+	 * 
+	 * @param array $parameters
+	 * @return array
+	 */
+	protected function prepareReferences(array $parameters) {
+		$references = array();
+		
+		foreach ($parameters as $key => $value) {
+			$references[$key] = &$parameters[$key];
+		}
+		
+		return $references;
+	}
+	
+	/**
+	 * Prepare the given query and parameters as a mysqli statement.
+	 * 
+	 * @param string $query
+	 * @param array  $parameters [optional]
+	 * @return \mysqli_stmt
+	 */
+	protected function prepareStatement($query, $parameters = array()) {
+		$statement = $this->connection->stmt_init();
+		
+		if (!$statement->prepare($query)) {
+			return $statement;
+		}
+		
+		if (empty($parameters)) {
+			return $statement;
+		}
+		
+		$types = '';
+		
+		foreach ((array) $parameters as $parameter) {
+			$types .= $this->prepareType($parameter);
+		}
+		
+		array_unshift($parameters, $types);
+		
+		call_user_func_array(
+			array($statement, 'bind_param'),
+			$this->prepareReferences($parameters)
+		);
+		
+		return $statement;
+	}
+	
+	/**
 	 * Initiate the connection.
 	 * 
 	 * @return bool
@@ -58,94 +152,6 @@ class MySql extends AbstractConnection {
 	public function disconnect() {
 		$this->connection->close();
 		$this->connected = false;
-	}
-	
-	/**
-	 * Retrieve the type of a variable for binding mysqli parameters.
-	 * 
-	 * @param mixed $parameter
-	 * @return string
-	 */
-	protected function prepareType($parameter) {
-		if (is_int($parameter)) {
-			return 'i';
-		}
-		
-		if (is_float($parameter)) {
-			return 'd';
-		}
-		
-		return 's';
-	}
-	
-	/**
-	 * Prepares an array of values as an array of references to those values.
-	 * 
-	 * Required for PHP 5.3+ to prevent warnings when dynamically invoking
-	 * mysqli_stmt::bind_param.
-	 * 
-	 * @param array $parameters
-	 * @return array
-	 */
-	protected function prepareReferences(array $parameters) {
-		$references = array();
-		
-		foreach ($parameters as $key => $value) {
-			$references[$key] = &$parameters[$key];
-		}
-		
-		return $references;
-	}
-	
-	/**
-	 * Fetch all rows of a mysqli result.
-	 * 
-	 * @param mysqli_result $result
-	 * @return array
-	 */
-	protected function fetchAll(mysqli_result $result)
-	{
-		$rows = array();
-		
-		while ($row = $result->fetch_assoc()) {
-			$rows[] = $row;
-		}
-		
-		return $rows;
-	}
-	
-	/**
-	 * Prepare the given query and parameters as a mysqli statement.
-	 * 
-	 * @param string $query
-	 * @param array  $parameters [optional]
-	 * @return \mysqli_stmt
-	 */
-	protected function prepareStatement($query, $parameters = array()) {
-		$statement = $this->connection->stmt_init();
-		
-		if (!$statement->prepare($query)) {
-			return $statement;
-		}
-		
-		if (empty($parameters)) {
-			return $statement;
-		}
-		
-		$types = '';
-		
-		foreach ((array) $parameters as $parameter) {
-			$types .= $this->prepareType($parameter);
-		}
-		
-		array_unshift($parameters, $types);
-		
-		call_user_func_array(
-			array($statement, 'bind_param'),
-			$this->prepareReferences($parameters)
-		);
-		
-		return $statement;
 	}
 	
 	/**

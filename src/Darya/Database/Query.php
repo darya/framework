@@ -4,6 +4,9 @@ namespace Darya\Database;
 /**
  * Darya's immutable database query class.
  * 
+ * @property string $string
+ * @property array  $parameters
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Query {
@@ -29,22 +32,8 @@ class Query {
 		$this->parameters = $parameters;
 	}
 	
-	/**
-	 * Retrieve the query string.
-	 * 
-	 * @return string
-	 */
-	public function string() {
-		return $this->string;
-	}
-	
-	/**
-	 * Retrieve the query parameters.
-	 * 
-	 * @return array
-	 */
-	public function parameters() {
-		return $this->parameters;
+	public function __get($property) {
+		return $this->$property;
 	}
 	
 }

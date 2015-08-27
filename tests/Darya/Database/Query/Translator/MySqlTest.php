@@ -19,16 +19,16 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 			->limit(5);
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "SELECT * FROM `users` WHERE `age` >= ? AND `name` LIKE ? ORDER BY `id` ASC LIMIT 5");
-		$this->assertEquals($result->parameters(), array(23, '%test%'));
+		$this->assertEquals("SELECT * FROM `users` WHERE `age` >= ? AND `name` LIKE ? ORDER BY `id` ASC LIMIT 5", $result->string);
+		$this->assertEquals(array(23, '%test%'), $result->parameters);
 		
 		$query->fields(array('id', 'firstname', 'lastname'));
 		$query->where('role_id', array(1, 2, '3', '4', 5));
 		$query->limit(0);
 		
 		$result = $translator->translate($query);
-		$this->assertEquals("SELECT `id`, `firstname`, `lastname` FROM `users` WHERE `age` >= ? AND `name` LIKE ? AND `role_id` IN (?, ?, ?, ?, ?) ORDER BY `id` ASC", $result->string());
-		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters());
+		$this->assertEquals("SELECT `id`, `firstname`, `lastname` FROM `users` WHERE `age` >= ? AND `name` LIKE ? AND `role_id` IN (?, ?, ?, ?, ?) ORDER BY `id` ASC", $result->string);
+		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters);
 	}
 	
 	public function testInsert() {
@@ -43,8 +43,8 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		));
 		
 		$result = $translator->translate($query);
-		$this->assertEquals("INSERT INTO `users` (`firstname`, `lastname`, `age`, `role_id`) VALUES (?, ?, ?, ?)", $result->string());
-		$this->assertEquals(array('Chris', 'Andrew', 23, 1), $result->parameters());
+		$this->assertEquals("INSERT INTO `users` (`firstname`, `lastname`, `age`, `role_id`) VALUES (?, ?, ?, ?)", $result->string);
+		$this->assertEquals(array('Chris', 'Andrew', 23, 1), $result->parameters);
 	}
 	
 	public function testUpdate() {
@@ -58,15 +58,15 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 			->where('name like', '%swag%');
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "UPDATE `users` SET `age` = ?, `comment` = ? WHERE `age` >= ? AND `name` LIKE ?");
-		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%'));
+		$this->assertEquals("UPDATE `users` SET `age` = ?, `comment` = ? WHERE `age` >= ? AND `name` LIKE ?", $result->string);
+		$this->assertEquals(array(24, "Oh god I'm too old", 23, '%swag%'), $result->parameters);
 		
 		$query->where('role_id', array(1, 2, '3', '4', 5));
 		$query->limit(3);
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), "UPDATE `users` SET `age` = ?, `comment` = ? WHERE `age` >= ? AND `name` LIKE ? AND `role_id` IN (?, ?, ?, ?, ?) LIMIT 3");
-		$this->assertEquals($result->parameters(), array(24, "Oh god I'm too old", 23, '%swag%', 1, 2, '3', '4', 5));
+		$this->assertEquals("UPDATE `users` SET `age` = ?, `comment` = ? WHERE `age` >= ? AND `name` LIKE ? AND `role_id` IN (?, ?, ?, ?, ?) LIMIT 3", $result->string);
+		$this->assertEquals(array(24, "Oh god I'm too old", 23, '%swag%', 1, 2, '3', '4', 5), $result->parameters);
 	}
 	
 	public function testDelete() {
@@ -78,15 +78,15 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 			->where('type !=', 'normal');
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), 'DELETE FROM `users` WHERE `age` < ? AND `type` != ?');
-		$this->assertEquals($result->parameters(), array(23, 'normal'));
+		$this->assertEquals('DELETE FROM `users` WHERE `age` < ? AND `type` != ?', $result->string);
+		$this->assertEquals(array(23, 'normal'), $result->parameters);
 		
 		$query->where('role_id not in', array(1, '2'));
 		$query->limit('10');
 		
 		$result = $translator->translate($query);
-		$this->assertEquals($result->string(), 'DELETE FROM `users` WHERE `age` < ? AND `type` != ? AND `role_id` NOT IN (?, ?) LIMIT 10');
-		$this->assertEquals($result->parameters(), array(23, 'normal', 1, '2'));
+		$this->assertEquals('DELETE FROM `users` WHERE `age` < ? AND `type` != ? AND `role_id` NOT IN (?, ?) LIMIT 10', $result->string);
+		$this->assertEquals(array(23, 'normal', 1, '2'), $result->parameters);
 	}
 	
 }
