@@ -98,6 +98,23 @@ class MySql extends AbstractConnection {
 	}
 	
 	/**
+	 * Fetch all rows of a mysqli result.
+	 * 
+	 * @param mysqli_result $result
+	 * @return array
+	 */
+	protected function fetchAll(mysqli_result $result)
+	{
+		$rows = array();
+		
+		while ($row = $result->fetch_assoc()) {
+			$rows[] = $row;
+		}
+		
+		return $rows;
+	}
+	
+	/**
 	 * Prepare the given query and parameters as a mysqli statement.
 	 * 
 	 * @param string $query
@@ -186,7 +203,7 @@ class MySql extends AbstractConnection {
 		);
 		
 		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
-			$result['data'] = $mysqli_result->fetch_all(MYSQL_ASSOC);
+			$result['data'] = $this->fetchAll($mysqli_result);
 			$result['fields'] = $mysqli_result->fetch_fields();
 			$result['num_rows'] = $mysqli_result->num_rows;
 		} else {
