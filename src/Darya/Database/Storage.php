@@ -227,7 +227,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	public function execute(StorageQuery $query) {
 		$query = $this->connection->translate($query);
 		
-		return $this->connection->query($query->string(), $query->parameters());
+		return $this->connection->query($query->string, $query->parameters);
 	}
 	
 	/**
