@@ -3,6 +3,7 @@ namespace Darya\Database\Connection;
 
 use mysqli as php_mysqli;
 use mysqli_result;
+use mysqli_stmt;
 use ReflectionClass;
 use Darya\Database\AbstractConnection;
 use Darya\Database\Error;
@@ -11,8 +12,6 @@ use Darya\Database\Query\Translator;
 
 /**
  * Darya's MySQL database interface. Uses mysqli.
- * 
- * TODO: Extract prepareResult() method from query().
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -113,6 +112,36 @@ class MySql extends AbstractConnection {
 	}
 	
 	/**
+	 * Prepare a result array using the given mysqli statement.
+	 * 
+	 * @param mysqli_stmt $statement
+	 * @return array
+	 */
+	protected function prepareStatementResult(mysqli_stmt $statement) {
+		$mysqli_result = $statement->get_result();
+		
+		$result = array(
+			'data'      => array(),
+			'fields'    => array(),
+			'affected'  => null,
+			'num_rows'  => null,
+			'insert_id' => null
+		);
+		
+		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
+			$result['data'] = $this->fetchAll($mysqli_result);
+			$result['fields'] = $mysqli_result->fetch_fields();
+			$result['num_rows'] = $mysqli_result->num_rows;
+		} else {
+			$result['data'] = array();
+			$result['affected'] = $statement->affected_rows;
+			$result['insert_id'] = $statement->insert_id;
+		}
+		
+		return $result;
+	}
+	
+	/**
 	 * Initiate the connection.
 	 * 
 	 * @return bool
@@ -190,8 +219,6 @@ class MySql extends AbstractConnection {
 		
 		$statement->execute();
 		
-		$mysqli_result = $statement->get_result();
-		
 		$error = $this->error();
 		
 		if ($error) {
@@ -200,23 +227,7 @@ class MySql extends AbstractConnection {
 			return $this->lastResult;
 		}
 		
-		$result = array(
-			'data'      => array(),
-			'fields'    => array(),
-			'affected'  => null,
-			'num_rows'  => null,
-			'insert_id' => null
-		);
-		
-		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
-			$result['data'] = $this->fetchAll($mysqli_result);
-			$result['fields'] = $mysqli_result->fetch_fields();
-			$result['num_rows'] = $mysqli_result->num_rows;
-		} else {
-			$result['data'] = array();
-			$result['affected'] = $statement->affected_rows;
-			$result['insert_id'] = $statement->insert_id;
-		}
+		$result = $this->prepareStatementResult($statement);
 		
 		$statement->close();
 		
