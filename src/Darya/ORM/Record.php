@@ -477,9 +477,7 @@ class Record extends Model {
 			$storage = $this->storage();
 			
 			if ($storage instanceof Modifiable) {
-				$storage->delete($this->table(), array($this->key() => $this->id()), 1);
-				
-				return true;
+				return (bool) $storage->delete($this->table(), array($this->key() => $this->id()), 1);
 			}
 		}
 		

@@ -204,7 +204,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return int
 	 */
 	public function delete($table, array $filter = array(), $limit = null) {
-		if ($table == '*' || empty($table) || empty($where)) {
+		if ($table == '*' || empty($table) || empty($filter)) {
 			return null;
 		}
 		
