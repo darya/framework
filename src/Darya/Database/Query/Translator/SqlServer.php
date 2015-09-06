@@ -76,7 +76,7 @@ class SqlServer extends AbstractSqlTranslator {
 		
 		foreach ($data as $key => $value) {
 			$column = $this->identifier($key);
-			$value = $this->escape($value);
+			$value = $this->value($value);
 			$data[$key] = "$column = $value";
 		}
 		

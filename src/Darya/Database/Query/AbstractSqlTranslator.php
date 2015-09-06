@@ -121,16 +121,16 @@ abstract class AbstractSqlTranslator implements Translator {
 	abstract protected function identifier($identifier);
 	
 	/**
-	 * Escape the given value.
+	 * Prepare the given value.
 	 * 
-	 * If the value is an array, it is recursively escaped.
+	 * If the value is an array, it is recursively prepared.
 	 * 
 	 * @param array|string $value
 	 * @return array|string
 	 */
-	protected function escape($value) {
+	protected function value($value) {
 		if (is_array($value)) {
-			return array_map(array($this, 'escape'), $value);
+			return array_map(array($this, 'value'), $value);
 		}
 		
 		if ($this->parameterise) {
@@ -165,6 +165,40 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Prepare the a default operator for the given value and its initial
+	 * operator.
+	 * 
+	 * @param string $operator
+	 * @param string $value
+	 * @return string
+	 */
+	protected function prepareOperator($operator, $value) {
+		$operator = in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
+		
+		if ($value === null) {
+			if ($operator === '=') {
+				$operator = 'IS';
+			}
+			
+			if ($operator === '!=') {
+				$operator = 'IS NOT';
+			}
+		}
+		
+		if (is_array($value)) {
+			if ($operator === '=') {
+				$operator = 'IN';
+			}
+
+			if ($operator === '!=') {
+				$operator = 'NOT IN';
+			}
+		}
+		
+		return $operator;
+	}
+	
+	/**
 	 * Prepare an individual filter condition.
 	 * 
 	 * @param string       $column
@@ -175,16 +209,11 @@ abstract class AbstractSqlTranslator implements Translator {
 		list($column, $operator) = array_pad(explode(' ', $column, 2), 2, null);
 		
 		$column = $this->prepareColumns($column);
-		$operator = in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
-		
-		$value = $this->escape($value);
+		$operator = $this->prepareOperator($operator, $value);
+		$value = $this->value($value);
 		
 		if (is_array($value)) {
 			$value = "(" . implode(", ", $value) . ")";
-			
-			if ($operator === '=') {
-				$operator = 'IN';
-			}
 		}
 		
 		return "$column $operator $value";
@@ -294,7 +323,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$table = $this->identifier($table);
 		
 		$columns = $this->identifier(array_keys($data));
-		$values  = $this->escape(array_values($data));
+		$values  = $this->value(array_values($data));
 		
 		$columns = "(" . implode(", ", $columns) . ")";
 		$values  = "(" . implode(", ", $values) . ")";

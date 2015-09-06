@@ -165,16 +165,6 @@ class SqlServer extends AbstractConnection {
 	}
 	
 	/**
-	 * Escape the given string for use in a query.
-	 * 
-	 * @param string $string
-	 * @return string
-	 */
-	public function escape($string) {
-		return str_replace("'", "''", $string);
-	}
-	
-	/**
 	 * Retrieve error information regarding the last operation.
 	 * 
 	 * Returns null if there is no error.

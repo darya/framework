@@ -26,22 +26,6 @@ class MySql extends AbstractSqlTranslator {
 	}
 	
 	/**
-	 * Escape the given value.
-	 * 
-	 * If the value is an array, it is recursively escaped.
-	 * 
-	 * @param array|string $value
-	 * @return array|string
-	 */
-	protected function escape($value) {
-		if (is_string($value)) {
-			return parent::escape($this->connection->escape($value));
-		}
-		
-		return parent::escape($value);
-	}
-	
-	/**
 	 * Escape the given identifier.
 	 * 
 	 * If the value is an array, it is recursively escaped.
@@ -127,7 +111,7 @@ class MySql extends AbstractSqlTranslator {
 		
 		foreach ($data as $key => $value) {
 			$column = $this->identifier($key);
-			$value = $this->escape($value);
+			$value = $this->value($value);
 			$data[$key] = "$column = $value";
 		}
 		
