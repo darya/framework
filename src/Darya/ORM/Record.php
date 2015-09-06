@@ -2,7 +2,6 @@
 namespace Darya\ORM;
 
 use Exception;
-use ReflectionClass;
 use Darya\ORM\Model;
 use Darya\ORM\Relation;
 use Darya\Storage\Query;
@@ -130,7 +129,7 @@ class Record extends Model {
 			return $this->table;
 		}
 		
-		return preg_replace_callback('/([A-Z])/', function ($matches) {
+		return preg_replace_callback('/([A-Z])/', function($matches) {
 			return '_' . strtolower($matches[1]);
 		}, lcfirst(basename(get_class($this)))) . 's';
 	}
@@ -250,7 +249,7 @@ class Record extends Model {
 	 * @param int              $offset [optional]
 	 * @return array
 	 */
-	public static function load($filter = array(), $order = array(), $limit = null, $offset = 0){
+	public static function load($filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$instance = new static;
 		$storage = $instance->storage();
 		$filter = static::prepareFilter($filter);
@@ -400,7 +399,7 @@ class Record extends Model {
 		$query = new Query($instance->table());
 		$builder = new Builder($query, $instance->storage());
 		
-		$builder->callback(function ($result) use ($instance) {
+		$builder->callback(function($result) use ($instance) {
 			return $instance::generate($result->data);
 		});
 		

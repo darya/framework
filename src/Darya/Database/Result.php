@@ -85,7 +85,7 @@ class Result {
 	 * @return string
 	 */
 	protected static function snakeToCamel($string) {
-		return preg_replace_callback('/_(.)/', function ($matches) {
+		return preg_replace_callback('/_(.)/', function($matches) {
 			return strtoupper($matches[1]);
 		}, $string);
 	}

@@ -153,7 +153,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * @param string $table
 	 * @param array  $data
-	 * @return int|bool
+	 * @return int
 	 */
 	public function create($table, $data) {
 		$query = new StorageQuery($table);
@@ -284,7 +284,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * Returns false if there was no error.
 	 * 
-	 * @return string|bool
+	 * @return string|false
 	 */
 	public function error() {
 		if ($error = $this->connection->error()) {

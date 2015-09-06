@@ -1,7 +1,6 @@
 <?php
 namespace Darya\Database\Query\Translator;
 
-use Darya\Database\Connection\MySql as MySqlConnection;
 use Darya\Database\Query\AbstractSqlTranslator;
 
 /**

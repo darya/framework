@@ -217,7 +217,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$conditions = array();
 		
 		foreach ($filter as $column => $value) {
-			if (strtolower($column) == 'or')  {
+			if (strtolower($column) == 'or') {
 				$conditions[] = '(' . $this->prepareWhere($value, 'OR', true) . ')';
 			} else {
 				$conditions[] = $this->prepareFilter($column, $value);
