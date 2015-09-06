@@ -143,11 +143,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Prepare the a default operator for the given value and its initial
-	 * operator.
+	 * Prepare a default operator for the given value.
 	 * 
 	 * @param string $operator
-	 * @param string $value
+	 * @param mixed  $value
 	 * @return string
 	 */
 	protected function prepareOperator($operator, $value) {
@@ -167,7 +166,7 @@ abstract class AbstractSqlTranslator implements Translator {
 			if ($operator === '=') {
 				$operator = 'IN';
 			}
-
+		
 			if ($operator === '!=') {
 				$operator = 'NOT IN';
 			}
@@ -179,8 +178,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	/**
 	 * Prepare an individual filter condition.
 	 * 
-	 * @param string       $column
-	 * @param array|string $value
+	 * @param string $column
+	 * @param mixed  $value
 	 * @return string
 	 */
 	protected function prepareFilter($column, $value) {
