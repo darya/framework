@@ -21,11 +21,6 @@ abstract class AbstractSqlTranslator implements Translator {
 	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
 	
 	/**
-	 * @var bool Whether to prepare queries with parameters
-	 */
-	protected $parameterise = true;
-	
-	/**
 	 * Concatenates the given set of strings that aren't empty.
 	 * 
 	 * Runs implode() after filtering out empty elements.
@@ -42,15 +37,6 @@ abstract class AbstractSqlTranslator implements Translator {
 		});
 		
 		return implode($delimiter, $strings);
-	}
-	
-	/**
-	 * Set whether to prepare queries with parameters.
-	 * 
-	 * @param bool $parameterise
-	 */
-	public function parameterise($parameterise) {
-		$this->parameterise = $parameterise;
 	}
 	
 	/**
@@ -133,15 +119,7 @@ abstract class AbstractSqlTranslator implements Translator {
 			return array_map(array($this, 'value'), $value);
 		}
 		
-		if ($this->parameterise) {
-			return '?';
-		}
-		
-		if (is_string($value)) {
-			return "'$value'";
-		}
-		
-		return $value;
+		return '?';
 	}
 	
 	/**

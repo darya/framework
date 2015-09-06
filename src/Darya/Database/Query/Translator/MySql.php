@@ -12,20 +12,6 @@ use Darya\Database\Query\AbstractSqlTranslator;
 class MySql extends AbstractSqlTranslator {
 	
 	/**
-	 * @var Database\Connection
-	 */
-	protected $connection;
-	
-	/**
-	 * Instantiate a new MySQL query translator.
-	 * 
-	 * @param MySqlConnection $connection
-	 */
-	public function __construct(MySqlConnection $connection) {
-		$this->connection = $connection;
-	}
-	
-	/**
 	 * Escape the given identifier.
 	 * 
 	 * If the value is an array, it is recursively escaped.

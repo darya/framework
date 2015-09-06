@@ -190,7 +190,7 @@ class MySql extends AbstractConnection {
 	 */
 	public function translator() {
 		if (!$this->translator) {
-			$this->translator = new Translator\MySql($this);
+			$this->translator = new Translator\MySql;
 		}
 		
 		return $this->translator;
