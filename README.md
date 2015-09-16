@@ -216,8 +216,9 @@ $response->send();
 
 ```php
 $response->cookies->set('key', 'value', '+1 day');
+
 $cookie = $response->cookies->get('key'); // 'value'
-$cookie = $response->cookies->get('key', 'expire'); // strtotime('+1 day')
+$expiration = $response->cookies->get('key', 'expire'); // strtotime('+1 day')
 
 $response->cookies->delete('key');
 ```
