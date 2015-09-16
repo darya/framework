@@ -16,6 +16,30 @@ class Cookies {
 	protected $cookies = array();
 	
 	/**
+	 * Get a property of a cookie.
+	 * 
+	 * Returns the cookie's value by default. Other properties include 'expire'
+	 * and 'path'.
+	 * 
+	 * @param string $key
+	 * @param string $property [optional]
+	 * @return string
+	 */
+	public function get($key, $property = 'value') {
+		return isset($this->cookies[$key]) && isset($this->cookies[$key][$property]) ? $this->cookies[$key][$property] : null;
+	}
+	
+	/**
+	 * Determine whether a cookie with the given key has been set.
+	 * 
+	 * @param string $key
+	 * @return bool
+	 */
+	public function has($key) {
+		return isset($this->cookies[$key]);
+	}
+	
+	/**
 	 * Set a cookie to send.
 	 * 
 	 * @param string $key
@@ -23,17 +47,30 @@ class Cookies {
 	 * @param int    $expire
 	 */
 	public function set($key, $value, $expire, $path = '/') {
+		if (is_string($expire)) {
+			$expire = strtotime($expire);
+		}
+		
 		$this->cookies[$key] = compact('value', 'expire', 'path');
 	}
 	
 	/**
-	 * Get the value of a cookie.
+	 * Get all the cookies. Nom nom.
+	 * 
+	 * @return array
+	 */
+	public function all() {
+		return $this->cookies;
+	}
+	
+	/**
+	 * Get all the properties associated with a cookie.
 	 * 
 	 * @param string $key
-	 * @return string
+	 * @return array
 	 */
-	public function get($key) {
-		return isset($this->cookies[$key]) && isset($this->cookies[$key]['value']) ? $this->cookies[$key]['value'] : null;
+	public function properties($key) {
+		return isset($this->cookies[$key]) ? $this->cookies[$key] : array();
 	}
 	
 	/**
@@ -49,7 +86,7 @@ class Cookies {
 	}
 	
 	/**
-	 * Send the cookies header data.
+	 * Send the header data for cookies.
 	 */
 	public function send() {
 		foreach ($this->cookies as $key => $values) {
