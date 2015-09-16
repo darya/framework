@@ -215,10 +215,11 @@ $response->send();
 ##### Cookies
 
 ```php
-$response->setCookie('key', 'value', strtotime('+1 day', time()));
-$cookie = $response->getCookie('key'); // 'value'
+$response->cookies->set('key', 'value', '+1 day');
+$cookie = $response->cookies->get('key'); // 'value'
+$cookie = $response->cookies->get('key', 'expire'); // strtotime('+1 day')
 
-$response->deleteCookie('key');
+$response->cookies->delete('key');
 ```
 
 #### Sessions
