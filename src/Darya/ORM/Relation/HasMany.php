@@ -109,7 +109,13 @@ class HasMany extends Has {
 			}
 		}
 		
-		$this->reduce($ids);
+		$relatedIds = array();
+		
+		foreach ($this->related as $related) {
+			$relatedIds[] = $related->id();
+		}
+		
+		$this->reduce(array_diff($relatedIds, $ids));
 		
 		return $successful;
 	}
