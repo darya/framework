@@ -26,11 +26,6 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	protected $connection;
 	
 	/**
-	 * @var array Filter comparison operators
-	 */
-	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
-	
-	/**
 	 * Instantiate a database-driven data store.
 	 * 
 	 * @param Connection $connection

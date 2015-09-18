@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Storage;
 
+use Darya\Storage\Filterer;
 use Darya\Storage\Readable;
 
 /**
@@ -20,12 +21,20 @@ class InMemory implements Readable {
 	protected $data;
 	
 	/**
+	 * Filters results in-memory.
+	 * 
+	 * @var Filterer
+	 */
+	protected $filterer;
+	
+	/**
 	 * Create a new in-memory storage interface with the given data.
 	 * 
 	 * @param array $data [optional]
 	 */
-	public function __construct($data = array()) {
+	public function __construct(array $data = array()) {
 		$this->data = $data;
+		$this->filterer = new Filterer;
 	}
 	
 	/**

@@ -133,11 +133,7 @@ abstract class AbstractSqlTranslator implements Translator {
 			return '*';
 		}
 		
-		$columns = $this->identifier($columns);
-		
-		if (!is_array($columns)) {
-			$columns = (array) $columns;
-		}
+		$columns = (array) $this->identifier($columns);
 		
 		return implode(', ', $columns);
 	}
