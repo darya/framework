@@ -42,6 +42,17 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$pages = $storage->read('pages');
 		
 		$this->assertEquals($data['pages'], $pages);
+		
+		$this->assertEquals(array(), $storage->read('non_existant'));
+	}
+	
+	public function testCount() {
+		$data = $this->inMemoryData();
+		
+		$storage = new InMemory($data);
+		
+		$this->assertEquals(2, $storage->count('users'));
+		$this->assertEquals(1, $storage->count('pages'));
 	}
 	
 }

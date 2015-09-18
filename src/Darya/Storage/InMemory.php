@@ -71,8 +71,8 @@ class InMemory implements Readable {
 	 * @return int
 	 */
 	public function count($resource, array $filter = array()) {
-		if (!empty($data[$resource]))
-			return count($data[$resource]);
+		if (!empty($this->data[$resource]))
+			return count($this->data[$resource]);
 		
 		return 0;
 	}
