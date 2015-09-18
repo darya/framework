@@ -60,7 +60,26 @@ class InMemory implements Readable {
 	 * @return array
 	 */
 	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		return array();
+		$data = $this->read($resource);
+		$fields = (array) $fields;
+		
+		$result = array();
+		
+		foreach ($data as $row) {
+			$new = array();
+			
+			foreach ($row as $field => $value) {
+				if (in_array($field, $fields)) {
+					$new[$field] = $value;
+				}
+			}
+			
+			if (!empty($new)) {
+				$result[] = $new;
+			}
+		}
+		
+		return $result;
 	}
 	
 	/**

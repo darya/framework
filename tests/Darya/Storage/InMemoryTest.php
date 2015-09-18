@@ -30,6 +30,15 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		);
 	}
 	
+	/**
+	 * Retrieve the in-memory storage to test with.
+	 * 
+	 * @return InMemory
+	 */
+	protected function storage() {
+		return new InMemory($this->inMemoryData());
+	}
+	
 	public function testSimpleRead() {
 		$data = $this->inMemoryData();
 		
@@ -43,7 +52,15 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($data['pages'], $pages);
 		
-		$this->assertEquals(array(), $storage->read('non_existant'));
+		$this->assertEquals(array(), $storage->read('non_existent'));
+	}
+	
+	public function testSimpleListing() {
+		$storage = $this->storage();
+		
+		$listing = $storage->listing('users', 'id');
+		
+		$this->assertEquals(array(array('id' => 1), array('id' => 2)), $listing);
 	}
 	
 	public function testCount() {
@@ -53,6 +70,7 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(2, $storage->count('users'));
 		$this->assertEquals(1, $storage->count('pages'));
+		$this->assertEquals(0, $storage->count('non_existent'));
 	}
 	
 }
