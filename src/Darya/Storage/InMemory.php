@@ -71,7 +71,7 @@ class InMemory implements Readable {
 	 * @return array
 	 */
 	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$data = $this->read($resource);
+		$data = $this->read($resource, $filter);
 		$fields = (array) $fields;
 		
 		$result = array();
@@ -101,10 +101,15 @@ class InMemory implements Readable {
 	 * @return int
 	 */
 	public function count($resource, array $filter = array()) {
-		if (!empty($this->data[$resource]))
-			return count($this->data[$resource]);
+		if (empty($this->data[$resource]))
+			return 0;
 		
-		return 0;
+		$data = $this->data[$resource];
+		
+		if (!empty($filter))
+			$data = $this->filterer->filter($data, $filter);
+		
+		return count($data);
 	}
 	
 }
