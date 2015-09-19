@@ -52,6 +52,8 @@ class InMemory implements Readable {
 	public function read($resource, array $filter = array(), $order = null, $limit = null, $offset = 0) {
 		$data = !empty($this->data[$resource]) ? $this->data[$resource] : array();
 		
+		$data = $this->filterer->filter($data, $filter);
+		
 		return $data;
 	}
 	

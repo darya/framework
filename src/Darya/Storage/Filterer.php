@@ -11,19 +11,19 @@ class Filterer {
 	/**
 	 * @var array Filter comparison operators
 	 */
-	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
+	protected $operators = array('=', '!=', '>', '<', '<>', '>=', '<=', 'in', 'not in', 'is', 'is not', 'like', 'not like');
 	
 	/**
 	 * @var array A map of filter operators to methods that implement them
 	 */
 	protected $methods = array(
-		'>=' => 'greaterOrEqual',
-		'<=' => 'smallerOrEqual',
-		'>'  => 'greater',
-		'<'  => 'smaller',
 		'='  => 'equal',
 		'!=' => 'notEqual',
+		'>'  => 'greater',
+		'<'  => 'smaller',
 		'<>' => 'greaterOrSmaller',
+		'>=' => 'greaterOrEqual',
+		'<=' => 'smallerOrEqual',
 		'in' => 'in',
 		'not in' => 'notIn',
 		'is'     => 'is',
@@ -49,6 +49,18 @@ class Filterer {
 		}
 		
 		return $data;
+	}
+	
+	/**
+	 * Escape the given value for use as a like query.
+	 * 
+	 * Precedes all underscore and percentage characters with a backwards slash.
+	 * 
+	 * @param string $value
+	 * @return string
+	 */
+	public function escape($value) {
+		return preg_replace('/([%_])/', '\\$1', $value);
 	}
 	
 	/**
@@ -99,38 +111,186 @@ class Filterer {
 		
 		$method = $this->methods[$operator];
 		
-		return $this->$method($data, $field, $value);
-	}
-	
-	/**
-	 * Filter the given data down to rows with a field that equals the given
-	 * value.
-	 * 
-	 * @param array  $data
-	 * @param string $field
-	 * @param mixed  $value
-	 * @return array
-	 */
-	protected function equal(array $data, $field, $value) {
-		$result = array();
+		$filterer = $this;
 		
-		foreach ($data as $row) {
+		return array_values(array_filter($data, function ($row) use ($filterer, $method, $data, $field, $value) {
 			if (!isset($row[$field])) {
-				continue;
+				return false;
 			}
 			
 			$actual = $row[$field];
 			
-			if (is_string($actual) && is_string($value)) {
-				$actual = strtolower($actual);
-				$value  = strtolower($value);
-			}
-			
-			if ($actual == $value) {
-				$result[] = $row;
-			}
+			return $filterer->$method($actual, $value);
+		}));
+	}
+	
+	/**
+	 * Determine whether the given values are equal.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function equal($actual, $value) {
+		if (is_string($actual) && is_string($value)) {
+			$actual = strtolower($actual);
+			$value  = strtolower($value);
 		}
 		
-		return $result;
+		return $actual == $value;
+	}
+	
+	/**
+	 * Determine whether the given values are not equal.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function notEqual($actual, $value) {
+		if (is_string($actual) && is_string($value)) {
+			$actual = strtolower($actual);
+			$value  = strtolower($value);
+		}
+		
+		return $actual != $value;
+	}
+	
+	/**
+	 * Determine whether the given actual value is greater than the given
+	 * comparison value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function greater($actual, $value) {
+		return $actual > $value;
+	}
+	
+	/**
+	 * Determine whether the given actual value is smaller than the given
+	 * comparison value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function smaller($actual, $value) {
+		return $actual < $value;
+	}
+	
+	/**
+	 * Determine whether the given actual value is greater or smaller than the
+	 * given comparison value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function greaterOrsmaller($actual, $value) {
+		return $actual <> $value;
+	}
+	
+	/**
+	 * Determine whether the given actual value is greater than or equal to the
+	 * given comparison value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function greaterOrEqual($actual, $value) {
+		return $actual >= $value;
+	}
+	
+	/**
+	 * Determine whether the given actual value is smaller than or equal to the
+	 * given comparison value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function smallerOrEqual($actual, $value) {
+		return $actual <= $value;
+	}
+	
+	/**
+	 * Determine whether the given actual value is in the given set of values.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function in($actual, $value) {
+		return in_array($actual, (array) $value);
+	}
+	
+	/**
+	 * Determine whether the given actual value is not in the given set of
+	 * values.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function notIn($actual, $value) {
+		return !$this->in($actual, $value);
+	}
+	
+	/**
+	 * Determine the result of a boolean comparison between the given values.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function is($actual, $value) {
+		if ($actual === null && $value === null) {
+			return true;
+		}
+		
+		return (bool) $actual === (bool) $value;
+	}
+	
+	/**
+	 * Determine the result of a negative boolean comparison between the given
+	 * values.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function isNot($actual, $value) {
+		return !$this->is($actual, $value);
+	}
+	
+	/**
+	 * Determine whether the given actual value is like the given comparison
+	 * value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function like($actual, $value) {
+		$value = preg_quote($value, '/');
+		
+		$pattern = '/' . preg_replace(array('/([^\\\])?_/', '/([^\\\])?%/'), array('$1.', '$1.*'), $value) . '/i';
+		
+		return preg_match($pattern, $actual);
+	}
+	
+	/**
+	 * Determine whether the given actual value is not like the given comparison
+	 * value.
+	 * 
+	 * @param mixed $actual
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function notLike($actual, $value) {
+		return !$this->like($actual, $value);
 	}
 }

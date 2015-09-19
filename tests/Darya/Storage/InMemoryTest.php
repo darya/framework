@@ -17,6 +17,20 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 					'text' => 'Page text'
 				)
 			),
+			'roles' => array(
+				array(
+					'id'   => 1,
+					'name' => 'User'
+				),
+				array(
+					'id'   => 2,
+					'name' => 'Moderator'
+				),
+				array(
+					'id'   => 3,
+					'name' => 'Administrator'
+				)
+			),
 			'users' => array(
 				array(
 					'id'   => 1,
@@ -68,9 +82,38 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		
 		$storage = new InMemory($data);
 		
+		$this->assertEquals(3, $storage->count('roles'));
 		$this->assertEquals(2, $storage->count('users'));
 		$this->assertEquals(1, $storage->count('pages'));
 		$this->assertEquals(0, $storage->count('non_existent'));
+	}
+	
+	public function testEqualsFilter() {
+		$storage = $this->storage();
+		
+		$users = $storage->read('users', array('name' => 'chris'));
+		
+		$this->assertEquals(array(array('id' => 1, 'name' => 'Chris')), $users);
+		
+		$users = $storage->read('users', array('id' => 2));
+		
+		$this->assertEquals(array(array('id' => 2, 'name' => 'Bethany')), $users);
+		
+		$users = $storage->read('users', array('id' => '2'));
+		
+		$this->assertEquals(array(array('id' => 2, 'name' => 'Bethany')), $users);
+	}
+	
+	public function testLikeFilter() {
+		$storage = $this->storage();
+		
+		$roles = $storage->read('roles', array('name like' => '%admin%'));
+		
+		$this->assertEquals(array(array('id' => 3, 'name' => 'Administrator')), $roles);
+		
+		$roles = $storage->read('users', array('name like' => '%beth%'));
+		
+		$this->assertEquals(array(array('id' => 2, 'name' => 'Bethany')), $roles);
 	}
 	
 }
