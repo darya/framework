@@ -148,12 +148,7 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function notEqual($actual, $value) {
-		if (is_string($actual) && is_string($value)) {
-			$actual = strtolower($actual);
-			$value  = strtolower($value);
-		}
-		
-		return $actual != $value;
+		return !$this->equal($actual, $value);
 	}
 	
 	/**
