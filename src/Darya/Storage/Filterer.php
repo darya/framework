@@ -235,18 +235,14 @@ class Filterer {
 	}
 	
 	/**
-	 * Determine the result of a boolean comparison between the given values.
+	 * Determine the result of a strict comparison between the given values.
 	 * 
 	 * @param mixed $actual
 	 * @param mixed $value
 	 * @return bool
 	 */
 	protected function is($actual, $value) {
-		if ($actual === null && $value === null) {
-			return true;
-		}
-		
-		return (bool) $actual === (bool) $value;
+		return $actual === $value;
 	}
 	
 	/**
