@@ -33,6 +33,18 @@ class Filterer {
 	);
 	
 	/**
+	 * Escape the given value for use as a like query.
+	 * 
+	 * Precedes all underscore and percentage characters with a backwards slash.
+	 * 
+	 * @param string $value
+	 * @return string
+	 */
+	public function escape($value) {
+		return preg_replace('/([%_])/', '\\$1', $value);
+	}
+	
+	/**
 	 * Filter the given data.
 	 * 
 	 * @param array $data
@@ -52,15 +64,14 @@ class Filterer {
 	}
 	
 	/**
-	 * Escape the given value for use as a like query.
+	 * Determine the result of the given 'or' filter.
 	 * 
-	 * Precedes all underscore and percentage characters with a backwards slash.
-	 * 
-	 * @param string $value
-	 * @return string
+	 * @param array $data
+	 * @param array $filter
+	 * @return array
 	 */
-	public function escape($value) {
-		return preg_replace('/([%_])/', '\\$1', $value);
+	protected function filterOr(array $data, array $filter = array()) {
+		
 	}
 	
 	/**
