@@ -57,21 +57,26 @@ class Filterer {
 		}
 		
 		foreach ($filter as $field => $value) {
-			$data = $this->process($data, $field, $value);
+			if (strtolower($field) === 'or') {
+				$data = $this->processOr($data, $value);
+			} else {
+				$data = $this->process($data, $field, $value);
+			}
 		}
 		
 		return $data;
 	}
 	
 	/**
-	 * Determine the result of the given 'or' filter.
+	 * Separate the given filter field into a field and its operator.
 	 * 
-	 * @param array $data
-	 * @param array $filter
-	 * @return array
+	 * Simply splits the given string on the first space found.
+	 * 
+	 * @param string $field
+	 * @return array array($field, $operator)
 	 */
-	protected function filterOr(array $data, array $filter = array()) {
-		
+	protected function separateField($field) {
+		return array_pad(explode(' ', $field, 2), 2, null);
 	}
 	
 	/**
@@ -108,6 +113,18 @@ class Filterer {
 	}
 	
 	/**
+	 * Retrieve the comparison method to use for the given operator.
+	 * 
+	 * Returns 'equals' if the operator is not recognised.
+	 * 
+	 * @param string $operator
+	 * @return string
+	 */
+	protected function getComparisonMethod($operator) {
+		return isset($this->methods[$operator]) ? $this->methods[$operator] : 'equals';
+	}
+	
+	/**
 	 * Process part of a filter on the given data.
 	 * 
 	 * @param array  $data
@@ -116,7 +133,7 @@ class Filterer {
 	 * @return array
 	 */
 	protected function process(array $data, $field, $value) {
-		list($field, $operator) = array_pad(explode(' ', $field, 2), 2, null);
+		list($field, $operator) = $this->separateField($field);
 		
 		$operator = $this->prepareOperator($operator, $value);
 		
@@ -133,6 +150,58 @@ class Filterer {
 			
 			return $filterer->$method($actual, $value);
 		}));
+	}
+	
+	/**
+	 * Process an 'or' filter on the given data.
+	 * 
+	 * @param array $data
+	 * @param array $filter
+	 * @return array
+	 */
+	protected function processOr(array $data, array $filter = array()) {
+		if (empty($filter)) {
+			return $data;
+		}
+		
+		$filterer = $this;
+		
+		return array_values(array_filter($data, function ($row) use ($filterer, $filter) {
+			$keep = false;
+			
+			foreach ($filter as $field => $value) {
+				list($field, $operator) = $filterer->separateField($field);
+				
+				if (!isset($row[$field])) {
+					continue;
+				}
+				
+				$actual = $row[$field];
+				
+				$operator = $filterer->prepareOperator($operator, $value);
+				
+				$method = $filterer->getComparisonMethod($operator);
+				
+				$keep |= $filterer->$method($actual, $value);
+			}
+			
+			return $keep;
+		}));
+	}
+	
+	/**
+	 * Determine the result of the given comparison.
+	 * 
+	 * If the value is an array, the comparison is evaluated on each element
+	 * unless the method supports array values (in() or notIn()).
+	 * 
+	 * @param string $method
+	 * @param mixed  $actual
+	 * @param mixed  $value
+	 * @return bool
+	 */
+	protected function evaluate($method, $actual, $value) {
+		
 	}
 	
 	/**
