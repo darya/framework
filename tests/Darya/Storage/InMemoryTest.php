@@ -104,6 +104,24 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(array('id' => 2, 'name' => 'Bethany')), $users);
 	}
 	
+	public function testInFilter() {
+		$storage = $this->storage();
+		
+		$users = $storage->read('users', array('name' => array('Chris', 'Bethany')));
+		
+		$this->assertEquals(array(
+			array('id' => 1, 'name' => 'Chris'),
+			array('id' => 2, 'name' => 'Bethany')
+		), $users);
+		
+		$users = $storage->read('users', array('name in' => array('Chris', 'Bethany')));
+		
+		$this->assertEquals(array(
+			array('id' => 1, 'name' => 'Chris'),
+			array('id' => 2, 'name' => 'Bethany')
+		), $users);
+	}
+	
 	public function testLikeFilter() {
 		$storage = $this->storage();
 		

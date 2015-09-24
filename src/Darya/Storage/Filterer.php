@@ -125,6 +125,19 @@ class Filterer {
 	}
 	
 	/**
+	 * Determine whether the given comparison method handles array values by
+	 * itself.
+	 * 
+	 * @param string $method
+	 * @return bool
+	 */
+	protected function methodHandlesArrays($method) {
+		$method = strtolower($method);
+		
+		return $method === 'in' || $method === 'notIn';
+	}
+	
+	/**
 	 * Process part of a filter on the given data.
 	 * 
 	 * @param array  $data
@@ -201,7 +214,7 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function evaluate($method, $actual, $value) {
-		if (!is_array($value)) {
+		if (!is_array($value) || $this->methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
 		
@@ -224,7 +237,7 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function evaluateOr($method, $actual, $value) {
-		if (!is_array($value)) {
+		if (!is_array($value) || $this->methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
 		
