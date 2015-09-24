@@ -148,7 +148,7 @@ class Filterer {
 			
 			$actual = $row[$field];
 			
-			return $filterer->$method($actual, $value);
+			return $filterer->evaluate($method, $actual, $value);
 		}));
 	}
 	
@@ -182,7 +182,7 @@ class Filterer {
 				
 				$method = $filterer->getComparisonMethod($operator);
 				
-				$keep |= $filterer->$method($actual, $value);
+				$keep |= $filterer->evaluateOr($method, $actual, $value);
 			}
 			
 			return $keep;
@@ -201,7 +201,40 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function evaluate($method, $actual, $value) {
+		if (!is_array($value)) {
+			return $this->$method($actual, $value);
+		}
 		
+		foreach ($value as $element) {
+			if (!$this->$method($actual, $element)) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Determine the result of the given 'or' comparison. Only behaves
+	 * differently from evaluate() if $value is an array.
+	 * 
+	 * @param string $method
+	 * @param mixed  $actual
+	 * @param mixed  $value
+	 * @return bool
+	 */
+	protected function evaluateOr($method, $actual, $value) {
+		if (!is_array($value)) {
+			return $this->$method($actual, $value);
+		}
+		
+		$result = false;
+		
+		foreach ($value as $element) {
+			$result |= $this->$method($actual, $element);
+		}
+		
+		return $result;
 	}
 	
 	/**

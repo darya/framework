@@ -132,4 +132,27 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		), $roles);
 	}
 	
+	public function testMultipleValues() {
+		$storage = $this->storage();
+		
+		$roles = $storage->read('roles', array(
+			'name like' => array('ad%', '%strator')
+		));
+		
+		$this->assertEquals(array(
+			array('id' => 3, 'name' => 'Administrator')
+		), $roles);
+		
+		$roles = $storage->read('roles', array(
+			'or' => array(
+				'name like' => array('%admin%', '%mod%')
+			)
+		));
+		
+		$this->assertEquals(array(
+			array('id' => 2, 'name' => 'Moderator'),
+			array('id' => 3, 'name' => 'Administrator')
+		), $roles);
+	}
+	
 }
