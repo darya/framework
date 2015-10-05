@@ -72,7 +72,7 @@ class MySql extends AbstractConnection {
 		}
 		
 		if ($statement->num_rows > 0) {
-			call_user_func_array(array($stmt, 'bind_result'), $arguments);
+			call_user_func_array(array($statement, 'bind_result'), $arguments);
 			
 			while ($statement->fetch()) {
 				$data[] = array_combine(array_keys($row), array_values($row));
