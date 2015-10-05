@@ -27,27 +27,39 @@ class MySql extends AbstractConnection {
 	 * isn't found (mysqlnd isn't installed).
 	 * 
 	 * @param mysqli_stmt $statement
-	 * @return array array($data, $count, $fields)
+	 * @return array array($data, $fields, $count)
 	 */
-	protected function fetchResult(mysqli_stmt $statement)
-	{
-		if (method_exists($statement, 'get_result')) { // fetch_all will exist
-			$result = $statement->get_result();
-			
-			if (is_object($result) && $result instanceof mysqli_result) {
-				return array(
-					$result->fetch_all(MYSQL_ASSOC),
-					$result->fetch_fields(),
-					$result->num_rows
-				);
-			} else {
-				return array(array(), array(), null);
-			}
-		}
-		
+	protected function fetchResultData(mysqli_stmt $statement) {
 		// MySQLi is shit and I should have just used PDO
+		if (!method_exists($statement, 'get_result')) {
+			return $this->fetchResultDataWithoutNativeDriver($statement);
+		}
+
+		$result = $statement->get_result();
+		
+		if (is_object($result) && $result instanceof mysqli_result) {
+			return array(
+				$result->fetch_all(MYSQL_ASSOC),
+				$result->fetch_fields(),
+				$result->num_rows
+			);
+		} else {
+			return array(array(), array(), null);
+		}
+	}
+	
+	/**
+	 * Method for fetching the same information in a way that doesn't require
+	 * mysqlnd to be installed.
+	 * 
+	 * Fetches directly from the statement with variable binding instead.
+	 * 
+	 * @param mysqli_stmt $statement
+	 * @return array
+	 */
+	protected function fetchResultDataWithoutNativeDriver() {
 		$data = array();
-		$metadata = $stmt->result_metadata();
+		$metadata = $statement->result_metadata();
 		
 		$row = array();
 		$count = 0;
