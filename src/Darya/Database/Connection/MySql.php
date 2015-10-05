@@ -18,57 +18,57 @@ use Darya\Database\Query\Translator;
 class MySql extends AbstractConnection {
 	
 	/**
-	 * Fetch all rows of a mysqli result.
+	 * Fetch result data from the given MySQLi statement.
 	 * 
-	 * Falls back to fetch_assoc in a loop if fetch_all isn't available.
+	 * Expects the statement to have been executed.
 	 * 
-	 * @param mysqli_result $result
-	 * @return array
+	 * Attempts to use mysqli_stmt::get_result() and mysqli_result::fetch_all(),
+	 * but falls back to fetching from the statement directly if get_result()
+	 * isn't found (mysqlnd isn't installed).
+	 * 
+	 * @param mysqli_stmt $statement
+	 * @return array array($data, $count, $fields)
 	 */
-	protected function fetchAll(mysqli_result $result)
+	protected function fetchResult(mysqli_stmt $statement)
 	{
-		if (method_exists($result, 'fetch_all')) {
-			return $result->fetch_all(MYSQL_ASSOC);
+		if (method_exists($statement, 'get_result')) { // fetch_all will exist
+			$result = $statement->get_result();
+			
+			if (is_object($result) && $result instanceof mysqli_result) {
+				return array(
+					$result->fetch_all(MYSQL_ASSOC),
+					$result->fetch_fields(),
+					$result->num_rows
+				);
+			} else {
+				return array(array(), array(), null);
+			}
 		}
 		
-		$rows = array();
+		// MySQLi is shit and I should have just used PDO
+		$data = array();
+		$metadata = $stmt->result_metadata();
 		
-		while ($row = $result->fetch_assoc()) {
-			$rows[] = $row;
+		$row = array();
+		$count = 0;
+		$fields = array();
+		$arguments = array();
+		
+		while ($field = $metadata->fetch_field()) {
+			$fields[] = (array) $field;
+			$arguments[] = &$row[$field->name];
 		}
 		
-		return $rows;
-	}
-	
-	/**
-	 * Get the result of a mysqli_stmt.
-	 *
-	 * @param mysqli_stmt
-	 * @return array
-	 */
-	protected function getResult(mysqli_stmt $stmt)
-	{
-		if (method_exists($stmt, 'get_result')) {
-			return $stmt->get_result();
+		if ($statement->num_rows > 0) {
+			call_user_func_array(array($stmt, 'bind_result'), $arguments);
+			
+			while ($statement->fetch()) {
+				$data[] = array_combine(array_keys($row), array_values($row));
+				$count++;
+			}
 		}
 		
-	    if ($stmt->num_rows > 0)
-	    {
-	        $result = array();
-	        $metadata = $stmt->result_metadata();
-	        $params = array();
-	        
-	        while ($field = $metadata->fetch_field()) {
-	            $params[] = &$result[$field->name];
-	        }
-	        
-	        call_user_func_array(array($stmt, 'bind_result'), $params);
-	        
-	        if ($stmt->fetch())
-	            return $result;
-	    }
-	
-	    return array();
+		return array($data, $fields, $count);
 	}
 	
 	/**
@@ -149,26 +149,15 @@ class MySql extends AbstractConnection {
 	 * @return array
 	 */
 	protected function prepareStatementResult(mysqli_stmt $statement) {
-		$mysqli_result = $this->getResult($statement);
+		list($data, $fields, $count) = $this->fetchResult($statement);
 		
 		$result = array(
-			'data'      => array(),
-			'fields'    => array(),
-			'affected'  => null,
-			'num_rows'  => null,
-			'insert_id' => null
+			'data'      => $data,
+			'fields'    => $fields,
+			'affected'  => $statement->affected_rows,
+			'num_rows'  => $count,
+			'insert_id' => $statement->insert_id
 		);
-		
-		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
-			$result['data'] = $this->fetchAll($mysqli_result);
-			// $result['fields'] = $mysqli_result->fetch_fields();
-			// $result['num_rows'] = $mysqli_result->num_rows;
-			$result['num_rows'] = count($result['data']);
-		} else {
-			$result['data'] = array();
-			$result['affected'] = $statement->affected_rows;
-			$result['insert_id'] = $statement->insert_id;
-		}
 		
 		return $result;
 	}
@@ -250,6 +239,7 @@ class MySql extends AbstractConnection {
 		}
 		
 		$statement->execute();
+		// $statement->store_result(); // May not need this
 		
 		$error = $this->error();
 		
