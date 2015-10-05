@@ -29,12 +29,12 @@ class MySql extends AbstractConnection {
 	 * @param mysqli_stmt $statement
 	 * @return array array($data, $fields, $count)
 	 */
-	protected function fetchResultData(mysqli_stmt $statement) {
+	protected function fetchResult(mysqli_stmt $statement) {
 		// MySQLi is shit and I should have just used PDO
 		if (!method_exists($statement, 'get_result')) {
-			return $this->fetchResultDataWithoutNativeDriver($statement);
+			return $this->fetchResultWithoutNativeDriver($statement);
 		}
-
+		
 		$result = $statement->get_result();
 		
 		if (is_object($result) && $result instanceof mysqli_result) {
@@ -57,7 +57,7 @@ class MySql extends AbstractConnection {
 	 * @param mysqli_stmt $statement
 	 * @return array
 	 */
-	protected function fetchResultDataWithoutNativeDriver() {
+	protected function fetchResultWithoutNativeDriver(mysqli_stmt $statement) {
 		$data = array();
 		$metadata = $statement->result_metadata();
 		
