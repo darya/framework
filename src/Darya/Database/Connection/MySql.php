@@ -41,6 +41,37 @@ class MySql extends AbstractConnection {
 	}
 	
 	/**
+	 * Get the result of a mysqli_stmt.
+	 *
+	 * @param mysqli_stmt
+	 * @return array
+	 */
+	protected function getResult(mysqli_stmt $stmt)
+	{
+		if (method_exists($stmt, 'get_result')) {
+			return $stmt->get_result();
+		}
+		
+	    if ($stmt->num_rows > 0)
+	    {
+	        $result = array();
+	        $metadata = $stmt->result_metadata();
+	        $params = array();
+	        
+	        while ($field = $metadata->fetch_field()) {
+	            $params[] = &$result[$field->name];
+	        }
+	        
+	        call_user_func_array(array($stmt, 'bind_result'), $params);
+	        
+	        if ($stmt->fetch())
+	            return $result;
+	    }
+	
+	    return array();
+	}
+	
+	/**
 	 * Retrieve the type of a variable for binding mysqli parameters.
 	 * 
 	 * @param mixed $parameter
@@ -118,7 +149,7 @@ class MySql extends AbstractConnection {
 	 * @return array
 	 */
 	protected function prepareStatementResult(mysqli_stmt $statement) {
-		$mysqli_result = $statement->get_result();
+		$mysqli_result = $this->getResult($statement);
 		
 		$result = array(
 			'data'      => array(),
@@ -130,8 +161,9 @@ class MySql extends AbstractConnection {
 		
 		if (is_object($mysqli_result) && $mysqli_result instanceof mysqli_result) {
 			$result['data'] = $this->fetchAll($mysqli_result);
-			$result['fields'] = $mysqli_result->fetch_fields();
-			$result['num_rows'] = $mysqli_result->num_rows;
+			// $result['fields'] = $mysqli_result->fetch_fields();
+			// $result['num_rows'] = $mysqli_result->num_rows;
+			$result['num_rows'] = count($result['data']);
 		} else {
 			$result['data'] = array();
 			$result['affected'] = $statement->affected_rows;
