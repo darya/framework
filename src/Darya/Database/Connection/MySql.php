@@ -66,18 +66,19 @@ class MySql extends AbstractConnection {
 		$fields = array();
 		$arguments = array();
 		
-		while ($field = $metadata->fetch_field()) {
-			$fields[] = (array) $field;
-			$arguments[] = &$row[$field->name];
-		}
-		
-		if ($statement->num_rows > 0) {
+		if ($metadata) {
+			while ($field = $metadata->fetch_field()) {
+				$fields[] = (array) $field;
+				$arguments[] = &$row[$field->name];
+			}
+			
 			call_user_func_array(array($statement, 'bind_result'), $arguments);
 			
 			while ($statement->fetch()) {
 				$data[] = array_combine(array_keys($row), array_values($row));
 				$count++;
 			}
+			
 		}
 		
 		return array($data, $fields, $count);
