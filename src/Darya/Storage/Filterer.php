@@ -57,10 +57,49 @@ class Filterer {
 		}
 		
 		foreach ($filter as $field => $value) {
-			if (strtolower($field) === 'or') {
-				$data = $this->processOr($data, $value);
-			} else {
-				$data = $this->process($data, $field, $value);
+			$data = $this->process($data, $field, $value);
+		}
+		
+		return $data;
+	}
+	
+	/**
+	 * Determine whether the given data element matches the given filter.
+	 * 
+	 * @param array $element
+	 * @param array $filter
+	 * @return bool
+	 */
+	public function matches(array $element, array $filter = array()) {
+		if (empty($filter)) {
+			return true;
+		}
+		
+		$data = array();
+		
+		foreach ($filter as $field => $value) {
+			$data = $this->process(array($element), $field, $value);
+		}
+		
+		return !empty($data);
+	}
+	
+	/**
+	 * Apply a function to the elements of the given data that match a filter.
+	 * 
+	 * @param array    $data
+	 * @param array    $filter [optional]
+	 * @param callable $callback
+	 * @return array
+	 */
+	public function map(array $data, array $filter, $callback) {
+		if (!is_callable($callback)) {
+			return $data;
+		}
+		
+		foreach ($data as $key => $value) {
+			if ($this->matches($value, $filter)) {
+				$data[$key] = call_user_func_array($callback, array($value, $key));
 			}
 		}
 		
@@ -134,7 +173,7 @@ class Filterer {
 	protected function methodHandlesArrays($method) {
 		$method = strtolower($method);
 		
-		return $method === 'in' || $method === 'notIn';
+		return $method === 'in' || $method === 'notin';
 	}
 	
 	/**
@@ -146,6 +185,10 @@ class Filterer {
 	 * @return array
 	 */
 	protected function process(array $data, $field, $value) {
+		if (strtolower($field) === 'or') {
+			return $this->processOr($data, $value);
+		}
+		
 		list($field, $operator) = $this->separateField($field);
 		
 		$operator = $this->prepareOperator($operator, $value);

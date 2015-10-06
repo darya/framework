@@ -107,19 +107,38 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 	public function testInFilter() {
 		$storage = $this->storage();
 		
-		$users = $storage->read('users', array('name' => array('Chris', 'Bethany')));
-		
-		$this->assertEquals(array(
+		$expected = array(
 			array('id' => 1, 'name' => 'Chris'),
 			array('id' => 2, 'name' => 'Bethany')
-		), $users);
+		);
+		
+		$users = $storage->read('users', array('name' => array('Chris', 'Bethany')));
+		
+		$this->assertEquals($expected, $users);
+		
+		$users = $storage->read('users', array('name =' => array('Chris', 'Bethany')));
+		
+		$this->assertEquals($expected, $users);
 		
 		$users = $storage->read('users', array('name in' => array('Chris', 'Bethany')));
 		
-		$this->assertEquals(array(
-			array('id' => 1, 'name' => 'Chris'),
+		$this->assertEquals($expected, $users);
+	}
+	
+	public function testNotInFilter() {
+		$storage = $this->storage();
+		
+		$expected = array(
 			array('id' => 2, 'name' => 'Bethany')
-		), $users);
+		);
+		
+		$users = $storage->read('users', array('name !=' => array('Chris')));
+		
+		$this->assertEquals($expected, $users);
+		
+		$users = $storage->read('users', array('name not in' => array('Chris')));
+		
+		$this->assertEquals($expected, $users);
 	}
 	
 	public function testLikeFilter() {
