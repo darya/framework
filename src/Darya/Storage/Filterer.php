@@ -115,7 +115,7 @@ class Filterer {
 	 * @return array array($field, $operator)
 	 */
 	protected function separateField($field) {
-		return array_pad(explode(' ', $field, 2), 2, null);
+		return array_pad(explode(' ', trim($field), 2), 2, null);
 	}
 	
 	/**
