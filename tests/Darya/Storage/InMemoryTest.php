@@ -105,13 +105,24 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 	public function testUpdate() {
 		$storage = $this->storage();
 		
-		$storage->update('users', array('name' => 'BETHANY'), array('name like' => 'beth%'));
+		$affected = $storage->update('users', array('name' => 'BETHANY'), array('name like' => 'beth%'));
 		
 		$expected = array(
 			array('id' => 1, 'name' => 'Chris'),
 			array('id' => 2, 'name' => 'BETHANY')
 		);
 		
+		$this->assertEquals(1, $affected);
+		$this->assertEquals($expected, $storage->read('users'));
+		
+		$affected = $storage->update('users', array('test' => 'value'));
+		
+		$expected = array(
+			array('id' => 1, 'name' => 'Chris', 'test' => 'value'),
+			array('id' => 2, 'name' => 'BETHANY', 'test' => 'value')
+		);
+		
+		$this->assertEquals(2, $affected);
 		$this->assertEquals($expected, $storage->read('users'));
 	}
 	
