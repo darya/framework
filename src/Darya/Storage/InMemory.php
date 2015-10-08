@@ -3,6 +3,7 @@ namespace Darya\Storage;
 
 use Darya\Storage\Filterer;
 use Darya\Storage\Readable;
+use Darya\Storage\Modifiable;
 
 /**
  * Darya's in-memory storage interface.
@@ -11,7 +12,7 @@ use Darya\Storage\Readable;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class InMemory implements Readable {
+class InMemory implements Readable, Modifiable {
 	
 	/**
 	 * The in-memory data.
@@ -50,11 +51,11 @@ class InMemory implements Readable {
 	 * @return array
 	 */
 	public function read($resource, array $filter = array(), $order = null, $limit = null, $offset = 0) {
-		$data = !empty($this->data[$resource]) ? $this->data[$resource] : array();
+		if (empty($this->data[$resource])) {
+			return array();
+		}
 		
-		$data = $this->filterer->filter($data, $filter);
-		
-		return $data;
+		return $this->filterer->filter($this->data[$resource], $filter);
 	}
 	
 	/**
@@ -101,15 +102,72 @@ class InMemory implements Readable {
 	 * @return int
 	 */
 	public function count($resource, array $filter = array()) {
-		if (empty($this->data[$resource]))
+		if (empty($this->data[$resource])) {
 			return 0;
+		}
 		
-		$data = $this->data[$resource];
+		return count($this->filterer->filter($this->data[$resource], $filter));
+	}
+	
+	/**
+	 * Create resource instances in the data store.
+	 * 
+	 * @param string $resource
+	 * @param array  $data
+	 */
+	public function create($resource, $data) {
+		if (!isset($this->data[$resource])) {
+			$this->data[$resource] = array();
+		}
 		
-		if (!empty($filter))
-			$data = $this->filterer->filter($data, $filter);
+		$this->data[$resource][] = $data;
+	}
+	
+	/**
+	 * Update resource instances in the data store.
+	 * 
+	 * @param string $resource
+	 * @param array  $data
+	 * @param array  $filter   [optional]
+	 * @param int    $limit    [optional]
+	 * @return int|bool
+	 */
+	public function update($resource, $data, array $filter = array(), $limit = null) {
+		if (empty($this->data[$resource])) {
+			return;
+		}
 		
-		return count($data);
+		$this->data[$resource] = $this->filterer->map($this->data[$resource], $filter, function ($row) use ($data) {
+			foreach ($data as $key => $value) {
+				$row[$key] = $value;
+			}
+			
+			return $row;
+		});
+	}
+	
+	/**
+	 * Delete resource instances from the data store.
+	 * 
+	 * @param string $resource
+	 * @param array  $filter   [optional]
+	 * @param int    $limit    [optional]
+	 * @return int|bool
+	 */
+	public function delete($resource, array $filter = array(), $limit = null) {
+		return 0;
+	}
+	
+	
+	/**
+	 * Retrieve the error that occured with the last operation.
+	 * 
+	 * Returns false if there was no error.
+	 * 
+	 * @return string|bool
+	 */
+	public function error() {
+		return false;
 	}
 	
 }

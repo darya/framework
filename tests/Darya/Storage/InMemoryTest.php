@@ -88,6 +88,33 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(0, $storage->count('non_existent'));
 	}
 	
+	public function testCreate() {
+		$storage = $this->storage();
+		
+		$storage->create('users', array('id' => 3, 'name' => 'b0ss'));
+		
+		$expected = array(
+			array('id' => 1, 'name' => 'Chris'),
+			array('id' => 2, 'name' => 'Bethany'),
+			array('id' => 3, 'name' => 'b0ss')
+		);
+		
+		$this->assertEquals($expected, $storage->read('users'));
+	}
+	
+	public function testUpdate() {
+		$storage = $this->storage();
+		
+		$storage->update('users', array('name' => 'BETHANY'), array('name like' => 'beth%'));
+		
+		$expected = array(
+			array('id' => 1, 'name' => 'Chris'),
+			array('id' => 2, 'name' => 'BETHANY')
+		);
+		
+		$this->assertEquals($expected, $storage->read('users'));
+	}
+	
 	public function testEqualsFilter() {
 		$storage = $this->storage();
 		

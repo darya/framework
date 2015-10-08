@@ -196,7 +196,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param string $table
 	 * @param array  $filter [optional]
 	 * @param int    $limit  [optional]
-	 * @return int
+	 * @return int|bool
 	 */
 	public function delete($table, array $filter = array(), $limit = null) {
 		if ($table == '*' || empty($table) || empty($filter)) {
@@ -279,7 +279,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * Returns false if there was no error.
 	 * 
-	 * @return string|false
+	 * @return string|bool
 	 */
 	public function error() {
 		if ($error = $this->connection->error()) {
