@@ -171,9 +171,7 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function methodHandlesArrays($method) {
-		$method = strtolower($method);
-		
-		return $method === 'in' || $method === 'notin';
+		return $method === 'in' || $method === 'notIn';
 	}
 	
 	/**
@@ -204,7 +202,7 @@ class Filterer {
 			
 			$actual = $row[$field];
 			
-			return $filterer->evaluate($method, $actual, $value);
+			return $filterer->compare($method, $actual, $value);
 		}));
 	}
 	
@@ -238,7 +236,7 @@ class Filterer {
 				
 				$method = $filterer->getComparisonMethod($operator);
 				
-				$keep |= $filterer->evaluateOr($method, $actual, $value);
+				$keep |= $filterer->compareOr($method, $actual, $value);
 			}
 			
 			return $keep;
@@ -256,13 +254,13 @@ class Filterer {
 	 * @param mixed  $value
 	 * @return bool
 	 */
-	protected function evaluate($method, $actual, $value) {
+	protected function compare($method, $actual, $value) {
 		if (!is_array($value) || $this->methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
 		
-		foreach ($value as $element) {
-			if (!$this->$method($actual, $element)) {
+		foreach ($value as $item) {
+			if (!$this->$method($actual, $item)) {
 				return false;
 			}
 		}
@@ -272,22 +270,22 @@ class Filterer {
 	
 	/**
 	 * Determine the result of the given 'or' comparison. Only behaves
-	 * differently from evaluate() if $value is an array.
+	 * differently from compare() if $value is an array.
 	 * 
 	 * @param string $method
 	 * @param mixed  $actual
 	 * @param mixed  $value
 	 * @return bool
 	 */
-	protected function evaluateOr($method, $actual, $value) {
+	protected function compareOr($method, $actual, $value) {
 		if (!is_array($value) || $this->methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
 		
 		$result = false;
 		
-		foreach ($value as $element) {
-			$result |= $this->$method($actual, $element);
+		foreach ($value as $item) {
+			$result |= $this->$method($actual, $item);
 		}
 		
 		return $result;
