@@ -64,13 +64,13 @@ class Filterer {
 	}
 	
 	/**
-	 * Determine whether the given data element matches the given filter.
+	 * Determine whether the given data item matches the given filter.
 	 * 
-	 * @param array $element
+	 * @param array $item
 	 * @param array $filter
 	 * @return bool
 	 */
-	public function matches(array $element, array $filter = array()) {
+	public function matches(array $item, array $filter = array()) {
 		if (empty($filter)) {
 			return true;
 		}
@@ -78,7 +78,7 @@ class Filterer {
 		$data = array();
 		
 		foreach ($filter as $field => $value) {
-			$data = $this->process(array($element), $field, $value);
+			$data = $this->process(array($item), $field, $value);
 		}
 		
 		return !empty($data);
