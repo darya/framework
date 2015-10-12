@@ -139,20 +139,16 @@ class InMemory implements Readable, Modifiable {
 		
 		$affected = 0;
 		
-		$callback = function ($row) use ($data, &$affected) {
-			foreach ($data as $key => $value) {
-				$row[$key] = $value;
+		$this->data[$resource] = $this->filterer->map($this->data[$resource], $filter,
+			function ($row) use ($data, &$affected) {
+				foreach ($data as $key => $value) {
+					$row[$key] = $value;
+				}
+				
+				$affected++;
+				
+				return $row;
 			}
-			
-			$affected++;
-			
-			return $row;
-		};
-		
-		$this->data[$resource] = $this->filterer->map(
-			$this->data[$resource],
-			$filter,
-			$callback
 		);
 		
 		return $affected;

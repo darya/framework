@@ -33,88 +33,6 @@ class Filterer {
 	);
 	
 	/**
-	 * Escape the given value for use as a like query.
-	 * 
-	 * Precedes all underscore and percentage characters with a backwards slash.
-	 * 
-	 * @param string $value
-	 * @return string
-	 */
-	public function escape($value) {
-		return preg_replace('/([%_])/', '\\$1', $value);
-	}
-	
-	/**
-	 * Filter the given data.
-	 * 
-	 * @param array $data
-	 * @param array $filter
-	 * @return array
-	 */
-	public function filter(array $data, array $filter = array()) {
-		if (empty($filter)) {
-			return $data;
-		}
-		
-		/*foreach ($filter as $field => $value) {
-			$data = $this->process($data, $field, $value);
-		}*/
-		
-		$data = array_values(array_filter($data, $this->buildFilterClosure($filter)));
-		
-		var_dump($data);
-		
-		return $data;
-	}
-	
-	/**
-	 * Determine whether the given data item matches the given filter.
-	 * 
-	 * @param array $item
-	 * @param array $filter
-	 * @return bool
-	 */
-	public function matches(array $item, array $filter = array()) {
-		if (empty($filter)) {
-			return true;
-		}
-		
-		$data = array();
-		
-		foreach ($filter as $field => $value) {
-			$data = $this->process(array($item), $field, $value);
-			
-			if (empty($data)) {
-				return false;
-			}
-		}
-		
-		return true;
-	}
-	
-	/**
-	 * Apply a function to the elements of the given data that match a filter.
-	 * 
-	 * @param array    $data
-	 * @param array    $filter [optional]
-	 * @param callable $callback
-	 * @return array
-	 */
-	public function map(array $data, array $filter, $callback) {
-		if (!is_callable($callback)) {
-			return $data;
-		}
-		
-		foreach ($data as $key => $value) {
-			if ($this->matches($value, $filter)) {
-				$data[$key] = call_user_func_array($callback, array($value, $key));
-			}
-		}
-		
-		return $data;
-	}
-	
-	/**
 	 * Separate the given filter field into a field and its operator.
 	 * 
 	 * Simply splits the given string on the first space found.
@@ -183,113 +101,125 @@ class Filterer {
 	}
 	
 	/**
-	 * Build a closure that applies the given filter.
+	 * Build a closure to use with array_filter().
 	 * 
 	 * @param array $filter
 	 * @param bool  $or     [optional]
 	 * @return \Closure
 	 */
-	public function buildFilterClosure(array $filter = array(), $or = false) {
+	public function closure(array $filter, $or = false) {
 		$filterer = $this;
 		
 		return function ($row) use ($filterer, $filter, $or) {
-			$result = false;
-			
-			foreach ($filter as $field => $value) {
-				list($field, $operator) = $filterer->separateField($field);
-				
-				if (!isset($row[$field])) {
-					continue;
-				}
-				
-				$actual = $row[$field];
-				
-				$operator = $filterer->prepareOperator($operator, $value);
-				
-				$method = $filterer->getComparisonMethod($operator);
-				
-				if (!$or) {
-					$result = $filterer->compare($method, $actual, $value);
-					
-					if (!$result) {
-						return false;
-					}
-				} else {
-					$result |= $filterer->compareOr($method, $actual, $value);
-				}
-			}
-			
-			return $result;
+			return $filterer->matches($row, $filter, $or);
 		};
 	}
 	
 	/**
-	 * Process part of a filter on the given data.
+	 * Escape the given value for use as a like query.
 	 * 
-	 * @param array  $data
-	 * @param string $field
-	 * @param mixed  $value
-	 * @return array
+	 * Precedes all underscore and percentage characters with a backwards slash.
+	 * 
+	 * @param string $value
+	 * @return string
 	 */
-	protected function process(array $data, $field, $value) {
-		if (strtolower($field) === 'or') {
-			return $this->processOr($data, $value);
-		}
-		
-		list($field, $operator) = $this->separateField($field);
-		
-		$operator = $this->prepareOperator($operator, $value);
-		
-		$method = $this->methods[$operator];
-		
-		$filterer = $this;
-		
-		return array_values(array_filter($data, function ($row) use ($filterer, $method, $data, $field, $value) {
-			if (!isset($row[$field])) {
-				return false;
-			}
-			
-			$actual = $row[$field];
-			
-			return $filterer->compare($method, $actual, $value);
-		}));
+	public function escape($value) {
+		return preg_replace('/([%_])/', '\\$1', $value);
 	}
 	
 	/**
-	 * Process an 'or' filter on the given data.
+	 * Filter the given data.
 	 * 
 	 * @param array $data
 	 * @param array $filter
 	 * @return array
 	 */
-	protected function processOr(array $data, array $filter = array()) {
+	public function filter(array $data, array $filter = array()) {
 		if (empty($filter)) {
 			return $data;
 		}
 		
-		$filterer = $this;
+		$data = array_values(array_filter($data, $this->closure($filter)));
 		
-		return array_values(array_filter($data, function ($row) use ($filterer, $filter) {
-			$keep = false;
+		return $data;
+	}
+	
+	/**
+	 * Determine whether a data row matches the given filter.
+	 * 
+	 * Optionally compares each filter comparison with 'or' instead of 'and'.
+	 * 
+	 * @param array $row
+	 * @param array $filter
+	 * @param bool  $or     [optional]
+	 * @return bool
+	 */
+	public function matches(array $row, array $filter = array(), $or = false) {
+		if (empty($filter)) {
+			return true;
+		}
+		
+		$result = false;
+		
+		foreach ($filter as $field => $value) {
+			list($field, $operator) = $this->separateField($field);
 			
-			foreach ($filter as $field => $value) {
-				list($field, $operator) = $filterer->separateField($field);
+			if (strtolower($field) == 'or') {
+				$result = $this->matches($row, $value, true);
 				
-				if (!isset($row[$field])) {
-					continue;
+				if (!$result) {
+					return false;
 				}
 				
-				$actual = $row[$field];
-				
-				$operator = $filterer->prepareOperator($operator, $value);
-				
-				$method = $filterer->getComparisonMethod($operator);
-				
-				$keep |= $filterer->compareOr($method, $actual, $value);
+				continue;
 			}
 			
-			return $keep;
-		}));
+			if (!isset($row[$field])) {
+				continue;
+			}
+			
+			$actual = $row[$field];
+			
+			$operator = $this->prepareOperator($operator, $value);
+			
+			$method = $this->getComparisonMethod($operator);
+			
+			if ($or) {
+				$result |= $this->compareOr($method, $actual, $value);
+				
+				continue;
+			} else {
+				$result = $this->compare($method, $actual, $value);
+				
+				if (!$result) {
+					return false;
+				}
+			}
+		}
+		
+		return $result;
+	}
+	
+	/**
+	 * Apply a function to the elements of the given data that match a filter.
+	 * 
+	 * @param array    $data
+	 * @param array    $filter [optional]
+	 * @param callable $callback
+	 * @return array
+	 */
+	public function map(array $data, array $filter, $callback) {
+		if (!is_callable($callback)) {
+			return $data;
+		}
+		
+		foreach ($data as $key => $row) {
+			if ($this->matches($row, $filter)) {
+				$data[$key] = call_user_func_array($callback, array($row, $key));
+			}
+		}
+		
+		return $data;
 	}
 	
 	/**
