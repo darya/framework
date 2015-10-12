@@ -56,9 +56,13 @@ class Filterer {
 			return $data;
 		}
 		
-		foreach ($filter as $field => $value) {
+		/*foreach ($filter as $field => $value) {
 			$data = $this->process($data, $field, $value);
-		}
+		}*/
+		
+		$data = array_values(array_filter($data, $this->buildFilterClosure($filter)));
+		
+		var_dump($data);
 		
 		return $data;
 	}
@@ -80,8 +84,9 @@ class Filterer {
 		foreach ($filter as $field => $value) {
 			$data = $this->process(array($item), $field, $value);
 			
-			if (empty($data))
+			if (empty($data)) {
 				return false;
+			}
 		}
 		
 		return true;
@@ -175,6 +180,47 @@ class Filterer {
 	 */
 	protected function methodHandlesArrays($method) {
 		return $method === 'in' || $method === 'notIn';
+	}
+	
+	/**
+	 * Build a closure that applies the given filter.
+	 * 
+	 * @param array $filter
+	 * @param bool  $or     [optional]
+	 * @return \Closure
+	 */
+	public function buildFilterClosure(array $filter = array(), $or = false) {
+		$filterer = $this;
+		
+		return function ($row) use ($filterer, $filter, $or) {
+			$result = false;
+			
+			foreach ($filter as $field => $value) {
+				list($field, $operator) = $filterer->separateField($field);
+				
+				if (!isset($row[$field])) {
+					continue;
+				}
+				
+				$actual = $row[$field];
+				
+				$operator = $filterer->prepareOperator($operator, $value);
+				
+				$method = $filterer->getComparisonMethod($operator);
+				
+				if (!$or) {
+					$result = $filterer->compare($method, $actual, $value);
+					
+					if (!$result) {
+						return false;
+					}
+				} else {
+					$result |= $filterer->compareOr($method, $actual, $value);
+				}
+			}
+			
+			return $result;
+		};
 	}
 	
 	/**
