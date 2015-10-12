@@ -1,6 +1,7 @@
 # Darya Framework
 
-[![Latest Darya Release](https://img.shields.io/github/release/darya/framework.svg?style=flat "Latest Darya Release")](https://github.com/darya/framework/tree/develop)
+[![Latest Stable Version](https://poser.pugx.org/darya/framework/version)](//packagist.org/packages/darya/framework)
+[![Latest Unstable Version](https://poser.pugx.org/darya/framework/v/unstable)](//packagist.org/packages/darya/framework)
 [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/darya/framework.svg?style=flat)](https://scrutinizer-ci.com/g/darya/framework/?branch=develop)
 
 Darya is a PHP framework for web application development.
