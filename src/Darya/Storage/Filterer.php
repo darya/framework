@@ -79,9 +79,12 @@ class Filterer {
 		
 		foreach ($filter as $field => $value) {
 			$data = $this->process(array($item), $field, $value);
+			
+			if (empty($data))
+				return false;
 		}
 		
-		return !empty($data);
+		return true;
 	}
 	
 	/**
