@@ -163,7 +163,11 @@ class InMemory implements Readable, Modifiable {
 	 * @return int|bool
 	 */
 	public function delete($resource, array $filter = array(), $limit = null) {
-		return 0;
+		if (empty($this->data[$resource])) {
+			return;
+		}
+		
+		$this->data[$resource] = $this->filterer->remove($this->data[$resource], $filter);
 	}
 	
 	

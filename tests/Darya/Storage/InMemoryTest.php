@@ -126,6 +126,20 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($expected, $storage->read('users'));
 	}
 	
+	public function testDelete() {
+		$storage = $this->storage();
+		
+		$expected = array(
+			array('id' => 2, 'name' => 'Bethany')
+		);
+		
+		$storage->delete('users', array('name like' => '%chris%'));
+		
+		$users = $storage->read('users');
+		
+		$this->assertEquals($expected, $users);
+	}
+	
 	public function testEqualsFilter() {
 		$storage = $this->storage();
 		

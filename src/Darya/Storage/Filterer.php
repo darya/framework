@@ -2,7 +2,9 @@
 namespace Darya\Storage;
 
 /**
- * Filters storage results in-memory.
+ * Filters arrays using an array syntax.
+ * 
+ * For filtering in-memory storage.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -11,12 +13,15 @@ class Filterer {
 	/**
 	 * @var array Filter comparison operators
 	 */
-	protected $operators = array('=', '!=', '>', '<', '<>', '>=', '<=', 'in', 'not in', 'is', 'is not', 'like', 'not like');
+	protected static $operators = array(
+		'=', '!=', '>', '<', '<>', '>=', '<=', 'in', 'not in', 'is', 'is not',
+		'like', 'not like'
+	);
 	
 	/**
 	 * @var array A map of filter operators to methods that implement them
 	 */
-	protected $methods = array(
+	protected static $methods = array(
 		'='  => 'equal',
 		'!=' => 'notEqual',
 		'>'  => 'greater',
@@ -24,11 +29,11 @@ class Filterer {
 		'<>' => 'greaterOrSmaller',
 		'>=' => 'greaterOrEqual',
 		'<=' => 'smallerOrEqual',
-		'in' => 'in',
+		'in'     => 'in',
 		'not in' => 'notIn',
 		'is'     => 'is',
 		'is not' => 'isNot',
-		'like'   => 'like',
+		'like'     => 'like',
 		'not like' => 'notLike'
 	);
 	
@@ -37,10 +42,13 @@ class Filterer {
 	 * 
 	 * Simply splits the given string on the first space found.
 	 * 
+	 * Usage:
+	 *   list($field, $operator) = $filterer->separateField($field);
+	 * 
 	 * @param string $field
 	 * @return array array($field, $operator)
 	 */
-	protected function separateField($field) {
+	public static function separateField($field) {
 		return array_pad(explode(' ', trim($field), 2), 2, null);
 	}
 	
@@ -51,8 +59,10 @@ class Filterer {
 	 * @param mixed  $value
 	 * @return string
 	 */
-	protected function prepareOperator($operator, $value) {
-		$operator = in_array(strtolower($operator), $this->operators) ? $operator : '=';
+	public static function prepareOperator($operator, $value) {
+		$operator = trim($operator);
+		
+		$operator = in_array(strtolower($operator), static::$operators) ? $operator : '=';
 		
 		if ($value === null) {
 			if ($operator === '=') {
@@ -85,8 +95,8 @@ class Filterer {
 	 * @param string $operator
 	 * @return string
 	 */
-	protected function getComparisonMethod($operator) {
-		return isset($this->methods[$operator]) ? $this->methods[$operator] : 'equals';
+	protected static function getComparisonMethod($operator) {
+		return isset(static::$methods[$operator]) ? static::$methods[$operator] : 'equal';
 	}
 	
 	/**
@@ -96,7 +106,7 @@ class Filterer {
 	 * @param string $method
 	 * @return bool
 	 */
-	protected function methodHandlesArrays($method) {
+	protected static function methodHandlesArrays($method) {
 		return $method === 'in' || $method === 'notIn';
 	}
 	
@@ -131,7 +141,7 @@ class Filterer {
 	 * Filter the given data.
 	 * 
 	 * @param array $data
-	 * @param array $filter
+	 * @param array $filter [optional]
 	 * @return array
 	 */
 	public function filter(array $data, array $filter = array()) {
@@ -142,6 +152,23 @@ class Filterer {
 		$data = array_values(array_filter($data, $this->closure($filter)));
 		
 		return $data;
+	}
+	
+	/**
+	 * Remove data that matches the given filter.
+	 * 
+	 * @param array $data
+	 * @param array $filter [optional]
+	 * @return array
+	 */
+	public function remove(array $data, array $filter = array()) {
+		if (empty($filter)) {
+			return $data;
+		}
+		
+		$keys = array_filter($data, $this->closure($filter));
+		
+		return array_values(array_diff_key($data, $keys));
 	}
 	
 	/**
@@ -162,9 +189,9 @@ class Filterer {
 		$result = false;
 		
 		foreach ($filter as $field => $value) {
-			list($field, $operator) = $this->separateField($field);
+			list($field, $operator) = static::separateField($field);
 			
-			if (strtolower($field) == 'or') {
+			if (strtolower($field) === 'or') {
 				$result = $this->matches($row, $value, true);
 				
 				if (!$result) {
@@ -180,9 +207,9 @@ class Filterer {
 			
 			$actual = $row[$field];
 			
-			$operator = $this->prepareOperator($operator, $value);
+			$operator = static::prepareOperator($operator, $value);
 			
-			$method = $this->getComparisonMethod($operator);
+			$method = static::getComparisonMethod($operator);
 			
 			if ($or) {
 				$result |= $this->compareOr($method, $actual, $value);
@@ -234,7 +261,7 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function compare($method, $actual, $value) {
-		if (!is_array($value) || $this->methodHandlesArrays($method)) {
+		if (!is_array($value) || static::methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
 		
@@ -257,7 +284,7 @@ class Filterer {
 	 * @return bool
 	 */
 	protected function compareOr($method, $actual, $value) {
-		if (!is_array($value) || $this->methodHandlesArrays($method)) {
+		if (!is_array($value) || static::methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
 		
