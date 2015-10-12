@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Http;
 
-use Darya\Http\SessionInterface;
+use Darya\Http\Session;
 
 /**
  * Darya's HTTP request representation.
@@ -42,7 +42,7 @@ class Request {
 	);
 	
 	/**
-	 * @var \Darya\Http\SessionInterface
+	 * @var \Darya\Http\Session
 	 */
 	protected $session;
 	
@@ -107,10 +107,10 @@ class Request {
 	 * can safely expect the keys 'scheme', 'host', 'port', 'user', 'pass',
 	 * 'query' and 'fragment' to exist.
 	 * 
-	 * @param string $uri
+	 * @param string $url
 	 * @return array
 	 */
-	protected static function parseUri($uri) {
+	protected static function parseUrl($url) {
 		return array_merge(array(
 			'scheme' => null,
 			'host'   => null,
@@ -120,7 +120,7 @@ class Request {
 			'path'   => null,
 			'query'  => null,
 			'fragment' => null
-		), parse_url($uri));
+		), parse_url($url));
 	}
 	
 	/**
@@ -137,16 +137,16 @@ class Request {
 	}
 	
 	/**
-	 * Create a new request with the given URI, method and data.
+	 * Create a new request with the given URL, method and data.
 	 * 
-	 * @param string           $uri
-	 * @param string           $method  [optional]
-	 * @param array            $data    [optional]
-	 * @param SessionInterface $session [optional]
+	 * @param string  $url
+	 * @param string  $method  [optional]
+	 * @param array   $data    [optional]
+	 * @param Session $session [optional]
 	 * @return Request
 	 */
-	public static function create($uri, $method = 'GET', $data = array(), SessionInterface $session = null) {
-		$components = static::parseUri($uri);
+	public static function create($url, $method = 'GET', $data = array(), Session $session = null) {
+		$components = static::parseUrl($url);
 		$data = static::prepareData($data);
 		
 		$data['get'] = array_merge(
@@ -156,8 +156,12 @@ class Request {
 		
 		$data['server']['http_host'] = $components['host'];
 		$data['server']['path_info'] = $components['path'];
-		$data['server']['request_uri'] = $uri;
+		$data['server']['request_uri'] = $components['path'];
 		$data['server']['request_method'] = strtoupper($method);
+		
+		if ($components['query']) {
+			$data['server']['request_uri'] .= '?' . $components['query'];
+		}
 		
 		$request = new Request(
 			$data['get'],
@@ -198,12 +202,18 @@ class Request {
 	/**
 	 * Create a new request using PHP's super globals.
 	 * 
-	 * @param \Darya\Http\SessionInterface $session [optional]
+	 * @param \Darya\Http\Session $session [optional]
 	 * @return \Darya\Http\Request
 	 */
-	public static function createFromGlobals(SessionInterface $session = null) {
-		$request =  new Request($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER, static::headersFromGlobals($_SERVER));
-		$request->setSession($session);
+	public static function createFromGlobals(Session $session = null) {
+		$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
+			'get'    => $_GET,
+			'post'   => $_POST,
+			'cookie' => $_COOKIE,
+			'file'   => $_FILES,
+			'server' => $_SERVER,
+			'header' => static::headersFromGlobals($_SERVER)
+		), $session);
 		
 		return $request;
 	}
@@ -237,9 +247,9 @@ class Request {
 	 * Set the session interface for the request. Starts the session if it
 	 * hasn't been already.
 	 * 
-	 * @param \Darya\Http\SessionInterface $session
+	 * @param \Darya\Http\Session $session
 	 */
-	public function setSession(SessionInterface $session = null) {
+	public function setSession(Session $session = null) {
 		if (is_object($session) && !$session->started()) {
 			$session->start();
 		}
@@ -251,8 +261,8 @@ class Request {
 	/**
 	 * Retrieve request data of the given type using the given key.
 	 * 
-	 * If no key is set, all request data of the given type will be returned. If
-	 * neither are set, all request data will be returned.
+	 * If $key is not set, all request data of the given type will be returned.
+	 * If neither $type or $key are set, all request data will be returned.
 	 * 
 	 * @param string $type [optional]
 	 * @param string $key  [optional]

@@ -1,8 +1,8 @@
 {
 	"name": "darya/framework",
-	"description": "Darya core framework.",
+	"description": "Web application framework",
 	"type": "library",
-	"keywords": ["darya", "framework", "mvc"],
+	"keywords": ["darya", "framework", "library", "mvc"],
 	"license": "MIT",
 	"authors": [
 		{
@@ -21,6 +21,11 @@
 	"autoload": {
 		"psr-0": {
 			"Darya": "src/"
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "0.5-dev"
 		}
 	}
 }

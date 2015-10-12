@@ -1,15 +1,15 @@
 <?php
 namespace Darya\Events;
 
-use Darya\Events\DispatcherInterface;
-use Darya\Events\SubscriberInterface;
+use Darya\Events\Dispatchable;
+use Darya\Events\Subscriber;
 
 /**
  * Darya's event dispatcher implementation.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Dispatcher implements DispatcherInterface {
+class Dispatcher implements Dispatchable {
 	
 	/**
 	 * Keys are event names and values are callables.
@@ -49,7 +49,7 @@ class Dispatcher implements DispatcherInterface {
 	 */
 	public function unlisten($event, $callable) {
 		$this->touch($event);
-		$this->listeners[$event] = array_filter($this->listeners[$event], function ($value) use ($callable) {
+		$this->listeners[$event] = array_filter($this->listeners[$event], function($value) use ($callable) {
 			return $value !== $callable;
 		});
 	}
@@ -57,9 +57,9 @@ class Dispatcher implements DispatcherInterface {
 	/**
 	 * Register the given subscriber's event listeners.
 	 * 
-	 * @param \Darya\Events\SubscriberInterface $subscriber
+	 * @param \Darya\Events\Subscriber $subscriber
 	 */
-	public function subscribe(SubscriberInterface $subscriber) {
+	public function subscribe(Subscriber $subscriber) {
 		$subscriptions = $subscriber->getEventSubscriptions();
 		
 		foreach ($subscriptions as $event => $listener) {
@@ -70,9 +70,9 @@ class Dispatcher implements DispatcherInterface {
 	/**
 	 * Unregister the given subscriber's event listeners.
 	 * 
-	 * @param \Darya\Events\SubscriberInterface $subscriber
+	 * @param \Darya\Events\Subscriber $subscriber
 	 */
-	public function unsubscribe(SubscriberInterface $subscriber) {
+	public function unsubscribe(Subscriber $subscriber) {
 		$subscriptions = $subscriber->getEventSubscriptions();
 		
 		foreach ($subscriptions as $event => $listener) {

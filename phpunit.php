@@ -1,5 +1,6 @@
 <?php
-// Darya's autoloader
+date_default_timezone_set('Europe/London');
+
 include 'src/Darya/Common/Autoloader.php';
 
 use Darya\Common\Autoloader;

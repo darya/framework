@@ -1,8 +1,12 @@
 <?php
 namespace Darya\Http;
 
+use Darya\Http\Cookies;
+
 /**
  * Darya's HTTP response representation.
+ * 
+ * @property Cookies $cookies
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -19,9 +23,9 @@ class Response {
 	private $headers = array();
 	
 	/**
-	 * @var array Cookie key/values
+	 * @var Cookies Cookie key/values
 	 */
-	private $cookies = array();
+	private $cookies;
 	
 	/**
 	 * @var string Response content
@@ -76,6 +80,20 @@ class Response {
 		}
 		
 		$this->headers($headers);
+		
+		$this->cookies = new Cookies;
+	}
+	
+	/**
+	 * Dynamically retrieve a property.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
+	public function __get($property) {
+		if ($property === 'cookies') {
+			return $this->cookies;
+		}
 	}
 	
 	/**
@@ -85,7 +103,7 @@ class Response {
 	 * @return int
 	 */
 	public function status($status) {
-		if (!is_null($status)) {
+		if (is_numeric($status)) {
 			$this->status = $status;
 		}
 		
@@ -98,7 +116,7 @@ class Response {
 	 * @param string $header
 	 */
 	public function header($header) {
-		if (!is_null($header) && strlen($header)) {
+		if ($header !== null && strlen($header)) {
 			list($name, $value) = explode(':', $header, 2);
 			$this->headers[$name] = $value;
 		}
@@ -126,7 +144,7 @@ class Response {
 	 * @param int $expire
 	 */
 	public function setCookie($key, $value, $expire, $path = '/') {
-		$this->cookies[$key] = compact('value', 'expire', 'path');
+		$this->cookies->set($key, $value, $expire, $path);
 	}
 	
 	/**
@@ -136,7 +154,7 @@ class Response {
 	 * @return string
 	 */
 	public function getCookie($key) {
-		return isset($this->cookies[$key]) && isset($this->cookies[$key]['value']) ? $this->cookies[$key]['value'] : null;
+		return $this->cookies->get($key);
 	}
 	
 	/**
@@ -145,24 +163,23 @@ class Response {
 	 * @param string $key
 	 */
 	public function deleteCookie($key) {
-		if (isset($this->cookies[$key])) {
-			$this->cookies[$key]['value'] = '';
-			$this->cookies[$key]['expire'] = 0;
-		}
+		$this->cookies->delete($key);
 	}
 	
 	/**
 	 * Get and optionally set the response content.
 	 * 
-	 * @param mixed $content
+	 * @param mixed $content [optional]
 	 * @return string
 	 */
-	public function content($content) {
+	public function content($content = null) {
 		if (is_array($content)) {
 			$this->header('Content-Type: text/json');
 		}
 		
-		$this->content = $this->prepareContent($content);
+		if ($content !== null) {
+			$this->content = $this->prepareContent($content);
+		}
 		
 		return $this->content;
 	}
@@ -215,9 +232,7 @@ class Response {
 	 * Sends all the currently set cookies.
 	 */
 	protected function sendCookies() {
-		foreach ($this->cookies as $key => $values) {
-			setcookie($key, $values['value'], $values['expire'], $values['path'] ?: '/');
-		}
+		$this->cookies->send();
 	}
 	
 	/**

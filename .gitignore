@@ -1,6 +1,6 @@
 /vendor
+/.settings
 composer.lock
-.settings
 .project
 .DS_Store
 Thumbs.db

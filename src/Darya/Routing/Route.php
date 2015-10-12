@@ -4,9 +4,9 @@ namespace Darya\Routing;
 /**
  * Representation of a route in Darya's routing system.
  * 
- * @property string $namespace  Matched namespace
- * @property string $controller Matched controller
- * @property string|callable $action Matched action (callable or controller method)
+ * @property string          $namespace  Matched namespace
+ * @property string          $controller Matched controller
+ * @property string|callable $action     Matched action (callable or controller method)
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -165,12 +165,14 @@ class Route {
 	 */
 	public function defaults($parameters = array()) {
 		if (is_array($parameters)) {
-			foreach ($parameters as $key => $value) {
-				$this->defaults[$key] = $value;
-			}
-		} else if (is_callable($parameters)) {
+			$this->defaults = array_merge($this->defaults, $parameters);
+		}
+		
+		if (is_callable($parameters)) {
 			$this->defaults['action'] = $parameters;
-		} else if (is_string($parameters) || is_object($parameters)) {
+		}
+		
+		if (is_string($parameters) || is_object($parameters)) {
 			$this->defaults['controller'] = $parameters;
 		}
 		
@@ -230,11 +232,16 @@ class Route {
 	/**
 	 * Retrieve the URL that the route was matched by.
 	 * 
+	 * Optionally accepts parameters to merge into matched parameters.
+	 * 
+	 * @param array $parameters [optional]
 	 * @return string
 	 */
-	public function url() {
+	public function url(array $parameters = array()) {
 		if ($this->router) {
-			return $this->router->url($this->path, $this->matches);
+			$parameters = array_merge($this->matches, $parameters);
+			
+			return $this->router->url($this->path, $parameters);
 		}
 	}
 	

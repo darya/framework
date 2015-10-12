@@ -1,7 +1,8 @@
 # Darya Framework
 
-[![Latest Darya Release](https://img.shields.io/github/release/darya/framework.svg?style=flat "Latest Darya Release")](https://github.com/darya/framework/tree/master)
-[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/darya/framework.svg?style=flat)](https://scrutinizer-ci.com/g/darya/framework/?branch=master)
+[![Latest Stable Version](https://poser.pugx.org/darya/framework/version)](//packagist.org/packages/darya/framework)
+[![Latest Unstable Version](https://poser.pugx.org/darya/framework/v/unstable)](//packagist.org/packages/darya/framework)
+[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/darya/framework.svg?style=flat)](https://scrutinizer-ci.com/g/darya/framework/?branch=develop)
 
 Darya is a PHP framework for web application development.
 
@@ -60,20 +61,73 @@ $autoloader->namespaces(array(
 
 ### Services
 
-Darya's service container can be used to manage dependencies within an
-application.
+Darya's service container can be used to manage and resolve dependencies within
+an application.
+
+#### Resolving dependencies automatically
+
+Out of the box, the container can be used to invoke callables or instantiate
+classes with their type-hinted dependencies automatically resolved.
+
+##### Invoking callables
+
+```php
+use Darya\Service\Container;
+
+class Foo {
+	
+	public $bar;
+	
+	public function __construct(Bar $bar) {
+		$this->bar = $bar;
+	}
+}
+
+class Bar {
+	
+	public $baz;
+	
+	public function __construct(Baz $baz) {
+		$this->baz = Baz;
+	}
+	
+}
+
+class Baz {}
+
+$container = new Container;
+
+$closure = function (Foo $foo) {
+	return $foo;
+};
+
+$foo = $container->call($closure);
+
+$foo instanceof Foo;           // true
+$foo->bar instanceof Bar;      // true
+$foo->bar->baz instanceof Baz; // true
+```
+
+##### Instantiating classes
+
+```php
+$foo = $container->create('Foo');
+
+$foo instanceof Foo;           // true
+$foo->bar instanceof Bar;      // true
+$foo->bar->baz instanceof Baz; // true
+```
 
 #### Registering services and aliases
 
-Services can be values, instances (objects), or closures that define how an
-object is instantiated.
+Services can be values, objects, or closures.
+
+Closures can be used to define a service using other services in the container.
 
 You can optionally define aliases for these services after the service
 definitions themselves.
 
 ```php
-use Darya\Service\Container;
-
 $container = new Container;
 
 $container->register(array(
@@ -86,20 +140,28 @@ $container->register(array(
 ));
 ```
 
+By default, closures are treated as instance definitions instead of factories.
+This means the closure is executed once, when the service is first resolved,
+and its return value is retained for subsequent resolutions.
+
 #### Resolving services
 
 ```php
-// Fetch services as they were registered
-$container->get('some');     // App\SomeImplementation
-$container->get('another');  // Closure
+// Resolve services by class or interface
+$container->resolve('App\SomeInterface');    // App/SomeImplementation
+$container->resolve('App\AnotherInterface'); // App/AnotherImplementation
 
-// Resolve services
+// Resolve services by alias
 $container->resolve('some');    // App\SomeImplementation
 $container->resolve('another'); // App\AnotherImplementation
 
 // Shorter syntax
 $container->some;    // App\SomeImplementation
 $container->another; // App\AnotherImplementation
+
+// Fetch services as they were registered
+$container->get('some');     // App\SomeImplementation
+$container->get('another');  // Closure
 
 // Closures become lazy-loaded instances
 $container->another === $container->another; // true
@@ -154,10 +216,12 @@ $response->send();
 ##### Cookies
 
 ```php
-$response->setCookie('key', 'value', strtotime('+1 day', time()));
-$cookie = $response->getCookie('key'); // 'value'
+$response->cookies->set('key', 'value', '+1 day');
 
-$response->deleteCookie('key');
+$cookie = $response->cookies->get('key'); // 'value'
+$expiration = $response->cookies->get('key', 'expire'); // strtotime('+1 day')
+
+$response->cookies->delete('key');
 ```
 
 #### Sessions
@@ -293,27 +357,22 @@ of data.
 
 ##### Creating a model
 
-Model attribute keys are currently prefixed with the class name and an
-underscore (`classname_`) by default. All attribute keys are treated
-case-insensitively
-
-This prefix does not need to be used when accessing attributes; only when
-setting data. To prevent the use of a prefix simply set the
-`protected $fieldPrefix = '';` property on your model.
-
 ```php
 use Darya\Mvc\Model;
 
+// Define a model
 class Something extends Model {
 	
 }
 
+// Instantiate it with some data
 $something = new Something(array(
-	'something_id'   => 72,
-	'something_name' => 'Something',
-	'something_type' => 'A thing'
+	'id'   => 72,
+	'name' => 'Something',
+	'type' => 'A thing'
 ));
 
+// Access its properties using the different available methods
 $id   = $something->id;          // 72
 $name = $something['name'];      // 'Something'
 $type = $something->get('type'); // 'A thing'
@@ -334,17 +393,17 @@ foreach ($something as $key => $value) {
 ```php
 $serialized = serialize($something);
 $attributes = $something->toArray();
-$json = $something->toJson();
+$json       = $something->toJson();
 ```
 
 #### Views
 
-Views are used to separate application logic and presentation. It's always good
+Views are used to separate application logic from its presentation. It's good
 practice to treat them only as a means of displaying the data they are given.
 
 ##### Simple PHP view
 
-A simple `PhpView` class is provided with Darya so you can easily use PHP as a
+A simple `Php` class is provided with Darya so you can easily use PHP as a
 templating engine. Adapters for popular templating engines are in the works,
 including Smarty, Mustache and Twig.
 
@@ -362,9 +421,9 @@ including Smarty, Mustache and Twig.
 ##### index.php
 
 ```php
-use Darya\Mvc\PhpView;
+use Darya\View\Php;
 
-$view = new PhpView('views/index.php');
+$view = new Php('views/index.php');
 
 $view->assign(array(
 	'thing' => 'world',
@@ -388,4 +447,4 @@ echo $view->render();
 #### Controllers
 
 Controllers are used to generate a dynamic response from a given request. They
-are best used in conjunction with the [`Router`](#routing).
+are intended to be used in conjunction with the [`Router`](#routing).
