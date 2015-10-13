@@ -126,6 +126,21 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($expected, $storage->read('users'));
 	}
 	
+	public function testUpdateLimit() {
+		$storage = $this->storage();
+		
+		$expected = array(
+			array('id' => 1, 'name' => 'Test'),
+			array('id' => 2, 'name' => 'Test'),
+			array('id' => 3, 'name' => 'Administrator')
+		);
+		
+		$affected = $storage->update('roles', array('name' => 'Test'), array(), 2);
+		
+		$this->assertEquals(2, $affected);
+		$this->assertEquals($expected, $storage->read('roles'));
+	}
+	
 	public function testDelete() {
 		$storage = $this->storage();
 		
@@ -138,6 +153,21 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$users = $storage->read('users');
 		
 		$this->assertEquals($expected, $users);
+	}
+	
+	public function testDeleteLimit() {
+		/*$storage = $this->storage();
+		
+		$expected = array(
+			array('id' => 2, 'name' => 'Moderator'),
+			array('id' => 3, 'name' => 'Administrator')
+		);
+		
+		$storage->delete('roles', array(), 1);
+		
+		$roles = $storage->read('roles');
+		
+		$this->assertEquals($expected, $roles);*/
 	}
 	
 	public function testEqualsFilter() {
