@@ -161,7 +161,7 @@ class Filterer {
 	 * @param array $filter [optional]
 	 * @return array
 	 */
-	public function remove(array $data, array $filter = array()) {
+	public function reject(array $data, array $filter = array()) {
 		if (empty($filter)) {
 			return $data;
 		}

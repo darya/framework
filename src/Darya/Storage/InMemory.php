@@ -171,7 +171,7 @@ class InMemory implements Readable, Modifiable {
 			return;
 		}
 		
-		$this->data[$resource] = $this->filterer->remove($this->data[$resource], $filter);
+		$this->data[$resource] = $this->filterer->reject($this->data[$resource], $filter);
 	}
 	
 	
