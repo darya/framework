@@ -8,56 +8,39 @@ Darya is a PHP framework for web application development.
 
 Its components include:
 
-- [Autoloader](#autoloading)
 - [Service container](#services)
 - [HTTP abstractions](#http-abstractions)
 - [Router](#routing)
 - [Event dispatcher](#events)
-- [MVC foundation](#model-view-controller-foundation)
+- [ORM](#orm)
 
-The framework has been extracted from and is intended as a foundation for the Darya CMS project.
-
-Inspired by PHP frameworks such as Laravel, Phalcon and Symfony.
-
-This document covers the basics of using the components. If you'd like more detail, please delve into the the relevant directory for component-specific read-me documents.
+This document covers the basics of using different components.
 
 ## Installation
 
 Use [composer](https://getcomposer.org) to install the package `darya/framework`.
 
-Otherwise just clone this repository into a directory such as `/vendor/darya/framework`.
+Otherwise just clone this repository into a directory such as
+`/vendor/darya/framework`.
 
-## Basic usage
+After this, you'll want to make use of a class autoloader to save you from
+having to manually include every class. You can use composer's autoloader or
+the autoloader that Darya provides.
 
-### Autoloading
-
-To get started you'll want to make use of a class autoloader to save you from
-having to manually `include` every class you want to use.
-
-#### Composer's autoloader
+### Composer's autoloader
 ```php
 require_once 'vendor/autoload.php';
 ```
 
-#### Darya's autoloader
+### Darya's autoloader
 
-Darya's `autoloader.php` includes Composer's `autoload.php`.
+Darya's `autoloader.php` includes Composer's `autoload.php` if it exists.
 
 ```php
 require_once 'vendor/darya/framework/autoloader.php';
 ```
 
-You can optionally configure Darya's autoloader by providing namespace mappings.
-
-```php
-$autoloader = require_once 'vendor/darya/framework/autoloader.php';
-
-$autoloader->namespaces(array(
-	'MyNamespace'         => 'app',
-	'MyNamespace'         => 'app/MyNamespace',
-	'MyNamespace\MyClass' => 'app/MyNamespace/MyClass.php'
-));
-```
+## Basic usage
 
 ### Services
 
@@ -67,15 +50,15 @@ an application.
 #### Resolving dependencies automatically
 
 Out of the box, the container can be used to invoke callables or instantiate
-classes with their type-hinted dependencies automatically resolved.
+classes with their concrete type-hinted dependencies automatically resolved.
 
 ##### Invoking callables
 
 ```php
 use Darya\Service\Container;
 
-class Foo {
-	
+class Foo
+{
 	public $bar;
 	
 	public function __construct(Bar $bar) {
@@ -83,14 +66,13 @@ class Foo {
 	}
 }
 
-class Bar {
-	
+class Bar
+{
 	public $baz;
 	
 	public function __construct(Baz $baz) {
-		$this->baz = Baz;
+		$this->baz = $baz;
 	}
-	
 }
 
 class Baz {}
@@ -122,14 +104,23 @@ $foo->bar->baz instanceof Baz; // true
 
 Services can be values, objects, or closures.
 
-Closures can be used to define a service using other services in the container.
+- Values (strings) can be class names to be resolved by the container
+- Objects can be used as predefined services
+- Closures can be used to define and compose a service manually
 
 You can optionally define aliases for these services after the service
-definitions themselves.
+definitions themselves, or with a separate method call.
 
 ```php
 $container = new Container;
 
+// Register an object as a service
+$container->set('App\SomeInterface', new App\SomeImplementation);
+
+// Define an alias
+$container->alias('some', 'App\SomeInterface');
+
+// Register multiple services and aliases
 $container->register(array(
 	'App\SomeInterface'    => new App\SomeImplementation,
 	'App\AnotherInterface' => function (Container $services) {
