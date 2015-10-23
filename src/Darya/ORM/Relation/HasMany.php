@@ -74,7 +74,7 @@ class HasMany extends Has {
 	public function associate($instances) {
 		$ids = array();
 		
-		foreach (static::arrayify($instances) as $instance) {
+		foreach ((array) $instances as $instance) {
 			$this->replace($instance);
 			$ids = $instance->id();
 		}
@@ -99,7 +99,7 @@ class HasMany extends Has {
 		
 		$successful = 0;
 		
-		foreach (static::arrayify($instances) as $instance) {
+		foreach ((array) $instances as $instance) {
 			$this->verify($instance);
 			$instance->set($this->foreignKey, 0);
 			

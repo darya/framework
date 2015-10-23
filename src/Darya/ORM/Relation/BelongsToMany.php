@@ -162,7 +162,7 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function associate($instances) {
-		$instances = static::arrayify($instances);
+		$instances = (array) $instances;
 		
 		$existing = $this->storage()->read($this->table, array(
 			$this->localKey => $this->parent->id()
@@ -198,7 +198,7 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function dissociate($instances = null) {
-		$instances = static::arrayify($instances);
+		$instances = (array) $instances;
 		
 		$ids = array();
 		
