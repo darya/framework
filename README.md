@@ -13,6 +13,7 @@ Its components include:
 - [Router](#routing)
 - [Event dispatcher](#events)
 - [ORM](#orm)
+- [Views](#views)
 
 This document covers the basics of using different components.
 
@@ -104,7 +105,7 @@ $foo->bar->baz instanceof Baz; // true
 
 Services can be values, objects, or closures.
 
-- Values (strings) can be class names to be resolved by the container
+- Values can be interface or class names to be resolved by the container
 - Objects can be used as predefined services
 - Closures can be used to define and compose a service manually
 
@@ -177,7 +178,7 @@ $ua       = $request->header('User-Agent');
 
 #### Responses
 
-##### 200 OK
+##### Status and Content
 
 ```php
 use Darya\Http\Response;
@@ -187,11 +188,7 @@ $response = new Response;
 $response->status(200);
 $response->content('Hello world!');
 $response->send(); // Outputs 'Hello world!'
-```
 
-##### 404 Not Found
-
-```php
 $response->status(404);
 $response->content('Whoops!');
 $response->send();
@@ -209,7 +206,7 @@ $response->send();
 ```php
 $response->cookies->set('key', 'value', '+1 day');
 
-$cookie = $response->cookies->get('key'); // 'value'
+$cookie     = $response->cookies->get('key'); // 'value'
 $expiration = $response->cookies->get('key', 'expire'); // strtotime('+1 day')
 
 $response->cookies->delete('key');
@@ -217,14 +214,16 @@ $response->cookies->delete('key');
 
 #### Sessions
 
-Sessions will eventually accept a SessionHandlerInterface implementor as a
-constructor argument. Superglobals are currently hardcoded.
+Sessions are planned to utilize a SessionHandlerInterface implementor.
+For the time being, superglobals are hardcoded.
 
 ```php
 use Darya\Http\Session;
 
 $session = new Session;
 $session->start();
+
+$session->has('key'); // false
 
 $session->set('key', 'value');
 $session->has('key'); // true
@@ -235,7 +234,7 @@ $session->key;   // 'another value';
 $session['key']; // 'yet another value';
 
 $session->delete('key');
-$session->has('key'); // false;
+$session->has('key'); // false
 ```
 
 ##### Request sessions
@@ -252,8 +251,8 @@ $request->session('key'); // 'value'
 
 ### Routing
 
-Darya's router is the heart of the framework. It matches HTTP requests to routes
-and can invoke PHP callables based on the match.
+Darya's router matches HTTP requests to a defined set of routes and can invoke
+PHP callables based on what is matched.
 
 #### Route matching
 
@@ -335,7 +334,7 @@ $dispatcher->listen('some_event', function ($thing) {
 $results = $dispatcher->dispatch('some_event', 'thing'); // array('one thing', 'two things');
 ```
 
-### Model-View-Controller Foundation
+### ORM
 
 #### Models
 
@@ -343,8 +342,8 @@ Darya models are self-validating objects used to represent business entities
 within an application.
 
 Darya's abstract `Model` implementation implements `ArrayAccess`, `Countable`,
-`IteratorAggregate` and `Serializable`. It is essentially a flexible collection
-of data.
+`IteratorAggregate` and `Serializable`. It is essentially a flexible set of
+data intended to represent one instance of a business entity.
 
 ##### Creating a model
 
@@ -363,7 +362,7 @@ $something = new Something(array(
 	'type' => 'A thing'
 ));
 
-// Access its properties using the different available methods
+// Access its properties using any convenient syntax
 $id   = $something->id;          // 72
 $name = $something['name'];      // 'Something'
 $type = $something->get('type'); // 'A thing'
@@ -387,18 +386,112 @@ $attributes = $something->toArray();
 $json       = $something->toJson();
 ```
 
-#### Views
+##### Defining attribute types
+
+```php
+class Something extends Model {
+	protected $attributes = array(
+		'count' => 'int',
+		'data'  => 'json'
+	);
+}
+
+$something = new Something;
+
+$something->count = '1';
+$count = $something->count; // 1
+
+$something->data = array('my' => 'data'); // Stored as '{"my":"data"}'
+```
+
+#### Records
+
+Records are supercharged models with access to the database. They implement
+the active record pattern, but with testability in mind. The database connection
+for a single record instance, or all instances of a specific type of record, can
+be swapped out for a different storage adapter, meaning they can easily tested
+with mocks.
+
+They use the typical convention of a singular class name mapping to a plural
+database table name.
+
+```php
+use Darya\ORM\Record;
+
+class User extends Record {
+
+}
+```
+
+`User` would map to the **users** table. This can of course be overriden.
+
+```php
+class User extends Record {
+	protected $table = 'people';
+}
+```
+
+Records provide methods that you may be familiar with.
+
+```php
+// Change a single user
+$user = User::find(1);
+$user->name = 'Chris';
+$user->save();
+
+// Load all users
+$users = User::all();
+```
+
+And some you may not have seen before.
+
+```php
+// Load all of the values of a given attribute
+$list = User::listing('name');
+
+// Load all of the distinct values of a given attribute
+$names = User::distinct('name');
+```
+
+##### Relationships
+
+Defining and working with relationships is a breeze.
+
+```php
+class Page extends Record {
+	protected $relations = [
+		'author'   => ['belongs_to', 'User', 'author_id'],
+		'parent'   => ['belongs_to', 'Page', 'parent_id'],
+		'children' => ['has_many',   'Page', 'parent_id'],
+		'sections' => ['has_many',   'Section']
+	];
+}
+
+$page = Page::find(1);
+
+$children = $page->children;
+
+foreach ($children as $child) {
+	$child->title = "$page->title - $child->title";
+}
+
+$page->children = $children;
+
+$page->save();
+```
+
+### Views
 
 Views are used to separate application logic from its presentation. It's good
 practice to treat them only as a means of displaying the data they are given.
 
-##### Simple PHP view
+#### PHP view
 
-A simple `Php` class is provided with Darya so you can easily use PHP as a
-templating engine. Adapters for popular templating engines are in the works,
+The simple `Darya\View\Php` class is provided for you to easily use PHP as a
+templating engine. Adapters are planned for popular templating engines,
 including Smarty, Mustache and Twig.
 
-##### views/index.php
+#### views/index.php
 
 ```php
 <p>Hello <?=$thing?>, this is a <?=$test?>.</p>
@@ -406,10 +499,9 @@ including Smarty, Mustache and Twig.
 <?php foreach ($somethings as $something): ?>
 	<p><?=ucfirst($something)?> something.</p>
 <?php endforeach; ?>
-
 ```
 
-##### index.php
+#### index.php
 
 ```php
 use Darya\View\Php;
@@ -425,7 +517,7 @@ $view->assign(array(
 echo $view->render();
 ```
 
-##### Output
+#### Output
 
 ```html
 <p>Hello world, this is a test.</p>
@@ -434,8 +526,3 @@ echo $view->render();
 	<p>Two something.</p>
 	<p>Three something.</p>
 ```
-
-#### Controllers
-
-Controllers are used to generate a dynamic response from a given request. They
-are intended to be used in conjunction with the [`Router`](#routing).
