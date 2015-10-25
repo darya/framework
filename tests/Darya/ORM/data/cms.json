@@ -1,0 +1,55 @@
+{
+	"roles": [
+		{
+			"id": 1,
+			"name": "User"
+		},
+		{
+			"id": 2,
+			"name": "Moderator"
+		},
+		{
+			"id": 3,
+			"name": "Administrator"
+		},
+		{
+			"id": 4,
+			"name": "b0ss"
+		}
+	],
+	"user_roles": [
+		{
+			"user_id": 1,
+			"role_id": 3
+		},
+		{
+			"user_id": 1,
+			"role_id": 4
+		},
+		{
+			"user_id": 2,
+			"role_id": 2
+		},
+		{
+			"user_id": 3,
+			"role_id": 1
+		}
+	],
+	"users": [
+		{
+			"id": 1,
+			"firstname": "Chris",
+			"surname": "Andrew"
+		},
+		{
+			"id": 2,
+			"firstname": "Bethany",
+			"surname": "King"
+		},
+		{
+			"id": 3,
+			"firstname": "John",
+			"surname": "Smith"
+		}
+	]
+}
