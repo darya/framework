@@ -482,14 +482,15 @@ $page->save();
 
 ### Views
 
-Views are used to separate application logic from its presentation. It's good
-practice to treat them only as a means of displaying the data they are given.
+Views are used to separate an application's logic from its presentation. It's
+good practice to treat them only as a means of displaying the data they are
+given.
 
 #### PHP view
 
 The simple `Darya\View\Php` class is provided for you to easily use PHP as a
 templating engine. Adapters are planned for popular templating engines,
-including Smarty, Mustache and Twig.
+including Smarty, Blade, Twig and Mustache.
 
 #### views/index.php
 
