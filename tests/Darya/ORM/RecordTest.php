@@ -2,6 +2,11 @@
 use Darya\ORM\Record;
 use Darya\Storage\InMemory;
 
+/**
+ * Tests Darya's active record ORM using in-memory storage.
+ * 
+ * TODO: Test updating and deleting relations.
+ */
 class RecordTest extends PHPUnit_Framework_TestCase {
 	
 	/**
@@ -41,7 +46,35 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		// TODO: Test sorting and limiting
 	}
 	
-	public function testManyToMany() {
+	public function testHas() {
+
+	}
+	
+	public function testBelongsTo() {
+		$post = Post::find(3);
+		
+		$author = $post->author;
+		
+		$this->assertEquals('Bethany', $author->firstname);
+		
+		$user = User::find(3);
+		
+		$manager = $user->manager;
+		
+		$this->assertEquals('Bethany', $manager->firstname);
+	}
+	
+	public function testHasMany() {
+		$user = User::find(1);
+		
+		$posts = $user->posts;
+		
+		$this->assertEquals(2, count($posts));
+		
+		$this->assertEquals("First post", $posts[0]->title);
+	}
+	
+	public function testBelongsToMany() {
 		$user = User::find(1);
 		
 		$roles = $user->roles;
@@ -58,10 +91,10 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	
 }
 
-class User extends Record {
+class Post extends Record {
 	
 	protected $relations = array(
-		'roles' => ['belongs_to_many', 'Role', null, null, 'user_roles']
+		'author' => ['belongs_to', 'User', 'author_id']
 	);
 	
 }
@@ -70,6 +103,16 @@ class Role extends Record {
 	
 	protected $relations = array(
 		'users' => ['belongs_to_many', 'User', null, null, 'user_roles']
+	);
+	
+}
+
+class User extends Record {
+	
+	protected $relations = array(
+		'manager' => ['belongs_to', 'User', 'manager_id'],
+		'posts'   => ['has_many', 'Post', 'author_id'],
+		'roles'   => ['belongs_to_many', 'Role', null, null, 'user_roles']
 	);
 	
 }
