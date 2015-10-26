@@ -89,6 +89,10 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Bethany', $users[0]->firstname);
 	}
 	
+	public function testBelongsToManyEager() {
+		$users = User::eager('roles');
+	}
+	
 }
 
 class Post extends Record {

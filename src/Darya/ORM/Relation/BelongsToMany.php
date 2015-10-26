@@ -62,6 +62,30 @@ class BelongsToMany extends Relation {
 	}
 	
 	/**
+	 * Group foreign keys into arrays for each local key found.
+	 * 
+	 * Expects an array with at least local keys and foreign keys set.
+	 * 
+	 * Returns an adjacency list.
+	 * 
+	 * @param array $relations
+	 * @return array
+	 */
+	protected function bundleRelations(array $relations) {
+		$bundle = array();
+		
+		foreach ($relations as $relation) {
+			if (!isset($bundle[$relation[$this->localKey]])) {
+				$bundle[$relation[$this->localKey]] = array();
+			}
+			
+			$bundle[$relation[$this->localKey]][] = $relation[$this->foreignKey];
+		}
+		
+		return $bundle;
+	}
+	
+	/**
 	 * Set the default keys for the relation if they have not already been set.
 	 */
 	protected function setDefaultKeys() {
@@ -141,6 +165,24 @@ class BelongsToMany extends Relation {
 	 * @return array
 	 */
 	public function eager(array $instances, $name) {
+		$this->verifyParents($instances);
+		
+		// Grab IDs of parent instances
+		$ids = static::attributeList($instances, $this->parent->key());
+		
+		// Read their relations from the table
+		$relations = $this->storage()->read($this->table, array($this->localKey => $ids));
+		
+		// Unique list of target keys
+		$relatedIds = static::attributeList($relations, $this->foreignKey);
+		$relatedIds = array_unique($relatedIds);
+		
+		// Adjacency list of parent keys to target keys
+		$relationBundle = $this->bundleRelations($relations);
+		
+		// var_dump($relatedIds);
+		// var_dump($relationBundle);
+		
 		return $instances;
 	}
 	

@@ -143,20 +143,25 @@ abstract class Relation {
 	abstract protected function setDefaultKeys();
 	
 	/**
-	 * Retrieve the values of the given attribute of the given instances.
+	 * Retrieve the values of the given field from the given set.
 	 * 
-	 * Ignores objects that don't extend Record. Does not remove duplicates.
+	 * Works similarly to array_column(), but doesn't return data from any rows
+	 * without the given attribute set.
 	 * 
 	 * @param Record[]|Record $instances
 	 * @param string $attribute
 	 * @return array
 	 */
-	protected static function attributeList($instances, $attribute) {
+	protected static function attributeList($instances, $attribute, $index = null) {
 		$values = array();
 		
 		foreach ((array) $instances as $instance) {
-			if ($instance instanceof Record) {
-				$values[] = $instance->get($attribute);
+			if (isset($instance[$attribute])) {
+				if ($index !== null) {
+					$values[$instance[$index]] = $instance[$attribute];
+				} else {
+					$values[] = $instance[$attribute];
+				}
 			}
 		}
 		
