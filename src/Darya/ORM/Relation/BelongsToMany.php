@@ -328,4 +328,19 @@ class BelongsToMany extends Relation {
 		return $this->associate($instances);
 	}
 	
+	/**
+	 * Count the number of related model instances.
+	 * 
+	 * Counts loaded instances if they are present, queries storage otherwise.
+	 * 
+	 * @return int
+	 */
+	public function count() {
+		if ($this->related) {
+			return parent::count();
+		}
+		
+		return $this->storage()->count($this->table, $this->filter());
+	}
+	
 }

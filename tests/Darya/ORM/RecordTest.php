@@ -47,7 +47,17 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	public function testHas() {
-
+		$user = User::find(1);
+		
+		$this->assertTrue($user->has('roles'));
+		
+		$user = User::find(3);
+		
+		$this->assertTrue($user->has('manager'));
+		
+		$user = User::find(2);
+		
+		$this->assertFalse($user->has('manager'));
 	}
 	
 	public function testBelongsTo() {
