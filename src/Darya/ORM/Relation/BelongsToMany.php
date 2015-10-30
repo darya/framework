@@ -183,6 +183,17 @@ class BelongsToMany extends Relation {
 		// var_dump($relatedIds);
 		// var_dump($relationBundle);
 		
+		$data = $this->storage()->read($this->target->table(), array(
+		    $this->target->key() => $relatedIds
+		));
+		
+		// var_dump($data);
+		
+		$class = get_class($this->target);
+		$generated = $class::generate($data);
+		
+		// var_dump($generated);
+		
 		return $instances;
 	}
 	
