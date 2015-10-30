@@ -263,7 +263,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$columns = (array) $columns;
 		$search = array('or' => array());
 		
-		foreach ((array) $columns as $column) {
+		foreach ($columns as $column) {
 			$search['or']["$column like"] = "%$query%";
 		}
 		

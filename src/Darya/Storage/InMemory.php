@@ -4,6 +4,7 @@ namespace Darya\Storage;
 use Darya\Storage\Filterer;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
+use Darya\Storage\Searchable;
 
 /**
  * Darya's in-memory storage interface.
@@ -12,7 +13,7 @@ use Darya\Storage\Modifiable;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class InMemory implements Readable, Modifiable {
+class InMemory implements Readable, Modifiable, Searchable {
 	
 	/**
 	 * The in-memory data.
@@ -174,7 +175,6 @@ class InMemory implements Readable, Modifiable {
 		$this->data[$resource] = $this->filterer->reject($this->data[$resource], $filter);
 	}
 	
-	
 	/**
 	 * Retrieve the error that occured with the last operation.
 	 * 
@@ -184,6 +184,36 @@ class InMemory implements Readable, Modifiable {
 	 */
 	public function error() {
 		return false;
+	}
+	
+	/**
+	 * Search for resource data with fields that match the given query and
+	 * criteria.
+	 * 
+	 * @param string       $resource
+	 * @param string       $query
+	 * @param array|string $fields
+	 * @param array        $filter   [optional]
+	 * @param array|string $order    [optional]
+	 * @param int          $limit    [optional]
+	 * @param int          $offset   [optional]
+	 * @return array
+	 */
+	public function search($resource, $query, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+		if (empty($query) || empty($resource)) {
+			return $this->read($resource, $filter, $order, $limit, $offset);
+		}
+		
+		$fields = (array) $fields;
+		$search = array('or' => array());
+		
+		foreach ($fields as $field) {
+			$search['or']["$field like"] = "%$query%";
+		}
+		
+		$filter = array_merge($filter, $search);
+		
+		return $this->read($resource, $filter, $order, $limit, $offset);
 	}
 	
 }

@@ -48,6 +48,11 @@ class Record extends Model {
 	protected $related = array();
 	
 	/**
+	 * @var array Default searchable attributes
+	 */
+	protected $search = array();
+	
+	/**
 	 * Instantiate a new record with the given data or load an instance from
 	 * storage if the given data is a valid primary key.
 	 * 
@@ -337,6 +342,8 @@ class Record extends Model {
 			throw new Exception(get_class($instance) . ' storage is not searchable');
 		}
 		
+		$attributes = $attributes ?: $instance->defaultSearchAttributes();
+		
 		$data = $storage->search($instance->table(), $query, $attributes, $filter, $order, $limit, $offset);
 		
 		return static::generate($data);
@@ -569,6 +576,15 @@ class Record extends Model {
 		}
 		
 		$relation->associate($value);
+	}
+	
+	/**
+	 * Retrieve the default search attributes for the model.
+	 * 
+	 * @return array
+	 */
+	public function defaultSearchAttributes() {
+		return $this->search;
 	}
 	
 	/**

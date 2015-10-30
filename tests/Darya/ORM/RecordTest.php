@@ -103,6 +103,18 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(1, count($users[2]->roles));
 	}
 	
+	public function testDefaultSearchAttributes() {
+		$users = User::search('chris');
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals('Andrew', $users[0]->surname);
+		
+		$users = User::search('KING');
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals('Bethany', $users[0]->firstname);
+	}
+	
 }
 
 class Post extends Record {
@@ -127,6 +139,10 @@ class User extends Record {
 		'manager' => ['belongs_to', 'User', 'manager_id'],
 		'posts'   => ['has_many', 'Post', 'author_id'],
 		'roles'   => ['belongs_to_many', 'Role', null, null, 'user_roles']
+	);
+	
+	protected $search = array(
+		'firstname', 'surname'
 	);
 	
 }
