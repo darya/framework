@@ -91,6 +91,16 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	
 	public function testBelongsToManyEager() {
 		$users = User::eager('roles');
+		
+		$this->assertEquals('Administrator', $users[0]->roles[0]->name);
+		$this->assertEquals('b0ss', $users[0]->roles[1]->name);
+		$this->assertEquals(2, count($users[0]->roles));
+		
+		$this->assertEquals('Moderator', $users[1]->roles[0]->name);
+		$this->assertEquals(1, count($users[1]->roles));
+		
+		$this->assertEquals('User', $users[2]->roles[0]->name);
+		$this->assertEquals(1, count($users[2]->roles));
 	}
 	
 }

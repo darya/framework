@@ -86,6 +86,22 @@ class BelongsToMany extends Relation {
 	}
 	
 	/**
+	 * List the given instances with their IDs as keys.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @return Record[]
+	 */
+	protected static function listById($instances) {
+		$list = array();
+		
+		foreach ((array) $instances as $instance) {
+			$list[$instance->id()] = $instance;
+		}
+		
+		return $list;
+	}
+	
+	/**
 	 * Set the default keys for the relation if they have not already been set.
 	 */
 	protected function setDefaultKeys() {
@@ -170,8 +186,11 @@ class BelongsToMany extends Relation {
 		// Grab IDs of parent instances
 		$ids = static::attributeList($instances, $this->parent->key());
 		
+		// Build the filter for the relations
+		$filter = array_merge($this->filter(), array($this->localKey => $ids));
+		
 		// Read their relations from the table
-		$relations = $this->storage()->read($this->table, array($this->localKey => $ids));
+		$relations = $this->storage()->read($this->table, $filter);
 		
 		// Unique list of target keys
 		$relatedIds = static::attributeList($relations, $this->foreignKey);
@@ -180,19 +199,28 @@ class BelongsToMany extends Relation {
 		// Adjacency list of parent keys to target keys
 		$relationBundle = $this->bundleRelations($relations);
 		
-		// var_dump($relatedIds);
-		// var_dump($relationBundle);
-		
+		// Data of relations
 		$data = $this->storage()->read($this->target->table(), array(
-		    $this->target->key() => $relatedIds
+			$this->target->key() => $relatedIds
 		));
 		
-		// var_dump($data);
-		
+		// Instances of relations from the data
 		$class = get_class($this->target);
 		$generated = $class::generate($data);
 		
-		// var_dump($generated);
+		// Set IDs as the keys of the relation instances
+		$list = static::listById($generated);
+		
+		// Attach the related instances using the relation adjacency list
+		foreach ($instances as $instance) {
+			$instanceRelations = array();
+			
+			foreach ($relationBundle[$instance->id()] as $relationId) {
+				$instanceRelations[] = $list[$relationId];
+			}
+			
+			$instance->relation($name)->set($instanceRelations);
+		}
 		
 		return $instances;
 	}
