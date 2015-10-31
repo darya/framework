@@ -94,7 +94,7 @@ abstract class Relation {
 	 */
 	public function __construct(Record $parent, $target, $foreignKey = null) {
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
-			throw new Exception('Target class not does not extend Darya\ORM\Record');
+			throw new Exception("Target class not does not extend Darya\ORM\Record");
 		}
 		
 		$this->parent = $parent;
@@ -143,7 +143,20 @@ abstract class Relation {
 	abstract protected function setDefaultKeys();
 	
 	/**
-	 * Retrieve the values of the given field from the given set.
+	 * Helper method for methods that accept single or multiple values.
+	 * 
+	 * Returns a array with the given value as its sole element, if it is not an
+	 * array already.
+	 * 
+	 * @param mixed $value
+	 * @return array
+	 */
+	protected static function arrayify($value) {
+		return !is_array($value) ? array($value) : $value;
+	}
+	
+	/**
+	 * Retrieve the values of the given attribute of the given instances.
 	 * 
 	 * Works similarly to array_column(), but doesn't return data from any rows
 	 * without the given attribute set.
@@ -155,7 +168,7 @@ abstract class Relation {
 	protected static function attributeList($instances, $attribute, $index = null) {
 		$values = array();
 		
-		foreach ((array) $instances as $instance) {
+		foreach (static::arrayify($instances) as $instance) {
 			if (isset($instance[$attribute])) {
 				if ($index !== null) {
 					$values[$instance[$index]] = $instance[$attribute];
@@ -248,7 +261,7 @@ abstract class Relation {
 			return;
 		}
 		
-		foreach ((array) $instances as $instance) {
+		foreach (static::arrayify($instances) as $instance) {
 			if (!$instance instanceof $class) {
 				throw new Exception('Models must be an instance of ' . $class);
 			}
@@ -401,7 +414,7 @@ abstract class Relation {
 		}
 		
 		$this->verify($instances);
-		$this->related = (array) $instances;
+		$this->related = static::arrayify($instances);
 	}
 	
 	
