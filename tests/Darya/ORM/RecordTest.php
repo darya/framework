@@ -39,6 +39,7 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Chris', $users[0]->firstname);
 		$this->assertEquals('Bethany', $users[1]->firstname);
 		
+		// Test filter
 		$users = User::all(['firstname !=' => 'john']);
 		
 		$this->assertEquals(2, count($users));
@@ -49,7 +50,17 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Bethany', $users[0]->firstname);
 		$this->assertEquals('Chris', $users[1]->firstname);
 		
-		// TODO: Test limiting
+		// Test limiting
+		$users = User::all(null, null, 1);
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals('Chris', $users[0]->firstname);
+		
+		// Test offset
+		$users = User::all(null, null, 1, 1);
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals('Bethany', $users[0]->firstname);
 	}
 	
 	public function testHas() {

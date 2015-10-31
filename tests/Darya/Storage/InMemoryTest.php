@@ -75,6 +75,40 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		$listing = $storage->listing('users', 'id');
 		
 		$this->assertEquals(array(array('id' => 1), array('id' => 2)), $listing);
+		
+		$listing = $storage->listing('users', 'name', array(), 'name');
+		
+		$expected = array(array('name' => 'Bethany'), array('name' => 'Chris'));
+		
+		$this->assertEquals($expected, $listing);
+	}
+	
+	public function testReadLimit() {
+		$storage = $this->storage();
+		
+		$users = $storage->read('users', array(), array(), 1);
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals(array(array('id' => 1, 'name' => 'Chris')), $users);
+		
+		$users = $storage->read('users', array(), array(), 1, 1);
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals(array(array('id' => 2, 'name' => 'Bethany')), $users);
+	}
+	
+	public function testListingLimit() {
+		$storage = $this->storage();
+		
+		$users = $storage->listing('users', 'name', array(), array(), 1);
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals(array(array('name' => 'Chris')), $users);
+		
+		$users = $storage->listing('users', 'name', array(), array(), 1, 1);
+		
+		$this->assertEquals(1, count($users));
+		$this->assertEquals(array(array('name' => 'Bethany')), $users);
 	}
 	
 	public function testCount() {

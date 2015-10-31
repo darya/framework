@@ -388,7 +388,7 @@ class Record extends Model {
 		$storage = $instance->storage();
 		
 		if (!$storage instanceof Aggregational) {
-			return array_unique(static::listing($attribute));
+			return array_unique(static::listing($attribute, $filter, $order));
 		}
 		
 		return $storage->distinct($instance->table(), $attribute, $filter, $order, $limit, $offset);

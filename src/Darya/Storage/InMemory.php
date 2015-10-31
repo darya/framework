@@ -49,6 +49,18 @@ class InMemory implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
+	 * Limit the given data to the given length and offset.
+	 * 
+	 * @param array $data
+	 * @param int   $limit  [optional]
+	 * @param int   $offset [optional]
+	 * @return array
+	 */
+	protected static function limit(array $data, $limit = 0, $offset = 0) {
+		return array_slice($data, $offset, $limit ?: null);
+	}
+	
+	/**
 	 * Retrieve resource data using the given criteria.
 	 * 
 	 * Returns an array of associative arrays.
@@ -68,6 +80,8 @@ class InMemory implements Readable, Modifiable, Searchable {
 		$data = $this->filterer->filter($this->data[$resource], $filter);
 		
 		$data = $this->sorter->sort($data, $order);
+		
+		$data = static::limit($data, $limit, $offset);
 		
 		return $data;
 	}
