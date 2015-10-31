@@ -48,7 +48,7 @@ class Has extends Relation {
 		$related = array();
 		
 		foreach ($generated as $model) {
-			$related[$model->get($this->foriegnKey)] = $model;
+			$related[$model->get($this->foreignKey)] = $model;
 		}
 		
 		foreach ($instances as $instance) {

@@ -43,11 +43,6 @@ class Record extends Model {
 	protected $relations = array();
 	
 	/**
-	 * @var array Related model data
-	 */
-	protected $related = array();
-	
-	/**
 	 * @var array Default searchable attributes
 	 */
 	protected $search = array();

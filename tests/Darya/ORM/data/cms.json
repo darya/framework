@@ -70,7 +70,8 @@
 			"id": 3,
 			"firstname": "John",
 			"surname": "Smith",
-			"manager_id": 2
+			"manager_id": 2,
+			"master_id": 1
 		}
 	]
 }

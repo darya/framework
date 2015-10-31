@@ -17,7 +17,7 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	protected static $data;
 	
 	/**
-	 * The in-memory storage used for testing Darya's active record ORM.
+	 * The storage interface used for testing Darya's active record ORM.
 	 * 
 	 * @var InMemory
 	 */
@@ -30,10 +30,29 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		static::$data = $data;
 	}
 	
+	protected function storageClass() {
+		return 'Darya\Storage\InMemory';
+	}
+	
 	protected function setUp() {
-		$this->storage = new InMemory(static::$data);
+		$class = $this->storageClass();
+		
+		$this->storage = new $class(static::$data);
 		
 		Record::setSharedStorage($this->storage);
+	}
+	
+	/**
+	 * Sets the shared storage to a mock that throws an exception when its
+	 * read method is called.
+	 * 
+	 * This can be used to test that models were eagerly loaded correctly - the
+	 * relation objects shouldn't need to query the storage.
+	 */
+	protected function mockEagerStorage($message = 'Models were not eagerly loaded') {
+		$stub = $this->getMockBuilder($this->storageClass())->getMock();
+		$stub->method('read')->will($this->throwException(new Exception($message)));
+		Record::setSharedStorage($stub);
 	}
 	
 	public function testFind() {
@@ -88,6 +107,15 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($user->has('manager'));
 	}
 	
+	public function testHasEager() {
+		$users = User::eager('padawan');
+		
+		$this->mockEagerStorage('User padawan was not eager loaded');
+		
+		$this->assertEquals(3, count($users));
+		$this->assertEquals('John', $users[0]->padawan->firstname);
+	}
+	
 	public function testBelongsTo() {
 		$post = Post::find(3);
 		
@@ -102,6 +130,17 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Bethany', $manager->firstname);
 	}
 	
+	public function testBelongsToEager() {
+		$posts = Post::eager('author');
+		
+		$this->mockEagerStorage('Post authors were not eager loaded');
+		
+		$this->assertEquals(3, count($posts));
+		$this->assertEquals('Chris', $posts[0]->author->firstname);
+		$this->assertEquals('Chris', $posts[1]->author->firstname);
+		$this->assertEquals('Bethany', $posts[2]->author->firstname);
+	}
+	
 	public function testHasMany() {
 		$user = User::find(1);
 		
@@ -110,6 +149,17 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(2, count($posts));
 		
 		$this->assertEquals("First post", $posts[0]->title);
+	}
+	
+	public function testHasManyEager() {
+		$users = User::eager('posts');
+		
+		$this->mockEagerStorage('User posts were not eager loaded');
+		
+		$this->assertEquals(3, count($users));
+		$this->assertEquals(2, count($users[0]->posts));
+		$this->assertEquals(1, count($users[1]->posts));
+		$this->assertEquals(0, count($users[2]->posts));
 	}
 	
 	public function testBelongsToMany() {
@@ -129,6 +179,10 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	
 	public function testBelongsToManyEager() {
 		$users = User::eager('roles');
+		
+		$this->mockEagerStorage('User roles were not eager loaded');
+		
+		$this->assertEquals(3, count($users));
 		
 		$this->assertEquals('Administrator', $users[0]->roles[0]->name);
 		$this->assertEquals('b0ss', $users[0]->roles[1]->name);
@@ -216,8 +270,9 @@ class Role extends Record
 class User extends Record
 {
 	protected $relations = array(
-		'manager' => ['belongs_to', 'User', 'manager_id'],
-		'posts'   => ['has_many', 'Post', 'author_id'],
+		'padawan' => ['has',             'User', 'master_id'],
+		'manager' => ['belongs_to',      'User', 'manager_id'],
+		'posts'   => ['has_many',        'Post', 'author_id'],
 		'roles'   => ['belongs_to_many', 'Role', null, null, 'user_roles']
 	);
 	
