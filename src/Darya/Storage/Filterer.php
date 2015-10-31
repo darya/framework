@@ -159,14 +159,19 @@ class Filterer {
 	 * 
 	 * @param array $data
 	 * @param array $filter [optional]
+	 * @param int   $limit  [optional]
 	 * @return array
 	 */
-	public function reject(array $data, array $filter = array()) {
+	public function reject(array $data, array $filter = array(), $limit = 0) {
 		if (empty($filter)) {
 			return $data;
 		}
 		
 		$keys = array_filter($data, $this->closure($filter));
+		
+		if ($limit) {
+			$keys = array_slice($keys, 0, $limit, true);
+		}
 		
 		return array_values(array_diff_key($data, $keys));
 	}
@@ -231,18 +236,27 @@ class Filterer {
 	 * Apply a function to the elements of the given data that match a filter.
 	 * 
 	 * @param array    $data
-	 * @param array    $filter [optional]
+	 * @param array    $filter   [optional]
 	 * @param callable $callback
+	 * @param int      $limit    [optional]
 	 * @return array
 	 */
-	public function map(array $data, array $filter, $callback) {
+	public function map(array $data, array $filter, $callback, $limit = 0) {
 		if (!is_callable($callback)) {
 			return $data;
 		}
 		
+		$affected = 0;
+		
 		foreach ($data as $key => $row) {
 			if ($this->matches($row, $filter)) {
 				$data[$key] = call_user_func_array($callback, array($row, $key));
+				
+				$affected++;
+			}
+			
+			if ($limit && $affected >= $limit) {
+				break;
 			}
 		}
 		

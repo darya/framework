@@ -168,12 +168,10 @@ class InMemory implements Readable, Modifiable, Searchable {
 		
 		$affected = 0;
 		
-		$this->data[$resource] = $this->filterer->map($this->data[$resource], $filter,
-			function ($row) use ($data, &$affected, $limit) {
-				if ($limit && $affected >= $limit) {
-					return $row;
-				}
-				
+		$this->data[$resource] = $this->filterer->map(
+			$this->data[$resource],
+			$filter,
+			function ($row) use ($data, &$affected) {
 				foreach ($data as $key => $value) {
 					$row[$key] = $value;
 				}
@@ -181,7 +179,8 @@ class InMemory implements Readable, Modifiable, Searchable {
 				$affected++;
 				
 				return $row;
-			}
+			},
+			$limit
 		);
 		
 		return $affected;
