@@ -10,19 +10,30 @@ use Darya\Storage\InMemory;
 class RecordTest extends PHPUnit_Framework_TestCase {
 	
 	/**
+	 * Data to use for the in-memory storage.
+	 * 
+	 * @var array
+	 */
+	protected static $data;
+	
+	/**
 	 * The in-memory storage used for testing Darya's active record ORM.
 	 * 
 	 * @var InMemory
 	 */
-	protected static $storage;
+	protected $storage;
 	
 	public static function setUpBeforeClass() {
 		$file = __DIR__  . '/data/cms.json';
 		$data = json_decode(file_get_contents($file), true);
 		
-		static::$storage = new InMemory($data);
+		static::$data = $data;
+	}
+	
+	protected function setUp() {
+		$this->storage = new InMemory(static::$data);
 		
-		Record::setSharedStorage(static::$storage);
+		Record::setSharedStorage($this->storage);
 	}
 	
 	public function testFind() {
@@ -140,6 +151,50 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(1, count($users));
 		$this->assertEquals('Bethany', $users[0]->firstname);
+	}
+	
+	public function testHasManyAssociation() {
+		$user = User::find(1);
+		
+		$post = new Post(array(
+			'id'      => 4,
+			'title'   => 'Swagger',
+			'content' => 'Dis one got swagger'
+		));
+		
+		$user->posts()->associate($post);
+		
+		$this->assertEquals(3, $user->posts()->count());
+	}
+	
+	public function testHasManyDissociation() {
+		$user = User::find(1);
+		
+		$this->assertEquals(2, $user->posts()->count());
+		
+		$post = $user->posts[0];
+		
+		$this->assertEquals(1, $post->id());
+		
+		$dissociated = $user->posts()->dissociate($post);
+		
+		$this->assertEquals(1, $dissociated);
+		
+		$this->assertEquals(1, $user->posts()->count());
+		
+		$this->assertEquals(2, $user->posts[0]->id());
+	}
+	
+	public function testHasManyFullDissociation() {
+		$user = User::find(1);
+		
+		$this->assertEquals(2, $user->posts()->count());
+		
+		$dissociated = $user->posts()->dissociate();
+		
+		$this->assertEquals(2, $dissociated);
+		
+		$this->assertEquals(0, $user->posts()->count());
 	}
 	
 }

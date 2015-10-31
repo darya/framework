@@ -94,7 +94,7 @@ abstract class Relation {
 	 */
 	public function __construct(Record $parent, $target, $foreignKey = null) {
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
-			throw new Exception("Target class not does not extend Darya\ORM\Record");
+			throw new Exception('Target class not does not extend Darya\ORM\Record');
 		}
 		
 		$this->parent = $parent;
@@ -193,11 +193,11 @@ abstract class Relation {
 		
 		foreach ($this->related as $key => $instance) {
 			if (!in_array($instance->id(), $ids)) {
-				$keys[] = $key;
+				$keys[$key] = null;
 			}
 		}
 		
-		$this->related = array_intersect_key($this->related, array_flip($keys));
+		$this->related = array_values(array_diff_key($this->related, $keys));
 	}
 	
 	/**
@@ -206,10 +206,16 @@ abstract class Relation {
 	 * If the related model does not have an ID or it is not found, it is simply
 	 * appended.
 	 * 
+	 * Retrieves related models if none have been loaded yet.
+	 * 
 	 * @param \Darya\ORM\Record $instance
 	 */
 	protected function replace(Record $instance) {
 		$this->verify($instance);
+		
+		if ($this->related === null) {
+			$this->retrieve();
+		}
 		
 		if (!$instance->id()) {
 			$this->related[] = $instance;
