@@ -34,25 +34,34 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		return 'Darya\Storage\InMemory';
 	}
 	
-	protected function setUp() {
+	protected function setUpStorage() {
 		$class = $this->storageClass();
-		
 		$this->storage = new $class(static::$data);
+	}
+	
+	protected function setUp() {
+		if (!$this->storage) {
+			$this->setUpStorage();
+		}
 		
 		Record::setSharedStorage($this->storage);
 	}
 	
 	/**
-	 * Sets the shared storage to a mock that throws an exception when its
-	 * read method is called.
+	 * Sets the shared storage to a mock that should never have its read method
+	 * called.
 	 * 
 	 * This can be used to test that models were eagerly loaded correctly - the
 	 * relation objects shouldn't need to query the storage.
 	 */
 	protected function mockEagerStorage($message = 'Models were not eagerly loaded') {
-		$stub = $this->getMockBuilder($this->storageClass())->getMock();
-		$stub->method('read')->will($this->throwException(new Exception($message)));
-		Record::setSharedStorage($stub);
+		$mock = $this->getMockBuilder($this->storageClass())
+		             ->setMethods(array('read'))
+		             ->getMock();
+		
+		$mock->expects($this->never())->method('read');
+		
+		Record::setSharedStorage($mock);
 	}
 	
 	public function testFind() {
