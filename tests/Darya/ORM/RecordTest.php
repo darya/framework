@@ -51,13 +51,13 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertTrue($user->has('roles'));
 		
-		$user = User::find(3);
-		
-		$this->assertTrue($user->has('manager'));
-		
 		$user = User::find(2);
 		
 		$this->assertFalse($user->has('manager'));
+		
+		$user = User::find(3);
+		
+		$this->assertTrue($user->has('manager'));
 	}
 	
 	public function testBelongsTo() {
@@ -127,24 +127,22 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	
 }
 
-class Post extends Record {
-	
+class Post extends Record
+{
 	protected $relations = array(
 		'author' => ['belongs_to', 'User', 'author_id']
 	);
-	
 }
 
-class Role extends Record {
-	
+class Role extends Record
+{
 	protected $relations = array(
 		'users' => ['belongs_to_many', 'User', null, null, 'user_roles']
 	);
-	
 }
 
-class User extends Record {
-	
+class User extends Record
+{
 	protected $relations = array(
 		'manager' => ['belongs_to', 'User', 'manager_id'],
 		'posts'   => ['has_many', 'Post', 'author_id'],
@@ -154,5 +152,4 @@ class User extends Record {
 	protected $search = array(
 		'firstname', 'surname'
 	);
-	
 }
