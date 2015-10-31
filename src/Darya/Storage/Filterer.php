@@ -2,7 +2,7 @@
 namespace Darya\Storage;
 
 /**
- * Filters arrays using an array syntax.
+ * Filters record sets using an array-based criteria syntax.
  * 
  * For filtering in-memory storage.
  * 
@@ -172,9 +172,9 @@ class Filterer {
 	}
 	
 	/**
-	 * Determine whether a data row matches the given filter.
+	 * Determine whether a row matches a given filter.
 	 * 
-	 * Optionally compares each filter comparison with 'or' instead of 'and'.
+	 * Optionally applies each filter comparison with 'or' instead of 'and'.
 	 * 
 	 * @param array $row
 	 * @param array $filter

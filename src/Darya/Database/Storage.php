@@ -35,7 +35,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	}
 	
 	/**
-	 * Flatten the given data by grabbing the values of the given key.
+	 * Flatten the given data to the each row's value for the given key.
 	 * 
 	 * @param array  $data
 	 * @param string $key

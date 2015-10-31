@@ -217,6 +217,10 @@ class Record extends Model {
 	 * @return string
 	 */
 	protected static function prepareFilter($filter) {
+		if ($filter === null) {
+			return array();
+		}
+		
 		if (!is_array($filter)) {
 			$instance = new static;
 			$filter = array($instance->key() => $filter);

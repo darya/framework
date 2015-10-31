@@ -5,6 +5,7 @@ use Darya\Storage\Filterer;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
 use Darya\Storage\Searchable;
+use Darya\Storage\Sorter;
 
 /**
  * Darya's in-memory storage interface.
@@ -30,6 +31,13 @@ class InMemory implements Readable, Modifiable, Searchable {
 	protected $filterer;
 	
 	/**
+	 * Sorts results in-memory.
+	 * 
+	 * @var Sorter
+	 */
+	protected $sorter;
+	
+	/**
 	 * Create a new in-memory storage interface with the given data.
 	 * 
 	 * @param array $data [optional]
@@ -37,6 +45,7 @@ class InMemory implements Readable, Modifiable, Searchable {
 	public function __construct(array $data = array()) {
 		$this->data = $data;
 		$this->filterer = new Filterer;
+		$this->sorter = new Sorter;
 	}
 	
 	/**
@@ -56,7 +65,11 @@ class InMemory implements Readable, Modifiable, Searchable {
 			return array();
 		}
 		
-		return $this->filterer->filter($this->data[$resource], $filter);
+		$data = $this->filterer->filter($this->data[$resource], $filter);
+		
+		$data = $this->sorter->sort($data, $order);
+		
+		return $data;
 	}
 	
 	/**
@@ -73,7 +86,8 @@ class InMemory implements Readable, Modifiable, Searchable {
 	 * @return array
 	 */
 	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
-		$data = $this->read($resource, $filter);
+		$data = $this->read($resource, $filter, $order, $limit, $offset);
+		
 		$fields = (array) $fields;
 		
 		$result = array();
@@ -176,17 +190,6 @@ class InMemory implements Readable, Modifiable, Searchable {
 	}
 	
 	/**
-	 * Retrieve the error that occured with the last operation.
-	 * 
-	 * Returns false if there was no error.
-	 * 
-	 * @return string|bool
-	 */
-	public function error() {
-		return false;
-	}
-	
-	/**
 	 * Search for resource data with fields that match the given query and
 	 * criteria.
 	 * 
@@ -214,6 +217,17 @@ class InMemory implements Readable, Modifiable, Searchable {
 		$filter = array_merge($filter, $search);
 		
 		return $this->read($resource, $filter, $order, $limit, $offset);
+	}
+	
+	/**
+	 * Retrieve the error that occured with the last operation.
+	 * 
+	 * Returns false if there was no error.
+	 * 
+	 * @return string|bool
+	 */
+	public function error() {
+		return false;
 	}
 	
 }

@@ -43,7 +43,13 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(2, count($users));
 		
-		// TODO: Test sorting and limiting
+		// Test sorting
+		$users = User::all(null, 'firstname');
+		
+		$this->assertEquals('Bethany', $users[0]->firstname);
+		$this->assertEquals('Chris', $users[1]->firstname);
+		
+		// TODO: Test limiting
 	}
 	
 	public function testHas() {
