@@ -258,7 +258,7 @@ abstract class Relation {
 	/**
 	 * Verify that the given objects are all instances of the given class.
 	 * 
-	 * @param object[]|object $objects
+	 * @param object[]|object $instances
 	 * @param string          $class
 	 * @throws Exception
 	 */
@@ -269,7 +269,7 @@ abstract class Relation {
 		
 		foreach (static::arrayify($instances) as $instance) {
 			if (!$instance instanceof $class) {
-				throw new Exception('Models must be an instance of ' . $class);
+				throw new Exception('Related models must be an instance of ' . $class);
 			}
 		}
 	}
@@ -306,7 +306,7 @@ abstract class Relation {
 	 * @param array $filter
 	 */
 	public function constrain(array $filter) {
-		$this->contraints = $filter;
+		$this->constraints = $filter;
 	}
 	
 	/**

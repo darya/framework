@@ -14,7 +14,7 @@ use Darya\Database\Error;
  * @property int    $count      Result count
  * @property Error  $error      Result error
  * @property array  $fields     Field names for each result data row
- * @property int    $insert     Insert ID
+ * @property int    $insertId   Insert ID
  * @property int    $affected   Rows affected
  * 
  * @author Chris Andrew <chris@hexus.io>
