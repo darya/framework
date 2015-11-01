@@ -74,12 +74,12 @@ class Query {
 	/**
 	 * Instantiate a new storage query.
 	 * 
-	 * @param string $resource
-	 * @param array  $fields   [optional]
-	 * @param array  $filter   [optional]
-	 * @param array  $order    [optional]
-	 * @param array  $limit    [optional]
-	 * @param array  $offset   [optional]
+	 * @param string   $resource
+	 * @param array    $fields   [optional]
+	 * @param array    $filter   [optional]
+	 * @param array    $order    [optional]
+	 * @param int|null $limit    [optional]
+	 * @param int      $offset   [optional]
 	 */
 	public function __construct($resource, array $fields = array(), array $filter = array(), array $order = array(), $limit = null, $offset = 0) {
 		$this->resource = $resource;

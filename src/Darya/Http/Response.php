@@ -99,12 +99,12 @@ class Response {
 	/**
 	 * Get and optionally set the HTTP status code of the response.
 	 * 
-	 * @param int $status
+	 * @param mixed $status
 	 * @return int
 	 */
 	public function status($status) {
 		if (is_numeric($status)) {
-			$this->status = $status;
+			$this->status = (int) $status;
 		}
 		
 		return $this->status;
