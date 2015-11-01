@@ -410,9 +410,11 @@ abstract class Relation {
 	/**
 	 * Set the related models.
 	 * 
-	 * @param mixed $instances
+	 * Clears related models if null is given.
+	 * 
+	 * @param mixed $instances [optional]
 	 */
-	public function set($instances) {
+	public function set($instances = null) {
 		if ($instances === null) {
 			$this->related = null;
 			

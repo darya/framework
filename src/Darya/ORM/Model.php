@@ -342,7 +342,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	/**
 	 * Recursively convert the model to an array.
 	 * 
-	 * @param mixed $object
 	 * @return array
 	 */
 	public function toArray() {

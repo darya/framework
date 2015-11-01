@@ -42,7 +42,7 @@ class Query {
 	protected $fields;
 	
 	/**
-	 * @var int
+	 * @var string
 	 */
 	protected $type;
 	

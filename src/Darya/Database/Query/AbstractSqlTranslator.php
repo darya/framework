@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Database\Query;
 
+use Exception;
 use Darya\Database;
 use Darya\Database\Query\Translator;
 use Darya\Storage;
@@ -44,6 +45,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * 
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
+	 * @throws Exception
 	 */
 	public function translate(Storage\Query $storageQuery) {
 		$type = $storageQuery->type;
@@ -91,7 +93,12 @@ abstract class AbstractSqlTranslator implements Translator {
 				break;
 		}
 		
-		return isset($query) ? $query : new Database\Query;
+		if (!isset($query)) {
+			throw new Exception("Could not translate query of unsupported type '$type'");
+		}
+		
+		
+		return $query;
 	}
 	
 	/**
