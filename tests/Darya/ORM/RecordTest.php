@@ -109,6 +109,18 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Moderator', $roles[0]->name);
 	}
 	
+	public function testListing() {
+		$firstnames = User::listing('firstname');
+		
+		$this->assertEquals(array(1 => 'Chris', 2 => 'Bethany', 3 => 'John'), $firstnames);
+	}
+	
+	public function testDistinct() {
+		$firstnames = User::distinct('firstname');
+		
+		$this->assertEquals(array('Chris', 'Bethany', 'John'), $firstnames);
+	}
+	
 	public function testHasMethod() {
 		$user = User::find(1);
 		

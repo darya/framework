@@ -14,7 +14,7 @@ use Darya\Storage\Query\Builder;
 
 /**
  * Darya's active record implementation.
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class Record extends Model {
@@ -22,7 +22,7 @@ class Record extends Model {
 	/**
 	 * Overrides the name of the database table that persists the model. The
 	 * model's lowercased class name is used if this is not set.
-	 * 
+	 *
 	 * @var string Database table name
 	 */
 	protected $table;
@@ -50,7 +50,7 @@ class Record extends Model {
 	/**
 	 * Instantiate a new record with the given data or load an instance from
 	 * storage if the given data is a valid primary key.
-	 * 
+	 *
 	 * @param mixed $data An array of key-value attributes to set or a primary key to load by
 	 */
 	public function __construct($data = null) {
@@ -63,7 +63,7 @@ class Record extends Model {
 	
 	/**
 	 * Generate instances of the model with the given sets of attributes.
-	 * 
+	 *
 	 * @param array $rows
 	 * @return Record[]
 	 */
@@ -123,6 +123,8 @@ class Record extends Model {
 	 * For example:
 	 *     Page        -> pages
 	 *     PageSection -> page_sections
+	 * 
+	 * @return string
 	 */
 	public function table() {
 		if ($this->table) {
@@ -233,11 +235,13 @@ class Record extends Model {
 	 */
 	protected static function prepareListing($data, $attribute) {
 		$instance = new static;
+		$key = $instance->key();
+		
 		$list = array();
 		
 		foreach ($data as $row) {
 			if (isset($row[$attribute])) {
-				$list[$row[$instance->key()]] = $row[$attribute];
+				$list[$row[$key]] = $row[$attribute];
 			}
 		}
 		
@@ -289,7 +293,7 @@ class Record extends Model {
 		
 		return $instance === false ? new static : $instance;
 	}
-	
+
 	/**
 	 * Load multiple record instances from storage using the given criteria.
 	 * 
@@ -383,7 +387,7 @@ class Record extends Model {
 		$storage = $instance->storage();
 		
 		if (!$storage instanceof Aggregational) {
-			return array_unique(static::listing($attribute, $filter, $order));
+			return array_values(array_unique(static::listing($attribute, $filter, $order)));
 		}
 		
 		return $storage->distinct($instance->table(), $attribute, $filter, $order, $limit, $offset);
@@ -576,7 +580,7 @@ class Record extends Model {
 		
 		$relation->associate($value);
 	}
-	
+
 	/**
 	 * Retrieve the default search attributes for the model.
 	 * 
