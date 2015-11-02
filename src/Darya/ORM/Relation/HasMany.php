@@ -68,7 +68,7 @@ class HasMany extends Has {
 	 * 
 	 * Returns the number of models successfully associated.
 	 * 
-	 * @param \Darya\ORM\Record[]|\Darya\ORM\Record $instances
+	 * @param Record[]|Record $instances
 	 * @return int
 	 */
 	public function associate($instances) {
@@ -89,7 +89,7 @@ class HasMany extends Has {
 	 * 
 	 * Returns the number of models successfully dissociated.
 	 * 
-	 * @param \Darya\ORM\Record[]|\Darya\ORM\Record $instances [optional]
+	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
 	public function dissociate($instances = null) {

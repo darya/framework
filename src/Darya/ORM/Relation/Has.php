@@ -97,7 +97,7 @@ class Has extends Relation {
 	 * 
 	 * Returns true if the model was successfully associated.
 	 * 
-	 * @param \Darya\ORM\Record $instance
+	 * @param Record $instance
 	 * @return bool
 	 */
 	public function associate($instance) {

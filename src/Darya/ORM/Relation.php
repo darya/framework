@@ -24,12 +24,12 @@ abstract class Relation {
 	const BELONGS_TO_MANY = 'belongs_to_many';
 	
 	/**
-	 * @var \Darya\ORM\Record Parent model
+	 * @var Record Parent model
 	 */
 	protected $parent;
 	
 	/**
-	 * @var \Darya\ORM\Record Target model
+	 * @var Record Target model
 	 */
 	protected $target;
 	
@@ -221,7 +221,7 @@ abstract class Relation {
 	 * 
 	 * Retrieves related models if none have been loaded yet.
 	 * 
-	 * @param \Darya\ORM\Record $instance
+	 * @param Record $instance
 	 */
 	protected function replace(Record $instance) {
 		$this->verify($instance);
@@ -305,7 +305,7 @@ abstract class Relation {
 	 * 
 	 * Falls back to target model storage, then parent model storage.
 	 * 
-	 * @param \Darya\Storage\Readable $storage
+	 * @param Readable $storage
 	 */
 	public function storage(Readable $storage = null) {
 		$this->storage = $storage ?: $this->storage;
