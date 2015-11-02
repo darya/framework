@@ -45,8 +45,8 @@ class MySql extends AbstractSqlTranslator {
 	 * @param int $offset [optional]
 	 * @return string
 	 */
-	protected function prepareLimit($limit = null, $offset = 0) {
-		if (!is_numeric($limit) || !is_numeric($offset) || empty($limit)) {
+	protected function prepareLimit($limit = 0, $offset = 0) {
+		if (!static::limitIsUseful($limit, $offset)) {
 			return null;
 		}
 		

@@ -39,8 +39,6 @@ class Sorter {
 	 * @return array
 	 */
 	protected static function prepareOrder($order) {
-		$result = array();
-		
 		if (is_array($order)) {
 			return static::normalizeOrder($order);
 		}

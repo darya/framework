@@ -41,6 +41,20 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Determine whether the given limit and offset will make a difference to
+	 * a statement.
+	 * 
+	 * Simply determines whether both are non-zero integers.
+	 * 
+	 * @param int $limit
+	 * @param int $offset
+	 * @return bool
+	 */
+	protected static function limitIsUseful($limit, $offset) {
+		return (int) $limit !== 0 || (int) $offset !== 0;
+	}
+	
+	/**
 	 * Translate the given storage query into a MySQL query.
 	 * 
 	 * @param Storage\Query $storageQuery
