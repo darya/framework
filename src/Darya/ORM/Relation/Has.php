@@ -63,7 +63,7 @@ class Has extends Relation {
 	/**
 	 * Retrieve the related model.
 	 * 
-	 * @return Record
+	 * @return Record|null
 	 */
 	public function retrieve() {
 		return $this->one();

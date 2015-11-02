@@ -182,6 +182,19 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Generate and set cached related models using the given data.
+	 * 
+	 * @param int $limit [optional]
+	 */
+	protected function generate($limit = null) {
+		if ($this->related === null) {
+			$data = $this->load($limit);
+			$class = get_class($this->target);
+			$this->related = $class::generate($data);
+		}
+	}
+	
+	/**
 	 * Reduce the cached related models to those with the given IDs.
 	 * 
 	 * If no IDs are given then all of the in-memory models will be removed.
@@ -352,36 +365,28 @@ abstract class Relation {
 	/**
 	 * Retrieve one or many related model instances, depending on the relation.
 	 * 
-	 * @return Record[]|Record
+	 * @return Record[]|Record|null
 	 */
 	abstract public function retrieve();
 	
 	/**
 	 * Retrieve one related model instance.
 	 * 
-	 * @return Record
+	 * @return Record|null
 	 */
 	public function one() {
-		if ($this->related === null) {
-			$data = $this->load(1);
-			$class = get_class($this->target);
-			$this->related = !empty($data) ? $class::generate($data) : null;
-		}
+		$this->generate(1);
 		
-		return count($this->related) ? $this->related[0] : null;
+		return !empty($this->related) ? $this->related[0] : null;
 	}
 	
 	/**
 	 * Retrieve all related model instances.
 	 * 
-	 * @return Record[]
+	 * @return Record[]|null
 	 */
 	public function all() {
-		if ($this->related === null) {
-			$data = $this->load();
-			$class = get_class($this->target);
-			$this->related = !empty($data) ? $class::generate($data) : null;
-		}
+		$this->generate();
 		
 		return $this->related;
 	}

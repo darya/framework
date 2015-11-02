@@ -71,7 +71,7 @@ class BelongsTo extends Relation {
 	/**
 	 * Retrieve the related model.
 	 * 
-	 * @return \Darya\ORM\Record|null
+	 * @return Record|null
 	 */
 	public function retrieve() {
 		if ($this->parent->get($this->foreignKey)) {
@@ -82,7 +82,7 @@ class BelongsTo extends Relation {
 	/**
 	 * Associate the given model.
 	 * 
-	 * @param \Darya\ORM\Record $instance
+	 * @param Record $instance
 	 * @return bool
 	 */
 	public function associate(Record $instance) {
