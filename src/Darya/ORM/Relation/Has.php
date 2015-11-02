@@ -93,12 +93,16 @@ class Has extends Relation {
 	/**
 	 * Associate the given model.
 	 * 
+	 * Dissociates any currently associated model beforehand.
+	 * 
 	 * Returns true if the model was successfully associated.
 	 * 
 	 * @param \Darya\ORM\Record $instance
 	 * @return bool
 	 */
 	public function associate($instance) {
+		$this->dissociate();
+		
 		$this->verify($instance);
 		$this->related = array($instance);
 		
@@ -115,6 +119,8 @@ class Has extends Relation {
 	public function dissociate() {
 		$associated = $this->retrieve();
 		$associated->set($this->foreignKey, 0);
+		
+		$this->related = null;
 		
 		return (bool) $associated->save();
 	}

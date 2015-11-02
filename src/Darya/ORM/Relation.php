@@ -365,7 +365,7 @@ abstract class Relation {
 		if ($this->related === null) {
 			$data = $this->load(1);
 			$class = get_class($this->target);
-			$this->related = $class::generate($data);
+			$this->related = !empty($data) ? $class::generate($data) : null;
 		}
 		
 		return count($this->related) ? $this->related[0] : null;
@@ -380,7 +380,7 @@ abstract class Relation {
 		if ($this->related === null) {
 			$data = $this->load();
 			$class = get_class($this->target);
-			$this->related = $class::generate($data);
+			$this->related = !empty($data) ? $class::generate($data) : null;
 		}
 		
 		return $this->related;

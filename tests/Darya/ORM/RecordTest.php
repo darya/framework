@@ -5,6 +5,8 @@ use Darya\Storage\InMemory;
 /**
  * Tests Darya's active record ORM using in-memory storage.
  * 
+ * Please refer to ./data/cms.json for the test data used for this test case.
+ * 
  * TODO: Test updating and deleting relations.
  */
 class RecordTest extends PHPUnit_Framework_TestCase {
@@ -107,7 +109,7 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Moderator', $roles[0]->name);
 	}
 	
-	public function testHas() {
+	public function testHasMethod() {
 		$user = User::find(1);
 		
 		$this->assertTrue($user->has('roles'));
@@ -121,6 +123,12 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($user->has('manager'));
 	}
 	
+	public function testHas() {
+		$user = User::find(1);
+		
+		$this->assertEquals('John', $user->padawan->firstname);
+	}
+	
 	public function testHasEager() {
 		$users = User::eager('padawan');
 		
@@ -128,6 +136,45 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(3, count($users));
 		$this->assertEquals('John', $users[0]->padawan->firstname);
+	}
+	
+	public function testHasAssociation() {
+		$user = User::find(1);
+		
+		$user->padawan = User::find(2);
+		
+		$this->assertEquals('Bethany', $user->padawan->firstname);
+		
+		$padawan = User::find(2);
+		$this->assertEquals(1, $padawan->master_id);
+		
+		$old = User::find(3);
+		$this->assertEquals(0, $old->master_id);
+		
+		// Also test on the relation object
+		$user->padawan()->associate(User::find(3));
+		
+		$this->assertEquals('John', $user->padawan->firstname);
+
+		$padawan = User::find(2);
+		$this->assertEquals(0, $padawan->master_id);
+		
+		$old = User::find(3);
+		$this->assertEquals(1, $old->master_id);
+	}
+	
+	public function testHasDissociation() {
+		$user = User::find(1);
+		
+		$this->assertNotNull($user->padawan);
+		
+		$user->padawan()->dissociate();
+		
+		$this->assertNull($user->padawan);
+		
+		$padawan = User::find(3);
+		
+		$this->assertEquals(0, $padawan->master_id);
 	}
 	
 	public function testBelongsTo() {
@@ -155,6 +202,10 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Bethany', $posts[2]->author->firstname);
 	}
 	
+	public function testBelongsToAssociation() {
+		
+	}
+	
 	public function testHasMany() {
 		$user = User::find(1);
 		
@@ -174,6 +225,51 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(2, count($users[0]->posts));
 		$this->assertEquals(1, count($users[1]->posts));
 		$this->assertEquals(0, count($users[2]->posts));
+	}
+	
+	
+	public function testHasManyAssociation() {
+		$user = User::find(1);
+		
+		$post = new Post(array(
+			'id'      => 4,
+			'title'   => 'Swagger',
+			'content' => 'Dis one got swagger'
+		));
+		
+		$user->posts()->associate($post);
+		
+		$this->assertEquals(3, $user->posts()->count());
+	}
+	
+	public function testHasManyDissociation() {
+		$user = User::find(1);
+		
+		$this->assertEquals(2, $user->posts()->count());
+		
+		$post = $user->posts[0];
+		
+		$this->assertEquals(1, $post->id());
+		
+		$dissociated = $user->posts()->dissociate($post);
+		
+		$this->assertEquals(1, $dissociated);
+		
+		$this->assertEquals(1, $user->posts()->count());
+		
+		$this->assertEquals(2, $user->posts[0]->id());
+	}
+	
+	public function testHasManyFullDissociation() {
+		$user = User::find(1);
+		
+		$this->assertEquals(2, $user->posts()->count());
+		
+		$dissociated = $user->posts()->dissociate();
+		
+		$this->assertEquals(2, $dissociated);
+		
+		$this->assertEquals(0, $user->posts()->count());
 	}
 	
 	public function testBelongsToMany() {
@@ -219,50 +315,6 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(1, count($users));
 		$this->assertEquals('Bethany', $users[0]->firstname);
-	}
-	
-	public function testHasManyAssociation() {
-		$user = User::find(1);
-		
-		$post = new Post(array(
-			'id'      => 4,
-			'title'   => 'Swagger',
-			'content' => 'Dis one got swagger'
-		));
-		
-		$user->posts()->associate($post);
-		
-		$this->assertEquals(3, $user->posts()->count());
-	}
-	
-	public function testHasManyDissociation() {
-		$user = User::find(1);
-		
-		$this->assertEquals(2, $user->posts()->count());
-		
-		$post = $user->posts[0];
-		
-		$this->assertEquals(1, $post->id());
-		
-		$dissociated = $user->posts()->dissociate($post);
-		
-		$this->assertEquals(1, $dissociated);
-		
-		$this->assertEquals(1, $user->posts()->count());
-		
-		$this->assertEquals(2, $user->posts[0]->id());
-	}
-	
-	public function testHasManyFullDissociation() {
-		$user = User::find(1);
-		
-		$this->assertEquals(2, $user->posts()->count());
-		
-		$dissociated = $user->posts()->dissociate();
-		
-		$this->assertEquals(2, $dissociated);
-		
-		$this->assertEquals(0, $user->posts()->count());
 	}
 	
 }
