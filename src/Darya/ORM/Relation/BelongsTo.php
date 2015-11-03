@@ -98,7 +98,7 @@ class BelongsTo extends Relation {
 	 * @return bool
 	 */
 	public function dissociate() {
-		$this->set();
+		$this->clear();
 		$this->parent->set($this->foreignKey, 0);
 		
 		return $this->parent->save();

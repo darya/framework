@@ -118,9 +118,14 @@ class Has extends Relation {
 	 */
 	public function dissociate() {
 		$associated = $this->retrieve();
-		$associated->set($this->foreignKey, 0);
 		
-		$this->related = null;
+		if (!$associated) {
+			return true;
+		}
+		
+		$this->clear();
+		
+		$associated->set($this->foreignKey, 0);
 		
 		return (bool) $associated->save();
 	}

@@ -9,7 +9,6 @@ use Darya\Storage\Readable;
 /**
  * Darya's abstract entity relation.
  * 
- * TODO: constraint() method for specifying a default filter for related models.
  * TODO: errors() method.
  * TODO: Filter, order, limit, offset for load() and retrieve().
  * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
@@ -49,7 +48,7 @@ abstract class Relation {
 	protected $constraints = array();
 	
 	/**
-	 * @var array|null The related instances
+	 * @var array The related instances
 	 */
 	protected $related = null;
 	
@@ -182,19 +181,6 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Generate and set cached related models using the given data.
-	 * 
-	 * @param int $limit [optional]
-	 */
-	protected function generate($limit = null) {
-		if ($this->related === null) {
-			$data = $this->load($limit);
-			$class = get_class($this->target);
-			$this->related = $class::generate($data);
-		}
-	}
-	
-	/**
 	 * Reduce the cached related models to those with the given IDs.
 	 * 
 	 * If no IDs are given then all of the in-memory models will be removed.
@@ -226,9 +212,7 @@ abstract class Relation {
 	protected function replace(Record $instance) {
 		$this->verify($instance);
 		
-		if ($this->related === null) {
-			$this->retrieve();
-		}
+		$this->retrieve();
 		
 		if (!$instance->id()) {
 			$this->related[] = $instance;
@@ -341,14 +325,38 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Load related model data from storage.
+	 * Read related model data from storage.
 	 * 
 	 * TODO: $filter, $order, $offset
 	 * 
+	 * @param int $limit [optional]
 	 * @return array
 	 */
-	public function load($limit = null) {
+	public function read($limit = 0) {
 		return $this->storage()->read($this->target->table(), $this->filter(), null, $limit);
+	}
+	
+	/**
+	 * Read, generate and set cached related models from storage.
+	 * 
+	 * @param int $limit [optional]
+	 * @return Record[]
+	 */
+	public function load($limit = 0) {
+		$data = $this->read($limit);
+		$class = get_class($this->target);
+		$this->related = $class::generate($data);
+		
+		return $this->related;
+	}
+	
+	/**
+	 * Determine whether cached related models have been attempted to be loaded.
+	 * 
+	 * @return bool
+	 */
+	public function loaded() {
+		return $this->related !== null;
 	}
 	
 	/**
@@ -375,7 +383,9 @@ abstract class Relation {
 	 * @return Record|null
 	 */
 	public function one() {
-		$this->generate(1);
+		if (!$this->loaded()) {
+			$this->load(1);
+		}
 		
 		return !empty($this->related) ? $this->related[0] : null;
 	}
@@ -386,7 +396,9 @@ abstract class Relation {
 	 * @return Record[]|null
 	 */
 	public function all() {
-		$this->generate();
+		if (!$this->loaded()) {
+			$this->load();
+		}
 		
 		return $this->related;
 	}
@@ -399,37 +411,29 @@ abstract class Relation {
 	 * @return int
 	 */
 	public function count() {
-		if (!$this->related) {
+		if (!$this->loaded()) {
 			return $this->storage()->count($this->target->table(), $this->filter());
 		}
 		
-		return array_reduce($this->related, function($carry, $item) {
-			if ($item instanceof Record) {
-				$carry++;
-			}
-			
-			return $carry;
-		}, 0);
+		return count($this->related);
 	}
 	
 	/**
 	 * Set the related models.
 	 * 
-	 * Clears related models if null is given.
-	 * 
-	 * @param mixed $instances [optional]
+	 * @param Record[] $instances
 	 */
-	public function set($instances = null) {
-		if ($instances === null) {
-			$this->related = null;
-			
-			return;
-		}
-		
+	public function set($instances) {
 		$this->verify($instances);
 		$this->related = static::arrayify($instances);
 	}
 	
+	/**
+	 * Clear the related models.
+	 */
+	public function clear() {
+		$this->related = null;
+	}
 	
 	/**
 	 * Read-only access for relation properties.

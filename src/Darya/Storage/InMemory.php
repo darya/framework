@@ -72,7 +72,7 @@ class InMemory implements Readable, Modifiable, Searchable {
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function read($resource, array $filter = array(), $order = null, $limit = null, $offset = 0) {
+	public function read($resource, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		if (empty($this->data[$resource])) {
 			return array();
 		}
@@ -99,7 +99,7 @@ class InMemory implements Readable, Modifiable, Searchable {
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		$data = $this->read($resource, $filter, $order, $limit, $offset);
 		
 		$fields = (array) $fields;
@@ -161,7 +161,7 @@ class InMemory implements Readable, Modifiable, Searchable {
 	 * @param int    $limit    [optional]
 	 * @return int|bool
 	 */
-	public function update($resource, $data, array $filter = array(), $limit = null) {
+	public function update($resource, $data, array $filter = array(), $limit = 0) {
 		if (empty($this->data[$resource])) {
 			return;
 		}

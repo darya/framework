@@ -157,7 +157,7 @@ class BelongsToMany extends Relation {
 	 * @param int $limit
 	 * @return array
 	 */
-	public function load($limit = null) {
+	public function read($limit = null) {
 		$relations = $this->storage()->read($this->table, $this->filter(), null, $limit);
 		
 		$related = array();
@@ -336,7 +336,7 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function count() {
-		if ($this->related) {
+		if ($this->loaded()) {
 			return parent::count();
 		}
 		

@@ -12,14 +12,14 @@ use Darya\Service\Contracts\Container as ContainerInterface;
 abstract class Facade {
 	
 	/**
-	 * @var Container
+	 * @var ContainerInterface
 	 */
 	protected static $serviceContainer;
 	
 	/**
 	 * Set the service container to use for all facades.
 	 * 
-	 * @param Container $container
+	 * @param ContainerInterface $container
 	 */
 	public static function setServiceContainer(ContainerInterface $container) {
 		static::$serviceContainer = $container;
