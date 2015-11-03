@@ -12,6 +12,7 @@ use Darya\Storage\Readable;
  * TODO: errors() method.
  * TODO: Filter, order, limit, offset for load() and retrieve().
  * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
+ * TODO: Use a $loaded property instead of setting relations to null.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -48,7 +49,7 @@ abstract class Relation {
 	protected $constraints = array();
 	
 	/**
-	 * @var array The related instances
+	 * @var Record[]|null The related instances
 	 */
 	protected $related = null;
 	
