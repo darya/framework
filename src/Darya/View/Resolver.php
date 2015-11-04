@@ -49,7 +49,7 @@ class Resolver {
 	 * @return path
 	 */
 	public static function normalise($path) {
-		return preg_replace('~[\\\|/]+~', '/', trim($path, '\/'));
+		return preg_replace('~[\\\|/]+~', '/', rtrim($path, '\/'));
 	}
 	
 	/**
