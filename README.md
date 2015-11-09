@@ -43,7 +43,7 @@ require_once 'vendor/darya/framework/autoloader.php';
 
 ## Basic usage
 
-### Services
+### Service container
 
 Darya's service container can be used to manage and resolve dependencies within
 an application.
