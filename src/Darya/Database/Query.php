@@ -32,8 +32,23 @@ class Query {
 		$this->parameters = $parameters;
 	}
 	
+	/**
+	 * Dynamically retrieve a property of the query.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
 	public function __get($property) {
 		return $this->$property;
+	}
+	
+	/**
+	 * Retrieve the query's string representation.
+	 * 
+	 * @return string
+	 */
+	public function __toString() {
+		return $this->string;
 	}
 	
 }
