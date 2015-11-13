@@ -489,6 +489,7 @@ class Router implements ContainerAware {
 	public function resolve(Route $route) {
 		$this->resolveRouteController($route);
 		$this->resolveRouteAction($route);
+		
 		return true;
 	}
 	
@@ -623,13 +624,14 @@ class Router implements ContainerAware {
 		$responses = $this->event('router.before', $requestResponse);
 		
 		if (is_callable($callable)) {
-			$responses[] = $this->call($callable, $arguments);
+			$responses[] = $requestResponse[1] = $this->call($callable, $arguments);
 		} else {
 			$response->status(404);
 			return $this->handleError($request, $response, 'Non-callable resolved from the matched route');
 		}
 		
 		$responses = array_merge($responses, $this->event('router.after', $requestResponse));
+		$requestResponse[1] = $responses[count($responses) - 1];
 		$responses = array_merge($responses, $this->event('router.last', $requestResponse));
 		
 		foreach ($responses as $potential) {
