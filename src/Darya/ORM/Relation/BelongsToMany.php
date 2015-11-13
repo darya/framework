@@ -23,16 +23,18 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @param Relation $parent
 	 * @param string   $target
-	 * @param string   $foreignKey
-	 * @param string   $localKey
-	 * @param string   $table
+	 * @param string   $foreignKey [optional]
+	 * @param string   $localKey   [optional]
+	 * @param string   $table      [optional]
+	 * @param array    $constraint [optional]
 	 */
-	public function __construct(Record $parent, $target, $foreignKey = null, $localKey = null, $table = null) {
+	public function __construct(Record $parent, $target, $foreignKey = null, $localKey = null, $table = null, $constraint = null) {
 		$this->localKey = $localKey;
 		parent::__construct($parent, $target, $foreignKey);
 		
 		$this->table = $table;
 		$this->setDefaultTable();
+		$this->constrain($constraint ?: array());
 	}
 	
 	/**
