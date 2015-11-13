@@ -217,8 +217,12 @@ class BelongsToMany extends Relation {
 		foreach ($instances as $instance) {
 			$instanceRelations = array();
 			
-			foreach ($relationBundle[$instance->id()] as $relationId) {
-				$instanceRelations[] = $list[$relationId];
+			if (isset($relationBundle[$instance->id()])) {
+				foreach ($relationBundle[$instance->id()] as $relationId) {
+					if (isset($list[$relationId])) {
+						$instanceRelations[] = $list[$relationId];
+					}
+				}
 			}
 			
 			$instance->relation($name)->set($instanceRelations);
