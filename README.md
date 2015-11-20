@@ -8,7 +8,7 @@ Darya is a PHP framework for web application development.
 
 Its components include:
 
-- [Service container](#services)
+- [Service container](#service-container)
 - [HTTP abstractions](#http-abstractions)
 - [Router](#routing)
 - [Event dispatcher](#events)

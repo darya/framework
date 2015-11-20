@@ -14,7 +14,7 @@ use Darya\Storage\Query\Builder;
 
 /**
  * Darya's active record implementation.
- *
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Record extends Model {
@@ -22,7 +22,7 @@ class Record extends Model {
 	/**
 	 * Overrides the name of the database table that persists the model. The
 	 * model's lowercased class name is used if this is not set.
-	 *
+	 * 
 	 * @var string Database table name
 	 */
 	protected $table;
@@ -50,7 +50,7 @@ class Record extends Model {
 	/**
 	 * Instantiate a new record with the given data or load an instance from
 	 * storage if the given data is a valid primary key.
-	 *
+	 * 
 	 * @param mixed $data An array of key-value attributes to set or a primary key to load by
 	 */
 	public function __construct($data = null) {
@@ -63,7 +63,7 @@ class Record extends Model {
 	
 	/**
 	 * Generate instances of the model with the given sets of attributes.
-	 *
+	 * 
 	 * @param array $rows
 	 * @return Record[]
 	 */
