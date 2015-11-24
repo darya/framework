@@ -1,6 +1,9 @@
 <?php
 namespace Darya\Database\Storage;
 
+use Darya\Database\Result as DatabaseResult;
+use Darya\Storage\Result as StorageResult;
+
 /**
  * Storage result specific to working with database storage.
  * 
@@ -8,10 +11,19 @@ namespace Darya\Database\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Result {
+class Result extends StorageResult {
 	
-	public static function createFromDatabaseResult() {
+	/**
+	 * Create a new database storage result from the given database
+	 * connection result.
+	 * 
+	 * @param DatabaseResult $result
+	 * @return StorageResult
+	 */
+	public static function createFromDatabaseResult(DatabaseResult $result) {
 		
 	}
+	
+	
 	
 }

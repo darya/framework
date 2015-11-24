@@ -8,6 +8,7 @@ use ReflectionClass;
 use Darya\Database\AbstractConnection;
 use Darya\Database\Error;
 use Darya\Database\Result;
+use Darya\Database\Query;
 use Darya\Database\Query\Translator;
 
 /**
@@ -233,20 +234,24 @@ class MySql extends AbstractConnection {
 	/**
 	 * Query the database with the given query and optional parameters.
 	 * 
-	 * @param string $query
-	 * @param array  $parameters [optional]
+	 * @param Query|string $query
+	 * @param array        $parameters [optional]
 	 * @return Result
 	 */
 	public function query($query, array $parameters = array()) {
+		if (!$query instanceof Query) {
+			$query = new Query((string) $query, $parameters);
+		}
+		
 		$this->connect();
 		
-		$this->event('mysql.prequery', array($query, $parameters));
+		$this->event('mysql.prequery', array($query));
 		
-		$statement = $this->prepareStatement($query, $parameters);
+		$statement = $this->prepareStatement($query->string, $query->$parameters);
 		
 		if ($statement->errno) {
 			$error = new Error($statement->errno, $statement->error);
-			$this->lastResult = new Result($query, $parameters, array(), array(), $error);
+			$this->lastResult = new Result($query, array(), array(), $error);
 			
 			return $this->lastResult;
 		}
@@ -257,7 +262,7 @@ class MySql extends AbstractConnection {
 		$error = $this->error();
 		
 		if ($error) {
-			$this->lastResult = new Result($query, $parameters, array(), array(), $error);
+			$this->lastResult = new Result($query, array(), array(), $error);
 			
 			return $this->lastResult;
 		}
@@ -273,7 +278,7 @@ class MySql extends AbstractConnection {
 			'insert_id' => $result['insert_id']
 		);
 		
-		$this->lastResult = new Result($query, $parameters, $result['data'], $info, $error);
+		$this->lastResult = new Result($query, $result['data'], $info, $error);
 		
 		$this->event('mysql.query', array($this->lastResult));
 		

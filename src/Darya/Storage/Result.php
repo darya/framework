@@ -32,6 +32,34 @@ class Result {
 	protected $error;
 	
 	/**
+	 * The number of rows in the result data.
+	 * 
+	 * @var int
+	 */
+	protected $count;
+	
+	/**
+	 * The set of fields available for each row in the result.
+	 * 
+	 * @var array
+	 */
+	protected $fields;
+	
+	/**
+	 * Auto incremented primary key of an inserted row.
+	 * 
+	 * @var int
+	 */
+	protected $insertId;
+	
+	/**
+	 * Error captured from the query that produced this result.
+	 * 
+	 * @var Error
+	 */
+	protected $error;
+	
+	/**
 	 * Instantiate a new storage query result.
 	 * 
 	 * @param Query $query
@@ -43,6 +71,27 @@ class Result {
 		$this->query = $query;
 		$this->data = $data;
 		$this->error = $error;
+	}
+	
+	/**
+	 * Set the result info.
+	 * 
+	 * Accepts the keys 'affected', 'count', 'insert_id' and 'fields'.
+	 * 
+	 * @param array $info
+	 */
+	protected function setInfo(array $info) {
+		$defaults = array(
+			'count' => 0,
+			'fields' => array(),
+			'affected' => 0,
+			'insert_id' => 0
+		);
+		
+		foreach ($defaults as $key => $default) {
+			$property = static::snakeToCamel($key);
+			$this->$property = isset($info[$key]) ? $info[$key] : $default;
+		}
 	}
 	
 }
