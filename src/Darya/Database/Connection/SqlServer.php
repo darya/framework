@@ -5,6 +5,7 @@ use Darya\Database\AbstractConnection;
 use Darya\Database\Error;
 use Darya\Database\Query\Translator;
 use Darya\Database\Result;
+use Darya\Database\Query;
 
 /**
  * Darya's SQL Server (MSSQL) database interface for Windows.
@@ -106,16 +107,20 @@ class SqlServer extends AbstractConnection {
 	/**
 	 * Query the database.
 	 * 
-	 * @param string $query
-	 * @param array  $parameters [optional]
-	 * @return \Darya\Database\Result
+	 * @param Query|string $query
+	 * @param array        $parameters [optional]
+	 * @return Result
 	 */
 	public function query($query, array $parameters = array()) {
+		if (!$query instanceof Query) {
+			$query = new Query($query, $parameters);
+		}
+		
 		$this->connect();
 		
-		$this->event('sqlserver.prequery', array($query, $parameters));
+		$this->event('sqlserver.prequery', array($query));
 		
-		$mssql_result = sqlsrv_query($this->connection, $query, $parameters, array(
+		$mssql_result = sqlsrv_query($this->connection, $query->string, $query->parameters, array(
 			'Scrollable' => SQLSRV_CURSOR_CLIENT_BUFFERED
 		));
 		
@@ -130,7 +135,7 @@ class SqlServer extends AbstractConnection {
 		$error = $this->error();
 		
 		if ($mssql_result === false || $error) {
-			$this->lastResult = new Result($query, $parameters, array(), array(), $error);
+			$this->lastResult = new Result($query, array(), array(), $error);
 			
 			return $this->lastResult;
 		}
@@ -157,7 +162,7 @@ class SqlServer extends AbstractConnection {
 			'insert_id' => $result['insert_id']
 		);
 		
-		$this->lastResult = new Result($query, $parameters, $result['data'], $info, $error);
+		$this->lastResult = new Result($query, $result['data'], $info, $error);
 		
 		$this->event('sqlserver.query', array($this->lastResult));
 		
@@ -165,7 +170,8 @@ class SqlServer extends AbstractConnection {
 	}
 	
 	/**
-	 * Retrieve error information regarding the last operation.
+	 * Retrieve error information regarding the last query or connection
+	 * attempt.
 	 * 
 	 * Returns null if there is no error.
 	 * 

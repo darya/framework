@@ -19,7 +19,8 @@ This document covers the basics of using different components.
 
 ## Installation
 
-Use [composer](https://getcomposer.org) to install the package `darya/framework`.
+Use [composer](https://getcomposer.org) to install the package
+`darya/framework`.
 
 Otherwise just clone this repository into a directory such as
 `/vendor/darya/framework`.
