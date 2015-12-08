@@ -1,10 +1,19 @@
 <?php
 namespace Darya\Storage;
 
+use Darya\Storage\Error;
 use Darya\Storage\Query;
 
 /**
  * Darya's storage query result.
+ * 
+ * @property array $data       Result data
+ * @property Query $query      Query that produced this result
+ * @property int   $count      Result count
+ * @property Error $error      Result error
+ * @property array $fields     Field names for each result data row
+ * @property int   $insertId   Insert ID
+ * @property int   $affected   Rows affected
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -60,6 +69,18 @@ class Result {
 	protected $error;
 	
 	/**
+	 * Convert a string from snake_case to camelCase.
+	 * 
+	 * @param string $string
+	 * @return string
+	 */
+	protected static function snakeToCamel($string) {
+		return preg_replace_callback('/_(.)/', function($matches) {
+			return strtoupper($matches[1]);
+		}, $string);
+	}
+	
+	/**
 	 * Instantiate a new storage query result.
 	 * 
 	 * @param Query $query
@@ -71,6 +92,8 @@ class Result {
 		$this->query = $query;
 		$this->data = $data;
 		$this->error = $error;
+		
+		$this->setInfo($info);
 	}
 	
 	/**
@@ -92,6 +115,16 @@ class Result {
 			$property = static::snakeToCamel($key);
 			$this->$property = isset($info[$key]) ? $info[$key] : $default;
 		}
+	}
+	
+	/**
+	 * Dynamically retrieve the given property.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
+	public function __get($property) {
+		return $this->$property;
 	}
 	
 }

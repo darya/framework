@@ -1,5 +1,6 @@
 <?php
 use Darya\Database\Error;
+use Darya\Database\Query;
 use Darya\Database\Result;
 
 class ResultTest extends PHPUnit_Framework_TestCase {
@@ -25,9 +26,9 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 			'fields' => array('id', 'swag')
 		);
 		
-		$result = new Result('SELECT * FROM swag', array(), $data, $info);
+		$result = new Result(new Query('SELECT * FROM swag'), $data, $info);
 		
-		$this->assertEquals('SELECT * FROM swag', $result->query);
+		$this->assertEquals('SELECT * FROM swag', $result->query->string);
 		$this->assertEquals($data, $result->data);
 		$this->assertEquals(3, $result->count);
 		$this->assertEquals(array('id', 'swag'), $result->fields);
@@ -38,9 +39,9 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 			'affected' => 3
 		);
 		
-		$result = new Result("UPDATE swag SET swag='b0ss'", array(), array(), $info);
+		$result = new Result(new Query("UPDATE swag SET swag='b0ss'"), array(), $info);
 		
-		$this->assertEquals("UPDATE swag SET swag='b0ss'", $result->query);
+		$this->assertEquals("UPDATE swag SET swag='b0ss'", $result->query->string);
 		$this->assertEquals(0, $result->count);
 		$this->assertEquals(3, $result->affected);
 		$this->assertEquals(0, $result->insertId);
@@ -53,9 +54,9 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 			'insert_id' => 4
 		);
 		
-		$result = new Result("INSERT INTO swag (swag) VALUES ('b0ss')", array(), array(), $info);
+		$result = new Result(new Query("INSERT INTO swag (swag) VALUES ('b0ss')"), array(), $info);
 		
-		$this->assertEquals("INSERT INTO swag (swag) VALUES ('b0ss')", $result->query);
+		$this->assertEquals("INSERT INTO swag (swag) VALUES ('b0ss')", $result->query->string);
 		$this->assertEquals(0, $result->count);
 		$this->assertEquals(1, $result->affected);
 		$this->assertEquals(4, $result->insertId);
@@ -66,8 +67,9 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$info = array();
 		
 		$error = new Error(1007, "Can't create database 'swag'; database exists");
-		$result = new Result('CREATE TABLE swag (id INT UNSIGNED, swag TEXT)', array(), array(), $info, $error);
+		$result = new Result(new Query('CREATE TABLE swag (id INT UNSIGNED, swag TEXT)'), array(), $info, $error);
 		
+		$this->assertEquals('CREATE TABLE swag (id INT UNSIGNED, swag TEXT)', $result->query->string);
 		$this->assertEquals(1007, $result->error->number);
 		$this->assertEquals("Can't create database 'swag'; database exists", $result->error->message);
 	}
