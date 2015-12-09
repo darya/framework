@@ -1,13 +1,12 @@
 <?php
 namespace Darya\Database;
 
+use Darya\Storage\AbstractResult;
 use Darya\Database\Error;
 use Darya\Database\Query;
 
 /**
  * Darya's database result representation.
- * 
- * TODO: Make this iterable for result data. Maybe.
  * 
  * @property array $data       Result data
  * @property Query $query      Query that produced this result
@@ -19,7 +18,7 @@ use Darya\Database\Query;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Result {
+class Result extends AbstractResult {
 	
 	/**
 	 * The database query that produced this result.
@@ -29,59 +28,11 @@ class Result {
 	protected $query;
 	
 	/**
-	 * Associative array of the result's data.
+	 * The error that occurred when executing the query, if any.
 	 * 
-	 * @var array
-	 */
-	protected $data;
-	
-	/**
-	 * Number of rows affected by the query. Only applies to queries that modify
-	 * the database.
-	 * 
-	 * @var int
-	 */
-	protected $affected;
-	
-	/**
-	 * Number of rows in the result data.
-	 * 
-	 * @var int
-	 */
-	protected $count;
-	
-	/**
-	 * Set of fields available for each row in the result.
-	 * 
-	 * @var array
-	 */
-	protected $fields;
-	
-	/**
-	 * Auto incremented primary key of an inserted row.
-	 * 
-	 * @var int
-	 */
-	protected $insertId;
-	
-	/**
-	 * Error captured from the query that produced this result.
-	 * 
-	 * @var Error
+	 * @var Error|null
 	 */
 	protected $error;
-	
-	/**
-	 * Convert a string from snake_case to camelCase.
-	 * 
-	 * @param string $string
-	 * @return string
-	 */
-	protected static function snakeToCamel($string) {
-		return preg_replace_callback('/_(.)/', function($matches) {
-			return strtoupper($matches[1]);
-		}, $string);
-	}
 	
 	/**
 	 * Instantiate a new database result.
@@ -99,37 +50,6 @@ class Result {
 		$this->query = $query;
 		
 		$this->setInfo($info);
-	}
-	
-	/**
-	 * Set the result info.
-	 * 
-	 * Accepts the keys 'affected', 'count', 'insert_id' and 'fields'.
-	 * 
-	 * @param array $info
-	 */
-	protected function setInfo(array $info) {
-		$defaults = array(
-			'count' => 0,
-			'fields' => array(),
-			'affected' => 0,
-			'insert_id' => 0
-		);
-		
-		foreach ($defaults as $key => $default) {
-			$property = static::snakeToCamel($key);
-			$this->$property = isset($info[$key]) ? $info[$key] : $default;
-		}
-	}
-	
-	/**
-	 * Dynamically retrieve the given property.
-	 * 
-	 * @param string $property
-	 * @return mixed
-	 */
-	public function __get($property) {
-		return $this->$property;
 	}
 	
 }

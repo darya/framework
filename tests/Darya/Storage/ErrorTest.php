@@ -1,5 +1,5 @@
 <?php
-use Darya\Database\Error;
+use Darya\Storage\Error;
 
 class ErrorTest extends PHPUnit_Framework_TestCase {
 	

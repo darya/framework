@@ -4,8 +4,8 @@ use Darya\Routing\Route;
 
 class RouterTest {
 	
-	/*public function testReverseRouting() {
+	public function testReverseRouting() {
 		
-	}*/
+	}
 	
 }

@@ -53,8 +53,8 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	 * Sets the shared storage to a mock that should never have its read method
 	 * called.
 	 * 
-	 * This can be used to test that models were eagerly loaded correctly - the
-	 * relation objects shouldn't need to query the storage.
+	 * This can be used to test that model relations were eagerly loaded
+	 * correctly - the relation objects shouldn't need to query the storage.
 	 */
 	protected function mockEagerStorage() {
 		$mock = $this->getMockBuilder($this->storageClass())
