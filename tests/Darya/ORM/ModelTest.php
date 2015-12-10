@@ -3,6 +3,21 @@ use Darya\ORM\Model;
 
 class ModelTest extends PHPUnit_Framework_TestCase {
 	
+	protected function generationData() {
+		return array(
+			array(
+				'value'    => 'something',
+				'date'     => '2015-05-15 11:28',
+				'options'  => array('one', 'two')
+			),
+			array(
+				'value'    => 'another_thing',
+				'date'     => '2015-05-15 11:30',
+				'options'  => null
+			)
+		);
+	}
+	
 	public function testAttributes() {
 		$model = new ModelStub(array(
 			'id'   => 1,
@@ -65,22 +80,7 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		), $model->data());
 	}
 	
-	public function testGeneration() {
-		$models = AttributeStub::generate(
-			array(
-				array(
-					'value'    => 'something',
-					'date'     => '2015-05-15 11:28',
-					'options'  => array('one', 'two')
-				),
-				array(
-					'value'    => 'another_thing',
-					'date'     => '2015-05-15 11:30',
-					'options'  => null
-				)
-			)
-		);
-		
+	protected function assertGeneratedModels($models) {
 		$this->assertEquals('something', $models[0]->value);
 		$this->assertEquals('2015-05-15 11:28:00', $models[0]->date);
 		$this->assertEquals(array('one', 'two'), $models[0]->options);
@@ -88,6 +88,26 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('another_thing', $models[1]->value);
 		$this->assertEquals('2015-05-15 11:30:00', $models[1]->date);
 		$this->assertEquals(null, $models[1]->options);
+	}
+	
+	public function testGeneration() {
+		$data = $this->generationData();
+		
+		$models = AttributeStub::generate($data);
+		
+		$this->assertGeneratedModels($models);
+		
+		$this->assertEquals(array_keys($data[0]), array_keys($models[0]->changed()));
+	}
+	
+	public function testHydration() {
+		$data = $this->generationData();
+		
+		$hydrated = AttributeStub::hydrate($data);
+		
+		$this->assertGeneratedModels($hydrated);
+		
+		$this->assertEmpty($hydrated[0]->changed());
 	}
 	
 }

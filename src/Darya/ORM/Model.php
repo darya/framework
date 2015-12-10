@@ -43,7 +43,7 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	protected $key;
 	
 	/**
-	 * @var array Attributes that have been modified since instantiation
+	 * @var array Attributes that have been modified
 	 */
 	protected $changed = array();
 	
@@ -171,15 +171,13 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
-	 * Retrieve raw attributes that have changed since instantiation.
+	 * Retrieve raw attributes that have changed.
 	 * 
 	 * @return array
 	 */
 	public function changed() {
 		return array_intersect_key($this->data, array_flip($this->changed));
 	}
-	
-	
 	
 	/**
 	 * Clear the record of changed attributes on the model, declaring the

@@ -62,23 +62,6 @@ class Record extends Model {
 	}
 	
 	/**
-	 * Generate instances of the model with the given sets of attributes.
-	 * 
-	 * @param array $rows
-	 * @return Record[]
-	 */
-	public static function generate(array $rows = array()) {
-		$instances = array();
-		
-		foreach ($rows as $key => $attributes) {
-			$instances[$key] = new static;
-			$instances[$key]->setMany($attributes);
-		}
-		
-		return $instances;
-	}
-	
-	/**
 	 * Determine whether the given attribute or relation is set on the record.
 	 * 
 	 * @param string $attribute
