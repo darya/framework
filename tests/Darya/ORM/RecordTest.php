@@ -260,7 +260,11 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(1, $user->manager()->count());
 		$this->assertEquals(4, count(User::all()));
-		$this->assertNotEmpty(User::find(4));
+		
+		$manager = User::find(4);
+		$this->assertNotEmpty($manager);
+		$this->assertEquals('Test', $manager->firstname);
+		$this->assertEquals('Manager', $manager->surname);
 	}
 	
 	public function testHasMany() {
@@ -299,7 +303,11 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(3, $user->posts()->count());
 		
 		$this->assertEquals(4, count(Post::all()));
-		$this->assertNotEmpty(Post::find(4));
+		
+		$post = Post::find(4);
+		$this->assertNotEmpty($post);
+		$this->assertEquals('Swagger', $post->title);
+		$this->assertEquals('Dis one got swagger', $post->content);
 	}
 	
 	public function testHasManyDissociation() {
