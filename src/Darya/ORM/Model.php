@@ -77,6 +77,9 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 * aren't new.
 	 * 
 	 * Equivalent to generate() but with a reinstate() call on each new model.
+	 * 
+	 * @param array $rows
+	 * @return array
 	 */
 	public static function hydrate(array $rows = array()) {
 		$instances = static::generate($rows);

@@ -287,7 +287,7 @@ class Record extends Model {
 	 * @return array
 	 */
 	public static function all($filter = array(), $order = array(), $limit = null, $offset = 0) {
-		return static::generate(static::load($filter, $order, $limit, $offset));
+		return static::hydrate(static::load($filter, $order, $limit, $offset));
 	}
 	
 	/**
@@ -332,7 +332,7 @@ class Record extends Model {
 		
 		$data = $storage->search($instance->table(), $query, $attributes, $filter, $order, $limit, $offset);
 		
-		return static::generate($data);
+		return static::hydrate($data);
 	}
 	
 	/**
@@ -393,7 +393,7 @@ class Record extends Model {
 		$builder = new Builder($query, $instance->storage());
 		
 		$builder->callback(function($result) use ($instance) {
-			return $instance::generate($result->data);
+			return $instance::hydrate($result->data);
 		});
 		
 		return $builder;
