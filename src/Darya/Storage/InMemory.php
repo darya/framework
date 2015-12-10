@@ -143,6 +143,7 @@ class InMemory implements Readable, Modifiable, Searchable {
 	 * 
 	 * @param string $resource
 	 * @param array  $data
+	 * @return bool
 	 */
 	public function create($resource, $data) {
 		if (!isset($this->data[$resource])) {
@@ -150,6 +151,8 @@ class InMemory implements Readable, Modifiable, Searchable {
 		}
 		
 		$this->data[$resource][] = $data;
+		
+		return true;
 	}
 	
 	/**

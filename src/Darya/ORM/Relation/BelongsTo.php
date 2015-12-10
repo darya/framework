@@ -86,6 +86,7 @@ class BelongsTo extends Relation {
 	 * @return bool
 	 */
 	public function associate(Record $instance) {
+		$instance->save();
 		$this->set(array($instance));
 		$this->parent->set($this->foreignKey, $instance->id());
 		

@@ -443,6 +443,10 @@ class Record extends Model {
 			} else {
 				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
 				
+				if (!$updated) {
+					$updated = $storage->create($this->table(), $data) > 0;
+				}
+				
 				if ($updated) {
 					return true;
 				}

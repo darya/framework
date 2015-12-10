@@ -215,7 +215,23 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	public function testBelongsToAssociation() {
+		$user = User::find(1);
 		
+		$user->manager()->associate(User::find(2));
+		
+		$this->assertEquals(1, $user->manager()->count());
+		
+		$manager = new User(array(
+			'id' => 4,
+			'firstname' => 'Test',
+			'surname' => 'Manager'
+		));
+		
+		$user->manager()->associate($manager);
+		
+		$this->assertEquals(1, $user->manager()->count());
+		$this->assertEquals(4, count(User::all()));
+		$this->assertNotEmpty(User::find(4));
 	}
 	
 	public function testHasMany() {
@@ -252,6 +268,9 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$user->posts()->associate($post);
 		
 		$this->assertEquals(3, $user->posts()->count());
+		
+		$this->assertEquals(4, count(Post::all()));
+		// $this->assertNotEmpty(Post::find(4)); // TODO: ???
 	}
 	
 	public function testHasManyDissociation() {
