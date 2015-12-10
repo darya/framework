@@ -42,9 +42,7 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	protected function setUp() {
-		if (!$this->storage) {
-			$this->setUpStorage();
-		}
+		$this->setUpStorage();
 		
 		Record::setSharedStorage($this->storage);
 	}
