@@ -68,6 +68,8 @@ class HasMany extends Has {
 	 * 
 	 * Returns the number of models successfully associated.
 	 * 
+	 * TODO: Stop this from assuming an ID on the instances. Somehow.
+	 * 
 	 * @param Record[]|Record $instances
 	 * @return int
 	 */
