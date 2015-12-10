@@ -243,6 +243,17 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Save the given record to storage if it hasn't got an ID.
+	 * 
+	 * @param Record $instance
+	 */
+	protected function persist(Record $instance) {
+		if (!$instance->id()) {
+			$instance->save();
+		}
+	}
+	
+	/**
 	 * Verify that the given models are instances of the relation's target
 	 * class.
 	 * 
@@ -256,7 +267,7 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Verify that the given objects are all instances of the given class.
+	 * Verify that the given objects are instances of the given class.
 	 * 
 	 * @param object[]|object $instances
 	 * @param string          $class

@@ -437,6 +437,7 @@ class Record extends Model {
 				
 				if ($id) {
 					$this->set($this->key(), $id);
+					$this->reinstate();
 					
 					return true;
 				}
@@ -448,6 +449,8 @@ class Record extends Model {
 				}
 				
 				if ($updated) {
+					$this->reinstate();
+					
 					return true;
 				}
 			}

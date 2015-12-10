@@ -115,6 +115,35 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(1 => 'Chris', 2 => 'Bethany', 3 => 'John'), $firstnames);
 	}
 	
+	public function testSave() {
+		$data = array(
+			'id'        => 4,
+			'firstname' => 'New',
+			'surname'   => 'User'
+		);
+		
+		$user = new User($data);
+		
+		// Also test changed attributes
+		$user->firstname = 'Some';
+		$data['firstname'] = 'Some';
+		
+		$user->save();
+		
+		// Test loading back from storage
+		$rows = $this->storage->read('users', array('id' => 4));
+		
+		$this->assertNotEmpty($rows);
+		$this->assertEquals($data, $rows[0]);
+		
+		// And loading back through the record
+		$user = User::find(4);
+		
+		$this->assertEquals(4, $user->id());
+		$this->assertEquals('Some', $user->firstname);
+		$this->assertEquals('User', $user->surname);
+	}
+	
 	public function testDistinct() {
 		$firstnames = User::distinct('firstname');
 		
@@ -270,7 +299,7 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(3, $user->posts()->count());
 		
 		$this->assertEquals(4, count(Post::all()));
-		// $this->assertNotEmpty(Post::find(4)); // TODO: ???
+		$this->assertNotEmpty(Post::find(4));
 	}
 	
 	public function testHasManyDissociation() {

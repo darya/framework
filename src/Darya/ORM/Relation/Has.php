@@ -81,6 +81,8 @@ class Has extends Relation {
 		$successful = 0;
 		
 		foreach ($this->related as $model) {
+			$this->persist($model);
+			
 			if (!$ids || in_array($model->id(), $ids)) {
 				$model->set($this->foreignKey, $this->parent->id());
 				$successful += $model->save();

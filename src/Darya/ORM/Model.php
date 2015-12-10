@@ -54,7 +54,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function __construct($data = array()) {
 		$this->setMany($data);
-		$this->changed = array();
 	}
 	
 	/**
@@ -68,6 +67,22 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 		
 		foreach ($rows as $key => $attributes) {
 			$instances[$key] = new static($attributes);
+		}
+		
+		return $instances;
+	}
+	
+	/**
+	 * Generate multiple instances of the model with the assumption that they
+	 * aren't new.
+	 * 
+	 * Equivalent to generate() but with a reinstate() call on each new model.
+	 */
+	public static function hydrate(array $rows = array()) {
+		$instances = static::generate($rows);
+		
+		foreach ($instances as $instance) {
+			$instance->reinstate();
 		}
 		
 		return $instances;
@@ -162,6 +177,16 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function changed() {
 		return array_intersect_key($this->data, array_flip($this->changed));
+	}
+	
+	
+	
+	/**
+	 * Clear the record of changed attributes on the model, declaring the
+	 * current attributes as unmodified.
+	 */
+	public function reinstate() {
+		$this->changed = array();
 	}
 	
 	/**
