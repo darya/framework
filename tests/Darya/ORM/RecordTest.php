@@ -265,6 +265,18 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('Manager', $manager->surname);
 	}
 	
+	public function testBelongsToDissociation() {
+		$user = User::find(3);
+		
+		$user->manager()->dissociate();
+		
+		$this->assertNull($user->manager);
+		$this->assertSame(0, $user->manager_id);
+		
+		$rows = $this->storage->read('users', array('id' => 3));
+		$this->assertEquals(0, $rows[0]['manager_id']);
+	}
+	
 	public function testHasMany() {
 		$user = User::find(1);
 		
@@ -285,7 +297,6 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(1, count($users[1]->posts));
 		$this->assertEquals(0, count($users[2]->posts));
 	}
-	
 	
 	public function testHasManyAssociation() {
 		$user = User::find(1);
@@ -369,6 +380,38 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals('User', $users[2]->roles[0]->name);
 		$this->assertEquals(1, count($users[2]->roles));
+	}
+	
+	public function testBelongsToManyAssociation() {
+		$user = User::find(1);
+		
+		$user->roles()->associate(Role::find(1));
+		$this->assertEquals(3, $user->roles()->count());
+		
+		$expected = array(1, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		
+		$this->assertEmpty(array_diff($expected, $actual));
+		
+		// Test associating a new role
+		$role = new Role(array(
+			'id' => 5,
+			'name' => 'New role'
+		));
+		
+		$user->roles()->associate($role);
+		
+		// Test that the role was attached correctly
+		$this->assertEquals(4, $user->roles()->count());
+		
+		$expected = array(1, 3, 4, 5);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		
+		$this->assertEmpty(array_diff($expected, $actual));
+		
+		// Test that the role was saved correctly
+		$role = Role::find(5);
+		$this->assertEquals('New role', $role->name);
 	}
 	
 	public function testDefaultSearchAttributes() {

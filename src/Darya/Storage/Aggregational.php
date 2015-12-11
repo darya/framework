@@ -19,7 +19,8 @@ interface Aggregational {
 	 * @param array  $order    [optional]
 	 * @param int    $limit    [optional]
 	 * @param int    $offset   [optional]
+	 * @return array
 	 */
-	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = null, $offset = 0);
+	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = 0, $offset = 0);
 	
 }

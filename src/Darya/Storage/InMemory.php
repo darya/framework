@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Storage;
 
+use Darya\Storage\Aggregational;
 use Darya\Storage\Filterer;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
@@ -14,7 +15,7 @@ use Darya\Storage\Sorter;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class InMemory implements Readable, Modifiable, Searchable {
+class InMemory implements Readable, Modifiable, Searchable, Aggregational {
 	
 	/**
 	 * The in-memory data.
@@ -233,6 +234,31 @@ class InMemory implements Readable, Modifiable, Searchable {
 		$filter = array_merge($filter, $search);
 		
 		return $this->read($resource, $filter, $order, $limit, $offset);
+	}
+	
+	/**
+	 * Retrieve the distinct values of the given resource's field.
+	 * 
+	 * Returns a flat array of values.
+	 * 
+	 * @param string $resource
+	 * @param string $field
+	 * @param array  $filter   [optional]
+	 * @param array  $order    [optional]
+	 * @param int    $limit    [optional]
+	 * @param int    $offset   [optional]
+	 * @return array
+	 */
+	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
+		$list = array();
+		
+		$listing = $this->listing($resource, $field, $filter, $order, $limit, $offset);
+		
+		foreach ($listing as $item) {
+			$list[] = $item[$field];
+		}
+		
+		return array_unique($list);
 	}
 	
 	/**
