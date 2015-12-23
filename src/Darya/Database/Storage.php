@@ -84,7 +84,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int    $offset [optional]
 	 * @return array
 	 */
-	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		$query = new StorageQuery($table, array($column), $filter, static::prepareOrder($order), $limit, $offset);
 		$query->distinct();
 		
