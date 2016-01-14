@@ -247,7 +247,7 @@ class MySql extends AbstractConnection {
 		
 		$this->event('mysql.prequery', array($query));
 		
-		$statement = $this->prepareStatement($query->string, $query->$parameters);
+		$statement = $this->prepareStatement($query->string, $query->parameters);
 		
 		if ($statement->errno) {
 			$error = new Error($statement->errno, $statement->error);
