@@ -58,6 +58,32 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertFalse(isset($model->stub_id));
 	}
 	
+	public function testAttributeNames() {
+		$model = new AttributeStub;
+		
+		$this->assertEquals(array('value', 'date', 'options'), $model->attributes());
+		
+		$model = new ModelStub;
+		
+		$this->assertEmpty($model->attributes());
+		
+		$model->setMany(array('value' => 1, 'options' => array()));
+		
+		$this->assertEquals(array('value', 'options'), $model->attributes());
+	}
+	
+	public function testAttributeTypes() {
+		$model = new AttributeStub;
+		
+		$expected = array(
+			'value' => 'string',
+			'date'  => 'datetime',
+			'options'  => 'json'
+		);
+		
+		$this->assertEquals($expected, $model->attributeTypes());
+	}
+	
 	public function testAttributeMutation() {
 		$model = new AttributeStub(array(
 			'value'   => 'something',

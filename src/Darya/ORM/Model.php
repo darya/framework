@@ -132,6 +132,26 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	}
 	
 	/**
+	 * Retrieve the attribute names of the model.
+	 * 
+	 * @return array
+	 */
+	public function attributes() {
+		return array_keys($this->attributes) ?: array_keys($this->data ?: array());
+	}
+	
+	/**
+	 * Retrieve the attribute types of the model.
+	 * 
+	 * Attribute names are keys and types are values.
+	 * 
+	 * @return array
+	 */
+	public function attributeTypes() {
+		return $this->attributes;
+	}
+	
+	/**
 	 * Get the transformer for accessing attributes.
 	 * 
 	 * @return Transformer
