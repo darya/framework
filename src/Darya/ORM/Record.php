@@ -484,6 +484,15 @@ class Record extends Model {
 	}
 	
 	/**
+	 * Retrieve the list of relation attributes for this model.
+	 * 
+	 * @return array
+	 */
+	public function relationAttributes() {
+		return array_keys($this->relations);
+	}
+	
+	/**
 	 * Determine whether the given attribute is a relation.
 	 * 
 	 * @param string $attribute

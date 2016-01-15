@@ -414,6 +414,12 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('New role', $role->name);
 	}
 	
+	public function testRelationAttributes() {
+		$user = new User;
+		
+		$this->assertEquals(array('padawan', 'manager', 'posts', 'roles'), $user->relationAttributes());
+	}
+	
 	public function testDefaultSearchAttributes() {
 		$users = User::search('chris');
 		
