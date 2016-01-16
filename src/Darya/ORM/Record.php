@@ -390,7 +390,7 @@ class Record extends Model {
 		}
 		
 		$query = new Query($instance->table());
-		$builder = new Builder($query, $instance->storage());
+		$builder = new Builder($query, $storage);
 		
 		$builder->callback(function($result) use ($instance) {
 			return $instance::hydrate($result->data);
