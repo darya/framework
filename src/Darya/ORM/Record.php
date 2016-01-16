@@ -28,12 +28,12 @@ class Record extends Model {
 	protected $table;
 	
 	/**
-	 * @var \Darya\Storage\Readable Instance storage
+	 * @var Readable Instance storage
 	 */
 	protected $storage;
 	
 	/**
-	 * @var \Darya\Storage\Readable Shared storage
+	 * @var Readable Shared storage
 	 */
 	protected static $sharedStorage;
 	
@@ -122,7 +122,7 @@ class Record extends Model {
 	/**
 	 * Get and optionally set the model's storage instance.
 	 * 
-	 * @return \Darya\Storage\Readable
+	 * @return Readable
 	 */
 	public function storage(Readable $storage = null) {
 		$this->storage = $storage ?: $this->storage;
@@ -133,7 +133,7 @@ class Record extends Model {
 	/**
 	 * Get the storage shared to all instances of this model.
 	 * 
-	 * @return \Darya\Storage\Readable
+	 * @return Readable
 	 */
 	public static function getSharedStorage() {
 		return static::$sharedStorage;
@@ -142,7 +142,7 @@ class Record extends Model {
 	/**
 	 * Share the given database connection to all instances of this model.
 	 * 
-	 * @param \Darya\Storage\Readable $storage
+	 * @param Readable $storage
 	 */
 	public static function setSharedStorage(Readable $storage) {
 		static::$sharedStorage = $storage;
@@ -508,7 +508,7 @@ class Record extends Model {
 	 * Retrieve the given relation.
 	 * 
 	 * @param string $attribute
-	 * @return \Darya\ORM\Relation
+	 * @return Relation
 	 */
 	public function relation($attribute) {
 		if (!$this->hasRelation($attribute)) {
@@ -528,6 +528,21 @@ class Record extends Model {
 		}
 		
 		return $relation;
+	}
+	
+	/**
+	 * Retrieve all relations.
+	 * 
+	 * @return Relation[]
+	 */
+	public function relations() {
+		$relations = array();
+		
+		foreach ($this->relationAttributes() as $attribute) {
+			$relations = $this->relation($attribute);
+		}
+		
+		return $relations;
 	}
 	
 	/**

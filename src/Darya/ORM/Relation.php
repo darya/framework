@@ -24,6 +24,11 @@ abstract class Relation {
 	const BELONGS_TO_MANY = 'belongs_to_many';
 	
 	/**
+	 * @var string The name of the relation in the context of the parent model
+	 */
+	protected $name;
+	
+	/**
 	 * @var Record Parent model
 	 */
 	protected $parent;

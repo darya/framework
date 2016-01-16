@@ -420,6 +420,20 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('padawan', 'manager', 'posts', 'roles'), $user->relationAttributes());
 	}
 	
+	public function testRelations() {
+		$user = new User;
+		
+		$relation = $user->relation('padawan');
+		$this->assertInstanceOf('Darya\ORM\Relation', $relation);
+		$this->assertEquals('master_id', $relation->foreignKey);
+		
+		$relations = $user->relations();
+		
+		foreach ($relations as $relation) {
+			$this->assertInstanceOf('Darya\ORM\Relation', $relation);
+		}
+	}
+	
 	public function testDefaultSearchAttributes() {
 		$users = User::search('chris');
 		
