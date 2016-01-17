@@ -68,7 +68,7 @@ abstract class AbstractSqlTranslator implements Translator {
 			case Storage\Query::CREATE:
 				$query = new Database\Query(
 					$this->prepareInsert($storageQuery->resource, $storageQuery->data),
-					static::parameters($storageQuery)
+					$this->parameters($storageQuery)
 				);
 				
 				break;
@@ -81,7 +81,7 @@ abstract class AbstractSqlTranslator implements Translator {
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
 						$storageQuery->distinct
 					),
-					static::parameters($storageQuery)
+					$this->parameters($storageQuery)
 				);
 				
 				break;
@@ -91,7 +91,7 @@ abstract class AbstractSqlTranslator implements Translator {
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 					),
-					static::parameters($storageQuery)
+					$this->parameters($storageQuery)
 				);
 				
 				break;
@@ -101,7 +101,7 @@ abstract class AbstractSqlTranslator implements Translator {
 						$this->prepareWhere($storageQuery->filter),
 						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 					),
-					static::parameters($storageQuery)
+					$this->parameters($storageQuery)
 				);
 				
 				break;
@@ -140,7 +140,35 @@ abstract class AbstractSqlTranslator implements Translator {
 			return array_map(array($this, 'value'), $value);
 		}
 		
-		return $value === null ? 'NULL' : '?';
+		return $this->resolve($value);
+	}
+	
+	/**
+	 * Resolve a placeholder or constant for the given parameter value.
+	 * 
+	 * @param mixed $value
+	 * @return string
+	 */
+	protected function resolve($value) {
+		if ($value === null) {
+			return 'NULL';
+		}
+		
+		if (is_bool($value)) {
+			return $value ? 'TRUE' : 'FALSE';
+		}
+		
+		return '?';
+	}
+	
+	/**
+	 * Determine whether the given value resolves a placeholder.
+	 * 
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function resolvesPlaceholder($value) {
+		return $this->resolve($value) === '?';
 	}
 	
 	/**
@@ -169,7 +197,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	protected function prepareOperator($operator, $value) {
 		$operator = in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
 		
-		if ($value === null) {
+		if (!$this->resolvesPlaceholder($value)) {
 			if ($operator === '=') {
 				$operator = 'IS';
 			}
@@ -351,20 +379,22 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * 
 	 * @return array
 	 */
-	protected static function filterParameters($filter) {
+	protected function filterParameters($filter) {
 		$parameters = array();
 		
 		foreach ($filter as $index => $value) {
 			if (is_array($value)) {
 				if (strtolower($index) === 'or') {
-					$parameters = array_merge($parameters, static::filterParameters($value));
+					$parameters = array_merge($parameters, $this->filterParameters($value));
 				} else {
 					foreach ($value as $in) {
-						$parameters[] = $in;
+						if ($this->resolvesPlaceholder($value)) {
+							$parameters[] = $in;
+						}
 					}
 				}
 			} else {
-				if ($value !== null) {
+				if ($this->resolvesPlaceholder($value)) {
 					$parameters[] = $value;
 				}
 			}
@@ -380,16 +410,16 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $query
 	 * @return array
 	 */
-	public static function parameters(Storage\Query $query) {
+	public function parameters(Storage\Query $query) {
 		$parameters = array();
 		
 		foreach ($query->data as $value) {
-			if ($value !== null) {
+			if ($this->resolvesPlaceholder($value)) {
 				$parameters[] = $value;
 			}
 		}
 		
-		$parameters = array_merge($parameters, static::filterParameters($query->filter));
+		$parameters = array_merge($parameters, $this->filterParameters($query->filter));
 		
 		return $parameters;
 	}
