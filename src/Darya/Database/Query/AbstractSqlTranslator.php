@@ -140,7 +140,7 @@ abstract class AbstractSqlTranslator implements Translator {
 			return array_map(array($this, 'value'), $value);
 		}
 		
-		return '?';
+		return $value === null ? 'NULL' : '?';
 	}
 	
 	/**
@@ -364,7 +364,9 @@ abstract class AbstractSqlTranslator implements Translator {
 					}
 				}
 			} else {
-				$parameters[] = $value;
+				if ($value !== null) {
+					$parameters[] = $value;
+				}
 			}
 		}
 		
@@ -382,7 +384,9 @@ abstract class AbstractSqlTranslator implements Translator {
 		$parameters = array();
 		
 		foreach ($query->data as $value) {
-			$parameters[] = $value;
+			if ($value !== null) {
+				$parameters[] = $value;
+			}
 		}
 		
 		$parameters = array_merge($parameters, static::filterParameters($query->filter));
