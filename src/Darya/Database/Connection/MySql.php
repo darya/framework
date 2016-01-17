@@ -245,6 +245,8 @@ class MySql extends AbstractConnection {
 		
 		$this->connect();
 		
+		$this->lastResult = null;
+		
 		$this->event('mysql.prequery', array($query));
 		
 		$statement = $this->prepareStatement($query->string, $query->parameters);
@@ -252,6 +254,8 @@ class MySql extends AbstractConnection {
 		if ($statement->errno) {
 			$error = new Error($statement->errno, $statement->error);
 			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			$this->event('mysql.query', array($this->lastResult));
 			
 			return $this->lastResult;
 		}
@@ -263,6 +267,8 @@ class MySql extends AbstractConnection {
 		
 		if ($error) {
 			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			$this->event('mysql.query', array($this->lastResult));
 			
 			return $this->lastResult;
 		}

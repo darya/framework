@@ -118,6 +118,8 @@ class SqlServer extends AbstractConnection {
 		
 		$this->connect();
 		
+		$this->lastResult = null;
+		
 		$this->event('sqlserver.prequery', array($query));
 		
 		$mssql_result = sqlsrv_query($this->connection, $query->string, $query->parameters, array(
@@ -136,6 +138,8 @@ class SqlServer extends AbstractConnection {
 		
 		if ($mssql_result === false || $error) {
 			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			$this->event('sqlserver.query', array($this->lastResult));
 			
 			return $this->lastResult;
 		}
