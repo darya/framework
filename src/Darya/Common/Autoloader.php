@@ -6,6 +6,7 @@ namespace Darya\Common;
  * 
  * TODO: Simplify Autoloader::load.
  * TODO: Maybe make attempt() a generator!
+ * TODO: Move to Darya\Autoloader\Tryhard
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

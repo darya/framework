@@ -7,8 +7,6 @@ use Darya\ORM\Relation;
 /**
  * Darya's many-to-many entity relation.
  * 
- * TODO: Eager loading.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class BelongsToMany extends Relation {
@@ -217,6 +215,7 @@ class BelongsToMany extends Relation {
 		foreach ($instances as $instance) {
 			$instanceRelations = array();
 			
+			// TODO: Find a way to drop these issets
 			if (isset($relationBundle[$instance->id()])) {
 				foreach ($relationBundle[$instance->id()] as $relationId) {
 					if (isset($list[$relationId])) {

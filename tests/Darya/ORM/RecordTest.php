@@ -216,6 +216,12 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(0, $padawan->master_id);
 	}
 	
+	public function testHasDotNotation() {
+		$user = User::find(1);
+		
+		$this->assertEquals('John', $user->get('padawan.firstname'));
+	}
+	
 	public function testBelongsTo() {
 		$post = Post::find(3);
 		

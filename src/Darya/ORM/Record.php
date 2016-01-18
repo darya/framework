@@ -77,8 +77,16 @@ class Record extends Model {
 	 * @return mixed
 	 */
 	public function get($attribute) {
+		list($attribute, $subattribute) = array_pad(explode('.',  $attribute, 2), 2, null);
+		
 		if ($this->hasRelation($attribute)) {
-			return $this->related($attribute);
+			$related = $this->related($attribute);
+			
+			if ($related instanceof Record && $subattribute !== null) {
+				return $related->get($subattribute);
+			}
+			
+			return $related;
 		}
 		
 		return parent::get($attribute);
