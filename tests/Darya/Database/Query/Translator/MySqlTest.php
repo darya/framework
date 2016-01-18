@@ -97,15 +97,15 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$query->where('role_id !=', null);
 		
 		$result = $translator->translate($query);
-		$this->assertEquals('SELECT * FROM `users` WHERE `age` IS ? AND `role_id` IS NOT ?', $result->string);
-		$this->assertEquals(array(null, null), $result->parameters);
+		$this->assertEquals('SELECT * FROM `users` WHERE `age` IS NULL AND `role_id` IS NOT NULL', $result->string);
+		$this->assertEquals(array(), $result->parameters);
 		
 		$query = new Query('users');
 		$query->update(array('age' => null));
 		
 		$result = $translator->translate($query);
-		$this->assertEquals('UPDATE `users` SET `age` = ?', $result->string);
-		$this->assertEquals(array(null), $result->parameters);
+		$this->assertEquals('UPDATE `users` SET `age` = NULL', $result->string);
+		$this->assertEquals(array(), $result->parameters);
 		
 		$query = new Query('users');
 		$query->create(array(
@@ -114,8 +114,8 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		));
 		
 		$result = $translator->translate($query);
-		$this->assertEquals('INSERT INTO `users` (`name`, `age`) VALUES (?, ?)', $result->string);
-		$this->assertEquals(array('swag', null), $result->parameters);
+		$this->assertEquals('INSERT INTO `users` (`name`, `age`) VALUES (?, NULL)', $result->string);
+		$this->assertEquals(array('swag'), $result->parameters);
 	}
 	
 	public function testArrayParameters() {
