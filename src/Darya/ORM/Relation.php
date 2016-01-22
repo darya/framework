@@ -232,23 +232,15 @@ abstract class Relation {
 			return;
 		}
 		
-		$replace = null;
-		
 		foreach ($this->related as $key => $related) {
 			if ($related->id() === $instance->id()) {
-				$replace = $key;
+				$this->related[$key] = $instance;
 				
-				break;
+				return;
 			}
 		}
 		
-		if ($replace === null) {
-			$this->related[] = $instance;
-			
-			return;
-		}
-		
-		$this->related[$replace] = $instance;
+		$this->related[] = $instance;
 	}
 	
 	/**
