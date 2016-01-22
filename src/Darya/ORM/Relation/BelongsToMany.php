@@ -283,7 +283,7 @@ class BelongsToMany extends Relation {
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate($instances = null) {
+	public function dissociate($instances) {
 		$instances = static::arrayify($instances);
 		
 		$ids = array();
