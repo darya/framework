@@ -283,6 +283,13 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(0, $rows[0]['manager_id']);
 	}
 	
+	public function testBelongsToDotNotation() {
+		$user = User::find(3);
+		
+		$this->assertEquals('Bethany', $user->get('manager.firstname'));
+		$this->assertEquals('Chris', $user->get('master.firstname'));
+	}
+	
 	public function testHasMany() {
 		$user = User::find(1);
 		
@@ -343,12 +350,12 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(2, $user->posts[0]->id());
 	}
 	
-	public function testHasManyFullDissociation() {
+	public function testHasManyPurge() {
 		$user = User::find(1);
 		
 		$this->assertEquals(2, $user->posts()->count());
 		
-		$dissociated = $user->posts()->dissociate();
+		$dissociated = $user->posts()->purge();
 		
 		$this->assertEquals(2, $dissociated);
 		
@@ -420,19 +427,43 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('New role', $role->name);
 	}
 	
+	public function testBelongsToManyDissociation() {
+		$user = User::find(1);
+		
+		$user->roles()->dissociate(Role::find(3));
+		$this->assertEquals(1, $user->roles()->count());
+		$this->assertEquals(4, $user->roles[0]->id());
+		
+		$expected = array(4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		
+		$this->assertEmpty(array_diff($expected, $actual));
+	}
+	
+	public function testBelongsToManyPurge() {
+		$user = User::find(1);
+		
+		$user->roles()->purge();
+		$this->assertEmpty($user->roles);
+		
+		$this->assertEmpty($this->storage->distinct('user_roles', 'role_id', array('user_id' => 1)));
+	}
+	
 	public function testRelationAttributes() {
 		$user = new User;
 		
-		$this->assertEquals(array('padawan', 'manager', 'posts', 'roles'), $user->relationAttributes());
+		$this->assertEquals(array('padawan', 'manager', 'master', 'posts', 'roles'), $user->relationAttributes());
 	}
 	
 	public function testRelations() {
 		$user = new User;
 		
+		// Test single relation access and property
 		$relation = $user->relation('padawan');
 		$this->assertInstanceOf('Darya\ORM\Relation', $relation);
 		$this->assertEquals('master_id', $relation->foreignKey);
 		
+		// Test all relations
 		$relations = $user->relations();
 		
 		foreach ($relations as $relation) {
@@ -473,6 +504,7 @@ class User extends Record
 	protected $relations = array(
 		'padawan' => ['has',             'User', 'master_id'],
 		'manager' => ['belongs_to',      'User', 'manager_id'],
+		'master'  => ['belongs_to',      'User', 'master_id'],
 		'posts'   => ['has_many',        'Post', 'author_id'],
 		'roles'   => ['belongs_to_many', 'Role', null, null, 'user_roles']
 	);

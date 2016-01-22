@@ -196,6 +196,10 @@ abstract class Relation {
 	 * @param int[] $ids
 	 */
 	protected function reduce(array $ids = array()) {
+		if (empty($this->related)) {
+			return;
+		}
+		
 		$keys = array();
 		
 		foreach ($this->related as $key => $instance) {

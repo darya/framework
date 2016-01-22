@@ -88,17 +88,17 @@ class HasMany extends Has {
 	/**
 	 * Dissociate the given models.
 	 * 
-	 * If no models are given, all related models are dissociated.
-	 * 
 	 * Returns the number of models successfully dissociated.
 	 * 
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
 	public function dissociate($instances = null) {
-		$ids = array();
+		if (empty($instances)) {
+			return 0;
+		}
 		
-		$instances = $instances ?: $this->retrieve();
+		$ids = array();
 		
 		$successful = 0;
 		
