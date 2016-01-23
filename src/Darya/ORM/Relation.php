@@ -95,10 +95,10 @@ abstract class Relation {
 	 * 
 	 * @param Record $parent     Parent class
 	 * @param string $target     Related class that extends \Darya\ORM\Record
-	 * @param string $foreignKey Custom foreign key
-	 * @param array  $constraint Constraint filter for related models
+	 * @param string $foreignKey [optional] Custom foreign key
+	 * @param array  $constraint [optional] Constraint filter for related models
 	 */
-	public function __construct(Record $parent, $target, $foreignKey = null, $constraint = null) {
+	public function __construct(Record $parent, $target, $foreignKey = null, array $constraint = array()) {
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
 			throw new Exception('Target class not does not extend Darya\ORM\Record');
 		}
@@ -108,7 +108,7 @@ abstract class Relation {
 		
 		$this->foreignKey = $foreignKey;
 		$this->setDefaultKeys();
-		$this->constrain($constraint ?: array());
+		$this->constrain($constraint);
 	}
 	
 	/**
@@ -169,7 +169,8 @@ abstract class Relation {
 	 * without the given attribute set.
 	 * 
 	 * @param Record[]|Record $instances
-	 * @param string $attribute
+	 * @param string          $attribute
+	 * @param string          $index     [optional]
 	 * @return array
 	 */
 	protected static function attributeList($instances, $attribute, $index = null) {

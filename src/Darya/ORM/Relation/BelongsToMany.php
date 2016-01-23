@@ -117,7 +117,7 @@ class BelongsToMany extends Relation {
 	/**
 	 * Set the default many-to-many relation table name.
 	 * 
-	 * Sorts parent and related class alphabetically.
+	 * Sorts parent and related class names alphabetically.
 	 */
 	protected function setDefaultTable() {
 		if ($this->table) {
@@ -138,7 +138,7 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return string
 	 */
-	public function filter() {
+	public function defaultConstraints() {
 		return array($this->localKey => $this->parent->id());
 	}
 	

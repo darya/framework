@@ -8,6 +8,7 @@ use Darya\Storage\InMemory;
  * Please refer to ./data/cms.json for the test data used for this test case.
  * 
  * TODO: Test updating and deleting relations.
+ * TODO: Set up integration tests that extend this using different storage.
  */
 class RecordTest extends PHPUnit_Framework_TestCase {
 	
