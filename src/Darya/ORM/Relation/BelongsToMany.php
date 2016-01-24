@@ -350,7 +350,7 @@ class BelongsToMany extends Relation {
 	}
 	
 	/**
-	 * Dissociate the given models.
+	 * Dissociate the given models from the parent model.
 	 * 
 	 * Returns the number of models successfully dissociated.
 	 * 
@@ -368,9 +368,7 @@ class BelongsToMany extends Relation {
 			$ids[] = $instance->id();
 		}
 		
-		if (!empty($this->filter())) {
-			$ids = array_intersect($ids, $this->relatedIds());
-		}
+		$ids = array_intersect($ids, $this->relatedIds());
 		
 		$successful = $this->storage()->delete($this->table, array_merge(
 			$this->associationFilter(),

@@ -90,6 +90,8 @@ class HasMany extends Has {
 	 * 
 	 * Returns the number of models successfully dissociated.
 	 * 
+	 * TODO: Consider constraints
+	 * 
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
@@ -123,6 +125,8 @@ class HasMany extends Has {
 	 * Dissociate all currently associated models.
 	 * 
 	 * Returns the number of models successfully dissociated.
+	 * 
+	 * TODO: Consider constraints
 	 * 
 	 * @return int
 	 */
