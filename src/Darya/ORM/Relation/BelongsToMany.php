@@ -46,6 +46,8 @@ class BelongsToMany extends Relation {
 	 * table, given models that are already related and models that should be
 	 * associated.
 	 * 
+	 * Returns the difference of the IDs of each set of instances.
+	 * 
 	 * @param array $old
 	 * @param array $new
 	 * @return array
@@ -94,7 +96,7 @@ class BelongsToMany extends Relation {
 	/**
 	 * List the given instances with their IDs as keys.
 	 * 
-	 * @param Record[]|Record $instances
+	 * @param Record[]|Record|array $instances
 	 * @return Record[]
 	 */
 	protected static function listById($instances) {
@@ -209,12 +211,23 @@ class BelongsToMany extends Relation {
 	/**
 	 * Retrieve the related IDs from the association table.
 	 * 
+	 * Takes into consideration the regular relation filter, if it's not empty,
+	 * and loads IDs from the target table accordingly.
+	 * 
 	 * @param int $limit
 	 */
-	protected function readAssociation($limit = 0) {
-		$relations = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
+	protected function relatedIds($limit = 0) {
+		$associations = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
 		
-		return static::attributeList($relations, $this->foreignKey);
+		if (empty($this->filter())) {
+			return static::attributeList($associations, $this->foreignKey);
+		}
+		
+		$filter = $this->filter(static::attributeList($associations, $this->foreignKey));
+		
+		$related = $this->storage()->listing($this->target->table(), $this->target->key(), $filter, null, $limit);
+		
+		return static::attributeList($related, $this->target->key());
 	}
 	
 	/**
@@ -224,11 +237,9 @@ class BelongsToMany extends Relation {
 	 * @return array
 	 */
 	public function read($limit = 0) {
-		$related = $this->readAssociation($limit);
-		
-		$filter = $this->filter($related);
-		
-		return $this->storage()->read($this->target->table(), $filter);
+		return $this->storage()->read($this->target->table(), array(
+			$this->target->key() => $this->relatedIds($limit)
+		));
 	}
 	
 	/**
@@ -357,6 +368,10 @@ class BelongsToMany extends Relation {
 			$ids[] = $instance->id();
 		}
 		
+		if (!empty($this->filter())) {
+			$ids = array_intersect($ids, $this->relatedIds());
+		}
+		
 		$successful = $this->storage()->delete($this->table, array_merge(
 			$this->associationFilter(),
 			array($this->foreignKey => $ids)
@@ -375,9 +390,11 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function purge() {
-		$this->related = array();
+		$this->related = null; // Force a reload because diffing would be a pain
 		
-		return (int) $this->storage()->delete($this->table, $this->associationFilter());
+		return (int) $this->storage()->delete($this->table, array(
+			$this->foreignKey => $this->relatedIds()
+		));
 	}
 	
 	/**
@@ -410,7 +427,7 @@ class BelongsToMany extends Relation {
 			return $this->storage()->count($this->table, $this->associationFilter());
 		}
 		
-		$filter = $this->filter($this->readAssociation());
+		$filter = $this->filter($this->relatedIds());
 		
 		return $this->storage()->count($this->target->table(), $filter);
 	}

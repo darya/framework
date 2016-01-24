@@ -450,10 +450,23 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
 		$this->assertEmpty(array_diff($expected, $actual));
+	}
+	
+	public function testBelongsToManyDissociationWithConstraint() {
+		$user = User::find(1);
+		
+		$roles = $user->roles;
 		
 		$user->roles()->constrain(array(
-		
+			'id' => 4
 		));
+		
+		$user->roles()->dissociate($roles);
+		
+		$expected = array(3);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		
+		$this->assertEmpty(array_diff($expected, $actual));
 	}
 	
 	public function testBelongsToManyPurge() {
@@ -474,6 +487,21 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals(1, $user->roles()->count());
 		$this->assertEquals('Administrator', $user->roles[0]->name);
+	}
+	
+	public function testBelongsToManyPurgeWithConstraint() {
+		$user = User::find(1);
+		
+		$user->roles()->constrain(array(
+			'id' => 4
+		));
+		
+		$user->roles()->purge();
+		
+		$expected = array(3);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		
+		$this->assertEmpty(array_diff($expected, $actual));
 	}
 	
 	public function testBelongsToManyAssociationConstraint() {
