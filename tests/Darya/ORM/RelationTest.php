@@ -28,18 +28,18 @@ class RelationTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('id' => 2), $relation->filter());
 	}
 	
-	public function testBelongsToManyFilter() {
+	public function testBelongsToManyAssociationFilter() {
 		$page = new Page(array('id' => 3));
 		$relation = new Relation\BelongsToMany($page, 'Section');
 		
 		$this->assertEquals('page_sections', $relation->table());
-		$this->assertEquals(array('page_id' => 3), $relation->filter());
+		$this->assertEquals(array('page_id' => 3), $relation->associationFilter());
 		
 		$section = new Section(array('id' => 4));
 		$relation = new Relation\BelongsToMany($section, 'Page');
 		
 		$this->assertEquals('page_sections', $relation->table());
-		$this->assertEquals(array('section_id' => 4), $relation->filter());
+		$this->assertEquals(array('section_id' => 4), $relation->associationFilter());
 	}
 }
 

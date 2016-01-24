@@ -363,6 +363,17 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(0, $user->posts()->count());
 	}
 	
+	public function testHasManyConstraint() {
+		$user = User::find(1);
+		
+		$user->posts()->constrain(array(
+			'title !=' => 'First post'
+		));
+		
+		$this->assertEquals(1, $user->posts()->count());
+		$this->assertEquals('Second post', $user->posts[0]->title);
+	}
+	
 	public function testBelongsToMany() {
 		$user = User::find(1);
 		
@@ -439,6 +450,10 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
 		$this->assertEmpty(array_diff($expected, $actual));
+		
+		$user->roles()->constrain(array(
+		
+		));
 	}
 	
 	public function testBelongsToManyPurge() {
@@ -448,6 +463,28 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		$this->assertEmpty($user->roles);
 		
 		$this->assertEmpty($this->storage->distinct('user_roles', 'role_id', array('user_id' => 1)));
+	}
+	
+	public function testBelongsToManyConstraint() {
+		$user = User::find(1);
+		
+		$user->roles()->constrain(array(
+			'name not like' => '%b0s%'
+		));
+		
+		$this->assertEquals(1, $user->roles()->count());
+		$this->assertEquals('Administrator', $user->roles[0]->name);
+	}
+	
+	public function testBelongsToManyAssociationConstraint() {
+		$user = User::find(1);
+		
+		$user->roles()->constrainAssociation(array(
+			'sort <' => 2
+		));
+		
+		$this->assertEquals(1, $user->roles()->count());
+		$this->assertEquals('Administrator', $user->roles[0]->name);
 	}
 	
 	public function testRelationAttributes() {

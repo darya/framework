@@ -49,9 +49,9 @@ abstract class Relation {
 	protected $localKey;
 	
 	/**
-	 * @var array Filters for constraining related models loaded from storage
+	 * @var array Filter for constraining related models loaded from storage
 	 */
-	protected $constraints = array();
+	protected $constraint = array();
 	
 	/**
 	 * @var Record[]|null The related instances
@@ -134,11 +134,11 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Retrieve the default filter for this relation.
+	 * Retrieve the default filter for the related models.
 	 * 
 	 * @return array
 	 */
-	protected function defaultConstraints() {
+	protected function defaultConstraint() {
 		return array(
 			$this->foreignKey => $this->parent->id()
 		);
@@ -168,9 +168,9 @@ abstract class Relation {
 	 * Works similarly to array_column(), but doesn't return data from any rows
 	 * without the given attribute set.
 	 * 
-	 * @param Record[]|Record $instances
-	 * @param string          $attribute
-	 * @param string          $index     [optional]
+	 * @param Record[]|Record|array $instances
+	 * @param string                $attribute
+	 * @param string                $index     [optional]
 	 * @return array
 	 */
 	protected static function attributeList($instances, $attribute, $index = null) {
@@ -319,16 +319,16 @@ abstract class Relation {
 	 * @param array $filter
 	 */
 	public function constrain(array $filter) {
-		$this->constraints = $filter;
+		$this->constraint = $filter;
 	}
 	
 	/**
-	 * Retrieve the custom filters used to constrain related models.
+	 * Retrieve the custom filter used to constrain related models.
 	 * 
 	 * @return array
 	 */
-	public function constraints() {
-		return $this->constraints;
+	public function constraint() {
+		return $this->constraint;
 	}
 	
 	/**
@@ -337,7 +337,7 @@ abstract class Relation {
 	 * @return array
 	 */
 	public function filter() {
-		return array_merge($this->defaultConstraints(), $this->constraints());
+		return array_merge($this->defaultConstraint(), $this->constraint());
 	}
 	
 	/**

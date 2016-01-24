@@ -27,7 +27,7 @@ class BelongsTo extends Relation {
 	 * 
 	 * @return array
 	 */
-	protected function defaultConstraints() {
+	protected function defaultConstraint() {
 		return array($this->localKey => $this->parent->get($this->foreignKey));
 	}
 	

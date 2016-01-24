@@ -12,6 +12,11 @@ use Darya\ORM\Relation;
 class BelongsToMany extends Relation {
 	
 	/**
+	 * @var array
+	 */
+	protected $associationConstraint = array();
+	
+	/**
 	 * @var string Table name for "many-to-many" relations
 	 */
 	protected $table;
@@ -26,13 +31,14 @@ class BelongsToMany extends Relation {
 	 * @param string   $table      [optional]
 	 * @param array    $constraint [optional]
 	 */
-	public function __construct(Record $parent, $target, $foreignKey = null, $localKey = null, $table = null, $constraint = null) {
+	public function __construct(Record $parent, $target, $foreignKey = null, $localKey = null, $table = null, array $constraint = array(), array $associationConstraint = array()) {
 		$this->localKey = $localKey;
 		parent::__construct($parent, $target, $foreignKey);
 		
 		$this->table = $table;
 		$this->setDefaultTable();
-		$this->constrain($constraint ?: array());
+		$this->constrain($constraint);
+		$this->constrainAssociation($associationConstraint);
 	}
 	
 	/**
@@ -66,7 +72,7 @@ class BelongsToMany extends Relation {
 	 * 
 	 * Expects an array with at least local keys and foreign keys set.
 	 * 
-	 * Returns an adjacency list.
+	 * Returns an adjacency list of local keys to related foreign keys.
 	 * 
 	 * @param array $relations
 	 * @return array
@@ -134,12 +140,61 @@ class BelongsToMany extends Relation {
 	}
 	
 	/**
-	 * Retrieve the filter for the many-to-many table.
+	 * Retrieve the default filter for the association table.
 	 * 
-	 * @return string
+	 * @return array
 	 */
-	public function defaultConstraints() {
+	protected function defaultAssociationConstraint() {
 		return array($this->localKey => $this->parent->id());
+	}
+	
+	/**
+	 * Set a filter to constrain the association table.
+	 * 
+	 * @param array $filter
+	 */
+	public function constrainAssociation(array $filter) {
+		$this->associationConstraint = $filter;
+	}
+	
+	/**
+	 * Retrieve the custom filter used to constrain the association table.
+	 * 
+	 * @return array
+	 */
+	public function associationConstraint() {
+		return $this->associationConstraint;
+	}
+	
+	/**
+	 * Retrieve the filter for the association table.
+	 * 
+	 * @return array
+	 */
+	public function associationFilter() {
+		return array_merge($this->defaultAssociationConstraint(), $this->associationConstraint());
+	}
+	
+	/**
+	 * Retrieve the filter for the related models.
+	 * 
+	 * Optionally accepts a list of related IDs to filter by.
+	 * 
+	 * TODO: Test this without the if statement and just merging regardless
+	 * 
+	 * @param array $related
+	 * @return array
+	 */
+	public function filter(array $related = array()) {
+		$filter = array();
+		
+		if (!empty($related)) {
+			$filter[$this->target->key()] = $related;
+		}
+		
+		$filter = array_merge($filter, $this->constraint());
+		
+		return $filter;
 	}
 	
 	/**
@@ -152,23 +207,28 @@ class BelongsToMany extends Relation {
 	}
 	
 	/**
+	 * Retrieve the related IDs from the association table.
+	 * 
+	 * @param int $limit
+	 */
+	protected function readAssociation($limit = 0) {
+		$relations = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
+		
+		return static::attributeList($relations, $this->foreignKey);
+	}
+	
+	/**
 	 * Retrieve the data of the related models.
 	 * 
 	 * @param int $limit
 	 * @return array
 	 */
-	public function read($limit = null) {
-		$relations = $this->storage()->read($this->table, $this->filter(), null, $limit);
+	public function read($limit = 0) {
+		$related = $this->readAssociation($limit);
 		
-		$related = array();
+		$filter = $this->filter($related);
 		
-		foreach ($relations as $relation) {
-			$related[] = $relation[$this->foreignKey];
-		}
-		
-		return $this->storage()->read($this->target->table(), array(
-			$this->target->key() => $related
-		));
+		return $this->storage()->read($this->target->table(), $filter);
 	}
 	
 	/**
@@ -186,10 +246,12 @@ class BelongsToMany extends Relation {
 		// Grab IDs of parent instances
 		$ids = static::attributeList($instances, $this->parent->key());
 		
-		// Build the filter for the relations
-		$filter = array_merge($this->filter(), array($this->localKey => $ids));
+		// Build the filter for the association table
+		$filter = array_merge($this->associationFilter(), array(
+			$this->localKey => $ids
+		));
 		
-		// Read their relations from the table
+		// Read the relations from the table
 		$relations = $this->storage()->read($this->table, $filter);
 		
 		// Unique list of target keys
@@ -199,10 +261,11 @@ class BelongsToMany extends Relation {
 		// Adjacency list of parent keys to target keys
 		$relationBundle = $this->bundleRelations($relations);
 		
+		// Build the filter for the related models
+		$filter = $this->filter($relatedIds);
+		
 		// Data of relations
-		$data = $this->storage()->read($this->target->table(), array(
-			$this->target->key() => $relatedIds
-		));
+		$data = $this->storage()->read($this->target->table(), $filter);
 		
 		// Instances of relations from the data
 		$class = get_class($this->target);
@@ -294,9 +357,9 @@ class BelongsToMany extends Relation {
 			$ids[] = $instance->id();
 		}
 		
-		$successful = $this->storage()->delete($this->table, array(
-			$this->localKey => $this->parent->id(),
-			$this->foreignKey => $ids
+		$successful = $this->storage()->delete($this->table, array_merge(
+			$this->associationFilter(),
+			array($this->foreignKey => $ids)
 		));
 		
 		$this->reduce($ids);
@@ -314,9 +377,7 @@ class BelongsToMany extends Relation {
 	public function purge() {
 		$this->related = array();
 		
-		return (int) $this->storage()->delete($this->table, array(
-			$this->localKey => $this->parent->id()
-		));
+		return (int) $this->storage()->delete($this->table, $this->associationFilter());
 	}
 	
 	/**
@@ -345,7 +406,13 @@ class BelongsToMany extends Relation {
 			return parent::count();
 		}
 		
-		return $this->storage()->count($this->table, $this->filter());
+		if (empty($this->filter())) {
+			return $this->storage()->count($this->table, $this->associationFilter());
+		}
+		
+		$filter = $this->filter($this->readAssociation());
+		
+		return $this->storage()->count($this->target->table(), $filter);
 	}
 	
 }
