@@ -220,10 +220,7 @@ class Request {
 	 * @return \Darya\Http\Request
 	 */
 	public static function createFromGlobals(Session $session = null) {
-		$host = $_SERVER['SERVER_NAME'] ?: $_SERVER['SERVER_ADDR'];
-		$uri  = $_SERVER['REQUEST_URI'];
-		
-		$request = Request::create('//' . $host . $uri, $_SERVER['REQUEST_METHOD'], array(
+		$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
 			'get'    => $_GET,
 			'post'   => $_POST,
 			'cookie' => $_COOKIE,
