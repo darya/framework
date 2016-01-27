@@ -68,7 +68,9 @@ class HasMany extends Has {
 	 * 
 	 * Returns the number of models successfully associated.
 	 * 
-	 * TODO: Stop this from assuming an ID on the instances. Somehow.
+	 * TODO: Stop this from assuming an ID on the instances. Somehow. Maybe save
+	 *       if it doesn't have one yet, or don't use IDs at the risk of saving
+	 *       way too many relations.
 	 * 
 	 * @param Record[]|Record $instances
 	 * @return int

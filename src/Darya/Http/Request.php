@@ -154,7 +154,11 @@ class Request {
 			static::parseQuery($components['query'])
 		);
 		
-		$data['server']['http_host'] = $components['host'];
+		if ($components['host']) {
+			$data['server']['http_host'] = $components['host'];
+			$data['server']['server_name'] = $components['host'];
+		}
+		
 		$data['server']['path_info'] = $components['path'];
 		$data['server']['request_uri'] = $components['path'];
 		$data['server']['request_method'] = strtoupper($method);
@@ -206,7 +210,10 @@ class Request {
 	 * @return \Darya\Http\Request
 	 */
 	public static function createFromGlobals(Session $session = null) {
-		$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
+		$host = $_SERVER['SERVER_NAME'] ?: $_SERVER['SERVER_ADDR'];
+		$uri  = $_SERVER['REQUEST_URI'];
+		
+		$request = Request::create($host . $uri, $_SERVER['REQUEST_METHOD'], array(
 			'get'    => $_GET,
 			'post'   => $_POST,
 			'cookie' => $_COOKIE,
@@ -345,7 +352,7 @@ class Request {
 	 * @return string
 	 */
 	public function host() {
-		return $this->server('http_host');
+		return $this->server('server_name') ?: $this->server('server_addr');
 	}
 	
 	/**
