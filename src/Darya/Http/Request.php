@@ -42,6 +42,11 @@ class Request {
 	);
 	
 	/**
+	 * @var string Request body content
+	 */
+	protected $content;
+	
+	/**
 	 * @var \Darya\Http\Session
 	 */
 	protected $session;
@@ -111,6 +116,8 @@ class Request {
 	 * @return array
 	 */
 	protected static function parseUrl($url) {
+		$components = parse_url($url);
+		
 		return array_merge(array(
 			'scheme' => null,
 			'host'   => null,
@@ -120,7 +127,7 @@ class Request {
 			'path'   => null,
 			'query'  => null,
 			'fragment' => null
-		), parse_url($url));
+		), $components ?: array());
 	}
 	
 	/**
@@ -159,8 +166,11 @@ class Request {
 			$data['server']['server_name'] = $components['host'];
 		}
 		
-		$data['server']['path_info'] = $components['path'];
-		$data['server']['request_uri'] = $components['path'];
+		if ($components['path']) {
+			$data['server']['path_info'] = $components['path'];
+			$data['server']['request_uri'] = $components['path'];
+		}
+		
 		$data['server']['request_method'] = strtoupper($method);
 		
 		if ($components['query']) {
@@ -213,7 +223,7 @@ class Request {
 		$host = $_SERVER['SERVER_NAME'] ?: $_SERVER['SERVER_ADDR'];
 		$uri  = $_SERVER['REQUEST_URI'];
 		
-		$request = Request::create($host . $uri, $_SERVER['REQUEST_METHOD'], array(
+		$request = Request::create(/*'//' . $host . $uri*/null, $_SERVER['REQUEST_METHOD'], array(
 			'get'    => $_GET,
 			'post'   => $_POST,
 			'cookie' => $_COOKIE,
@@ -361,7 +371,15 @@ class Request {
 	 * @return string
 	 */
 	public function path() {
-		return $this->server('path_info');
+		$path = $this->server('path_info');
+		
+		if ($path) {
+			return $path;
+		}
+		
+		$components = static::parseUrl($this->uri());
+		
+		return $components['path'];
 	}
 	
 	/**
@@ -376,6 +394,19 @@ class Request {
 		$requestMethod = strtolower($this->server('request_method'));
 		
 		return $method ? $requestMethod == $method : $this->server('request_method');
+	}
+	
+	/**
+	 * Retrieve the request body content.
+	 * 
+	 * @return string
+	 */
+	public function content() {
+		if ($this->content === null) {
+			$this->content = file_get_contents('php://input');
+		}
+		
+		return $this->content;
 	}
 	
 	/**
