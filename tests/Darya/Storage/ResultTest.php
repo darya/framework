@@ -20,6 +20,24 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame(array(), $result->fields);
 	}
 	
+	public function testGetResultInfo() {
+		$query = new Query('users');
+		
+		$result = new Result($query, array(), array(
+			'count' => 1,
+			'affected' => 2,
+			'fields' => array('one', 'two'),
+			'insert_id' => 3
+		));
+		
+		$info = $result->getInfo();
+		
+		$this->assertEquals(1, $info['count']);
+		$this->assertEquals(2, $info['affected']);
+		$this->assertEquals(array('one', 'two'), $info['fields']);
+		$this->assertEquals(3, $info['insert_id']);
+	}
+	
 	public function testSelectResultInfo() {
 		$query = new Query('users');
 		$data = array(

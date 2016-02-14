@@ -3,6 +3,7 @@ namespace Darya\Database;
 
 use Darya\Database;
 use Darya\Database\Connection;
+use Darya\Database\Storage\Result as DatabaseStorageResult;
 use Darya\Storage\Aggregational;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
@@ -214,15 +215,15 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Execute the given storage query.
 	 * 
-	 * TODO: Implement and extend storage result?
-	 * 
 	 * @param \Darya\Storage\Query $query
-	 * @return \Darya\Database\Result
+	 * @return \Darya\Database\Storage\Result
 	 */
 	public function execute(StorageQuery $query) {
 		$query = $this->connection->translate($query);
 		
-		return $this->connection->query($query->string, $query->parameters);
+		$databaseResult = $this->connection->query($query->string, $query->parameters);
+		
+		return DatabaseStorageResult::createWithDatabaseResult($query, $databaseResult);
 	}
 	
 	/**
@@ -256,7 +257,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0) {
 		$order = static::prepareOrder($order);
 		
-		if (empty($query) || empty($columns)) {
+		if (!is_string($query) || empty($columns)) {
 			return $this->read($table, $filter, $order, $limit, $offset);
 		}
 		

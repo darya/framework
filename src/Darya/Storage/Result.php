@@ -44,7 +44,7 @@ class Result extends AbstractResult {
 	 */
 	public function __construct(Query $query, array $data = array(), array $info = array(), Error $error = null) {
 		$this->query = $query;
-		$this->data = $data;
+		$this->data  = $data;
 		$this->error = $error;
 		
 		$this->setInfo($info);

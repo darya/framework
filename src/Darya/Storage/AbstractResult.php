@@ -44,21 +44,28 @@ abstract class AbstractResult {
 	 * 
 	 * @var int
 	 */
-	protected $count;
+	protected $count = 0;
 	
 	/**
 	 * The set of fields available for each row in the result.
 	 * 
 	 * @var array
 	 */
-	protected $fields;
+	protected $fields = array();
+	
+	/**
+	 * The number of rows affected by the query.
+	 * 
+	 * @var string
+	 */
+	protected $affected = 0;
 	
 	/**
 	 * Auto incremented primary key of an inserted row.
 	 * 
 	 * @var int
 	 */
-	protected $insertId;
+	protected $insertId = 0;
 	
 	/**
 	 * Convert a string from snake_case to camelCase.
@@ -73,6 +80,23 @@ abstract class AbstractResult {
 	}
 	
 	/**
+	 * Get the result info.
+	 * 
+	 * Retrieves the affected, count, insertId and fields properties
+	 * as a key-value array, with snake-case equivalent keys.
+	 * 
+	 * @return array
+	 */
+	public function getInfo() {
+		return array(
+			'count' => $this->count,
+			'fields' => $this->fields,
+			'affected' => $this->affected,
+			'insert_id' => $this->insertId
+		);
+	}
+	
+	/**
 	 * Set the result info.
 	 * 
 	 * Accepts the keys 'affected', 'count', 'insert_id' and 'fields'.
@@ -80,16 +104,14 @@ abstract class AbstractResult {
 	 * @param array $info
 	 */
 	protected function setInfo(array $info) {
-		$defaults = array(
-			'count' => 0,
-			'fields' => array(),
-			'affected' => 0,
-			'insert_id' => 0
-		);
+		$keys = array_keys($this->getInfo());
 		
-		foreach ($defaults as $key => $default) {
+		foreach ($keys as $key) {
 			$property = static::snakeToCamel($key);
-			$this->$property = isset($info[$key]) ? $info[$key] : $default;
+			
+			if (isset($info[$key])) {
+				$this->$property = $info[$key];
+			}
 		}
 	}
 	
@@ -103,4 +125,13 @@ abstract class AbstractResult {
 		return $this->$property;
 	}
 	
+	/**
+	 * Dynamically determine whether the given property exists.
+	 * 
+	 * @param string $property
+	 * @return bool
+	 */
+	public function __isset($property) {
+		return isset($this->$property);
+	}
 }
