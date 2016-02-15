@@ -31,7 +31,6 @@ class MySql extends AbstractConnection {
 	 * @return array array($data, $fields, $count)
 	 */
 	protected function fetchResult(mysqli_stmt $statement) {
-		// MySQLi is shit and I should have just used PDO
 		if (!method_exists($statement, 'get_result')) {
 			return $this->fetchResultWithoutNativeDriver($statement);
 		}
@@ -44,9 +43,9 @@ class MySql extends AbstractConnection {
 				$result->fetch_fields(),
 				$result->num_rows
 			);
-		} else {
-			return array(array(), array(), null);
 		}
+		
+		return array(array(), array(), null);
 	}
 	
 	/**
@@ -59,6 +58,8 @@ class MySql extends AbstractConnection {
 	 * @return array
 	 */
 	protected function fetchResultWithoutNativeDriver(mysqli_stmt $statement) {
+		$statement->store_result();
+		
 		$data = array();
 		$metadata = $statement->result_metadata();
 		
@@ -173,6 +174,9 @@ class MySql extends AbstractConnection {
 			'insert_id' => $statement->insert_id
 		);
 		
+		$statement->free_result();
+		$statement->close();
+		
 		return $result;
 	}
 	
@@ -261,7 +265,6 @@ class MySql extends AbstractConnection {
 		}
 		
 		$statement->execute();
-		// $statement->store_result(); // May not need this
 		
 		$error = $this->error();
 		

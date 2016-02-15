@@ -215,7 +215,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Execute the given storage query.
 	 * 
-	 * @param \Darya\Storage\Query $query
+	 * @param \Darya\Storage\Query $storageQuery
 	 * @return \Darya\Database\Storage\Result
 	 */
 	public function execute(StorageQuery $storageQuery) {
