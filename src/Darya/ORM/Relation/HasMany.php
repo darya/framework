@@ -97,7 +97,7 @@ class HasMany extends Has {
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate($instances) {
+	public function dissociate($instances = array()) {
 		$ids = array();
 		
 		$successful = 0;
