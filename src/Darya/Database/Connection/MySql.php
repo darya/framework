@@ -175,7 +175,6 @@ class MySql extends AbstractConnection {
 		);
 		
 		$statement->free_result();
-		$statement->close();
 		
 		return $result;
 	}
