@@ -118,7 +118,7 @@ abstract class Relation {
 		
 		foreach ($named as $method => $argument) {
 			if (method_exists($instance, $method)) {
-				$argument = (array) $argument;
+				$argument = static::arrayify($argument);
 				call_user_func_array(array($instance, $method), $argument);
 			}
 		}
