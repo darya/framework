@@ -15,7 +15,7 @@ use Darya\Storage\Query\Builder as QueryBuilder;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Remove listing and add $columns parameter to read. Suck it up.
+ * TODO: Remove listing and add $columns parameter to read(). Suck it up.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

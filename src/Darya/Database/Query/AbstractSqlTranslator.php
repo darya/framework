@@ -10,8 +10,6 @@ use Darya\Storage;
  * An abstract query translator that prepares SQL common across more than one
  * RDBMS.
  * 
- * TODO: Separate the switch statement cases out into their own methods.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class AbstractSqlTranslator implements Translator {
@@ -55,7 +53,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Translate the given storage query into a MySQL query.
+	 * Translate the given storage query into an SQL query.
 	 * 
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
@@ -64,55 +62,79 @@ abstract class AbstractSqlTranslator implements Translator {
 	public function translate(Storage\Query $storageQuery) {
 		$type = $storageQuery->type;
 		
-		switch ($type) {
-			case Storage\Query::CREATE:
-				$query = new Database\Query(
-					$this->prepareInsert($storageQuery->resource, $storageQuery->data),
-					$this->parameters($storageQuery)
-				);
-				
-				break;
-			case Storage\Query::READ:
-				$query = new Database\Query(
-					$this->prepareSelect($storageQuery->resource,
-						$this->prepareColumns($storageQuery->fields),
-						$this->prepareWhere($storageQuery->filter),
-						$this->prepareOrderBy($storageQuery->order),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
-						$storageQuery->distinct
-					),
-					$this->parameters($storageQuery)
-				);
-				
-				break;
-			case Storage\Query::UPDATE:
-				$query = new Database\Query(
-					$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
-						$this->prepareWhere($storageQuery->filter),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					),
-					$this->parameters($storageQuery)
-				);
-				
-				break;
-			case Storage\Query::DELETE:
-				$query = new Database\Query(
-					$this->prepareDelete($storageQuery->resource,
-						$this->prepareWhere($storageQuery->filter),
-						$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
-					),
-					$this->parameters($storageQuery)
-				);
-				
-				break;
-		}
+		$method = 'translate' . ucfirst($type);
 		
-		if (!isset($query)) {
+		if (!method_exists($this, $method)) {
 			throw new Exception("Could not translate query of unsupported type '$type'");
 		}
 		
+		$query = call_user_func_array(array($this, $method), array($storageQuery));
 		
 		return $query;
+	}
+	
+	/**
+	 * Translate a query that creates a record.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	protected function translateCreate(Storage\Query $storageQuery) {
+		return new Database\Query(
+			$this->prepareInsert($storageQuery->resource, $storageQuery->data),
+			$this->parameters($storageQuery)
+		);
+	}
+	
+	/**
+	 * Translate a query that reads records.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	protected function translateRead(Storage\Query $storageQuery) {
+		return new Database\Query(
+			$this->prepareSelect($storageQuery->resource,
+				$this->prepareColumns($storageQuery->fields),
+				$this->prepareWhere($storageQuery->filter),
+				$this->prepareOrderBy($storageQuery->order),
+				$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
+				$storageQuery->distinct
+			),
+			$this->parameters($storageQuery)
+		);
+	}
+	
+	/**
+	 * Translate a query that updates records.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	protected function translateUpdate(Storage\Query $storageQuery) {
+		return new Database\Query(
+			$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
+				$this->prepareWhere($storageQuery->filter),
+				$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
+			),
+			$this->parameters($storageQuery)
+		);
+	}
+	
+	/**
+	 * Translate a query that deletes records.
+	 * 
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	protected function translateDelete(Storage\Query $storageQuery) {
+		return new Database\Query(
+			$this->prepareDelete($storageQuery->resource,
+				$this->prepareWhere($storageQuery->filter),
+				$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
+			),
+			$this->parameters($storageQuery)
+		);
 	}
 	
 	/**
