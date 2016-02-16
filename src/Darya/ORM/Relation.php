@@ -64,12 +64,26 @@ abstract class Relation {
 	protected $storage;
 	
 	/**
-	 * Separate array elements numeric keys from those with string keys.
+	 * Helper method for methods that accept single or multiple values, or for
+	 * just casting to an array without losing a plain object.
+	 * 
+	 * Returns a array with the given value as its sole element, if it is not an
+	 * array already.
+	 * 
+	 * @param mixed $value
+	 * @return array
+	 */
+	protected static function arrayify($value) {
+		return !is_array($value) ? array($value) : $value;
+	}
+	
+	/**
+	 * Separate array elements with numeric keys from those with string keys.
 	 * 
 	 * @param array $array
 	 * @return array array($numeric, $strings)
 	 */
-	public static function separateKeys(array $array) {
+	protected static function separateKeys(array $array) {
 		$numeric = array();
 		$strings = array();
 		
@@ -88,8 +102,8 @@ abstract class Relation {
 	/**
 	 * Create a new relation of the given type using the given arguments.
 	 * 
-	 * Applies numeric-ley arguments to the constructor and string-key arguments
-	 * to methods with the same name as the key.
+	 * Applies numerically-keyed arguments to the constructor and string-keyed
+	 * arguments to methods with the same name.
 	 * 
 	 * @param string $type
 	 * @param array  $arguments
@@ -184,19 +198,6 @@ abstract class Relation {
 	 * Set the default keys for the relation if they haven't already been set.
 	 */
 	abstract protected function setDefaultKeys();
-	
-	/**
-	 * Helper method for methods that accept single or multiple values.
-	 * 
-	 * Returns a array with the given value as its sole element, if it is not an
-	 * array already.
-	 * 
-	 * @param mixed $value
-	 * @return array
-	 */
-	protected static function arrayify($value) {
-		return !is_array($value) ? array($value) : $value;
-	}
 	
 	/**
 	 * Retrieve the values of the given attribute of the given instances.
