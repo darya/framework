@@ -86,4 +86,23 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame($error, $result->error);
 	}
 	
+	public function testResultIterator() {
+		$query = new Query('users');
+		
+		$result = new Result($query, array(
+			'id' => 1,
+			'firstname' => 'Chris',
+			'surname' => 'Andrew'
+		));
+		
+		$expected = array(1, 'Chris', 'Andrew');
+		$actual = array();
+		
+		foreach ($result as $key => $value) {
+			$actual[] = $value;
+		}
+		
+		$this->assertEquals($expected, $actual);
+	}
+	
 }

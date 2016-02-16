@@ -7,7 +7,6 @@ use Darya\Storage\InMemory;
  * 
  * Please refer to ./data/cms.json for the test data used for this test case.
  * 
- * TODO: Test updating and deleting relations.
  * TODO: Set up integration tests that extend this using different storage.
  */
 class RecordTest extends PHPUnit_Framework_TestCase {
@@ -49,8 +48,8 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * Sets the shared storage to a mock that should never have its read method
-	 * called.
+	 * Sets the shared storage to a mock that will cause a test to fail if its
+	 * read() method is called.
 	 * 
 	 * This can be used to test that model relations were eagerly loaded
 	 * correctly - the relation objects shouldn't need to query the storage.

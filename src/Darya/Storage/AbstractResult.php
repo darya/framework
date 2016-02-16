@@ -1,10 +1,11 @@
 <?php
 namespace Darya\Storage;
 
+use ArrayIterator;
+use IteratorAggregate;
+
 /**
  * Darya's abstract storage query result.
- * 
- * TODO: Make this iterable for result data.
  * 
  * @property array  $data     Result data
  * @property object $query    Query that produced this result
@@ -16,7 +17,7 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractResult {
+abstract class AbstractResult implements IteratorAggregate {
 	
 	/**
 	 * The query that produced this result.
@@ -113,6 +114,15 @@ abstract class AbstractResult {
 				$this->$property = $info[$key];
 			}
 		}
+	}
+	
+	/**
+	 * Retrieve an external iterator.
+	 * 
+	 * @return \Traversable
+	 */
+	public function getIterator() {
+		return new ArrayIterator($this->data);
 	}
 	
 	/**
