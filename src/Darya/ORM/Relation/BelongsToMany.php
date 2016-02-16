@@ -26,12 +26,21 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @param Relation $parent
 	 * @param string   $target
-	 * @param string   $foreignKey [optional]
-	 * @param string   $localKey   [optional]
-	 * @param string   $table      [optional]
-	 * @param array    $constraint [optional]
+	 * @param string   $foreignKey            [optional]
+	 * @param string   $localKey              [optional]
+	 * @param string   $table                 [optional]
+	 * @param array    $constraint            [optional]
+	 * @param array    $associationConstraint [optional]
 	 */
-	public function __construct(Record $parent, $target, $foreignKey = null, $localKey = null, $table = null, array $constraint = array(), array $associationConstraint = array()) {
+	public function __construct(
+			Record $parent,
+			$target,
+			$foreignKey = null,
+			$localKey = null,
+			$table = null,
+			array $constraint = array(),
+			array $associationConstraint = array())
+	{
 		$this->localKey = $localKey;
 		parent::__construct($parent, $target, $foreignKey);
 		
@@ -248,10 +257,9 @@ class BelongsToMany extends Relation {
 	 * Returns the given instances with their related models loaded.
 	 * 
 	 * @param array $instances
-	 * @param string $name TODO: Remove this and store as a property
 	 * @return array
 	 */
-	public function eager(array $instances, $name) {
+	public function eager(array $instances) {
 		$this->verifyParents($instances);
 		
 		// Grab IDs of parent instances
@@ -298,7 +306,7 @@ class BelongsToMany extends Relation {
 				}
 			}
 			
-			$instance->relation($name)->set($instanceRelations);
+			$instance->relation($this->name)->set($instanceRelations);
 		}
 		
 		return $instances;

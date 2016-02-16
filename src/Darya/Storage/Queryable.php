@@ -14,7 +14,7 @@ interface Queryable {
 	 * Execute the given query.
 	 * 
 	 * @param Query $query
-	 * @return mixed
+	 * @return \Darya\Storage\Result
 	 */
 	public function execute(Query $query);
 	

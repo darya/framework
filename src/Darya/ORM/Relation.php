@@ -26,7 +26,7 @@ abstract class Relation {
 	/**
 	 * @var string The name of the relation in the context of the parent model
 	 */
-	protected $name;
+	protected $name = '';
 	
 	/**
 	 * @var Record Parent model
@@ -64,7 +64,32 @@ abstract class Relation {
 	protected $storage;
 	
 	/**
+	 * Separate array elements numeric keys from those with string keys.
+	 * 
+	 * @param array $array
+	 * @return array array($numeric, $strings)
+	 */
+	public static function separateKeys(array $array) {
+		$numeric = array();
+		$strings = array();
+		
+		
+		foreach ($array as $key => $value) {
+			if (is_numeric($key)) {
+				$numeric[$key] = $value;
+			} else {
+				$strings[$key] = $value;
+			}
+		}
+		
+		return array($numeric, $strings);
+	}
+	
+	/**
 	 * Create a new relation of the given type using the given arguments.
+	 * 
+	 * Applies numeric-ley arguments to the constructor and string-key arguments
+	 * to methods with the same name as the key.
 	 * 
 	 * @param string $type
 	 * @param array  $arguments
@@ -87,7 +112,18 @@ abstract class Relation {
 		
 		$reflection = new ReflectionClass($class);
 		
-		return $reflection->newInstanceArgs($arguments);
+		list($arguments, $named) = static::separateKeys($arguments);
+		
+		$instance = $reflection->newInstanceArgs($arguments);
+		
+		foreach ($named as $method => $argument) {
+			if (method_exists($instance, $method)) {
+				$argument = (array) $argument;
+				call_user_func_array(array($instance, $method), $argument);
+			}
+		}
+		
+		return $instance;
 	}
 	
 	/**
@@ -301,6 +337,18 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Retrieve and optionally set the name of the relation on the parent model.
+	 * 
+	 * @param string $name [optional]
+	 * @return string
+	 */
+	public function name($name = '') {
+		$this->name = ((string) $name) ?: $this->name;
+		
+		return $this->name;
+	}
+	
+	/**
 	 * Retrieve and optionally set the storage used for the target model.
 	 * 
 	 * Falls back to target model storage, then parent model storage.
@@ -381,10 +429,9 @@ abstract class Relation {
 	 * Returns the given instances with their related models loaded.
 	 * 
 	 * @param array $instances
-	 * @param string $name TODO: Remove this and store as a property
 	 * @return array
 	 */
-	abstract public function eager(array $instances, $name);
+	abstract public function eager(array $instances);
 	
 	/**
 	 * Retrieve one or many related model instances, depending on the relation.

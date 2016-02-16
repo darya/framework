@@ -17,10 +17,9 @@ class HasMany extends Has {
 	 * Returns the given instances with their related models loaded.
 	 * 
 	 * @param array $instances
-	 * @param string $name TODO: Remove this and store as a property
 	 * @return array
 	 */
-	public function eager(array $instances, $name) {
+	public function eager(array $instances) {
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, 'id');
 		
@@ -48,7 +47,7 @@ class HasMany extends Has {
 		foreach ($instances as $instance) {
 			$key = $instance->id();
 			$value = isset($related[$key]) ? $related[$key] : array();
-			$instance->relation($name)->set($value);
+			$instance->relation($this->name)->set($value);
 		}
 		
 		return $instances;

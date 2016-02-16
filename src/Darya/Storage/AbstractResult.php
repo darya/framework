@@ -19,7 +19,7 @@ namespace Darya\Storage;
 abstract class AbstractResult {
 	
 	/**
-	 * The storage query that produced this result.
+	 * The query that produced this result.
 	 * 
 	 * @var mixed
 	 */

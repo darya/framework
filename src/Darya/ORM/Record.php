@@ -529,6 +529,7 @@ class Record extends Model {
 		if (!$relation instanceof Relation) {
 			$type = array_shift($relation);
 			$arguments = array_merge(array($this), $relation);
+			$arguments['name'] = $attribute;
 			
 			$relation = Relation::factory($type, $arguments);
 			

@@ -36,7 +36,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	}
 	
 	/**
-	 * Flatten the given data to the each row's value for the given key.
+	 * Flatten the given data to the values of the given key.
 	 * 
 	 * @param array  $data
 	 * @param string $key
@@ -215,8 +215,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Execute the given storage query.
 	 * 
-	 * @param \Darya\Storage\Query $storageQuery
-	 * @return \Darya\Database\Storage\Result
+	 * @param Query $storageQuery
+	 * @return DatabaseStorageResult
 	 */
 	public function execute(StorageQuery $storageQuery) {
 		$query = $this->connection->translate($storageQuery);
@@ -233,7 +233,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * @param string       $resource
 	 * @param array|string $columns  [optional]
-	 * @return \Darya\Storage\Query\Builder
+	 * @return Builder
 	 */
 	public function query($resource, $columns = array()) {
 		$query = new StorageQuery($resource, (array) $columns);

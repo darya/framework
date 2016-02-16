@@ -37,10 +37,9 @@ class BelongsTo extends Relation {
 	 * Returns the given instances with their related models loaded.
 	 * 
 	 * @param array $instances
-	 * @param string $name TODO: Remove this and store as a property
 	 * @return array
 	 */
-	public function eager(array $instances, $name) {
+	public function eager(array $instances) {
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, $this->foreignKey);
 		
@@ -62,7 +61,7 @@ class BelongsTo extends Relation {
 		foreach ($instances as $instance) {
 			$key = $instance->get($this->foreignKey);
 			$value = isset($related[$key]) ? array($related[$key]) : array();
-			$instance->relation($name)->set($value);
+			$instance->relation($this->name)->set($value);
 		}
 		
 		return $instances;
