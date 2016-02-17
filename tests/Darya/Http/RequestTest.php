@@ -113,4 +113,22 @@ class RequestTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('application/json', $request->header('Content-type'));
 	}
 	
+	public function testDefaultValues() {
+		$request = Request::create('/test', 'GET', array(
+			'get' => array(
+				'one' => 1,
+				'two' => 2,
+				'three' => 3
+			)
+		));
+		
+		$this->assertEquals(1, $request->get('one', 2));
+		$this->assertEquals(1, $request->get('nothing', 1));
+		$this->assertEquals(2, $request->post('nothing', 2));
+		$this->assertEquals(3, $request->cookie('nothing', 3));
+		$this->assertEquals(4, $request->file('nothing', 4));
+		$this->assertEquals(5, $request->server('nothing', 5));
+		$this->assertEquals('application/json', $request->server('content-type', 'application/json'));
+	}
+	
 }

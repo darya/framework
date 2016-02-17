@@ -12,12 +12,12 @@ use Darya\Http\Session;
  * @property array $file
  * @property array $server
  * @property array $header
- * @method mixed get(string $key)
- * @method mixed post(string $key)
- * @method mixed cookie(string $key)
- * @method mixed file(string $key)
- * @method mixed server(string $key)
- * @method mixed header(string $key)
+ * @method mixed get(string $key, mixed $default = null)
+ * @method mixed post(string $key, mixed $default = null)
+ * @method mixed cookie(string $key, mixed $default = null)
+ * @method mixed file(string $key, mixed $default = null)
+ * @method mixed server(string $key, mixed $default = null)
+ * @method mixed header(string $key, mixed $default = null)
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -276,13 +276,18 @@ class Request {
 	 * Retrieve request data of the given type using the given key.
 	 * 
 	 * If $key is not set, all request data of the given type will be returned.
+	 * 
 	 * If neither $type or $key are set, all request data will be returned.
 	 * 
-	 * @param string $type [optional]
-	 * @param string $key  [optional]
+	 * If a $default value is given along with $key, it is returned if $key is
+	 * not set in the data of the given $type.
+	 * 
+	 * @param string $type    [optional]
+	 * @param string $key     [optional]
+	 * @param mixed  $default [optional]
 	 * @return mixed
 	 */
-	public function data($type = null, $key = null) {
+	public function data($type = null, $key = null, $default = null) {
 		$type = strtolower($type);
 		
 		if (isset($this->data[$type])) {
@@ -291,7 +296,7 @@ class Request {
 			}
 			
 			if (!empty($key)) {
-				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : null;
+				return isset($this->data[$type][$key]) ? $this->data[$type][$key] : $default;
 			}
 			
 			return $this->data[$type];
@@ -301,8 +306,7 @@ class Request {
 	}
 	
 	/**
-	 * Magic method implementation that provides read-only array access to
-	 * request data.
+	 * Dynamically retrieve all request data of the given type.
 	 * 
 	 * @param string $property
 	 * @return array
@@ -312,14 +316,15 @@ class Request {
 	}
 	
 	/**
-	 * Magic method implementation that provides read-only functional access
-	 * to request data.
+	 * Dynamically retrieve request data.
 	 * 
 	 * @param string $method
-	 * @param array  $args
+	 * @param array  $arguments
 	 */
-	public function __call($method, $args) {
-		return count($args) ? $this->data($method, $args[0]) : $this->data($method);
+	public function __call($method, $arguments) {
+		$arguments = array_merge(array($method), array_slice($arguments, 0, 2));
+		
+		return call_user_func_array(array($this, 'data'), $arguments);
 	}
 	
 	/**
