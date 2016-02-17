@@ -1,5 +1,15 @@
 # Darya Framework Changelog
 
+## v0.5.0 - Feb ??, 2015
+- 
+
+## v0.5.0-beta - Nov 4, 2015
+- Updated MySQL connection to work without the mysqlnd driver.
+- Implemented `InMemory` storage for unit tests; includes in-memory filtering,
+  sorting, limiting etc.
+- Implemented many-to-many eager loading and counting
+- Refactored, tested and fixed ORM relations and other ORM & database classes
+
 ## v0.5.0-alpha2 - Sep 17, 2015
 - Implemented SQL Server database connection
 - Implemented prepared queries for MySQL connection
