@@ -1,6 +1,9 @@
 <?php
 namespace Darya\Database;
 
+use Darya\Database\Connection;
+use Exception;
+
 /**
  * Darya's database connection factory.
  * 
@@ -73,7 +76,7 @@ class Factory {
 		$class = $this->resolveClass($name);
 		$options = $this->prepareOptions($options);
 		
-		if (class_exists($class)) {
+		if (class_exists($class) && $class instanceof Connection) {
 			return new $class(
 				$options['host'],
 				$options['username'],
@@ -83,7 +86,7 @@ class Factory {
 			);
 		}
 		
-		return null;
+		throw new Exception("Couldn't resolve database connection instance for '$name'");
 	}
 	
 }
