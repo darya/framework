@@ -1,10 +1,32 @@
 # Darya Framework Changelog
 
+## v0.5.0-alpha2 - Sep 17, 2015
+- Implemented SQL Server database connection
+- Implemented prepared queries for MySQL connection
+- Implemented dedicated `Query` class to represent database queries
+- Implemented `Transformer` classes for `Model` attribute access and mutation
+- Implemented fluent query builder with queryable storage and dedicated
+  translator classes
+- Implemented reverse routing, or route URL/path generation
+- Added event dispatchment to database connections
+- Extracted handling of `Response` cookies to a `Cookies` class
+- Removed `escape()` methods from database connections.
+- Many database-related bug fixes.
+
+## v0.5.0-alpha - Jul 22, 2015
+- Implemented `Database`, `ORM` and `Storage` packages
+- Removed use of global `DEBUG` constant
+- Made `Response` content optional
+- Wrote lots of unit tests
+- Removed `Interface` suffix for many interfaces
+- Implemented recursive service/alias resolution for `Container`.
+- Renamed abstract `View` class to `AbstractView`
+
 ## v0.4.0 - Feb 25, 2015
 - Minor `Autoloader` improvement
 - Major `Router` refactoring using method extraction
 - `Session` objects can now be accessed like arrays, and as a result through
-  their parent `Request` objects in the same way as other request data.
+  their parent `Request` objects in the same way as other request data
 - `Response` refactoring, also removed `Response::addContent()`
 - Removed redundant `Tools::processPost()`
 - Added `ContainerInterface::all()` and `SessionInterface::has()`
