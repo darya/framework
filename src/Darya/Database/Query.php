@@ -45,6 +45,8 @@ class Query {
 	/**
 	 * Retrieve the query's string representation.
 	 * 
+	 * TODO: Parameter replacement
+	 * 
 	 * @return string
 	 */
 	public function __toString() {

@@ -1,12 +1,21 @@
 # Darya Framework Changelog
 
 ## v0.5.0 - Feb ??, 2015
-- 
+- Implemented relation constraints
+- Improved model hydration, generation and reinstatement
+- Tested relations and records more thoroughly
+- Implemented dot notation for `Records` for accessing relation attributes
+- Fixed null comparisons for MySQL queries
+- Fixed and refactored `Request` creation, path retrieval and optionally setting
+  status code
+- Implemented `content()` method for `Request` objects
+- Refactored relation naming and factory method
+- Implemented iterable storage results (includes database results)
 
 ## v0.5.0-beta - Nov 4, 2015
-- Updated MySQL connection to work without the mysqlnd driver.
+- Updated MySQL connection to work without the mysqlnd driver
 - Implemented `InMemory` storage for unit tests; includes in-memory filtering,
-  sorting, limiting etc.
+  sorting, limiting etc
 - Implemented many-to-many eager loading and counting
 - Refactored, tested and fixed ORM relations and other ORM & database classes
 
