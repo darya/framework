@@ -354,6 +354,19 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Retrieve and optionally set the storage used for the target model.
+	 * 
+	 * Falls back to target model storage, then parent model storage.
+	 * 
+	 * @param Readable $storage
+	 */
+	public function storage(Readable $storage = null) {
+		$this->storage = $storage ?: $this->storage;
+		
+		return $this->storage ?: $this->target->storage() ?: $this->parent->storage();
+	}
+	
+	/**
 	 * Retrieve and optionally set the name of the relation on the parent model.
 	 * 
 	 * @param string $name [optional]
@@ -366,16 +379,27 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Retrieve and optionally set the storage used for the target model.
+	 * Retrieve and optionally set the foreign key for the "belongs-to" model.
 	 * 
-	 * Falls back to target model storage, then parent model storage.
-	 * 
-	 * @param Readable $storage
+	 * @param string $foreignKey [optional]
+	 * @return string
 	 */
-	public function storage(Readable $storage = null) {
-		$this->storage = $storage ?: $this->storage;
+	public function foreignKey($foreignKey = '') {
+		$this->foreignKey = (string) $foreignKey ?: $this->foreignKey;
 		
-		return $this->storage ?: $this->target->storage() ?: $this->parent->storage();
+		return $this->foreignKey;
+	}
+	
+	/**
+	 * Retrieve and optionally set the local key for the "has" model.
+	 * 
+	 * @param string $localKey [optional]
+	 * @return string
+	 */
+	public function localKey($localKey = '') {
+		$this->localKey = (string) $localKey ?: $this->localKey;
+		
+		return $this->localKey;
 	}
 	
 	/**
