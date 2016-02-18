@@ -5,12 +5,19 @@
 - Improved model hydration, generation and reinstatement
 - Tested relations and records more thoroughly
 - Implemented dot notation for `Records` for accessing relation attributes
-- Fixed null comparisons for MySQL queries
+- Refactored abstract SQL translator
+- Fixed null and boolean comparisons for MySQL queries
 - Fixed and refactored `Request` creation, path retrieval and optionally setting
   status code
+- Implemented default value parameters for `Request` data retrieval methods
 - Implemented `content()` method for `Request` objects
 - Refactored relation naming and factory method
+- Refactored database/storage results
 - Implemented iterable storage results (includes database results)
+- Updated database connections to accept `Query` objects for their `query()`
+  methods
+- Database factory throws an exception if it fails, instead of returning null
+
 
 ## v0.5.0-beta - Nov 4, 2015
 - Updated MySQL connection to work without the mysqlnd driver
