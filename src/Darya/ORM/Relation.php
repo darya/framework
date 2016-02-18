@@ -512,7 +512,7 @@ abstract class Relation {
 	 * Clear the related models.
 	 */
 	public function clear() {
-		$this->related = null;
+		$this->related = array();
 		$this->loaded = false;
 	}
 	

@@ -400,7 +400,7 @@ class BelongsToMany extends Relation {
 	 * @return int
 	 */
 	public function purge() {
-		$this->related = null; // Force a reload because diffing would be a pain
+		$this->clear(); // Force a reload because diffing would be a pain
 		
 		return (int) $this->storage()->delete($this->table, array(
 			$this->foreignKey => $this->relatedIds()
