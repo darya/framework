@@ -219,6 +219,8 @@ abstract class Relation {
 	 * Works similarly to array_column(), but doesn't return data from any rows
 	 * without the given attribute set.
 	 * 
+	 * Optionally accepts a second attribute to index by.
+	 * 
 	 * @param Record[]|Record|array $instances
 	 * @param string                $attribute
 	 * @param string                $index     [optional]

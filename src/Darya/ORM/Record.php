@@ -310,7 +310,7 @@ class Record extends Model {
 		
 		foreach ((array) $relations as $relation) {
 			if ($instance->relation($relation)) {
-				$instances = $instance->relation($relation)->eager($instances, $relation);
+				$instances = $instance->relation($relation)->eager($instances);
 			}
 		}
 		
