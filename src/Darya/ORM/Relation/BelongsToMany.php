@@ -7,6 +7,9 @@ use Darya\ORM\Relation;
 /**
  * Darya's many-to-many entity relation.
  * 
+ * @property-read array  $associationConstraint
+ * @property-read string $table
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class BelongsToMany extends Relation {
@@ -191,8 +194,6 @@ class BelongsToMany extends Relation {
 	 * 
 	 * Optionally accepts a list of related IDs to filter by.
 	 * 
-	 * TODO: Test this without the if statement and just merging regardless
-	 * 
 	 * @param array $related
 	 * @return array
 	 */
@@ -209,11 +210,14 @@ class BelongsToMany extends Relation {
 	}
 	
 	/**
-	 * Retrieve the table of the many-to-many relation.
+	 * Retrieve and optionally set the table of the many-to-many relation.
 	 * 
+	 * @param string $table [optional]
 	 * @return string
 	 */
-	public function table() {
+	public function table($table = null) {
+		$this->table = (string) $table ?: $this->table;
+		
 		return $this->table;
 	}
 	

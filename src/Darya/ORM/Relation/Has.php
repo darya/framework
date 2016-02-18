@@ -99,7 +99,7 @@ class Has extends Relation {
 	 * Returns true if the model was successfully associated.
 	 * 
 	 * @param Record $instance
-	 * @return bool
+	 * @return int
 	 */
 	public function associate($instance) {
 		$this->dissociate();
@@ -107,7 +107,7 @@ class Has extends Relation {
 		$this->verify($instance);
 		$this->related = array($instance);
 		
-		return (bool) $this->save();
+		return $this->save();
 	}
 	
 	/**
@@ -115,7 +115,7 @@ class Has extends Relation {
 	 * 
 	 * Returns true if the model was successfully dissociated.
 	 * 
-	 * @return bool
+	 * @return int
 	 */
 	public function dissociate() {
 		$associated = $this->retrieve();
@@ -128,7 +128,7 @@ class Has extends Relation {
 		
 		$associated->set($this->foreignKey, 0);
 		
-		return (bool) $associated->save();
+		return $associated->save();
 	}
 	
 }

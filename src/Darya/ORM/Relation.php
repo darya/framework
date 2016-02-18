@@ -358,7 +358,7 @@ abstract class Relation {
 	 * @return string
 	 */
 	public function name($name = '') {
-		$this->name = ((string) $name) ?: $this->name;
+		$this->name = (string) $name ?: $this->name;
 		
 		return $this->name;
 	}
