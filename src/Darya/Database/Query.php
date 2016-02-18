@@ -4,8 +4,8 @@ namespace Darya\Database;
 /**
  * Darya's immutable database query class.
  * 
- * @property string $string
- * @property array  $parameters
+ * @property-read string $string
+ * @property-read array  $parameters
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -44,8 +44,6 @@ class Query {
 	
 	/**
 	 * Retrieve the query's string representation.
-	 * 
-	 * TODO: Parameter replacement
 	 * 
 	 * @return string
 	 */

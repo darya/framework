@@ -6,7 +6,7 @@ use Darya\Http\Cookies;
 /**
  * Darya's HTTP response representation.
  * 
- * @property Cookies $cookies
+ * @property-read Cookies $cookies
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

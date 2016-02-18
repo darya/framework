@@ -12,7 +12,16 @@ use Darya\Storage\Readable;
  * TODO: errors() method.
  * TODO: Filter, order, limit, offset for load() and retrieve().
  * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
- * TODO: Use a $loaded property instead of setting relations to null.
+ * 
+ * @property-read string   $name
+ * @property-read Record   $parent
+ * @property-read Record   $target
+ * @property-read string   $foreignKey
+ * @property-read string   $localKey
+ * @property-read array    $constraint
+ * @property-read Record[] $related
+ * @property-read bool     $loaded
+ * @property-read Readable $storage
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -54,9 +63,14 @@ abstract class Relation {
 	protected $constraint = array();
 	
 	/**
-	 * @var Record[]|null The related instances
+	 * @var Record[] The related instances
 	 */
-	protected $related = null;
+	protected $related = array();
+	
+	/**
+	 * @var bool Determines whether related instances have been loaded
+	 */
+	protected $loaded = false;
 	
 	/**
 	 * @var Readable Storage interface
@@ -411,17 +425,18 @@ abstract class Relation {
 		$data = $this->read($limit);
 		$class = get_class($this->target);
 		$this->related = $class::generate($data);
+		$this->loaded = true;
 		
 		return $this->related;
 	}
 	
 	/**
-	 * Determine whether cached related models have been attempted to be loaded.
+	 * Determine whether cached related models have been loaded.
 	 * 
 	 * @return bool
 	 */
 	public function loaded() {
-		return $this->related !== null;
+		return $this->loaded;
 	}
 	
 	/**
@@ -490,6 +505,7 @@ abstract class Relation {
 	public function set($instances) {
 		$this->verify($instances);
 		$this->related = static::arrayify($instances);
+		$this->loaded = true;
 	}
 	
 	/**
@@ -497,6 +513,7 @@ abstract class Relation {
 	 */
 	public function clear() {
 		$this->related = null;
+		$this->loaded = false;
 	}
 	
 	/**

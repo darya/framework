@@ -6,18 +6,18 @@ use Darya\Http\Session;
 /**
  * Darya's HTTP request representation.
  * 
- * @property array $get
- * @property array $post
- * @property array $cookie
- * @property array $file
- * @property array $server
- * @property array $header
- * @method mixed get(string $key, mixed $default = null)
- * @method mixed post(string $key, mixed $default = null)
- * @method mixed cookie(string $key, mixed $default = null)
- * @method mixed file(string $key, mixed $default = null)
- * @method mixed server(string $key, mixed $default = null)
- * @method mixed header(string $key, mixed $default = null)
+ * @property-read array $get
+ * @property-read array $post
+ * @property-read array $cookie
+ * @property-read array $file
+ * @property-read array $server
+ * @property-read array $header
+ * @method mixed get(string $key = null, mixed $default = null)
+ * @method mixed post(string $key = null, mixed $default = null)
+ * @method mixed cookie(string $key = null, mixed $default = null)
+ * @method mixed file(string $key = null, mixed $default = null)
+ * @method mixed server(string $key = null, mixed $default = null)
+ * @method mixed header(string $key = null, mixed $default = null)
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
