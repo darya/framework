@@ -1,6 +1,6 @@
 # Darya Framework Changelog
 
-## v0.5.0 - Feb ??, 2015
+## v0.5.0 - Feb 18, 2015
 
 ### ORM
 - Implemented relation constraints
@@ -11,7 +11,7 @@
   - Allows string keys in relation definitions, which call methods on the
     relation when it is built, such as `'foreignKey'`, `'localKey'` and
     `'constrain'`
-    
+
 ### Database
 - Refactored abstract SQL translator
 - Fixed null and boolean comparisons for MySQL queries
