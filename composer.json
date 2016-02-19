@@ -2,7 +2,9 @@
 	"name": "darya/framework",
 	"description": "Web application framework",
 	"type": "library",
-	"keywords": ["darya", "framework", "library", "mvc"],
+	"keywords": [
+		"darya", "framework", "library", "mvc", "orm", "active record"
+	],
 	"license": "MIT",
 	"authors": [
 		{
