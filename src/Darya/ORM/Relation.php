@@ -32,6 +32,13 @@ abstract class Relation {
 	const BELONGS_TO      = 'belongs_to';
 	const BELONGS_TO_MANY = 'belongs_to_many';
 	
+	protected static $classMap = array(
+		self::HAS             => 'Darya\ORM\Relation\Has',
+		self::HAS_MANY        => 'Darya\ORM\Relation\HasMany',
+		self::BELONGS_TO      => 'Darya\ORM\Relation\BelongsTo',
+		self::BELONGS_TO_MANY => 'Darya\ORM\Relation\BelongsToMany',
+	);
+	
 	/**
 	 * @var string The name of the relation in the context of the parent model
 	 */
@@ -114,6 +121,20 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Resolve a relation class name from the given relation type constant.
+	 * 
+	 * @param string $type
+	 * @return string
+	 */
+	protected static function resolveClass($type) {
+		if (isset(static::$classMap[$type])) {
+			return static::$classMap[$type];
+		}
+		
+		return static::$classMap[static::HAS];
+	}
+	
+	/**
 	 * Create a new relation of the given type using the given arguments.
 	 * 
 	 * Applies numerically-keyed arguments to the constructor and string-keyed
@@ -124,19 +145,7 @@ abstract class Relation {
 	 * @return Relation
 	 */
 	public static function factory($type = self::HAS, array $arguments) {
-		switch ($type) {
-			case static::HAS_MANY:
-				$class = 'Darya\ORM\Relation\HasMany';
-				break;
-			case static::BELONGS_TO:
-				$class = 'Darya\ORM\Relation\BelongsTo';
-				break;
-			case static::BELONGS_TO_MANY:
-				$class = 'Darya\ORM\Relation\BelongsToMany';
-				break;
-			default:
-				$class = 'Darya\ORM\Relation\Has';
-		}
+		$class = static::resolveClass($type);
 		
 		$reflection = new ReflectionClass($class);
 		
