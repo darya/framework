@@ -122,9 +122,11 @@ class Record extends Model {
 			return $this->table;
 		}
 		
+		$class = end(explode('\\', get_class($this)));
+		
 		return preg_replace_callback('/([A-Z])/', function($matches) {
 			return '_' . strtolower($matches[1]);
-		}, lcfirst(basename(get_class($this)))) . 's';
+		}, lcfirst($class)) . 's';
 	}
 	
 	/**
