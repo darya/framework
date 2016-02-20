@@ -76,7 +76,7 @@ class Factory {
 		$class = $this->resolveClass($name);
 		$options = $this->prepareOptions($options);
 		
-		if (class_exists($class) && $class instanceof Connection) {
+		if (class_exists($class) && is_subclass_of($class, 'Darya\Database\Connection')) {
 			return new $class(
 				$options['host'],
 				$options['username'],
