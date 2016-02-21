@@ -191,9 +191,12 @@ abstract class Relation {
 	 * @return string
 	 */
 	protected function delimitClass($class) {
+		$split = explode('\\', get_class($this));
+		$class = end($split);
+		
 		return preg_replace_callback('/([A-Z])/', function ($matches) {
 			return '_' . strtolower($matches[1]);
-		}, lcfirst(basename($class)));
+		}, lcfirst($class));
 	}
 	
 	/**
