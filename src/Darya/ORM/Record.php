@@ -122,7 +122,8 @@ class Record extends Model {
 			return $this->table;
 		}
 		
-		$class = end(explode('\\', get_class($this)));
+		$split = explode('\\', get_class($this));
+		$class = end($split);
 		
 		return preg_replace_callback('/([A-Z])/', function($matches) {
 			return '_' . strtolower($matches[1]);
