@@ -107,6 +107,8 @@ class SqlServer extends AbstractConnection {
 	/**
 	 * Query the database.
 	 * 
+	 * TODO: Also simplify this.
+	 * 
 	 * @param Query|string $query
 	 * @param array        $parameters [optional]
 	 * @return Result
@@ -117,6 +119,14 @@ class SqlServer extends AbstractConnection {
 		}
 		
 		$this->connect();
+		
+		if (!$this->connected()) {
+			$this->lastResult = new Result($query, array(), array(), $this->error());
+			
+			$this->event('sqlserver.query', array($this->lastResult));
+			
+			return $this->lastResult;
+		}
 		
 		$this->lastResult = null;
 		
