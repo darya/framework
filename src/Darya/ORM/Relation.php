@@ -70,6 +70,11 @@ abstract class Relation {
 	protected $constraint = array();
 	
 	/**
+	 * @var array Sort order for related models
+	 */
+	protected $sort = array();
+	
+	/**
 	 * @var Record[] The related instances
 	 */
 	protected $related = array();
@@ -442,6 +447,24 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Set the sorting order for this relation.
+	 * 
+	 * @param array|string $order
+	 */
+	public function sort($order) {
+		return $this->sort = $order;
+	}
+	
+	/**
+	 * Retrieve the order for this relation.
+	 * 
+	 * @return array|string
+	 */
+	public function order() {
+		return $this->sort;
+	}
+	
+	/**
 	 * Read related model data from storage.
 	 * 
 	 * TODO: $filter, $order, $offset
@@ -450,7 +473,7 @@ abstract class Relation {
 	 * @return array
 	 */
 	public function read($limit = 0) {
-		return $this->storage()->read($this->target->table(), $this->filter(), null, $limit);
+		return $this->storage()->read($this->target->table(), $this->filter(), $this->order(), $limit);
 	}
 	
 	/**
