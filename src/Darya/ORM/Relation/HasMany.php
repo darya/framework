@@ -12,14 +12,15 @@ use Darya\ORM\Relation;
 class HasMany extends Has {
 	
 	/**
-	 * Eagerly load the related models for the given parent instances.
+	 * Eagerly load the related models of the given parent instances.
 	 * 
-	 * Returns the given instances with their related models loaded.
+	 * Retrieves the related models without matching them to their parents.
 	 * 
 	 * @param array $instances
 	 * @return array
 	 */
-	public function eager(array $instances) {
+	public function eagerLoad(array $instances)
+	{
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, 'id');
 		
@@ -29,24 +30,63 @@ class HasMany extends Has {
 		
 		$data = $this->storage()->read($this->target->table(), $filter);
 		
-		$class = get_class($this->target);
-		$generated = $class::generate($data);
-		
-		$related = array();
-		
-		foreach ($generated as $model) {
-			$key = $model->get($this->foreignKey);
-			
-			if (!isset($related[$key])) {
-				$related[$key] = array();
-			}
-			
-			$related[$key][] = $model;
+		return $this->target->generate($data);
+	}
+	
+	/**
+	 * Eagerly load and match the related models for the given parent instances.
+	 * 
+	 * Returns the given instances with their related models loaded.
+	 * 
+	 * @param array $instances
+	 * @return array
+	 */
+	public function eager(array $instances) {
+		if ($this->parent instanceof $this->target) {
+			return $this->eagerSelf($instances);
 		}
+		
+		$related = $this->eagerLoad($instances);
+		
+		$instances = $this->match($instances, $related);
+		
+		return $instances;
+	}
+	
+	/**
+	 * Eagerly load the related models from the same table.
+	 * 
+	 * This continues to load the same relation recursively.
+	 * 
+	 * @param array $instances
+	 * @return array
+	 */
+	protected function eagerSelf(array $instances)
+	{
+		$parents = $instances;
+		
+		while ($related = $this->eagerLoad($parents)) {
+			$this->match($parents, $related);
+			
+			$parents = $related;
+		}
+		
+		return $instances;
+	}
+	
+	/**
+	 * Match the given related models to their parent instances.
+	 * 
+	 * @param Record[] $instances
+	 * @param Record[] $related
+	 * @return Record[]
+	 */
+	protected function match(array $instances, array $related) {
+		$list = $this->adjacencyList($related);
 		
 		foreach ($instances as $instance) {
 			$key = $instance->id();
-			$value = isset($related[$key]) ? $related[$key] : array();
+			$value = isset($list[$key]) ? $list[$key] : array();
 			$instance->relation($this->name)->set($value);
 		}
 		

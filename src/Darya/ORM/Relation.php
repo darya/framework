@@ -260,6 +260,22 @@ abstract class Relation {
 	}
 	
 	/**
+	 * Build an adjacency list of related models using the foreign key.
+	 * 
+	 * @param Record[] $instances
+	 * @return array
+	 */
+	protected function adjacencyList(array $instances) {
+		$related = array();
+		
+		foreach ($instances as $instance) {
+			$related[$instance->get($this->foreignKey)][] = $instance;
+		}
+		
+		return $related;
+	}
+	
+	/**
 	 * Reduce the cached related models to those with the given IDs.
 	 * 
 	 * If no IDs are given then all of the in-memory models will be removed.

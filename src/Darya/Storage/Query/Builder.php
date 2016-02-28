@@ -30,7 +30,7 @@ class Builder {
 	protected $callback;
 	
 	/**
-	 * @var array Storage query methods that should trigger query execution
+	 * @var array Query methods that should trigger query execution
 	 */
 	protected $executors = array('all', 'distinct', 'delete');
 	
