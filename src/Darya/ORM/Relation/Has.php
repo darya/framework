@@ -39,7 +39,7 @@ class Has extends Relation {
 			$this->foreignKey => array_unique($ids)
 		));
 		
-		$data = $this->storage()->read($this->target->table(), $filter);
+		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 		
 		$class = get_class($this->target);
 		$generated = $class::generate($data);

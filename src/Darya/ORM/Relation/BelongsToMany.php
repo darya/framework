@@ -250,9 +250,13 @@ class BelongsToMany extends Relation {
 	 * @return array
 	 */
 	public function read($limit = 0) {
-		return $this->storage()->read($this->target->table(), array(
-			$this->target->key() => $this->relatedIds($limit)
-		));
+		return $this->storage()->read(
+			$this->target->table(),
+			array(
+				$this->target->key() => $this->relatedIds($limit)
+			),
+			$this->order()
+		);
 	}
 	
 	/**
@@ -288,7 +292,7 @@ class BelongsToMany extends Relation {
 		$filter = $this->filter($relatedIds);
 		
 		// Data of relations
-		$data = $this->storage()->read($this->target->table(), $filter);
+		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 		
 		// Instances of relations from the data
 		$class = get_class($this->target);

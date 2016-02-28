@@ -260,12 +260,15 @@ abstract class Relation {
 	}
 	
 	/**
-	 * Build an adjacency list of related models using the foreign key.
+	 * Build an adjacency list of related models, indexed by their foreign keys.
+	 * 
+	 * Optionally accepts a different attribute to index the models by.
 	 * 
 	 * @param Record[] $instances
+	 * @param string   $index     [optional]
 	 * @return array
 	 */
-	protected function adjacencyList(array $instances) {
+	protected function adjacencyList(array $instances, $index = null) {
 		$related = array();
 		
 		foreach ($instances as $instance) {

@@ -305,10 +305,10 @@ class Record extends Model {
 	 * Eagerly load the given relations of multiple record instances.
 	 * 
 	 * @param array|string     $relations
-	 * @param array|string|int $filter
-	 * @param array|string     $order
-	 * @param int              $limit
-	 * @param int              $offset
+	 * @param array|string|int $filter    [optional]
+	 * @param array|string     $order     [optional]
+	 * @param int              $limit     [optional]
+	 * @param int              $offset    [optional]
 	 * @return array
 	 */
 	public static function eager($relations, $filter = array(), $order = array(), $limit = 0, $offset = 0) {

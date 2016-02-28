@@ -28,7 +28,7 @@ class HasMany extends Has {
 			$this->foreignKey => array_unique($ids)
 		));
 		
-		$data = $this->storage()->read($this->target->table(), $filter);
+		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 		
 		return $this->target->generate($data);
 	}
