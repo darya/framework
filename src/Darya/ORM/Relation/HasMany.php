@@ -71,6 +71,8 @@ class HasMany extends Has {
 			$parents = $related;
 		}
 		
+		$this->match($parents, array());
+		
 		return $instances;
 	}
 	
