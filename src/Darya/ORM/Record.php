@@ -251,7 +251,7 @@ class Record extends Model {
 	 * @param int              $offset [optional]
 	 * @return array
 	 */
-	public static function load($filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public static function load($filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		$instance = new static;
 		$storage = $instance->storage();
 		$filter = static::prepareFilter($filter);
@@ -297,19 +297,23 @@ class Record extends Model {
 	 * @param int              $offset [optional]
 	 * @return array
 	 */
-	public static function all($filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public static function all($filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		return static::hydrate(static::load($filter, $order, $limit, $offset));
 	}
 	
 	/**
 	 * Eagerly load the given relations of multiple record instances.
 	 * 
-	 * @param array|string $relations
+	 * @param array|string     $relations
+	 * @param array|string|int $filter
+	 * @param array|string     $order
+	 * @param int              $limit
+	 * @param int              $offset
 	 * @return array
 	 */
-	public static function eager($relations) {
+	public static function eager($relations, $filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		$instance = new static;
-		$instances = static::all();
+		$instances = static::all($filter, $order, $limit, $offset);
 		
 		foreach ((array) $relations as $relation) {
 			if ($instance->relation($relation)) {
