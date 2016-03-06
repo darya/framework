@@ -116,14 +116,16 @@ class Response {
 	 * @param string $header
 	 */
 	public function header($header) {
-		if ($header !== null && strlen($header)) {
-			list($name, $value) = explode(':', $header, 2);
-			$this->headers[$name] = $value;
+		$header = (string) $header;
+		
+		if (strlen($header)) {
+			list($name, $value) = array_pad(explode(':', $header, 2), 2, null);
+			$this->headers[$name] = ltrim($value);
 		}
 	}
 	
 	/**
-	 * Add headers to send with the response and retrieve all response headers.
+	 * Retrieve and optionally add headers to send with the response.
 	 * 
 	 * @param array|string $headers [optional]
 	 * @return array
@@ -137,36 +139,6 @@ class Response {
 	}
 	
 	/**
-	 * Set a cookie to send with the response.
-	 * 
-	 * @param string $key
-	 * @param string $value
-	 * @param int $expire
-	 */
-	public function setCookie($key, $value, $expire, $path = '/') {
-		$this->cookies->set($key, $value, $expire, $path);
-	}
-	
-	/**
-	 * Get the value of a cookie that's been added to the response.
-	 * 
-	 * @param string $key
-	 * @return string
-	 */
-	public function getCookie($key) {
-		return $this->cookies->get($key);
-	}
-	
-	/**
-	 * Add a cookie to be deleted with the response.
-	 * 
-	 * @param string $key
-	 */
-	public function deleteCookie($key) {
-		$this->cookies->delete($key);
-	}
-	
-	/**
 	 * Get and optionally set the response content.
 	 * 
 	 * @param mixed $content [optional]
@@ -174,14 +146,23 @@ class Response {
 	 */
 	public function content($content = null) {
 		if (is_array($content)) {
-			$this->header('Content-Type: text/json');
+			$this->header('Content-Type: application/json');
 		}
 		
 		if ($content !== null) {
-			$this->content = $this->prepareContent($content);
+			$this->content = $content;
 		}
 		
 		return $this->content;
+	}
+	
+	/**
+	 * Retrieve the response content as a string.
+	 * 
+	 * @return string
+	 */
+	public function body() {
+		return static::prepareContent($this->content);
 	}
 	
 	/**
@@ -190,7 +171,7 @@ class Response {
 	 * @return bool
 	 */
 	public function hasContent() {
-		return !is_null($this->content) && $this->content !== false;
+		return $this->content !== null && $this->content !== false;
 	}
 	
 	/**
@@ -277,7 +258,7 @@ class Response {
 	 */
 	public function sendContent() {
 		if ($this->headersSent() && !$this->contentSent && !$this->redirected) {
-			echo $this->content;
+			echo $this->body();
 			
 			$this->contentSent = true;
 		}
