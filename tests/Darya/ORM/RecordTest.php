@@ -64,6 +64,20 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 		Record::setSharedStorage($mock);
 	}
 	
+	public function testTable() {
+		$user = new User;
+		$this->assertEquals('users', $user->table());
+		
+		$role = new Role;
+		$this->assertEquals('roles', $role->table());
+		
+		$post = new Post;
+		$this->assertEquals('posts', $post->table());
+		
+		$certificate = new Certificate;
+		$this->assertEquals('certs', $certificate->table());
+	}
+	
 	public function testFind() {
 		$user = User::find(2);
 		
@@ -577,4 +591,8 @@ class User extends Record
 	protected $search = array(
 		'firstname', 'surname'
 	);
+}
+
+class Certificate extends Record {
+	protected $table = 'certs';
 }
