@@ -6,6 +6,8 @@ use Darya\Http\Cookies;
 /**
  * Darya's HTTP response representation.
  * 
+ * TODO: Support content streams.
+ * 
  * @property-read Cookies $cookies
  * 
  * @author Chris Andrew <chris@hexus.io>
@@ -48,6 +50,13 @@ class Response {
 	private $redirected = false;
 	
 	/**
+	 * @var array Properties that can be read dynamically
+	 */
+	private $properties = array(
+		'status', 'headers', 'cookies', 'content', 'redirected'
+	);
+	
+	/**
 	 * Prepare the given response content as a string.
 	 * 
 	 * Invokes `__toString()` on objects if exposed. Encodes arrays as JSON.
@@ -75,13 +84,15 @@ class Response {
 	 * @param array $headers [optional]
 	 */
 	public function __construct($content = null, array $headers = array()) {
-		if (!is_null($content)) {
+		if ($content !== null) {
 			$this->content($content);
 		}
 		
 		$this->headers($headers);
 		
 		$this->cookies = new Cookies;
+		
+		$this->properties = array_flip($this->properties);
 	}
 	
 	/**
@@ -91,8 +102,8 @@ class Response {
 	 * @return mixed
 	 */
 	public function __get($property) {
-		if ($property === 'cookies') {
-			return $this->cookies;
+		if (isset($this->properties[$property])) {
+			return $this->$property;
 		}
 	}
 	
@@ -199,6 +210,24 @@ class Response {
 	}
 	
 	/**
+	 * Determine whether any headers have been sent by this response or another.
+	 * 
+	 * @return bool
+	 */
+	protected function headersSent() {
+		return $this->headersSent || headers_sent();
+	}
+	
+	/**
+	 * Determine whether the response content has been sent.
+	 * 
+	 * @return bool
+	 */
+	 protected function contentSent() {
+	 	return $this->contentSent;
+	 }
+	
+	/**
 	 * Sends the current HTTP status of the response.
 	 */
 	protected function sendStatus() {
@@ -214,15 +243,6 @@ class Response {
 	 */
 	protected function sendCookies() {
 		$this->cookies->send();
-	}
-	
-	/**
-	 * Determine whether any headers have been sent by this response or another.
-	 * 
-	 * @return bool
-	 */
-	protected function headersSent() {
-		return $this->headersSent || headers_sent();
 	}
 	
 	/**
@@ -257,13 +277,13 @@ class Response {
 	 * @return bool
 	 */
 	public function sendContent() {
-		if ($this->headersSent() && !$this->contentSent && !$this->redirected) {
+		if ($this->headersSent() && !$this->contentSent() && !$this->redirected) {
 			echo $this->body();
 			
 			$this->contentSent = true;
 		}
 		
-		return $this->contentSent;
+		return $this->contentSent();
 	}
 	
 	/**

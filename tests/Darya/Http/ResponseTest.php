@@ -56,6 +56,20 @@ class ResponseTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($array, $response->content());
 		$this->assertEquals('{"test":"value","swag":"swish"}', $response->body());
 	}
+	
+	public function testDynamicProperties()
+	{
+		$response = new Response('content', array(
+			'Test-Header: Value'
+		));
+		
+		$response->redirect('http://darya.io/');
+		
+		$this->assertEquals(200, $response->status);
+		$this->assertEquals('content', $response->content);
+		$this->assertEquals(array('Test-Header' => 'Value', 'Location' => 'http://darya.io/'), $response->headers);
+		$this->assertEquals(true, $response->redirected);
+	}
 }
 
 class ResponseContent
