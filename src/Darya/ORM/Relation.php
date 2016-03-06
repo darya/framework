@@ -269,10 +269,12 @@ abstract class Relation {
 	 * @return array
 	 */
 	protected function adjacencyList(array $instances, $index = null) {
+		$index = $index ?: $this->foreignKey;
+		
 		$related = array();
 		
 		foreach ($instances as $instance) {
-			$related[$instance->get($this->foreignKey)][] = $instance;
+			$related[$instance->get($index)][] = $instance;
 		}
 		
 		return $related;
