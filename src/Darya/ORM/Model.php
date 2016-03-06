@@ -15,7 +15,7 @@ use Darya\ORM\Model\Transformer;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Serializable {
+abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	
 	/**
 	 * @var array Attribute names as keys and types as values
@@ -471,13 +471,6 @@ abstract class Model implements ArrayAccess, Countable, IteratorAggregate, Seria
 	 */
 	public function offsetUnset($offset) {
 		$this->remove($offset);
-	}
-	
-	/**
-	 * @return int
-	 */
-	public function count() {
-		return count($this->data);
 	}
 	
 	/**
