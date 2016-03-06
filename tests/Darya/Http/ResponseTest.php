@@ -69,6 +69,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('content', $response->content);
 		$this->assertEquals(array('Test-Header' => 'Value', 'Location' => 'http://darya.io/'), $response->headers);
 		$this->assertEquals(true, $response->redirected);
+		$this->assertInstanceOf('Darya\Http\Cookies', $response->cookies);
 	}
 }
 
