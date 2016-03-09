@@ -555,7 +555,7 @@ class Record extends Model {
 		$relations = array();
 		
 		foreach ($this->relationAttributes() as $attribute) {
-			$relations = $this->relation($attribute);
+			$relations[$attribute] = $this->relation($attribute);
 		}
 		
 		return $relations;
