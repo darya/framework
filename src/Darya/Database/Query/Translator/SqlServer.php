@@ -46,7 +46,7 @@ class SqlServer extends AbstractSqlTranslator {
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
-	 * @param array        $joins    [optional]
+	 * @param string       $joins    [optional]
 	 * @param string       $where    [optional]
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
