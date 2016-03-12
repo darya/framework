@@ -46,13 +46,14 @@ class SqlServer extends AbstractSqlTranslator {
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
+	 * @param array        $joins    [optional]
 	 * @param string       $where    [optional]
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
 	 * @param bool         $distinct [optional]
 	 * @return string
 	 */
-	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false) {
+	protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false) {
 		$table = $this->identifier($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';

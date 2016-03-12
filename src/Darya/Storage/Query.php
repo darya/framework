@@ -54,12 +54,17 @@ class Query {
 	/**
 	 * @var array
 	 */
-	protected $filter;
+	protected $joins = array();
 	
 	/**
 	 * @var array
 	 */
-	protected $order;
+	protected $filter = array();
+	
+	/**
+	 * @var array
+	 */
+	protected $order = array();
 	
 	/**
 	 * @var int|null
@@ -183,6 +188,19 @@ class Query {
 		$this->type = static::DELETE;
 		
 		return $this;
+	}
+	
+	/**
+	 * Add a join to the query.
+	 * 
+	 * TODO: Maybe allow callable conditions if a Join class is introduced.
+	 * 
+	 * @param string       $resource
+	 * @param string|array $condition
+	 * @return $this
+	 */
+	public function join($resource, $condition) {
+		$this->joins[] = array($resource, $condition);
 	}
 	
 	/**

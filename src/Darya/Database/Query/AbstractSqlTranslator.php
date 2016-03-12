@@ -65,7 +65,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$method = 'translate' . ucfirst($type);
 		
 		if (!method_exists($this, $method)) {
-			throw new Exception("Could not translate query of unsupported type '$type'");
+			throw new Exception("Could not translate query of unknown type '$type'");
 		}
 		
 		$query = call_user_func_array(array($this, $method), array($storageQuery));
@@ -96,6 +96,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		return new Database\Query(
 			$this->prepareSelect($storageQuery->resource,
 				$this->prepareColumns($storageQuery->fields),
+				$this->prepareJoins($storageQuery->joins),
 				$this->prepareWhere($storageQuery->filter),
 				$this->prepareOrderBy($storageQuery->order),
 				$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
@@ -243,6 +244,69 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Prepare a join table.
+	 * 
+	 * @param string $table
+	 * @return string
+	 */
+	protected function prepareJoinTable($table) {
+		return $table;
+	}
+	
+	/**
+	 * Prepare a join condition.
+	 * 
+	 * @param string $condition
+	 * @return string
+	 */
+	protected function prepareJoinCondition($condition) {
+		return $condition;
+	}
+	
+	/**
+	 * Prepare an individual table join.
+	 * 
+	 * @param string $table
+	 * @param string $condition
+	 * @return string
+	 */
+	protected function prepareJoin($table, $condition) {
+		$table = $this->prepareJoinTable($table);
+		$condition = $this->prepareJoinCondition($condition);
+		$clause = $condition ? "$table ON $condition" : $table;
+		
+		if (empty($clause)) {
+			return null;
+		}
+		
+		return "JOIN $clause";
+	}
+	
+	/**
+	 * Prepare table joins.
+	 * 
+	 * TODO: Alleviate the expectation of a join condition ($join[1]).
+	 * 
+	 * @param array $joins
+	 * @return string
+	 */
+	protected function prepareJoins(array $joins) {
+		$clauses = '';
+		
+		foreach ($joins as $join) {
+			if (count($join) > 1) {
+				$clauses .= $this->prepareJoin($join[0], $join[1]);
+			}
+		}
+		
+		if (empty($clauses)) {
+			return null;
+		}
+		
+		return $clauses;
+	}
+	
+	/**
 	 * Prepare an individual filter condition.
 	 * 
 	 * @param string $column
@@ -346,15 +410,20 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * Prepare a SELECT statement using the given columns, table, clauses and
 	 * options.
 	 * 
+	 * TODO: Simplify this so that prepareSelect only actually prepares the
+	 *       SELECT and FROM clauses. The rest could be concatenated by
+	 *       translateRead().
+	 * 
 	 * @param string       $table
 	 * @param array|string $columns
+	 * @param array        $joins    [optional]
 	 * @param string       $where    [optional]
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
 	 * @param bool         $distinct [optional]
 	 * @return string
 	 */
-	abstract protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false);
+	abstract protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false);
 	
 	/**
 	 * Prepare an INSERT INTO statement using the given table and data.

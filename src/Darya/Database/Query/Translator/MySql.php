@@ -32,7 +32,7 @@ class MySql extends AbstractSqlTranslator {
 		$split = explode('.', $identifier, 2);
 		
 		foreach ($split as $index => $value) {
-			$split[$index] = '`' . $value . '`';
+			$split[$index] = $value !== '*' ? '`' . $value . '`' : $value;
 		}
 		
 		return implode('.', $split);
@@ -68,18 +68,19 @@ class MySql extends AbstractSqlTranslator {
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
+	 * @param string       $joins    [optional]
 	 * @param string       $where    [optional]
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
 	 * @param bool         $distinct [optional]
 	 * @return string
 	 */
-	protected function prepareSelect($table, $columns, $where = null, $order = null, $limit = null, $distinct = false) {
+	protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false) {
 		$table = $this->identifier($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		return static::concatenate(array('SELECT', $distinct, $columns, 'FROM', $table, $where, $order, $limit));
+		return static::concatenate(array('SELECT', $distinct, $columns, 'FROM', $table, $joins, $where, $order, $limit));
 	}
 	
 	/**
