@@ -58,7 +58,7 @@ class SqlServer extends AbstractSqlTranslator {
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $where, $order));
+		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $joins, $where, $order));
 	}
 	
 	/**
