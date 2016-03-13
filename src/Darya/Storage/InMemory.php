@@ -106,6 +106,10 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
 		$data = $this->read($resource, $filter, $order, $limit, $offset);
 		
+		if (empty($fields) || $fields === '*') {
+			return $data;
+		}
+		
 		$fields = (array) $fields;
 		
 		$result = array();
@@ -280,8 +284,9 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 				$this->create($query->resource, $query->data);
 				break;
 			case Query::READ:
-				$data = $this->read(
+				$data = $this->listing(
 					$query->resource,
+					$query->fields,
 					$query->filter,
 					$query->order,
 					$query->limit,
@@ -311,13 +316,13 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	/**
 	 * Open a query on the given resource.
 	 * 
-	 * @param string $resource
-	 * @param array  $fields   [optional]
+	 * @param string       $resource
+	 * @param array|string $fields   [optional]
 	 * @return Query\Builder
 	 */
 	public function query($resource, $fields = array())
 	{
-		return new Query\Builder(new Query($resource, $fields), $this);
+		return new Query\Builder(new Query($resource, (array) $fields), $this);
 	}
 	
 	/**

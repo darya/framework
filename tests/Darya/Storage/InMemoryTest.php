@@ -338,4 +338,18 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 		), $roles);
 	}
 	
+	public function testReadQuery() {
+		$storage = $this->storage();
+		
+		$result = $storage->query('roles', 'id')->cheers();
+		
+		$expected = array(
+			array('id' => 1),
+			array('id' => 2),
+			array('id' => 3)
+		);
+		
+		$this->assertEquals($expected, $result->data);
+	}
+	
 }
