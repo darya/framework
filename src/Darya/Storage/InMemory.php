@@ -5,6 +5,9 @@ use Darya\Storage\Aggregational;
 use Darya\Storage\Filterer;
 use Darya\Storage\Readable;
 use Darya\Storage\Modifiable;
+use Darya\Storage\Query;
+use Darya\Storage\Queryable;
+use Darya\Storage\Result;
 use Darya\Storage\Searchable;
 use Darya\Storage\Sorter;
 
@@ -15,7 +18,7 @@ use Darya\Storage\Sorter;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class InMemory implements Readable, Modifiable, Searchable, Aggregational {
+class InMemory implements Readable, Modifiable, Searchable, Aggregational, Queryable {
 	
 	/**
 	 * The in-memory data.
@@ -259,6 +262,62 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational {
 		}
 		
 		return array_unique($list);
+	}
+	
+	/**
+	 * Execute the given query.
+	 * 
+	 * @param Query $query
+	 * @return Result
+	 */
+	public function execute(Query $query)
+	{
+		$data = array();
+		$info = array();
+		
+		switch ($query->type) {
+			case Query::CREATE:
+				$this->create($query->resource, $query->data);
+				break;
+			case Query::READ:
+				$data = $this->read(
+					$query->resource,
+					$query->filter,
+					$query->order,
+					$query->limit,
+					$query->offset
+				);
+				break;
+			case Query:UPDATE:
+				$info['affected'] = $this->update(
+					$query->resource,
+					$query->data,
+					$query->filter,
+					$query->limit
+				);
+				break;
+			case Query::DELETE:
+				$this->delete(
+					$query->resource,
+					$query->filter,
+					$query->limit
+				);
+				break;
+		}
+		
+		return new Result($query, $data, $info);
+	}
+	
+	/**
+	 * Open a query on the given resource.
+	 * 
+	 * @param string $resource
+	 * @param array  $fields   [optional]
+	 * @return Query\Builder
+	 */
+	public function query($resource, $fields = array())
+	{
+		return new Query\Builder(new Query($resource, $fields), $this);
 	}
 	
 	/**
