@@ -237,6 +237,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return string
 	 */
 	protected function prepareRawOperator($operator) {
+		$operator = trim($operator);
+		
 		return in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
 	}
 	
@@ -280,8 +282,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return string
 	 */
 	protected function prepareJoinType($type) {
-		if ($type === 'left') {
-			return 'LEFT JOIN';
+		if (in_array($type, array('left', 'right'))) {
+			return strtoupper($type) . ' JOIN';
 		}
 		
 		return 'JOIN';
@@ -301,33 +303,47 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Prepare a join condition.
+	 * Prepare a single join condition.
+	 * 
+	 * TODO: Make this generic for WHERE or JOIN clauses
+	 * 
+	 * @param string $condition
+	 * @return string
+	 */
+	protected function prepareJoinCondition($condition) {
+		$parts = preg_split('/\s+/', $condition, 3);
+		
+		if (count($parts) < 3) {
+			return null;
+		}
+		
+		list($first, $operator, $second) = $parts;
+		
+		return static::concatenate(array(
+			$this->identifier($first),
+			$this->prepareRawOperator($operator),
+			$this->identifier($second)
+		));
+	}
+	
+	/**
+	 * Prepare a join's conditions.
 	 * 
 	 * @param Storage\Query\Join $join
 	 * @return string
 	 */
-	protected function prepareJoinCondition(Storage\Query\Join $join) {
+	protected function prepareJoinConditions(Storage\Query\Join $join) {
 		$result = null;
 		
 		$conditions = array();
 		
 		foreach ($join->conditions as $condition) {
-			$parts = preg_split('/\s+/', $condition, 3);
-			
-			if (count($parts) < 3) {
-				continue;
-			}
-			
-			list($first, $operator, $second) = $parts;
-			
-			$conditions[] = static::concatenate(array(
-				$this->identifier($first),
-				$this->prepareRawOperator($operator),
-				$this->identifier($second)
-			));
+			$conditions[] = $this->prepareJoinCondition($condition);
 		}
 		
-		return static::concatenate($conditions);
+		$conditions = array_merge($conditions, $this->prepareFilter($join->filter));
+		
+		return static::concatenate($conditions, ' AND ');
 	}
 	
 	/**
@@ -338,9 +354,9 @@ abstract class AbstractSqlTranslator implements Translator {
 	 */
 	protected function prepareJoin(Storage\Query\Join $join) {
 		$table = $this->prepareJoinTable($join);
-		$condition = $this->prepareJoinCondition($join);
+		$conditions = $this->prepareJoinConditions($join);
 		
-		$clause = $table && $condition ? "$table ON $condition" : $table;
+		$clause = $table && $conditions ? "$table ON $conditions" : $table;
 		
 		if (empty($clause)) {
 			return null;
@@ -374,8 +390,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed  $value
 	 * @return string
 	 */
-	protected function prepareFilter($column, $value) {
-		list($column, $operator) = array_pad(explode(' ', $column, 2), 2, null);
+	protected function prepareFilterCondition($column, $value) {
+		list($column, $operator) = array_pad(preg_split('/\s+/', $column, 2), 2, null);
 		
 		$column = $this->prepareColumns($column);
 		$operator = $this->prepareOperator($operator, $value);
@@ -386,6 +402,28 @@ abstract class AbstractSqlTranslator implements Translator {
 		}
 		
 		return "$column $operator $value";
+	}
+	
+	/**
+	 * Prepare a filter as a set of query conditions.
+	 * 
+	 * TODO: Could numeric keys be dealt with by prepareJoinCondition()?
+	 * 
+	 * @param array $filter
+	 * @return array
+	 */
+	protected function prepareFilter(array $filter) {
+		$conditions = array();
+		
+		foreach ($filter as $column => $value) {
+			if (strtolower($column) == 'or') {
+				$conditions[] = '(' . $this->prepareWhere($value, 'OR', true) . ')';
+			} else {
+				$conditions[] = $this->prepareFilterCondition($column, $value);
+			}
+		}
+		
+		return $conditions;
 	}
 	
 	/**
@@ -406,24 +444,15 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return string
 	 */
 	protected function prepareWhere(array $filter, $comparison = 'AND', $excludeWhere = false) {
-		$conditions = array();
+		$conditions = $this->prepareFilter($filter);
 		
-		foreach ($filter as $column => $value) {
-			if (strtolower($column) == 'or') {
-				$conditions[] = '(' . $this->prepareWhere($value, 'OR', true) . ')';
-			} else {
-				$conditions[] = $this->prepareFilter($column, $value);
-			}
-		}
-		
-		if (!count($conditions)) {
+		if (empty($conditions)) {
 			return null;
 		}
 		
-		$where = $excludeWhere ? '' : 'WHERE ';
-		$where .= implode(" $comparison ", $conditions);
+		$clause = implode(" $comparison ", $conditions);
 		
-		return $where;
+		return !$excludeWhere ? "WHERE $clause" : $clause;
 	}
 	
 	/**

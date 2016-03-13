@@ -42,33 +42,28 @@ class Join
 	 * 
 	 * @var string[]
 	 */
-	protected $conditions;
+	protected $conditions = array();
 	
 	/**
 	 * Complex condition values to join on.
 	 * 
 	 * @var mixed[]
 	 */
-	protected $filters;
+	protected $filter = array();
 	
 	/**
 	 * Instantiate a new join.
 	 * 
 	 * @param string $type
 	 * @param string $to
-	 * @param mixed  $condition [optional]
 	 */
-	public function __construct($type, $resource, $condition = null)
+	public function __construct($type, $resource)
 	{
 		$this->type = $type;
 		
 		list($resource, $alias) = static::resolveResource($resource);
 		
 		$this->to($resource, $alias);
-		
-		if ($condition) {
-			$this->on($condition);
-		}
 	}
 	
 	/**
@@ -135,7 +130,7 @@ class Join
 	 */
 	public function where($field, $value)
 	{
-		$this->filters[$field] = $value;
+		$this->filter[$field] = $value;
 		
 		return $this;
 	}

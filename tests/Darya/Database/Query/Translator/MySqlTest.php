@@ -6,7 +6,7 @@ use Darya\Database\Query\Translator;
 class MySqlTest extends PHPUnit_Framework_TestCase {
 	
 	protected function translator() {
-		return new Translator\MySql(new Connection\MySql('swag', 'swag', 'swag', 'swag'));
+		return new Translator\MySql;
 	}
 	
 	public function testSelect() {
@@ -47,6 +47,27 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$result = $translator->translate($query);
 		
 		$this->assertEquals("SELECT `users`.* FROM `users` JOIN `posts` ON `posts`.`user_id` = `users`.`id` JOIN `comments` `c` ON `c`.`post_id` = `posts`.`id` WHERE `posts`.`title` LIKE ?", $result->string);
+	}
+	
+	public function testSelectWithComplexJoins() {
+		$translator = $this->translator();
+		
+		$query = new Query('pages', array('pages.*'));
+		
+		$query->join('sections as s', function($join) {
+			$join->on('s.page_id = pages.id')
+			     ->on('s.page_id = pages.id')
+			     ->where('pages.id > ', 1);
+		});
+		
+		$result = $translator->translate($query);
+		
+		$expected = "SELECT `pages`.* FROM `pages` JOIN `sections` `s` ON `s`.`page_id` = `pages`.`id` AND `s`.`page_id` = `pages`.`id` AND `pages`.`id` > ?";
+		
+		$this->assertEquals($expected, $result->string);
+		$this->assertEquals(array(1), $result->parameters);
+		
+		$subquery = new Query('old_pages', array('id'));
 	}
 	
 	public function testInsert() {
