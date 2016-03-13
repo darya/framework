@@ -574,6 +574,22 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Prepare a set of query parameters from the given set of joins.
+	 * 
+	 * @param Storage\Query\Join[] $joins
+	 * @return array
+	 */
+	protected function joinsParameters($joins) {
+		$parameters = array();
+		
+		foreach ($joins as $join) {
+			$parameters = array_merge($parameters, $this->filterParameters($join->filter));
+		}
+		
+		return $parameters;
+	}
+	
+	/**
 	 * Prepare the given filter as an array of prepared query parameters.
 	 * 
 	 * @param array $filter
@@ -593,10 +609,18 @@ abstract class AbstractSqlTranslator implements Translator {
 						}
 					}
 				}
-			} else {
-				if ($this->resolvesPlaceholder($value)) {
-					$parameters[] = $value;
-				}
+				
+				continue;
+			}
+			
+			if ($value instanceof Storage\Query) {
+				$parameters = array_merge($parameters, $this->parameters($value));
+				
+				continue;
+			}
+			
+			if ($this->resolvesPlaceholder($value)) {
+				$parameters[] = $value;
 			}
 		}
 		
@@ -617,7 +641,11 @@ abstract class AbstractSqlTranslator implements Translator {
 			$parameters = $this->dataParameters($storageQuery->data);
 		}
 		
-		$parameters = array_merge($parameters, $this->filterParameters($storageQuery->filter));
+		$parameters = array_merge(
+			$parameters,
+			$this->joinsParameters($storageQuery->joins),
+			$this->filterParameters($storageQuery->filter)
+		);
 		
 		return $parameters;
 	}

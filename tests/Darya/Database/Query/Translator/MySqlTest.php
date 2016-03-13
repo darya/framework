@@ -40,13 +40,24 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		
 		$result = $translator->translate($query);
 		
-		$this->assertEquals("SELECT `users`.* FROM `users` JOIN `posts` ON `posts`.`user_id` = `users`.`id` WHERE `posts`.`title` LIKE ?", $result->string);
+		$this->assertEquals(
+			"SELECT `users`.* FROM `users` "
+			. "JOIN `posts` ON `posts`.`user_id` = `users`.`id` "
+			. "WHERE `posts`.`title` LIKE ?",
+			$result->string
+		);
 		
 		$query->join('comments as c', 'c.post_id = posts.id');
 		
 		$result = $translator->translate($query);
 		
-		$this->assertEquals("SELECT `users`.* FROM `users` JOIN `posts` ON `posts`.`user_id` = `users`.`id` JOIN `comments` `c` ON `c`.`post_id` = `posts`.`id` WHERE `posts`.`title` LIKE ?", $result->string);
+		$this->assertEquals(
+			"SELECT `users`.* FROM `users` "
+			. "JOIN `posts` ON `posts`.`user_id` = `users`.`id` "
+			. "JOIN `comments` `c` ON `c`.`post_id` = `posts`.`id` "
+			. "WHERE `posts`.`title` LIKE ?",
+			$result->string
+		);
 	}
 	
 	public function testSelectWithComplexJoins() {
@@ -56,18 +67,46 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		
 		$query->join('sections as s', function($join) {
 			$join->on('s.page_id = pages.id')
-			     ->on('s.page_id = pages.id')
-			     ->where('pages.id > ', 1);
+				->on('s.page_id = pages.id')
+				->where('pages.id > ', 1)
+				->where('or', array('s.page_id >' => 2, 's.id >' => 3));
 		});
+		
+		$query->where('page.awesome', true);
 		
 		$result = $translator->translate($query);
 		
-		$expected = "SELECT `pages`.* FROM `pages` JOIN `sections` `s` ON `s`.`page_id` = `pages`.`id` AND `s`.`page_id` = `pages`.`id` AND `pages`.`id` > ?";
+		$this->assertEquals(
+			"SELECT `pages`.* FROM `pages` "
+			. "JOIN `sections` `s` ON `s`.`page_id` = `pages`.`id` "
+			. "AND `s`.`page_id` = `pages`.`id` AND `pages`.`id` > ? "
+			. "AND (`s`.`page_id` > ? OR `s`.`id` > ?) "
+			. "WHERE `page`.`awesome` IS TRUE",
+			$result->string
+		);
 		
-		$this->assertEquals($expected, $result->string);
-		$this->assertEquals(array(1), $result->parameters);
+		$this->assertEquals(array(1, 2, 3), $result->parameters);
+	}
+	
+	public function testSelectWithSubqueries() {
+		$translator = $this->translator();
+		
+		$query = new Query('pages');
 		
 		$subquery = new Query('old_pages', array('id'));
+		$subquery->where('id >', 1);
+		
+		$query->where('id not in', $subquery);
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals(
+			"SELECT * FROM `pages` "
+			. "WHERE `id` NOT IN (SELECT `id` FROM `old_pages` WHERE `id` > ?)",
+			$result->string
+		);
+		
+		$this->assertEquals(array(1), $result->parameters);
 	}
 	
 	public function testInsert() {
