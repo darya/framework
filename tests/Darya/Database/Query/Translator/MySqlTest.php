@@ -136,6 +136,8 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 			$current = $new;
 		}
 		
+		$current->where('id', 'swag');
+		
 		$translator = $this->translator();
 		
 		$result = $translator->translate($builder->query);
@@ -149,13 +151,16 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 					. "WHERE `id` NOT IN ("
 						. "SELECT `id` FROM `table_4` "
 						. "WHERE `id` NOT IN ("
-							. "SELECT `id` FROM `table_5`"
+							. "SELECT `id` FROM `table_5` "
+							. "WHERE `id` = ?"
 						. ")"
 					. ")"
 				. ")"
 			. ")",
 			$result->string
 		);
+		
+		$this->assertEquals(array('swag'), $result->parameters);
 	}
 	
 	public function testInsert() {
