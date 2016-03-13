@@ -170,6 +170,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return array|string
 	 */
 	protected function value($value) {
+		if ($value instanceof Storage\Query\Builder) {
+			$value = $value->query;
+		}
+		
 		if ($value instanceof Storage\Query) {
 			$query = $this->translate($value);
 			
@@ -611,6 +615,10 @@ abstract class AbstractSqlTranslator implements Translator {
 				}
 				
 				continue;
+			}
+			
+			if ($value instanceof Storage\Query\Builder) {
+				$value = $value->query;
 			}
 			
 			if ($value instanceof Storage\Query) {

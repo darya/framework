@@ -10,6 +10,10 @@ use Darya\Storage\Queryable;
  * Forwards method calls to a storage query and executes it on the given
  * queryable storage interface once the query has been built.
  * 
+ * @property-read Query     $query
+ * @property-read Queryable $storage
+ * @property-read callable  $callback
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Builder {
@@ -32,7 +36,7 @@ class Builder {
 	/**
 	 * @var array Query methods that should trigger query execution
 	 */
-	protected $executors = array('all', 'distinct', 'delete');
+	protected static $executors = array('all', 'distinct', 'delete');
 	
 	/**
 	 * Instantiate a new query builder for the given storage and query objects.
@@ -58,11 +62,21 @@ class Builder {
 	public function __call($method, $arguments) {
 		call_user_func_array(array($this->query, $method), $arguments);
 		
-		if (in_array($method, $this->executors)) {
+		if (in_array($method, static::$executors)) {
 			return $this->execute();
 		}
 		
 		return $this;
+	}
+	
+	/**
+	 * Dynamically retrieve a property.
+	 * 
+	 * @param string $property
+	 * @return mixed
+	 */
+	public function __get($property) {
+		return $this->$property;
 	}
 	
 	/**

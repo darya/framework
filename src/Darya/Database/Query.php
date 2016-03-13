@@ -12,12 +12,16 @@ namespace Darya\Database;
 class Query {
 	
 	/**
-	 * @var string SQL query string
+	 * The SQL query string.
+	 * 
+	 * @var string
 	 */
 	protected $string;
 	
 	/**
-	 * @var array Data bound to the query
+	 * Data bound to the query.
+	 * 
+	 * @var array
 	 */
 	protected $parameters = array();
 	
