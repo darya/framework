@@ -120,13 +120,14 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$query = new Query('pages');
 		
 		$query->join('comments', function($join) {
+			$join->on('comments.page_id = pages.id');
 			$join->where('comments.id in', (new Query('comments', array('id')))->where('page_id > ', 5));
 		});
 		
 		$result = $translator->translate($query);
 		
 		$this->assertEquals(
-			"SELECT * FROM `pages` JOIN `comments` ON `comments`.`id` IN (SELECT `id` FROM `comments` WHERE `page_id` > ?)",
+			"SELECT * FROM `pages` JOIN `comments` ON `comments`.`page_id` = `pages`.`id` AND `comments`.`id` IN (SELECT `id` FROM `comments` WHERE `page_id` > ?)",
 			$result->string
 		);
 		
