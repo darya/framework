@@ -15,9 +15,18 @@ use Darya\Storage;
 abstract class AbstractSqlTranslator implements Translator {
 	
 	/**
-	 * @var array Filter comparison operators
+	 * Filter comparison operators.
+	 * 
+	 * @var array
 	 */
 	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
+	
+	/**
+	 * Placeholder for values in prepared queries.
+	 * 
+	 * @var string
+	 */
+	protected $placeholder = '?';
 	
 	/**
 	 * Concatenates the given set of strings that aren't empty.
@@ -151,7 +160,9 @@ abstract class AbstractSqlTranslator implements Translator {
 	abstract protected function identifier($identifier);
 	
 	/**
-	 * Prepare the given value.
+	 * Prepare the given value for a prepared query.
+	 * 
+	 * If the value is a storage query, it is translated.
 	 * 
 	 * If the value is an array, it is recursively prepared.
 	 * 
@@ -159,6 +170,12 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return array|string
 	 */
 	protected function value($value) {
+		if ($value instanceof Storage\Query) {
+			$query = $this->translate($value);
+			
+			return "($query)";
+		}
+		
 		if (is_array($value)) {
 			return array_map(array($this, 'value'), $value);
 		}
@@ -181,7 +198,7 @@ abstract class AbstractSqlTranslator implements Translator {
 			return $value ? 'TRUE' : 'FALSE';
 		}
 		
-		return '?';
+		return $this->placeholder;
 	}
 	
 	/**
@@ -191,7 +208,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return bool
 	 */
 	protected function resolvesPlaceholder($value) {
-		return $this->resolve($value) === '?';
+		return $this->resolve($value) === $this->placeholder;
 	}
 	
 	/**
@@ -211,14 +228,27 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Prepare a default operator for the given value.
+	 * Prepare the given conditional operator.
+	 * 
+	 * Returns the equals operator if given value is not in the set of valid
+	 * operators.
 	 * 
 	 * @param string $operator
-	 * @param mixed  $value
 	 * @return string
 	 */
-	protected function prepareOperator($operator, $value) {
-		$operator = in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
+	protected function prepareRawOperator($operator) {
+		return in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
+	}
+	
+	/**
+	 * Prepare an appropriate conditional operator for the given value.
+	 * 
+	 * @param string $operator
+	 * @param mixed  $value    [optional]
+	 * @return string
+	 */
+	protected function prepareOperator($operator, $value = null) {
+		$operator = $this->prepareRawOperator($operator);
 		
 		if (!$this->resolvesPlaceholder($value)) {
 			if ($operator === '=') {
@@ -244,66 +274,97 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Prepare a join table.
+	 * Prepare a join type.
 	 * 
-	 * @param string $table
+	 * @param string $type
 	 * @return string
 	 */
-	protected function prepareJoinTable($table) {
-		return $table;
+	protected function prepareJoinType($type) {
+		if ($type === 'left') {
+			return 'LEFT JOIN';
+		}
+		
+		return 'JOIN';
+	}
+	
+	/**
+	 * Prepare a join table.
+	 * 
+	 * @param Storage\Query\Join $join
+	 * @return string
+	 */
+	protected function prepareJoinTable(Storage\Query\Join $join) {
+		$table = $this->identifier($join->resource);
+		$alias = $this->identifier($join->alias);
+		
+		return $alias ? "$table $alias" : $table;
 	}
 	
 	/**
 	 * Prepare a join condition.
 	 * 
-	 * @param string $condition
+	 * @param Storage\Query\Join $join
 	 * @return string
 	 */
-	protected function prepareJoinCondition($condition) {
-		return $condition;
+	protected function prepareJoinCondition(Storage\Query\Join $join) {
+		$result = null;
+		
+		$conditions = array();
+		
+		foreach ($join->conditions as $condition) {
+			$parts = preg_split('/\s+/', $condition, 3);
+			
+			if (count($parts) < 3) {
+				continue;
+			}
+			
+			list($first, $operator, $second) = $parts;
+			
+			$conditions[] = static::concatenate(array(
+				$this->identifier($first),
+				$this->prepareRawOperator($operator),
+				$this->identifier($second)
+			));
+		}
+		
+		return static::concatenate($conditions);
 	}
 	
 	/**
 	 * Prepare an individual table join.
 	 * 
-	 * @param string $table
-	 * @param string $condition
+	 * @param Storage\Query\Join $join
 	 * @return string
 	 */
-	protected function prepareJoin($table, $condition) {
-		$table = $this->prepareJoinTable($table);
-		$condition = $this->prepareJoinCondition($condition);
-		$clause = $condition ? "$table ON $condition" : $table;
+	protected function prepareJoin(Storage\Query\Join $join) {
+		$table = $this->prepareJoinTable($join);
+		$condition = $this->prepareJoinCondition($join);
+		
+		$clause = $table && $condition ? "$table ON $condition" : $table;
 		
 		if (empty($clause)) {
 			return null;
 		}
 		
-		return "JOIN $clause";
+		$type = $this->prepareJoinType($join->type);
+		
+		return "$type $clause";
 	}
 	
 	/**
 	 * Prepare table joins.
 	 * 
-	 * TODO: Alleviate the expectation of a join condition ($join[1]).
-	 * 
 	 * @param array $joins
 	 * @return string
 	 */
 	protected function prepareJoins(array $joins) {
-		$clauses = '';
+		$clauses = array();
 		
 		foreach ($joins as $join) {
-			if (count($join) > 1) {
-				$clauses .= $this->prepareJoin($join[0], $join[1]);
-			}
+			$clauses[] = $this->prepareJoin($join);
 		}
 		
-		if (empty($clauses)) {
-			return null;
-		}
-		
-		return $clauses;
+		return static::concatenate($clauses);
 	}
 	
 	/**

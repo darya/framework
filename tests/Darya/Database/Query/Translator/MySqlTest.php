@@ -31,6 +31,24 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters);
 	}
 	
+	public function testSelectWithJoins() {
+		$translator = $this->translator();
+		
+		$query = new Query('users', array('users.*'));
+		$query->join('posts', 'posts.user_id = users.id');
+		$query->where('posts.title like', '%swag%');
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals("SELECT `users`.* FROM `users` JOIN `posts` ON `posts`.`user_id` = `users`.`id` WHERE `posts`.`title` LIKE ?", $result->string);
+		
+		$query->join('comments as c', 'c.post_id = posts.id');
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals("SELECT `users`.* FROM `users` JOIN `posts` ON `posts`.`user_id` = `users`.`id` JOIN `comments` `c` ON `c`.`post_id` = `posts`.`id` WHERE `posts`.`title` LIKE ?", $result->string);
+	}
+	
 	public function testInsert() {
 		$translator = $this->translator();
 		

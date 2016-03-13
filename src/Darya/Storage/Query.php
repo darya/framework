@@ -1,11 +1,15 @@
 <?php
 namespace Darya\Storage;
 
+use Darya\Storage\Query\Join;
+
 /**
  * Darya's storage query class.
  * 
  * TODO: Maybe make a query interface?
  * TODO: Standardised operators? Think about how this will affect translators.
+ * TODO: Move all explicitly SQL-related stuff (joins, aliases) to a new class
+ *       that extends this; Database\Storage\Query maybe.
  * 
  * @property bool     $distinct
  * @property string   $resource
@@ -191,16 +195,24 @@ class Query {
 	}
 	
 	/**
-	 * Add a join to the query.
+	 * Add an inner join to the query.
 	 * 
-	 * TODO: Maybe allow callable conditions if a Join class is introduced.
-	 * 
-	 * @param string       $resource
-	 * @param string|array $condition
+	 * @param string $resource
+	 * @param mixed  $condition [optional]
 	 * @return $this
 	 */
-	public function join($resource, $condition) {
-		$this->joins[] = array($resource, $condition);
+	public function join($resource, $condition = null) {
+		$this->joins[] = new Join('inner', $resource, $condition);
+	}
+	
+	/**
+	 * Add a left join to the query.
+	 * 
+	 * @param string $resource
+	 * @param mixed  $condition
+	 */
+	public function leftJoin($resource, $condition = null) {
+		$this->joins[] = new Join('left', $resource, $condition);
 	}
 	
 	/**
