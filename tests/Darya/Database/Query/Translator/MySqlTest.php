@@ -1,12 +1,17 @@
 <?php
 use Darya\Storage\Query;
-use Darya\Database\Connection;
+use Darya\Storage\InMemory;
+use Darya\Database\Storage;
 use Darya\Database\Query\Translator;
 
 class MySqlTest extends PHPUnit_Framework_TestCase {
 	
 	protected function translator() {
 		return new Translator\MySql;
+	}
+	
+	protected function mockConnection() {
+		return $this->getMockBuilder('Darya\Database\Connection')->getMock();
 	}
 	
 	public function testSelect() {
@@ -107,6 +112,50 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		);
 		
 		$this->assertEquals(array(1), $result->parameters);
+	}
+	
+	public function testSelectWithJoinSubqueries() {
+		
+	}
+	
+	public function testSelectWithQueryBuilderFilterValues() {
+		$connection = $this->getMockBuilder('Darya\Database\Connection')->getMock();
+		$storage = new Storage($connection);
+		
+		$builder = $storage->query('table');
+		
+		$tables = array('table_2', 'table_3', 'table_4', 'table_5');
+		
+		$current = $builder;
+		
+		foreach ($tables as $table) {
+			$new = $storage->query($table, 'id');
+			
+			$current->where('id not in', $new);
+			
+			$current = $new;
+		}
+		
+		$translator = $this->translator();
+		
+		$result = $translator->translate($builder->query);
+		
+		// Fuck yeah
+		$this->assertEquals("SELECT * FROM `table` "
+			. "WHERE `id` NOT IN ("
+				. "SELECT `id` FROM `table_2` "
+				. "WHERE `id` NOT IN ("
+					. "SELECT `id` FROM `table_3` "
+					. "WHERE `id` NOT IN ("
+						. "SELECT `id` FROM `table_4` "
+						. "WHERE `id` NOT IN ("
+							. "SELECT `id` FROM `table_5`"
+						. ")"
+					. ")"
+				. ")"
+			. ")",
+			$result->string
+		);
 	}
 	
 	public function testInsert() {
