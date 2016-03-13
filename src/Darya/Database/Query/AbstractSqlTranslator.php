@@ -556,8 +556,27 @@ abstract class AbstractSqlTranslator implements Translator {
 	abstract protected function prepareDelete($table, $where = null, $limit = null);
 	
 	/**
+	 * Prepare the given data as an array of prepared query parameters.
+	 * 
+	 * @param array $data
+	 * @return array
+	 */
+	protected function dataParameters($data) {
+		$parameters = array();
+		
+		foreach ($data as $value) {
+			if ($this->resolvesPlaceholder($value)) {
+				$parameters[] = $value;
+			}
+		}
+		
+		return $parameters;
+	}
+	
+	/**
 	 * Prepare the given filter as an array of prepared query parameters.
 	 * 
+	 * @param array $filter
 	 * @return array
 	 */
 	protected function filterParameters($filter) {
@@ -588,19 +607,17 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * Retrieve an array of parameters from the given query for executing a
 	 * prepared query.
 	 * 
-	 * @param Storage\Query $query
+	 * @param Storage\Query $storageQuery
 	 * @return array
 	 */
-	public function parameters(Storage\Query $query) {
+	public function parameters(Storage\Query $storageQuery) {
 		$parameters = array();
 		
-		foreach ($query->data as $value) {
-			if ($this->resolvesPlaceholder($value)) {
-				$parameters[] = $value;
-			}
+		if (in_array($storageQuery->type, array(Storage\Query::CREATE, Storage\Query::UPDATE))) {
+			$parameters = $this->dataParameters($storageQuery->data);
 		}
 		
-		$parameters = array_merge($parameters, $this->filterParameters($query->filter));
+		$parameters = array_merge($parameters, $this->filterParameters($storageQuery->filter));
 		
 		return $parameters;
 	}
