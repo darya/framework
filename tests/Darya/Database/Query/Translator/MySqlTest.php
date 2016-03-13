@@ -115,7 +115,22 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	public function testSelectWithJoinSubqueries() {
+		$translator = $this->translator();
 		
+		$query = new Query('pages');
+		
+		$query->join('comments', function($join) {
+			$join->where('comments.id in', (new Query('comments', array('id')))->where('page_id > ', 5));
+		});
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals(
+			"SELECT * FROM `pages` JOIN `comments` ON `comments`.`id` IN (SELECT `id` FROM `comments` WHERE `page_id` > ?)",
+			$result->string
+		);
+		
+		$this->assertEquals(array(5), $result->parameters);
 	}
 	
 	public function testSelectWithQueryBuilderFilterValues() {
@@ -143,7 +158,8 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$result = $translator->translate($builder->query);
 		
 		// Fuck yeah
-		$this->assertEquals("SELECT * FROM `table` "
+		$this->assertEquals(
+			"SELECT * FROM `table` "
 			. "WHERE `id` NOT IN ("
 				. "SELECT `id` FROM `table_2` "
 				. "WHERE `id` NOT IN ("
