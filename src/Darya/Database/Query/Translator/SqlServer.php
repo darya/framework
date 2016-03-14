@@ -13,12 +13,12 @@ use Darya\Database\Query\AbstractSqlTranslator;
 class SqlServer extends AbstractSqlTranslator {
 	
 	/**
-	 * Escape the given identifier.
+	 * Resolve the given value as an identifier.
 	 * 
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
-	public function identifier($identifier) {
+	public function resolveIdentifier($identifier) {
 		return $identifier;
 	}
 	

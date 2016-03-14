@@ -11,20 +11,12 @@ use Darya\Database\Query\AbstractSqlTranslator;
 class MySql extends AbstractSqlTranslator {
 	
 	/**
-	 * Escape the given identifier.
-	 * 
-	 * If the value is an array, it is recursively escaped.
-	 * 
-	 * If the value is not a string, it is returned unmodified.
+	 * Resolve the given value as an identifier.
 	 * 
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
-	protected function identifier($identifier) {
-		if (is_array($identifier)) {
-			return array_map(array($this, 'identifier'), $identifier);
-		}
-		
+	protected function resolveIdentifier($identifier) {
 		if (!is_string($identifier)) {
 			return $identifier;
 		}

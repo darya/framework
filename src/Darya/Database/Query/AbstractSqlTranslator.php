@@ -148,28 +148,54 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Escape the given identifier.
+	 * Resolve the given value as an identifier.
 	 * 
-	 * If the value is an array, it is recursively escaped.
+	 * @param mixed $identifier
+	 * @return string
+	 */
+	abstract protected function resolveIdentifier($identifier);
+	
+	/**
+	 * Prepare the given identifier.
 	 * 
-	 * If the value is not a string, it is returned unmodified.
+	 * If the value is translatable, it is translated.
+	 * 
+	 * If the value is an array, it is recursively prepared.
 	 * 
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
-	abstract protected function identifier($identifier);
+	protected function identifier($identifier) {
+		if (is_array($identifier)) {
+			return array_map(array($this, 'identifier'), $identifier);
+		}
+		
+		if ($this->translatable($identifier)) {
+			return $this->translateValue($identifier);
+		}
+		
+		return $this->resolveIdentifier($identifier);
+	}
 	
 	/**
-	 * Prepare the given value for a prepared query.
+	 * Determine whether the given value is translatable.
 	 * 
-	 * If the value is a storage query, it is translated.
-	 * 
-	 * If the value is an array, it is recursively prepared.
-	 * 
-	 * @param array|string $value
-	 * @return array|string
+	 * @param mixed $value
+	 * @return bool
 	 */
-	protected function value($value) {
+	protected function translatable($value) {
+		return $value instanceof Storage\Query\Builder || $value instanceof Storage\Query;
+	}
+	
+	/**
+	 * Translate the given value if it is a query or query builder.
+	 * 
+	 * Returns the argument as is otherwise.
+	 * 
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	protected function translateValue($value) {
 		if ($value instanceof Storage\Query\Builder) {
 			$value = $value->query;
 		}
@@ -177,14 +203,32 @@ abstract class AbstractSqlTranslator implements Translator {
 		if ($value instanceof Storage\Query) {
 			$query = $this->translate($value);
 			
-			return "($query)";
+			$value = "($query)";
+		}
+		
+		return $value;
+	}
+	
+	/**
+	 * Prepare the given value for a prepared query.
+	 * 
+	 * If the value translatable, it is translated.
+	 * 
+	 * If the value is an array, it is recursively prepared.
+	 * 
+	 * @param array|string $value
+	 * @return array|string
+	 */
+	protected function value($value) {
+		if ($this->translatable($value)) {
+			return $this->translateValue($value);
 		}
 		
 		if (is_array($value)) {
 			return array_map(array($this, 'value'), $value);
 		}
 		
-		return $this->resolve($value);
+		return $this->resolveValue($value);
 	}
 	
 	/**
@@ -193,7 +237,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $value
 	 * @return string
 	 */
-	protected function resolve($value) {
+	protected function resolveValue($value) {
 		if ($value === null) {
 			return 'NULL';
 		}
@@ -212,7 +256,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return bool
 	 */
 	protected function resolvesPlaceholder($value) {
-		return $this->resolve($value) === $this->placeholder;
+		return $this->resolveValue($value) === $this->placeholder;
 	}
 	
 	/**
