@@ -276,6 +276,18 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Determine whether the given operator is valid.
+	 * 
+	 * @param string $operator
+	 * @return bool
+	 */
+	protected function validOperator($operator) {
+		$operator = trim($operator);
+		
+		return in_array(strtolower($operator), $this->operators);
+	}
+	
+	/**
 	 * Prepare the given conditional operator.
 	 * 
 	 * Returns the equals operator if given value is not in the set of valid
@@ -287,7 +299,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	protected function prepareRawOperator($operator) {
 		$operator = trim($operator);
 		
-		return in_array(strtolower($operator), $this->operators) ? strtoupper($operator) : '=';
+		return $this->validOperator($operator) ? strtoupper($operator) : '=';
 	}
 	
 	/**
@@ -435,15 +447,27 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * Prepare an individual filter condition.
 	 * 
 	 * @param string $column
-	 * @param mixed  $value
+	 * @param mixed  $given
 	 * @return string
 	 */
-	protected function prepareFilterCondition($column, $value) {
-		list($column, $operator) = array_pad(preg_split('/\s+/', $column, 2), 2, null);
+	protected function prepareFilterCondition($column, $given) {
+		list($left, $right) = array_pad(preg_split('/\s+/', $column, 2), 2, null);
 		
-		$column = $this->prepareColumns($column);
-		$operator = $this->prepareOperator($operator, $value);
-		$value = $this->value($value);
+		$column = $this->prepareColumns($left);
+		
+		$operator = $this->prepareOperator($right, $given);
+		$value    = $this->value($given);
+		
+		// If the given value is null and whatever's on the right isn't a valid
+		// operator we can attempt to split again and find a second identifier
+		if ($given === null && !empty($right) && !$this->validOperator($right)) {
+			list($operator, $identifier) = array_pad(preg_split('/\s+([\w\.]+)$/', $right, 2, PREG_SPLIT_DELIM_CAPTURE), 2, null);
+			
+			if (!empty($identifier)) {
+				$operator = $this->prepareRawOperator($operator);
+				$value    = $this->identifier($identifier);
+			}
+		}
 		
 		if (is_array($value)) {
 			$value = "(" . implode(", ", $value) . ")";
@@ -604,7 +628,29 @@ abstract class AbstractSqlTranslator implements Translator {
 	abstract protected function prepareDelete($table, $where = null, $limit = null);
 	
 	/**
-	 * Prepare the given data as an array of prepared query parameters.
+	 * Prepare a set of query parameters from the given set of columns.
+	 * 
+	 * @param array $columns
+	 * @return array
+	 */
+	protected function columnParameters($columns) {
+		$parameters = array();
+		
+		foreach ($columns as $column) {
+			if ($column instanceof Storage\Query\Builder) {
+				$column = $column->query;
+			}
+			
+			if ($column instanceof Storage\Query) {
+				$parameters = array_merge($parameters, $this->parameters($column));
+			}
+		}
+		
+		return $parameters;
+	}
+	
+	/**
+	 * Prepare a set of query parameters from the given data.
 	 * 
 	 * @param array $data
 	 * @return array
@@ -687,7 +733,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return array
 	 */
 	public function parameters(Storage\Query $storageQuery) {
-		$parameters = array();
+		$parameters = $this->columnParameters($storageQuery->fields);
 		
 		if (in_array($storageQuery->type, array(Storage\Query::CREATE, Storage\Query::UPDATE))) {
 			$parameters = $this->dataParameters($storageQuery->data);

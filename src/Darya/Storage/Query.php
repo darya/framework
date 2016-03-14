@@ -240,10 +240,10 @@ class Query {
 	 * Add a filter condition to the query.
 	 * 
 	 * @param string $field
-	 * @param mixed  $value
+	 * @param mixed  $value [optional]
 	 * @return $this
 	 */
-	public function filter($field, $value) {
+	public function filter($field, $value = null) {
 		$this->filter = array_merge($this->filter, array($field => $value));
 		
 		return $this;
@@ -253,10 +253,10 @@ class Query {
 	 * Alias for filter().
 	 * 
 	 * @param string $field
-	 * @param mixed  $value
+	 * @param mixed  $value [optional]
 	 * @return $this
 	 */
-	public function where($field, $value) {
+	public function where($field, $value = null) {
 		$this->filter($field, $value);
 		
 		return $this;

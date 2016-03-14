@@ -36,6 +36,38 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters);
 	}
 	
+	public function testSelectWhereRobustness() {
+		$translator = $this->translator();
+		
+		$query = (new Query('users'))
+			->where('name', '%test%')
+			->where('name ', '%test%')
+			->where('name like', '%test%')
+			->where('name like ', '%test%')
+			->where('name not like', '%test%')
+			->where('name not like ', '%test%')
+			->where('name like name')
+			->where('users.name like users.name')
+			->where('users.name not like users.name');
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals(
+			"SELECT * FROM `users` WHERE "
+			. "`name` = ? AND `name` = ? "
+			. "AND `name` LIKE ? AND `name` LIKE ? "
+			. "AND `name` NOT LIKE ? AND `name` NOT LIKE ? "
+			. "AND `name` LIKE `name` AND `users`.`name` LIKE `users`.`name` "
+			. "AND `users`.`name` NOT LIKE `users`.`name`",
+			$result->string
+		);
+		
+		$this->assertEquals(
+			array('%test%', '%test%', '%test%', '%test%', '%test%', '%test%'),
+			$result->parameters
+		);
+	}
+	
 	public function testSelectWithJoins() {
 		$translator = $this->translator();
 		
@@ -93,7 +125,30 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(1, 2, 3), $result->parameters);
 	}
 	
-	public function testSelectWithSubqueries() {
+	public function testSelectWithColumnSubqueries() {
+		$translator = $this->translator();
+		
+		$subquery = new Query('sections', array('title'));
+		$subquery->where('sections.page_id = pages.id');
+		$subquery->where('sections.title like', '%awesome%');
+		
+		$query = new Query('pages', array('id', $subquery));
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals(
+			"SELECT `id`, ("
+				. "SELECT `title` FROM `sections` "
+				. "WHERE `sections`.`page_id` = `pages`.`id` "
+				. "AND `sections`.`title` LIKE ?"
+			. ") FROM `pages`",
+			$result->string
+		);
+		
+		$this->assertEquals(array('%awesome%'), $result->parameters);
+	}
+	
+	public function testSelectWithWhereSubqueries() {
 		$translator = $this->translator();
 		
 		$query = new Query('pages');
