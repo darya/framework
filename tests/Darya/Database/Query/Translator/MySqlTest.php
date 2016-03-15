@@ -36,6 +36,26 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters);
 	}
 	
+	public function testQueryFields() {
+		$translator = $this->translator();
+		
+		$query = new Query('users', 'id');
+		
+		$this->assertEquals('SELECT `id` FROM `users`', $translator->translate($query)->string);
+		
+		$query->fields('test');
+		
+		$this->assertEquals('SELECT `test` FROM `users`', $translator->translate($query)->string);
+		
+		$query->fields(array('one', 'two'));
+		
+		$this->assertEquals('SELECT `one`, `two` FROM `users`', $translator->translate($query)->string);
+		
+		$query->fields();
+		
+		$this->assertEquals('SELECT * FROM `users`', $translator->translate($query)->string);
+	}
+	
 	public function testSelectWhereRobustness() {
 		$translator = $this->translator();
 		

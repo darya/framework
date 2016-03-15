@@ -31,51 +31,71 @@ class Query {
 	const DELETE = 'delete';
 	
 	/**
+	 * Determines whether to return unique resource data.
+	 * 
 	 * @var bool
 	 */
 	protected $distinct = false;
 	
 	/**
+	 * The resource to query.
+	 * 
 	 * @var string
 	 */
 	protected $resource;
 	
 	/**
+	 * The resource fields to retrieve.
+	 * 
 	 * @var array
 	 */
 	protected $fields;
 	
 	/**
+	 * The type of the query.
+	 * 
 	 * @var string
 	 */
 	protected $type;
 	
 	/**
+	 * The data to create or update resource data with.
+	 * 
 	 * @var array
 	 */
 	protected $data = array();
 	
 	/**
-	 * @var array
+	 * Joins to apply to the query.
+	 * 
+	 * @var Join[]
 	 */
 	protected $joins = array();
 	
 	/**
+	 * Filters to apply to the query.
+	 * 
 	 * @var array
 	 */
 	protected $filter = array();
 	
 	/**
+	 * Fields to sort resource data by.
+	 * 
 	 * @var array
 	 */
 	protected $order = array();
 	
 	/**
-	 * @var int|null
+	 * Limits the number of rows to retrieve.
+	 * 
+	 * @var int
 	 */
 	protected $limit;
 	
 	/**
+	 * Offsets the rows to retrieve.
+	 * 
 	 * @var int
 	 */
 	protected $offset;
@@ -83,19 +103,19 @@ class Query {
 	/**
 	 * Instantiate a new storage query.
 	 * 
-	 * @param string   $resource
-	 * @param array    $fields   [optional]
-	 * @param array    $filter   [optional]
-	 * @param array    $order    [optional]
-	 * @param int|null $limit    [optional]
-	 * @param int      $offset   [optional]
+	 * @param string       $resource
+	 * @param array|string $fields   [optional]
+	 * @param array        $filter   [optional]
+	 * @param array        $order    [optional]
+	 * @param int          $limit    [optional]
+	 * @param int          $offset   [optional]
 	 */
-	public function __construct($resource, array $fields = array(), array $filter = array(), array $order = array(), $limit = null, $offset = 0) {
+	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = null, $offset = 0) {
 		$this->resource = $resource;
-		$this->fields = $fields;
+		$this->fields = (array) $fields;
 		$this->type   = static::READ;
 		$this->filter = $filter;
-		$this->order  = (array) $order;
+		$this->order  = $order;
 		$this->limit  = $limit;
 		$this->offset = (int) $offset;
 	}
@@ -150,11 +170,11 @@ class Query {
 	 * 
 	 * Used by read queries.
 	 * 
-	 * @param array $fields [optional]
+	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function fields(array $fields = array()) {
-		$this->fields = $fields;
+	public function fields($fields = array()) {
+		$this->fields = (array) $fields;
 		
 		return $this;
 	}
@@ -167,6 +187,17 @@ class Query {
 	 */
 	public function create(array $data) {
 		$this->modify(static::CREATE, $data);
+		
+		return $this;
+	}
+	
+	/**
+	 * Make this a read query.
+	 * 
+	 * @return $this
+	 */
+	public function read() {
+		$this->type = static::READ;
 		
 		return $this;
 	}
@@ -292,12 +323,13 @@ class Query {
 	/**
 	 * Set a limit on the query.
 	 * 
-	 * It is possible to optionally set an offset too.
+	 * An optional offset can be passed as the second parameter.
 	 * 
-	 * @param int|null $limit
+	 * @param int $limit
+	 * @param int $offset [optional]
 	 * @return $this
 	 */
-	public function limit($limit, $offset = null) {
+	public function limit($limit, $offset = 0) {
 		$this->limit = $limit;
 		
 		if (is_numeric($offset)) {
@@ -311,9 +343,22 @@ class Query {
 	 * Set an offset on the query.
 	 * 
 	 * @param int $offset
+	 * @return this
 	 */
 	public function offset($offset) {
 		$this->offset = (int) $offset;
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for offset().
+	 * 
+	 * @param int $offset
+	 * @return $this
+	 */
+	public function skip($offset) {
+		$this->offset($offset);
 		
 		return $this;
 	}
