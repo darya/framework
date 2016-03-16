@@ -3,6 +3,7 @@ namespace Darya\Database;
 
 use Darya\Database;
 use Darya\Database\Connection;
+use Darya\Database\Storage\Query as DatabaseStorageQuery;
 use Darya\Database\Storage\Result as DatabaseStorageResult;
 use Darya\Storage\Aggregational;
 use Darya\Storage\Readable;
@@ -236,7 +237,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @return Builder
 	 */
 	public function query($resource, $columns = array()) {
-		$query = new StorageQuery($resource, (array) $columns);
+		$query = new DatabaseStorageQuery($resource, (array) $columns);
 		
 		return new QueryBuilder($query, $this);
 	}
@@ -244,6 +245,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Search for rows in the given table with fields that match the given query
 	 * and criteria.
+	 * 
+	 * TODO: Use storage queries.
 	 * 
 	 * @param string       $table
 	 * @param string       $query

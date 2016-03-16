@@ -4,6 +4,7 @@ namespace Darya\Database\Query;
 use Exception;
 use Darya\Database;
 use Darya\Database\Query\Translator;
+use Darya\Database\Storage\Query\Join;
 use Darya\Storage;
 
 /**
@@ -102,7 +103,30 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return Database\Query
 	 */
 	protected function translateRead(Storage\Query $storageQuery) {
+		if ($storageQuery instanceof Database\Storage\Query) {
+			return $this->translateDatabaseRead($storageQuery);
+		}
+		
 		return new Database\Query(
+			$this->prepareSelect($storageQuery->resource,
+				$this->prepareColumns($storageQuery->fields),
+				null,
+				$this->prepareWhere($storageQuery->filter),
+				$this->prepareOrderBy($storageQuery->order),
+				$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
+				$storageQuery->distinct
+			),
+			$this->parameters($storageQuery)
+		);
+	}
+	
+	/**
+	 * Translate a database storage query that reads records.
+	 * 
+	 * @param Database\Storage\Query $storageQuery
+	 */
+	protected function translateDatabaseRead(Database\Storage\Query $storageQuery) {
+				return new Database\Query(
 			$this->prepareSelect($storageQuery->resource,
 				$this->prepareColumns($storageQuery->fields),
 				$this->prepareJoins($storageQuery->joins),
@@ -352,10 +376,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	/**
 	 * Prepare a join table.
 	 * 
-	 * @param Storage\Query\Join $join
+	 * @param Join $join
 	 * @return string
 	 */
-	protected function prepareJoinTable(Storage\Query\Join $join) {
+	protected function prepareJoinTable(Join $join) {
 		$table = $this->identifier($join->resource);
 		$alias = $this->identifier($join->alias);
 		
@@ -389,10 +413,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	/**
 	 * Prepare a join's conditions.
 	 * 
-	 * @param Storage\Query\Join $join
+	 * @param Join $join
 	 * @return string
 	 */
-	protected function prepareJoinConditions(Storage\Query\Join $join) {
+	protected function prepareJoinConditions(Join $join) {
 		$result = null;
 		
 		$conditions = array();
@@ -409,10 +433,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	/**
 	 * Prepare an individual table join.
 	 * 
-	 * @param Storage\Query\Join $join
+	 * @param Join $join
 	 * @return string
 	 */
-	protected function prepareJoin(Storage\Query\Join $join) {
+	protected function prepareJoin(Join $join) {
 		$table = $this->prepareJoinTable($join);
 		$conditions = $this->prepareJoinConditions($join);
 		
@@ -673,7 +697,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query\Join[] $joins
 	 * @return array
 	 */
-	protected function joinsParameters($joins) {
+	protected function joinParameters($joins) {
 		$parameters = array();
 		
 		foreach ($joins as $join) {
@@ -684,7 +708,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
-	 * Prepare the given filter as an array of prepared query parameters.
+	 * Prepare a set of query parameters from the given filter.
 	 * 
 	 * @param array $filter
 	 * @return array
@@ -739,9 +763,14 @@ abstract class AbstractSqlTranslator implements Translator {
 			$parameters = $this->dataParameters($storageQuery->data);
 		}
 		
+		$joinParameters = array();
+		
+		if ($storageQuery instanceof Database\Storage\Query)
+			$joinParameters = $this->joinParameters($storageQuery->joins);
+		
 		$parameters = array_merge(
 			$parameters,
-			$this->joinsParameters($storageQuery->joins),
+			$joinParameters,
 			$this->filterParameters($storageQuery->filter)
 		);
 		

@@ -1,9 +1,12 @@
 <?php
-use Darya\Storage\Query;
+use Darya\Database\Storage\Query;
 use Darya\Storage\InMemory;
 use Darya\Database\Storage;
 use Darya\Database\Query\Translator;
 
+/**
+ * TODO: Update non-join queries to use plain Storage\Query.
+ */
 class MySqlTest extends PHPUnit_Framework_TestCase {
 	
 	protected function translator() {

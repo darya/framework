@@ -1,7 +1,5 @@
 <?php
-namespace Darya\Storage\Query;
-
-use Darya\Storage\Query;
+namespace Darya\Database\Storage\Query;
 
 /**
  * Represents a join from one resource to another.
@@ -38,14 +36,14 @@ class Join
 	protected $alias;
 	
 	/**
-	 * Plain condition strings to join on.
+	 * Condition strings to join on.
 	 * 
 	 * @var string[]
 	 */
 	protected $conditions = array();
 	
 	/**
-	 * Complex condition values to join on.
+	 * Conditions, with values, to join on.
 	 * 
 	 * @var mixed[]
 	 */
