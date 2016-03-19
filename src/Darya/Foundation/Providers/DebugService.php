@@ -37,14 +37,14 @@ class DebugService implements Provider
 	}
 	
 	/**
-	 * When the application boots, if debugging is enabled, attach an event
-	 * listener to database queries that outputs to ChromePhp.
+	 * If debugging is enabled when the application boots, attach an event
+	 * listener that outputs database queries to ChromePhp.
 	 * 
 	 * @param Configuration $configuration
 	 * @param Dispatcher    $events
 	 */
 	public function boot(Configuration $configuration, Dispatcher $events) {
-		if (!$configuration->get('debug')) {
+		if (!$configuration->get('debug') || !class_exists('Chrome')) {
 			return;
 		}
 		
