@@ -66,4 +66,19 @@ class ConfigurationTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('swagger', $config->get('database.password'));
 	}
 	
+	public function testArrayAccess() {
+		$config = $this->config();
+		
+		$this->assertTrue(isset($config['project.namespace']));
+		$this->assertFalse(isset($config['project.undefined']));
+		
+		$this->assertEquals('password', $config['database.password']);
+		$config['database.password'] = 'swagger';
+		$this->assertEquals('swagger', $config['database.password']);
+		
+		unset($config['database.password']);
+		
+		$this->assertNull($config['database.password']);
+	}
+	
 }
