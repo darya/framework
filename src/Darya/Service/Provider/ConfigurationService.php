@@ -28,14 +28,14 @@ class ConfigurationService implements Provider
 			"$basePath/config/config.php"
 		));
 		
-		$application->register(array(
-			'Darya\Foundation\Configuration' => $configuration
-		));
+		$application->set('Darya\Foundation\Configuration', $configuration);
 		
+		// Register the configured aliases
 		foreach ($configuration['aliases'] as $alias => $service) {
 			$application->alias($alias, $service);
 		}
 		
+		// Register the configured service providers
 		foreach ($configuration['services'] as $service) {
 			if (class_exists($service) && is_subclass_of($service, 'Darya\Service\Contracts\Provider')) {
 				$application->provide($application->create($service));
