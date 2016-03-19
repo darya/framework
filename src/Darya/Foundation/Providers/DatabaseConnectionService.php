@@ -6,8 +6,8 @@ use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 
 /**
- * A service provider that provides a MySQL connection using the configuration
- * registered with the service container.
+ * A service provider that provides a database connection as configured
+ * with the service container.
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

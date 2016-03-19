@@ -1,12 +1,13 @@
 <?php
 namespace Darya\Foundation\Providers;
 
+use Darya\Foundation\Application;
 use Darya\Foundation\Configuration\Php as Configuration;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 
 /**
- * A service provider that provides HTTP request and response objects.
+ * A service provider that configures the application.
  * 
  * Also provides the default PHP session.
  * 
@@ -15,30 +16,40 @@ use Darya\Service\Contracts\Provider;
 class ConfigurationService implements Provider
 {
 	/**
-	 * Register a global HTTP request, response and session with the container.
+	 * Register a configuration object, and any of its service aliases and
+	 * providers, with the container.
 	 * 
-	 * @param Container $application
+	 * @param Container $container
 	 */
-	public function register(Container $application)
+	public function register(Container $container)
 	{
-		$basePath = $application->get('path');
-		
-		$configuration = new Configuration(array(
-			"$basePath/config/config.default.php",
-			"$basePath/config/config.php"
+		$container->register(array(
+			'Darya\Foundation\Configuration' => function (Application $application) {
+				$basePath = $application->basePath();
+				
+				// Load the application's configuration
+				$configuration = new Configuration(array(
+					"$basePath/config/config.default.php",
+					"$basePath/config/config.php"
+				));
+				
+				return $configuration;
+			}
 		));
 		
-		$application->set('Darya\Foundation\Configuration', $configuration);
+		$configuration = $container->resolve('Darya\Foundation\Configuration');
 		
 		// Register the configured aliases
 		foreach ($configuration['aliases'] as $alias => $service) {
-			$application->alias($alias, $service);
+			$container->alias($alias, $service);
 		}
 		
 		// Register the configured service providers
-		foreach ($configuration['services'] as $service) {
-			if (class_exists($service) && is_subclass_of($service, 'Darya\Service\Contracts\Provider')) {
-				$application->provide($application->create($service));
+		if ($container instanceof Application) {
+			foreach ($configuration['services'] as $service) {
+				if (class_exists($service) && is_subclass_of($service, 'Darya\Service\Contracts\Provider')) {
+					$container->provide($container->create($service));
+				}
 			}
 		}
 	}

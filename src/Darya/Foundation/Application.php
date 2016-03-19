@@ -18,6 +18,8 @@ class Application extends BaseApplication
 	 */
 	public function __construct($basePath = null, array $services = array())
 	{
+		$this->set('Darya\Foundation\Application', $this);
+		
 		$this->basePath($basePath);
 		
 		parent::__construct($services);
