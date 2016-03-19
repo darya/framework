@@ -24,8 +24,8 @@ class SmartyViewService implements Provider
 				
                 $viewResolver->shareConfig(array(
                     'base'    => $realBasePath,
-                    'cache'   => '../storage/cache',
-                    'compile' => '../storage/views'
+                    'cache'   => '../../storage/cache',
+                    'compile' => '../../storage/views'
                 ));
                 
                 $viewResolver->share(array(
