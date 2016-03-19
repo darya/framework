@@ -1,7 +1,9 @@
 <?php
 namespace Darya\Foundation\Providers;
 
-use ChromePhp;
+use Chrome;
+use Darya\Events\Dispatcher;
+use Darya\Foundation\Configuration;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 
@@ -14,7 +16,8 @@ use Darya\Service\Contracts\Provider;
 class DebugService implements Provider
 {
 	/**
-	 * Register some debugging services if debugging is configured.
+	 * Alias ChromePhp to Chrome and, if debugging is configured, enable
+	 * display_errors.
 	 * 
 	 * @param Container $container
 	 */
@@ -31,6 +34,19 @@ class DebugService implements Provider
 		}
 		
 		ini_set('display_errors', 1);
+	}
+	
+	/**
+	 * When the application boots, if debugging is enabled, attach an event
+	 * listener to database queries that outputs to ChromePhp.
+	 * 
+	 * @param Configuration $configuration
+	 * @param Dispatcher    $events
+	 */
+	public function boot(Configuration $configuration, Dispatcher $events) {
+		if (!$configuration->get('debug')) {
+			return;
+		}
 		
 		$listener = function ($result) {
 			Chrome::log(array($result->query->string, json_encode($result->query->parameters)));
@@ -40,7 +56,7 @@ class DebugService implements Provider
 			}
 		};
 		
-		$container->event->listen('mysql.query', $listener);
-		$container->event->listen('mssql.query', $listener);
+		$events->listen('mysql.query', $listener);
+		$events->listen('mssql.query', $listener);
 	}
 }
