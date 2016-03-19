@@ -18,7 +18,7 @@ class SmartyViewService implements Provider
             'Darya\Smarty\ViewResolver' => function ($container) {
 				$config = $container->config;
 				$basePath = $config['project.base_path'];
-				$realBasePath = realpath("{$basePath}/views");
+				$realBasePath = realpath("{$basePath}/views/smarty");
 				
                 $viewResolver = new ViewResolver('Darya\Smarty\View', $realBasePath);
 				
