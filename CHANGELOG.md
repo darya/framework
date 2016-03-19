@@ -1,6 +1,13 @@
 # Darya Framework Changelog
 
-## v0.5.0 - Feb 18, 2015
+## Unreleased
+- Implemented a database-specific query object that provides table joins and
+  subqueries (which database query translators now use).
+- Implemented a new `Foundation` namespace to house classes that aid the set up
+  of an application, including configuration and default service providers.
+- Fixed a MySQL connection query bug that occured without the mysqlnd extension.
+
+## v0.5.0-beta2 - Feb 18, 2015
 
 ### ORM
 - Implemented relation constraints
