@@ -14,23 +14,23 @@ use Darya\Service\Contracts\Provider;
  */
 class MySqlService implements Provider
 {
-    public function register(Container $container)
-    {
-        $container->register(array(
-            'Darya\Database\Connection' => function ($container) {
-                $config = $container->config;
-                
-                $connection = new MySql(
-                    $config['database.hostname'],
-                    $config['database.username'],
-                    $config['database.password'],
-                    $config['database.database']
-                );
-                
-                $connection->setEventDispatcher($container->event);
-                
-                return $connection;
-            }
-        ));
-    }
+	public function register(Container $container)
+	{
+		$container->register(array(
+			'Darya\Database\Connection' => function ($container) {
+				$config = $container->config;
+				
+				$connection = new MySql(
+					$config['database.hostname'],
+					$config['database.username'],
+					$config['database.password'],
+					$config['database.database']
+				);
+				
+				$connection->setEventDispatcher($container->event);
+				
+				return $connection;
+			}
+		));
+	}
 }

@@ -7,7 +7,7 @@
 
 if (!function_exists('read_json_file')) {
 	function read_json_file($path) {
-	    return json_decode(file_get_contents($path), true);
+		return json_decode(file_get_contents($path), true);
 	}
 }
 

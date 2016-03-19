@@ -15,39 +15,39 @@ use Darya\Smarty\ViewResolver;
  */
 class ErrorHandlerService implements Provider
 {
-    /**
-     * @var ViewResolver
-     */
-    protected $view;
-    
-    public function __construct(ViewResolver $view)
-    {
-        $this->view = $view;
-    }
-    
-    public function handle(Request $request, Response $response)
-    {
-        $status = $response->status();
-        
-        if ($this->view->exists("error/$status")) {
+	/**
+	 * @var ViewResolver
+	 */
+	protected $view;
+	
+	public function __construct(ViewResolver $view)
+	{
+		$this->view = $view;
+	}
+	
+	public function handle(Request $request, Response $response)
+	{
+		$status = $response->status();
+		
+		if ($this->view->exists("error/$status")) {
 			$response->content($this->view->create("error/$status", array(
 				'http_host' => $request->host(),
 				'request_uri' => $request->path(),
 				'signature' => $request->server('server_signature')
 			)));
-        } else {
-        	$response->content("$status error.");
-        }
-        
-        return $response;
-    }
-    
-    public function register(Container $container)
-    {
-    }
-    
-    public function boot(Router $router)
-    {
-        $router->setErrorHandler(array($this, 'handle'));
-    }
+		} else {
+			$response->content("$status error.");
+		}
+		
+		return $response;
+	}
+	
+	public function register(Container $container)
+	{
+	}
+	
+	public function boot(Router $router)
+	{
+		$router->setErrorHandler(array($this, 'handle'));
+	}
 }

@@ -13,13 +13,13 @@ use Darya\Service\Contracts\Provider;
  */
 class HttpService implements Provider
 {
-    public function register(Container $container)
-    {
+	public function register(Container $container)
+	{
 		$container->register(array(
-            'Darya\Http\Request' => function ($container) {
-                return Request::createFromGlobals($container->resolve('Darya\Http\Session'));
-            },
-            'Darya\Http\Session' => new PhpSession
-        ));
-    }
+			'Darya\Http\Request' => function ($container) {
+				return Request::createFromGlobals($container->resolve('Darya\Http\Session'));
+			},
+			'Darya\Http\Session' => new PhpSession
+		));
+	}
 }

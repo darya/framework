@@ -16,22 +16,22 @@ use Darya\ORM\Record;
  */
 class DatabaseStorageService implements Provider
 {
-    public function register(Container $container)
-    {
-        $container->register(array(
-            'Darya\Database\Storage' => function ($container) {
-                return new Storage($container->resolve('Darya\Database\Connection'));
-            },
-            'Darya\Storage\Readable'   => 'Darya\Database\Storage',
-            'Darya\Storage\Modifiable' => 'Darya\Database\Storage',
-            'Darya\Storage\Searchable' => 'Darya\Database\Storage',
-            'Darya\Storage\Queryable'  => 'Darya\Database\Storage',
-            'Darya\Storage\Aggregational' => 'Darya\Database\Storage'
-        ));
-    }
-    
-    public function boot(Storage $storage)
-    {
-        Record::setSharedStorage($storage);
-    }
+	public function register(Container $container)
+	{
+		$container->register(array(
+			'Darya\Database\Storage' => function ($container) {
+				return new Storage($container->resolve('Darya\Database\Connection'));
+			},
+			'Darya\Storage\Readable'   => 'Darya\Database\Storage',
+			'Darya\Storage\Modifiable' => 'Darya\Database\Storage',
+			'Darya\Storage\Searchable' => 'Darya\Database\Storage',
+			'Darya\Storage\Queryable'  => 'Darya\Database\Storage',
+			'Darya\Storage\Aggregational' => 'Darya\Database\Storage'
+		));
+	}
+	
+	public function boot(Storage $storage)
+	{
+		Record::setSharedStorage($storage);
+	}
 }
