@@ -9,7 +9,7 @@ use Darya\Foundation\Configuration;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractConfiguration implements Configuration
+abstract class AbstractConfiguration implements ArrayAccess, Configuration
 {
 	/**
 	 * The configuration data.
@@ -150,4 +150,47 @@ abstract class AbstractConfiguration implements Configuration
 	{
 		return $this->data;
 	}
+	
+	/**
+	 * Determine whether a configuration value exists for the given offset.
+	 * 
+	 * @param mixed $offset
+	 * @return bool
+	 */
+	 public function offsetExists($offset)
+	 {
+	     return $this->has($offset);
+	 }
+	 
+	 /**
+	  * Retrieve the configuration value at the given offset.
+	  * 
+	  * @param mixed $offset
+	  * @return mixed
+	  */
+	 public function offsetGet($offset)
+	 {
+	     return $this->get($offset);
+	 }
+	 
+	 /**
+	  * Set a configuration value to the given offset.
+	  * 
+	  * @param mixed $offset
+	  * @param mixed $value
+	  */
+	 public function offsetSet($offset, $value)
+	 {
+	     $this->set($offset, $value);
+	 }
+	 
+	 /**
+	  * Clear the given offset and its value.
+	  * 
+	  * @param mixed $offset
+	  */
+	 public function offsetUnset($offset)
+	 {
+	     $this->set($offset, null);
+	 }
 }
