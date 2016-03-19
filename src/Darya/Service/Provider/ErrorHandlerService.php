@@ -6,7 +6,7 @@ use Darya\Http\Response;
 use Darya\Routing\Router;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
-use Darya\View\Resolver;
+use Darya\View;
 
 /**
  * A service provider that provides its own method as a routing error handler.
@@ -16,16 +16,16 @@ use Darya\View\Resolver;
 class ErrorHandlerService implements Provider
 {
 	/**
-	 * @var ViewResolver
+	 * @var View\Resolver
 	 */
 	protected $view;
 	
 	/**
 	 * Instantiate a new error handler service.
 	 * 
-	 * @param ViewResolver $view
+	 * @param View\Resolver $view
 	 */
-	public function __construct(ViewResolver $view)
+	public function __construct(View\Resolver $view)
 	{
 		$this->view = $view;
 	}
