@@ -18,7 +18,7 @@ class Application extends BaseApplication
 	 */
 	public function __construct($basePath = null, array $services = array())
 	{
-		$this->setBasePath($basePath);
+		$this->basePath($basePath);
 		
 		parent::__construct($services);
 	}
