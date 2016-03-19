@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Service\Provider;
+namespace Darya\Foundation\Providers;
 
 use Darya\Foundation\Configuration\Php as Configuration;
 use Darya\Service\Contracts\Container;
