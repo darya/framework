@@ -106,7 +106,7 @@ abstract class AbstractConnection implements Connection {
 	abstract public function translator();
 	
 	/**
-	 * Translate a storage query to a query for this connection.
+	 * Translate a storage query to a database query for this connection.
 	 * 
 	 * @param StorageQuery $storageQuery
 	 * @return \Darya\Database\Query

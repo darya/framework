@@ -12,6 +12,11 @@ use Darya\Smarty\ViewResolver;
  */
 class SmartyViewService implements Provider
 {
+	/**
+	 * Register a Smarty view resolver with the service container.
+	 * 
+	 * @param Container $container
+	 */
 	public function register(Container $container)
 	{
 		$container->register(array(
@@ -23,7 +28,7 @@ class SmartyViewService implements Provider
 				$viewResolver = new ViewResolver('Darya\Smarty\View', $realBasePath);
 				
 				$viewResolver->shareConfig(array(
-					'base'	=> $realBasePath,
+					'base'	  => $realBasePath,
 					'cache'   => '../../storage/cache',
 					'compile' => '../../storage/views'
 				));

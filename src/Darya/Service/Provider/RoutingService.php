@@ -12,6 +12,11 @@ use Darya\Service\Contracts\Provider;
  */
 class RoutingService implements Provider
 {
+	/**
+	 * Register a router with the service container.
+	 * 
+	 * @param Container $container
+	 */
 	public function register(Container $container)
 	{
 		$container->register(array(

@@ -2,7 +2,7 @@
 namespace Darya\Database;
 
 use Darya\Database\Connection;
-use Exception;
+use UnexpectedValueException;
 
 /**
  * Darya's database connection factory.
@@ -12,12 +12,27 @@ use Exception;
 class Factory {
 	
 	/**
-	 * @var class|string Class name or database name to use by default
+	 * The class name or database type name to use by default
+	 * 
+	 * @var string
 	 */
 	protected $default = 'mysql';
 	
 	/**
-	 * @param class|string $default
+	 * A map of database type names to connection implementation classes
+	 * 
+	 * @var array
+	 */
+	protected $map = array(
+		'mysql'     => 'Darya\Database\Connection\MySql',
+		'mssql'     => 'Darya\Database\Connection\SqlServer',
+		'sqlserver' => 'Darya\Database\Connection\SqlServer',
+	);
+	
+	/**
+	 * Instantiate a new database factory.
+	 * 
+	 * @param string $default
 	 */
 	public function __construct($default = null) {
 		$this->default = $default ?: $this->default;
@@ -31,7 +46,7 @@ class Factory {
 	 */
 	protected function prepareOptions(array $options) {
 		return array_merge(array(
-			'host'     => 'localhost',
+			'hostname' => 'localhost',
 			'username' => null,
 			'password' => null,
 			'database' => null,
@@ -50,43 +65,37 @@ class Factory {
 			return $string;
 		}
 		
-		$class = null;
-		
-		switch ($string) {
-			case 'mysql':
-				$class = 'Darya\Database\Connection\MySql';
-				break;
-			case 'mssql': case 'sqlserver':
-				$class = 'Darya\Database\Connection\SqlServer';
-				break;
+		if (!isset($this->map[$string])) {
+			return null;
 		}
 		
-		return $class;
+		return $this->map[$string];
 	}
 	
 	/**
 	 * Create a new database connection using the given name/class and options.
 	 * 
 	 * @param class|string $name
-	 * @param array $options Expects keys 'host', 'username', 'password', 'database' and optionally 'port'
-	 * @return \Darya\Database\Connection
+	 * @param array $options Expects keys 'hostname', 'username', 'password',
+	 *                       'database' and optionally 'port'
+	 * @return Connection
 	 */
 	public function create($name = null, array $options = array()) {
 		$name = $name ?: $this->default;
 		$class = $this->resolveClass($name);
 		$options = $this->prepareOptions($options);
 		
-		if (class_exists($class) && is_subclass_of($class, 'Darya\Database\Connection')) {
-			return new $class(
-				$options['host'],
-				$options['username'],
-				$options['password'],
-				$options['database'],
-				$options['port']
-			);
+		if (!class_exists($class) || !is_subclass_of($class, 'Darya\Database\Connection')) {
+			throw new UnexpectedValueException("Couldn't resolve a valid database connection instance for type '$name'");
 		}
 		
-		throw new Exception("Couldn't resolve database connection instance for '$name'");
+		return new $class(
+			$options['hostname'],
+			$options['username'],
+			$options['password'],
+			$options['database'],
+			$options['port']
+		);
 	}
 	
 }

@@ -1,7 +1,6 @@
 <?php
 namespace Darya\Service\Provider;
 
-use Darya\Database\Connection\MySql;
 use Darya\Database\Factory;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
@@ -12,20 +11,27 @@ use Darya\Service\Contracts\Provider;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class MySqlService implements Provider
+class DatabaseConnectionService implements Provider
 {
+	/**
+	 * Register an SQL database connection with the service container.
+	 * 
+	 * @param Container $container
+	 */
 	public function register(Container $container)
 	{
 		$container->register(array(
 			'Darya\Database\Connection' => function ($container) {
 				$config = $container->config;
 				
-				$connection = new MySql(
-					$config['database.hostname'],
-					$config['database.username'],
-					$config['database.password'],
-					$config['database.database']
-				);
+				$factory = new Factory;
+				
+				$connection = $factory->create($config['database.type'], array(
+					'hostname' => $config['database.hostname'],
+					'username' => $config['database.username'],
+					'password' => $config['database.password'],
+					'database' => $config['database.database']
+				));
 				
 				$connection->setEventDispatcher($container->event);
 				

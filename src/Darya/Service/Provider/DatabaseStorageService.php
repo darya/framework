@@ -16,6 +16,11 @@ use Darya\ORM\Record;
  */
 class DatabaseStorageService implements Provider
 {
+	/**
+	 * Register a database storage implementation with the service container.
+	 * 
+	 * @param Container $container
+	 */
 	public function register(Container $container)
 	{
 		$container->register(array(
@@ -30,6 +35,11 @@ class DatabaseStorageService implements Provider
 		));
 	}
 	
+	/**
+	 * Attach the registered storage to the ORM's active record class.
+	 * 
+	 * @param Storage $storage
+	 */
 	public function boot(Storage $storage)
 	{
 		Record::setSharedStorage($storage);
