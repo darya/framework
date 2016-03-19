@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Foundation\Providers;
+namespace Darya\Service\Provider;
 
 use Darya\Routing\Router;
 use Darya\Service\Contracts\Container;

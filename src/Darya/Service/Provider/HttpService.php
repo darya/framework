@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Foundation\Providers;
+namespace Darya\Service\Provider;
 
 use Darya\Http\Request;
 use Darya\Http\Session\Php as PhpSession;

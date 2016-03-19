@@ -1,5 +1,5 @@
 <?php
-namespace Darya\Foundation\Providers;
+namespace Darya\Service\Provider;
 
 use Darya\Database\Connection\MySql;
 use Darya\Database\Factory;
