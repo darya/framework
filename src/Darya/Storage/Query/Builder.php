@@ -36,7 +36,9 @@ class Builder {
 	/**
 	 * @var array Query methods that should trigger query execution
 	 */
-	protected static $executors = array('all', 'read', 'distinct', 'delete');
+	protected static $executors = array(
+		'all', 'read', 'select', 'distinct', 'delete'
+	);
 	
 	/**
 	 * Instantiate a new query builder for the given storage and query objects.

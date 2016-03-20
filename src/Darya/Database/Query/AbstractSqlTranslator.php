@@ -90,6 +90,13 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return Database\Query
 	 */
 	protected function translateCreate(Storage\Query $storageQuery) {
+		if ($storageQuery instanceof Database\Storage\Query && $storageQuery->insertSubquery) {
+			return new Database\Query(
+				$this->prepareInsertSelect($storageQuery->resource, $storageQuery->fields, $storageQuery->insertSubquery),
+				$this->parameters($storageQuery->insertSubquery)
+			);
+		}
+		
 		return new Database\Query(
 			$this->prepareInsert($storageQuery->resource, $storageQuery->data),
 			$this->parameters($storageQuery)
@@ -628,6 +635,26 @@ abstract class AbstractSqlTranslator implements Translator {
 		$values  = "(" . implode(", ", $values) . ")";
 		
 		return static::concatenate(array('INSERT INTO', $table, $columns, 'VALUES', $values));
+	}
+	
+	/**
+	 * Prepare an INSERT SELECT statement using the given table and
+	 * subquery.
+	 * 
+	 * @param string        $table
+	 * @param array         $columns
+	 * @param Storage\Query $subquery
+	 * @return string
+	 */
+	public function prepareInsertSelect($table, array $columns, Storage\Query $subquery) {
+		$table = $this->identifier($table);
+		
+		$columns = $this->identifier($columns);
+		$columns = "(" . implode(", ", $columns) . ")";
+		
+		$subquery = $this->translate($subquery)->string;
+		
+		return static::concatenate(array('INSERT INTO', $table, $columns, $subquery));
 	}
 	
 	/**

@@ -274,6 +274,20 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array('Chris', 'Andrew', 23, 1), $result->parameters);
 	}
 	
+	public function testInsertSelect() {
+		$translator = $this->translator();
+		
+		$oneYearAgo = date('Y-m-d H:i:s', strtotime('-1 year'));
+		
+		$query = (new Query('users_archive', array('id', 'name', 'created')))
+			->createFrom((new Query('users', array('id', 'name', 'created')))->where('created <=', $oneYearAgo));
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals("INSERT INTO `users_archive` (`id`, `name`, `created`) SELECT `id`, `name`, `created` FROM `users` WHERE `created` <= ?", $result->string);
+		$this->assertEquals(array($oneYearAgo), $result->parameters);
+	}
+	
 	public function testUpdate() {
 		$translator = $this->translator();
 		

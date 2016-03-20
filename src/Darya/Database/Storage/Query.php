@@ -9,6 +9,9 @@ use Darya\Storage\Query as StorageQuery;
  * 
  * Provides joins and subqueries.
  * 
+ * @property-read Join[]       $joins
+ * @property-read StorageQuery $insertSubquery
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Query extends StorageQuery {
@@ -19,6 +22,13 @@ class Query extends StorageQuery {
 	 * @var Join[]
 	 */
 	protected $joins = array();
+	
+	/**
+	 * The subquery to use for the insert query.
+	 * 
+	 * @var StorageQuery
+	 */
+	protected $insertSubquery;
 	
 	/**
 	 * Add an inner join to the query.
@@ -47,9 +57,12 @@ class Query extends StorageQuery {
 	 * 
 	 * @param string $resource
 	 * @param mixed  $condition
+	 * @return $this
 	 */
 	public function leftJoin($resource, $condition = null) {
 		$this->join($resource, $condition, 'left');
+		
+		return $this;
 	}
 	
 	/**
@@ -57,8 +70,39 @@ class Query extends StorageQuery {
 	 * 
 	 * @param string $resource
 	 * @param mixed  $condition
+	 * @return $this
 	 */
 	public function rightJoin($resource, $condition = null) {
 		$this->join($resource, $condition, 'right');
+		
+		return $this;
+	}
+	
+	/**
+	 * Make this a create query with the given subquery.
+	 * 
+	 * Optionally selects
+	 * 
+	 * @param StorageQuery $query
+	 * @return $this
+	 */
+	public function createFrom(StorageQuery $query) {
+		$this->modify(static::CREATE);
+		$this->insertSubquery = $query;
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for createFrom().
+	 * 
+	 * @param StorageQuery $query
+	 * @return $this
+	 */
+	public function insertFrom(StorageQuery $query) {
+		$this->modify(static::CREATE);
+		$this->createFrom($query);
+		
+		return $this;
 	}
 }

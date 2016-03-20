@@ -7,15 +7,15 @@ namespace Darya\Storage;
  * TODO: Maybe make a query interface?
  * TODO: Standardised operators? Think about how this will affect translators.
  * 
- * @property bool     $distinct
- * @property string   $resource
- * @property array    $fields
- * @property string   $type
- * @property array    $data
- * @property array    $filter
- * @property array    $order
- * @property int|null $limit
- * @property int      $offset
+ * @property-read bool     $distinct
+ * @property-read string   $resource
+ * @property-read array    $fields
+ * @property-read string   $type
+ * @property-read array    $data
+ * @property-read array    $filter
+ * @property-read array    $order
+ * @property-read int|null $limit
+ * @property-read int      $offset
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -100,9 +100,10 @@ class Query {
 	 * @param int          $offset   [optional]
 	 */
 	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = null, $offset = 0) {
+		$this->type   = static::READ;
+		
 		$this->resource = $resource;
 		$this->fields = (array) $fields;
-		$this->type   = static::READ;
 		$this->filter = $filter;
 		$this->order  = $order;
 		$this->limit  = $limit;
@@ -183,10 +184,17 @@ class Query {
 	/**
 	 * Make this a read query.
 	 * 
+	 * Optionally accepts the resource fields to retrieve.
+	 * 
+	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function read() {
+	public function read($fields = array()) {
 		$this->type = static::READ;
+		
+		if ($fields) {
+			$this->fields($fields);
+		}
 		
 		return $this;
 	}
@@ -210,6 +218,30 @@ class Query {
 	 */
 	public function delete() {
 		$this->type = static::DELETE;
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for create().
+	 * 
+	 * @param array $data
+	 * @return $this
+	 */
+	public function insert(array $data) {
+		$this->create($data);
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for read().
+	 * 
+	 * @param array|string $fields [optional]
+	 * @return $this
+	 */
+	public function select($fields = array()) {
+		$this->read($fields);
 		
 		return $this;
 	}
@@ -311,7 +343,7 @@ class Query {
 	}
 	
 	/**
-	 * Dynamically retrieve the query's properties.
+	 * Dynamically retrieve a property.
 	 * 
 	 * @param string $property
 	 */
