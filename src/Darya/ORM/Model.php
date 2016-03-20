@@ -18,17 +18,23 @@ use Darya\ORM\Model\Transformer;
 abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	
 	/**
-	 * @var array Attribute names as keys and types as values
+	 * Attribute names as keys and types as values.
+	 * 
+	 * @var array
 	 */
 	protected $attributes = array();
 	
 	/**
-	 * @var array Model data
+	 * The model data.
+	 * 
+	 * @var array
 	 */
-	protected $data;
+	protected $data = array();
 	
 	/**
-	 * @var bool Whether the model is currently in a valid state
+	 * Whether the model is currently in a valid state.
+	 * 
+	 * @var bool
 	 */
 	protected $valid = false;
 	
@@ -38,12 +44,16 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	protected $errors = array();
 	
 	/**
-	 * @var string The attribute that uniquely identifies the model
+	 * The attribute that uniquely identifies the model.
+	 * 
+	 * @var string
 	 */
 	protected $key;
 	
 	/**
-	 * @var array Attributes that have been modified
+	 * Attributes that have been modified.
+	 * 
+	 * @var array
 	 */
 	protected $changed = array();
 	
@@ -92,9 +102,9 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
-	 * Recursively convert a model to an array.
+	 * Recursively convert a model, or set of models, to an array.
 	 * 
-	 * @param Model|Model[] $model
+	 * @param Model[]|Model $model
 	 * @return array
 	 */
 	public static function convertToArray($model) {
@@ -113,6 +123,17 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 		}
 		
 		return $model;
+	}
+	
+	/**
+	 * Recursively convert a model, or set of models, to JSON.
+	 * 
+	 * @param Model[]|Model $model
+	 * @param int           $options [optional] json_encode() options
+	 * @return string
+	 */
+	public static function convertToJson($model, $options = null) {
+		return json_encode(static::convertToArray($model), $options);
 	}
 	
 	/**
@@ -211,11 +232,30 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
-	 * Retrieve the model's raw attributes.
+	 * Retrieve the model's attributes.
+	 * 
+	 * This method uses accessors to retrieve the data.
 	 * 
 	 * @return array
 	 */
 	public function data() {
+		$data = array();
+		
+		foreach (array_keys($this->data) as $attribute) {
+			$data[$attribute] = $this->get($attribute);
+		}
+		
+		return $data;
+	}
+	
+	/**
+	 * Retrieve the model's raw attributes.
+	 * 
+	 * This method returns the raw data without using any accessors.
+	 * 
+	 * @return array
+	 */
+	public function rawData() {
 		return $this->data;
 	}
 	
@@ -391,7 +431,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @return array
 	 */
 	public function toArray() {
-		return static::convertToArray($this->data);
+		return static::convertToArray($this->data());
 	}
 	
 	/**
@@ -443,6 +483,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
+	 * Determine whether an attribute is set at the given offset.
+	 * 
 	 * @param mixed $offset
 	 * @return bool
 	 */
@@ -451,6 +493,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
+	 * Get the attribute at the given offset.
+	 * 
 	 * @param mixed $offset
 	 * @return mixed
 	 */
@@ -459,6 +503,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
+	 * Set the attribute at the given offset.
+	 * 
 	 * @param mixed $offset
 	 * @param mixed $value
 	 */
@@ -467,6 +513,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
+	 * Unset the attribute at the given offset.
+	 * 
 	 * @param mixed $offset
 	 */
 	public function offsetUnset($offset) {
@@ -474,14 +522,16 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
+	 * Retrieve an iterator for the model's data.
+	 * 
 	 * @return \Traversable
 	 */
 	public function getIterator() {
-		return new ArrayIterator($this->data);
+		return new ArrayIterator($this->data());
 	}
 	
 	/**
-	 * Serialize the model.
+	 * Serialize the model's raw data.
 	 * 
 	 * @return string
 	 */
@@ -490,7 +540,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	}
 	
 	/**
-	 * Unserialize the model.
+	 * Unserialize the model's raw data.
 	 * 
 	 * @param string $serialized
 	 */
