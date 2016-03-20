@@ -652,7 +652,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$columns = $this->identifier($columns);
 		$columns = "(" . implode(", ", $columns) . ")";
 		
-		$subquery = $this->translate($subquery)->string;
+		$subquery = (string) $this->translate($subquery);
 		
 		return static::concatenate(array('INSERT INTO', $table, $columns, $subquery));
 	}
