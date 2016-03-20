@@ -73,13 +73,6 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		));
 		
 		$this->assertEquals('SELECT `id` `Identifier`, `firstname` `First name`, `surname` `Surname` FROM `users`', $translator->translate($query)->string);
-		
-		// Test subqueries too
-		$subquery = new Query('other_table');
-		
-		$query = new Query('users', array('Some Other Table' => $subquery));
-		
-		$this->assertEquals('SELECT (SELECT * FROM `other_table`) `Some Other Table` FROM `users`', $translator->translate($query)->string);
 	}
 	
 	public function testSelectWhereRobustness() {
@@ -192,6 +185,16 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		);
 		
 		$this->assertEquals(array('%awesome%'), $result->parameters);
+	}
+	
+	public function testSelectWithColumnSubqueryAliases() {
+		$translator = $this->translator();
+		
+		$subquery = new Query('other_table');
+		
+		$query = new Query('users', array('Some Other Table' => $subquery));
+		
+		$this->assertEquals('SELECT (SELECT * FROM `other_table`) `Some Other Table` FROM `users`', $translator->translate($query)->string);
 	}
 	
 	public function testSelectWithWhereSubqueries() {
