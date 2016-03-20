@@ -9,8 +9,6 @@ use Darya\Service\Contracts\Provider;
 /**
  * A service provider that configures the application.
  * 
- * Also provides the default PHP session.
- * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class ConfigurationService implements Provider
