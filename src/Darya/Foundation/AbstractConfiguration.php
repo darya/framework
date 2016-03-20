@@ -7,6 +7,8 @@ use Darya\Foundation\Configuration;
 /**
  * Darya's abstract application configuration implementation (what a mouthful).
  * 
+ * TODO: The static methods belong somewhere else.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class AbstractConfiguration implements ArrayAccess, Configuration
