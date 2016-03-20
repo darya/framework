@@ -247,16 +247,16 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * 
 	 * If the value is an array, it is recursively prepared.
 	 * 
-	 * @param array|string $value
+	 * @param mixed $value
 	 * @return array|string
 	 */
 	protected function value($value) {
-		if ($this->translatable($value)) {
-			return $this->translateValue($value);
-		}
-		
 		if (is_array($value)) {
 			return array_map(array($this, 'value'), $value);
+		}
+		
+		if ($this->translatable($value)) {
+			return $this->translateValue($value);
 		}
 		
 		return $this->resolveValue($value);
@@ -446,8 +446,6 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return string
 	 */
 	protected function prepareJoinConditions(Join $join) {
-		$result = null;
-		
 		$conditions = array();
 		
 		foreach ($join->conditions as $condition) {
@@ -752,7 +750,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	/**
 	 * Prepare a set of query parameters from the given set of joins.
 	 * 
-	 * @param Storage\Query\Join[] $joins
+	 * @param Join[] $joins
 	 * @return array
 	 */
 	protected function joinParameters($joins) {

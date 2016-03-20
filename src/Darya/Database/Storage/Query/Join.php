@@ -8,7 +8,7 @@ namespace Darya\Database\Storage\Query;
  * @property-read string $resource
  * @property-read string $alias
  * @property-read array  $conditions
- * @property-read array  $filters
+ * @property-read array  $filter
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

@@ -5,7 +5,6 @@ namespace Darya\Storage;
  * Darya's storage query class.
  * 
  * TODO: Maybe make a query interface?
- * TODO: Standardised operators? Think about how this will affect translators.
  * 
  * @property-read bool     $distinct
  * @property-read string   $resource
