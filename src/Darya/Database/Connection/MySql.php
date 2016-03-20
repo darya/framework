@@ -19,6 +19,25 @@ use Darya\Database\Query\Translator;
 class MySql extends AbstractConnection {
 	
 	/**
+	 * Copy a flat array. Aids copying fetched results without the mysqlnd
+	 * extension installed without retaining references to array elements.
+	 * 
+	 * Who knew references could be so awkward to get rid of?
+	 * 
+	 * @param array $array
+	 * @return array
+	 */
+	protected static function copyArray($array) {
+		$copy = array();
+		
+		foreach ($array as $key => $value) {
+			$copy[$key] = $value;
+		}
+		
+		return $copy;
+	}
+	
+	/**
 	 * Fetch result data from the given MySQLi statement.
 	 * 
 	 * Expects the statement to have been executed.
@@ -77,7 +96,7 @@ class MySql extends AbstractConnection {
 			call_user_func_array(array($statement, 'bind_result'), $arguments);
 			
 			while ($statement->fetch()) {
-				$data[] = array_combine(array_keys($row), array_values($row));
+				$data[] = static::copyArray($row);
 				$count++;
 			}
 			

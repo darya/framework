@@ -1,6 +1,21 @@
 # Darya Framework Changelog
 
-## v0.5.0 - Feb 18, 2015
+## Unreleased
+
+### Foundation
+- Implemented a new `Foundation` namespace to house classes that aid the set up
+  of an application, including a configuration interface with implementations
+  and a handful of default service providers.
+
+### ORM
+- Implemented a database-specific query object that provides table joins and
+  subqueries (which database query translators now use).
+- Fixed a MySQL connection query bug that occured without the mysqlnd extension.
+- Model::data() now returns transformed (non-raw attributes). Raw attribute
+  access has moved to Model::rawData(). The toArray(), toJson() and
+  getIterator() methods now utilise the transformed attributes.
+
+## v0.5.0-beta2 - Feb 18, 2015
 
 ### ORM
 - Implemented relation constraints

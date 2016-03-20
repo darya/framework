@@ -21,8 +21,8 @@ interface Queryable {
 	/**
 	 * Open a query on the given resource.
 	 * 
-	 * @param string $resource
-	 * @param array  $fields   [optional]
+	 * @param string       $resource
+	 * @param array|string $fields   [optional]
 	 * @return \Darya\Storage\Query\Builder
 	 */
 	public function query($resource, $fields = array());

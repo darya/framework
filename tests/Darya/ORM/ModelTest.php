@@ -18,6 +18,21 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		);
 	}
 	
+	protected function expectedArrayData() {
+		return array(
+			array(
+				'value'    => 'something',
+				'date'     => '2015-05-15 11:28:00',
+				'options'  => array('one', 'two')
+			),
+			array(
+				'value'    => 'another_thing',
+				'date'     => '2015-05-15 11:30:00',
+				'options'  => null
+			)
+		);
+	}
+	
 	public function testAttributes() {
 		$model = new ModelStub(array(
 			'id'   => 1,
@@ -85,11 +100,25 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	public function testAttributeMutation() {
-		$model = new AttributeStub(array(
+		$data = array(
 			'value'   => 'something',
 			'date'    => '2015-03-28 23:54',
 			'options' => array('some' => 'value')
-		));
+		);
+		
+		$expectedData = array(
+			'value'   => 'something',
+			'date'    => '2015-03-28 23:54:00',
+			'options' => array('some' => 'value')
+		);
+		
+		$expectedRawData = array(
+			'value'   => 'something',
+			'date'    => strtotime('2015-03-28 23:54'),
+			'options' => '{"some":"value"}'
+		);
+		
+		$model = new AttributeStub($data);
 		
 		$this->assertTrue(isset($model->value));
 		$this->assertTrue(isset($model->date));
@@ -99,11 +128,9 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('2015-03-28 23:54:00', $model->date);
 		$this->assertEquals(array('some' => 'value'), $model->options);
 		
-		$this->assertEquals(array(
-			'value'   => 'something',
-			'date'    => strtotime('2015-03-28 23:54'),
-			'options' => '{"some":"value"}'
-		), $model->data());
+		$this->assertEquals($expectedData, $model->data());
+		
+		$this->assertEquals($expectedRawData, $model->rawData());
 	}
 	
 	protected function assertGeneratedModels($models) {
@@ -136,6 +163,28 @@ class ModelTest extends PHPUnit_Framework_TestCase {
 		$this->assertEmpty($hydrated[0]->changed());
 	}
 	
+	public function testToArray() {
+		$data = $this->generationData();
+		$expected = $this->expectedArrayData();
+		
+		$models = AttributeStub::hydrate($data);
+		
+		$this->assertEquals($expected[0], $models[0]->toArray());
+		$this->assertEquals($expected[1], $models[1]->toArray());
+		$this->assertEquals($expected, Model::convertToArray($models));
+	}
+	
+	public function testToJson() {
+		$expectedData = $this->expectedArrayData();
+		
+		$models = AttributeStub::hydrate($this->generationData());
+		
+		$expected = json_encode($expectedData);
+		$actual = AttributeStub::convertToJson($models);
+		// $actual = json_encode($models); // Can't do this without a collection class
+		
+		$this->assertEquals($expected, $actual);
+	}
 }
 
 class ModelStub extends Model {

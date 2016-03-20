@@ -25,8 +25,8 @@ class Application extends Container implements ApplicationInterface {
 	 */
 	public function __construct(array $services = array()) {
 		$this->register(array(
-			'Darya\Service\ApplicationInterface' => $this,
-			'Darya\Service\Application'          => $this
+			'Darya\Service\Contracts\Application' => $this,
+			'Darya\Service\Application'           => $this
 		));
 		
 		parent::__construct($services);

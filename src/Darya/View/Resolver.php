@@ -3,7 +3,7 @@ namespace Darya\View;
 
 /**
  * Finds and instantiates views of the given implementation using the given base
- * paths and extensions.
+ * paths and file extensions.
  * 
  * Optionally shares variables and configurations with all templates that are
  * resolved.
@@ -172,7 +172,7 @@ class Resolver {
 	/**
 	 * Find a template file using the given path.
 	 * 
-	 * @param  string $path
+	 * @param string $path
 	 * @return string
 	 */
 	public function resolve($path) {
@@ -189,6 +189,16 @@ class Resolver {
 				return $filePath;
 			}
 		}
+	}
+	
+	/**
+	 * Determine whether a template exists at the given path.
+	 * 
+	 * @param string $path
+	 * @return bool
+	 */
+	public function exists($path) {
+		return $this->resolve($path) !== null;
 	}
 	
 	/**
