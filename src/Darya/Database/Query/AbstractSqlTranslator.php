@@ -291,6 +291,26 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Prepare a set of column aliases.
+	 * 
+	 * Uses the keys of the given array as identifiers and appends them to their
+	 * values.
+	 * 
+	 * @param array $columns
+	 * @return array
+	 */
+	protected function prepareColumnAliases(array $columns) {
+		foreach ($columns as $alias => &$column) {
+			if (is_string($alias) && preg_match('/^[\w]/', $alias)) {
+				$aliasIdentifier = $this->identifier($alias);
+				$column = "$column $aliasIdentifier";
+			}
+		}
+		
+		return $columns;
+	}
+	
+	/**
 	 * Prepare the given columns as a string.
 	 * 
 	 * @param array|string $columns
@@ -302,6 +322,8 @@ abstract class AbstractSqlTranslator implements Translator {
 		}
 		
 		$columns = (array) $this->identifier($columns);
+		
+		$columns = $this->prepareColumnAliases($columns);
 		
 		return implode(', ', $columns);
 	}
@@ -396,7 +418,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	/**
 	 * Prepare a single join condition.
 	 * 
-	 * TODO: Make this generic for WHERE or JOIN clauses
+	 * TODO: Make this generic for WHERE or JOIN clauses. prepareCondition()?
 	 * 
 	 * @param string $condition
 	 * @return string
@@ -598,6 +620,15 @@ abstract class AbstractSqlTranslator implements Translator {
 		
 		return count($conditions) ? 'ORDER BY ' . implode(', ', $conditions) : null;
 	}
+	
+	/**
+	 * Prepare a LIMIT clause using the given limit and offset.
+	 * 
+	 * @param int $limit  [optional]
+	 * @param int $offset [optional]
+	 * @return string
+	 */
+	abstract protected function prepareLimit($limit = 0, $offset = 0);
 	
 	/**
 	 * Prepare a SELECT statement using the given columns, table, clauses and
