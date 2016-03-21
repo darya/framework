@@ -219,6 +219,28 @@ abstract class AbstractSqlTranslator implements Translator {
 	}
 	
 	/**
+	 * Translate the given translatable query.
+	 * 
+	 * Helper for handling the translation of query objects from query builders.
+	 * 
+	 * @param mixed $value
+	 * @return Database\Query
+	 */
+	protected function translateTranslatable($query) {
+		if (!$this->translatable($query)) {
+			throw new InvalidArgumentException("Cannot translate query of type '" . get_class($query) . "'");
+		}
+		
+		if ($query instanceof Storage\Query\Builder) {
+			$query = $query->query;
+		}
+		
+		if ($query instanceof Storage\Query) {
+			return $this->translate($query);
+		}
+	}
+	
+	/**
 	 * Translate the given value if it is a query or query builder.
 	 * 
 	 * Returns the argument as is otherwise.
@@ -227,17 +249,9 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return mixed
 	 */
 	protected function translateValue($value) {
-		if ($value instanceof Storage\Query\Builder) {
-			$value = $value->query;
-		}
+		$query = $this->translateTranslatable($value);
 		
-		if ($value instanceof Storage\Query) {
-			$query = $this->translate($value);
-			
-			$value = "($query)";
-		}
-		
-		return $value;
+		return "($query->string)";
 	}
 	
 	/**
