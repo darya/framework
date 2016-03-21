@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Database\Query;
 
-use Exception;
+use InvalidArgumentException;
 use Darya\Database;
 use Darya\Database\Query\Translator;
 use Darya\Database\Storage\Query\Join;
@@ -67,7 +67,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * 
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
-	 * @throws Exception
+	 * @throws InvalidArgumentException
 	 */
 	public function translate(Storage\Query $storageQuery) {
 		$type = $storageQuery->type;
@@ -75,7 +75,7 @@ abstract class AbstractSqlTranslator implements Translator {
 		$method = 'translate' . ucfirst($type);
 		
 		if (!method_exists($this, $method)) {
-			throw new Exception("Could not translate query of unknown type '$type'");
+			throw new InvalidArgumentException("Could not translate query of unknown type '$type'");
 		}
 		
 		$query = call_user_func_array(array($this, $method), array($storageQuery));
@@ -678,8 +678,10 @@ abstract class AbstractSqlTranslator implements Translator {
 	public function prepareInsertSelect($table, array $columns, Storage\Query $subquery) {
 		$table = $this->identifier($table);
 		
-		$columns = $this->identifier($columns);
-		$columns = "(" . implode(", ", $columns) . ")";
+		if (!empty($columns)) {
+			$columns = $this->identifier($columns);
+			$columns = "(" . implode(", ", $columns) . ")";
+		}
 		
 		$subquery = (string) $this->translate($subquery);
 		

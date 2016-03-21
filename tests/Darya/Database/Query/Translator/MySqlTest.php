@@ -305,6 +305,14 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		
 		$oneYearAgo = date('Y-m-d H:i:s', strtotime('-1 year'));
 		
+		$query = (new Query('users_archive'))
+			->createFrom((new Query('users'))->where('created <=', $oneYearAgo));
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals('INSERT INTO `users_archive` SELECT * FROM `users` WHERE `created` <= ?', $result->string);
+		$this->assertEquals(array($oneYearAgo), $result->parameters);
+		
 		$query = (new Query('users_archive', array('id', 'name', 'created')))
 			->createFrom((new Query('users', array('id', 'name', 'created')))->where('created <=', $oneYearAgo));
 		
