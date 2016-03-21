@@ -246,12 +246,12 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * Returns the argument as is otherwise.
 	 * 
 	 * @param mixed $value
-	 * @return mixed
+	 * @return string
 	 */
 	protected function translateValue($value) {
 		$query = $this->translateTranslatable($value);
 		
-		return "($query->string)";
+		return "($query)";
 	}
 	
 	/**
