@@ -223,7 +223,7 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * 
 	 * Helper for handling the translation of query objects from query builders.
 	 * 
-	 * @param mixed $value
+	 * @param mixed $query
 	 * @return Database\Query
 	 */
 	protected function translateTranslatable($query) {

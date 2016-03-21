@@ -5,6 +5,7 @@ namespace Darya\Storage;
  * Darya's storage query class.
  * 
  * TODO: Maybe make a query interface?
+ * TODO: Formalise filters and orders?
  * 
  * @property-read bool     $distinct
  * @property-read string   $resource
@@ -93,20 +94,12 @@ class Query {
 	 * 
 	 * @param string       $resource
 	 * @param array|string $fields   [optional]
-	 * @param array        $filter   [optional]
-	 * @param array        $order    [optional]
-	 * @param int          $limit    [optional]
-	 * @param int          $offset   [optional]
 	 */
-	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = null, $offset = 0) {
+	public function __construct($resource, $fields = array()) {
 		$this->type   = static::READ;
 		
 		$this->resource = $resource;
 		$this->fields = (array) $fields;
-		$this->filter = $filter;
-		$this->order  = $order;
-		$this->limit  = $limit;
-		$this->offset = (int) $offset;
 	}
 	
 	/**
@@ -259,6 +252,18 @@ class Query {
 	}
 	
 	/**
+	 * Add multiple filter conditions to the query.
+	 * 
+	 * @param array $filters
+	 * @return $this
+	 */
+	public function filters(array $filters = array()) {
+		$this->filter = array_merge($this->filter, $filters);
+		
+		return $this;
+	}
+	
+	/**
 	 * Alias for filter().
 	 * 
 	 * @param string $field
@@ -282,6 +287,30 @@ class Query {
 	 */
 	public function order($field, $order = 'asc') {
 		$this->order = array_merge($this->order, array($field => $order));
+		
+		return $this;
+	}
+	
+	/**
+	 * Add multiple order conditions to the query.
+	 * 
+	 * TODO: Simplify.
+	 * 
+	 * @param array $orders
+	 * @return $this
+	 */
+	public function orders(array $orders = array()) {
+		$prepared = array();
+		
+		foreach ($orders as $field => $order) {
+			if (is_numeric($field)) {
+				$prepared[$order] = 'asc';
+			} else {
+				$prepared[$field] = $order;
+			}
+		}
+		
+		$this->order = array_merge($this->order, $prepared);
 		
 		return $this;
 	}

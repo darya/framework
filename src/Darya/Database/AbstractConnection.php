@@ -13,37 +13,49 @@ use Darya\Storage\Query as StorageQuery;
 abstract class AbstractConnection implements Connection {
 	
 	/**
-	 * @var mixed Connection object or link identifier
+	 * Connection object or link identifier.
+	 * 
+	 * @var mixed
 	 */
 	protected $connection;
 	
 	/**
-	 * @var bool Whether the connection is currently active
+	 * Whether the connection is currently active.
+	 * 
+	 * @var bool
 	 */
 	protected $connected;
 	
 	/**
-	 * @var array Connection details
+	 * Connection details.
+	 * 
+	 * @var array
 	 */
 	protected $details;
 	
 	/**
+	 * The event dispatcher.
+	 * 
 	 * @var Dispatchable
 	 */
 	protected $eventDispatcher;
 	
 	/**
-	 * @var \Darya\Database\Result Result of the last query
+	 * The result of the last query.
+	 * 
+	 * @var \Darya\Database\Result
 	 */
 	protected $lastResult;
 	
 	/**
+	 * The storage query translator.
+	 * 
 	 * @var \Darya\Database\Query\Translator
 	 */
 	protected $translator;
 	
 	/**
-	 * Instantiate a new SQL Server connection with the given credentials.
+	 * Instantiate a new database connection with the given credentials.
 	 * 
 	 * The connection is not made upon instantiating the object, but instead
 	 * after using either the `connect()` or `query()` methods.
