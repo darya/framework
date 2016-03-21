@@ -18,13 +18,4 @@ interface Translator {
 	 */
 	public function translate(Storage\Query $storageQuery);
 	
-	/**
-	 * Retrieve an array of parameters from the given query for executing a
-	 * prepared query.
-	 * 
-	 * @param Storage\Query $storageQuery
-	 * @return array
-	 */
-	public function parameters(Storage\Query $storageQuery);
-	
 }
