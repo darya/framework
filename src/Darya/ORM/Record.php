@@ -425,7 +425,7 @@ class Record extends Model {
 			$class = get_class($this);
 			
 			if (!$storage instanceof Modifiable) {
-				throw new Exception(basename($class) . ' storage is not modifiable');
+				throw new Exception($class . ' storage is not modifiable');
 			}
 			
 			$data = $this->prepareData();
@@ -453,8 +453,7 @@ class Record extends Model {
 				}
 			}
 			
-			$entity = strtolower(basename($class));
-			$this->errors['save'] = "Failed to save $entity";
+			$this->errors['save'] = "Failed to save $class instance";
 			$this->errors['storage'] = $this->storage()->error();
 		}
 		

@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Service;
 
-use \Exception;
+use RuntimeException;
 use Darya\Service\Contracts\Container as ContainerInterface;
 
 /**
@@ -32,10 +32,7 @@ abstract class Facade {
 	 * 
 	 * @return string
 	 */
-	public static function getServiceName() {
-		$class = get_class(new static);
-		throw new Exception('Facade "' . $class . '" does not implement getServiceName()');
-	}
+	abstract public static function getServiceName();
 	
 	/**
 	 * Magic method that redirects static calls to the facade's related service.
@@ -48,17 +45,17 @@ abstract class Facade {
 		$service = static::getServiceName();
 		
 		if (!static::$serviceContainer) {
-			throw new Exception('Tried to use a facade without setting a service container');
+			throw new RuntimeException('Tried to use a facade without setting a service container');
 		}
 		
 		$instance = static::$serviceContainer->resolve($service);
 		
 		if (!is_object($instance)) {
-			throw new Exception('Facade resolved non-object from the service container');
+			throw new RuntimeException('Facade resolved non-object from the service container');
 		}
 		
 		if (!method_exists($instance, $method)) {
-			throw new Exception('Call to non-existent method "' . $method . '" on facade instance');
+			throw new RuntimeException('Call to non-existent method "' . $method . '" on facade instance');
 		}
 		
 		return static::$serviceContainer->call(array($instance, $method), $parameters);
