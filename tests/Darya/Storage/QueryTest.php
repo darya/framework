@@ -3,6 +3,16 @@ use Darya\Storage\Query;
 
 class QueryTest extends PHPUnit_Framework_TestCase {
 	
+	public function testDistinct() {
+		$query = (new Query('users'))->distinct();
+		
+		$this->assertTrue($query->distinct);
+		
+		$query->all();
+		
+		$this->assertFalse($query->distinct);
+	}
+	
 	public function testFields() {
 		$query = new Query('users', 'id');
 		
@@ -25,36 +35,67 @@ class QueryTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(), $query->fields);
 	}
 	
-	public function testReadQuery() {
+	public function testFilter() {
+		$query = new Query('users');
 		
+		$query->filter('this >=', 'that');
+		
+		$this->assertEquals(array('this >=' => 'that'), $query->filter);
+		
+		$query->filter('name like', 'chris');
+		
+		$this->assertEquals(array(
+			'this >='   => 'that',
+			'name like' => 'chris'
+		), $query->filter);
+		
+		$query->filters(array(
+			'test' => '1',
+			'test2' => 2,
+		));
+		
+		$this->assertEquals(array(
+			'this >='   => 'that',
+			'name like' => 'chris',
+			'test' => '1',
+			'test2' => 2
+		), $query->filter);
+		
+		$query->filter('test', 1);
+		
+		$this->assertEquals(array(
+			'this >='   => 'that',
+			'name like' => 'chris',
+			'test' => 1,
+			'test2' => 2
+		), $query->filter);
 	}
 	
-	public function testReadQueryFluent() {
+	public function testOrder() {
+		$query = new Query('users');
 		
-	}
-	
-	public function testCreateQuery() {
+		$query->order('name');
 		
-	}
-	
-	public function testCreateQueryFluent() {
+		$this->assertEquals(array('name' => 'asc'), $query->order);
 		
-	}
-	
-	public function testUpdateQuery() {
+		$query->order('test');
+		$query->order('name', 'desc');
 		
-	}
-	
-	public function testUpdateQueryFluent() {
+		$this->assertEquals(array('name' => 'desc', 'test' => 'asc'), $query->order);
 		
-	}
-	
-	public function testDeleteQuery() {
+		$query->order('test', 'blah');
 		
-	}
-	
-	public function testDeleteQueryFluent() {
+		$this->assertEquals(array('name' => 'desc', 'test' => 'blah'), $query->order);
 		
+		$query = new Query('users');
+		
+		$query->orders(array(
+			'name',
+			'test' => 'desc',
+			'size' => 'blah'
+		));
+		
+		$this->assertEquals(array('name' => 'asc', 'test' => 'desc', 'size' => 'blah'), $query->order);
 	}
 	
 }

@@ -59,7 +59,7 @@ class Builder {
 	 * 
 	 * @param string $method
 	 * @param array  $arguments
-	 * @return $this|mixed
+	 * @return $this|\Darya\Storage\Result
 	 */
 	public function __call($method, $arguments) {
 		call_user_func_array(array($this->query, $method), $arguments);
