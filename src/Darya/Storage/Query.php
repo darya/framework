@@ -94,12 +94,20 @@ class Query {
 	 * 
 	 * @param string       $resource
 	 * @param array|string $fields   [optional]
+	 * @param array        $filter   [optional]
+	 * @param array        $order    [optional]
+	 * @param int          $limit    [optional]
+	 * @param int          $offset   [optional]
 	 */
-	public function __construct($resource, $fields = array()) {
+	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = 0, $offset = 0) {
 		$this->type   = static::READ;
 		
 		$this->resource = $resource;
 		$this->fields = (array) $fields;
+		$this->filter = $filter;
+		$this->order  = $order;
+		$this->limit  = (int) $limit;
+		$this->offset = (int) $offset;
 	}
 	
 	/**
