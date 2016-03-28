@@ -9,7 +9,7 @@ dialects.
 - [Connections](#connections)
 - [Results](#results)
 - [Storage](#storage)
-- [Joins & Subqueries](#joins-subqueries)
+- [Joins & Subqueries](#joins--subqueries)
   - [Simple joins](#simple-joins)
   - [Complex join](#complex-join)
   - [Where-condition subquery](#where-condition-subquery)
@@ -43,7 +43,7 @@ $connection->connect();
 
 ### Queries
 
-Perform a simple queries and retrieve their result data.
+Perform simple queries and retrieve their result data.
 
 ```php
 $result = $connection->query('SELECT * FROM users');
@@ -117,14 +117,13 @@ $storage = new Storage($connection);
 
 Once you've created a storage object with a connection, you can start querying.
 
-See the `Darya\Storage` namespace to learn more about the query builder basics.
+See the `Darya\Storage` namespace to learn more about using the query builder.
 
 ```php
 $result = $storage->query('users')->where('id >', 50)->read();
 ```
 
-Results allow you to access the storage query that produced it, as well as the
-database query generated from that storage query.
+Results allow you to access the storage and database queries that produced it.
 
 You can access metadata and error data in the same way as connection queries.
 
@@ -148,8 +147,6 @@ if ($result->error) {
 ### Joins & Subqueries
 
 Database storage queries offer extra query builder functionality.
-
-You can perform joins and subqueries.
 
 #### Simple joins
 
