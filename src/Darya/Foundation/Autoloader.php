@@ -1,29 +1,36 @@
 <?php
-namespace Darya\Common;
+namespace Darya\Foundation;
 
 /**
  * Darya's class autoloader.
  * 
- * TODO: Simplify Autoloader::load.
+ * TODO: Simplify Autoloader::load().
  * TODO: Maybe make attempt() a generator!
- * TODO: Move to Darya\Autoloader\Tryhard
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Autoloader {
-	
+class Autoloader
+{
 	/**
-	 * @var array Common subdirectories used as a last resort when autoloading
+	 * Common subdirectories used as a last resort when autoloading.
+	 * 
+	 * @var array
 	 */
-	private $commonSubdirs = array('Common', 'Classes', 'Controllers', 'Models', 'Tests');
+	private $commonSubdirs = array(
+		'Common', 'Classes', 'Controllers', 'Models', 'Tests'
+	);
 	
 	/**
-	 * @var array Map of namespaces to paths to use when autoloading
+	 * A map of namespaces to paths to use when autoloading.
+	 * 
+	 * @var array
 	 */
 	private $namespaces = array();
 	
 	/**
-	 * @var string Base path to use when autoloading
+	 * Base path to use when autoloading.
+	 * 
+	 * @var string
 	 */
 	private $basePath;
 	
@@ -33,7 +40,8 @@ class Autoloader {
 	 * @param string $basePath   Base directory path to load from
 	 * @param array  $namespaces Namespace to directory mappings to register with the autoloader
 	 */
-	public function __construct($basePath = null, array $namespaces = array()) {
+	public function __construct($basePath = null, array $namespaces = array())
+	{
 		$this->basePath($basePath);
 		$this->namespaces($namespaces);
 	}
@@ -44,7 +52,8 @@ class Autoloader {
 	 * @param string $basePath
 	 * @return string
 	 */
-	public function basePath($basePath = null) {
+	public function basePath($basePath = null)
+	{
 		$this->basePath = $basePath ?: realpath(__DIR__ . '/../../');
 		
 		return $this->basePath;
@@ -55,7 +64,8 @@ class Autoloader {
 	 * 
 	 * @return bool
 	 */
-	public function register() {
+	public function register()
+	{
 		return spl_autoload_register(array($this, 'load'));
 	}
 	
@@ -63,13 +73,14 @@ class Autoloader {
 	 * Register namespace to directory mappings to attempt before the
 	 * autoloader's default behaviour.
 	 * 
-	 * Duplicate namespaces are permitted. Returns the autoloader's currently 
+	 * Duplicate namespaces are permitted. Returns the autoloader's currently
 	 * set namespaces after registering any that are given.
 	 * 
 	 * @param array $namespaces Namespace keys and directory values
 	 * @return array
 	 */
-	public function namespaces(array $namespaces = array()) {
+	public function namespaces(array $namespaces = array())
+	{
 		foreach ($namespaces as $ns => $paths) {
 			foreach ((array) $paths as $path) {
 				$this->namespaces[] = array($ns, $path);
@@ -85,7 +96,8 @@ class Autoloader {
 	 * @param string $path
 	 * @return bool
 	 */
-	public function attempt($path) {
+	public function attempt($path)
+	{
 		if (is_file($path)) {
 			require_once $path;
 			return true;
@@ -102,7 +114,8 @@ class Autoloader {
 	 * @param string $class Class name
 	 * @return bool
 	 */
-	public function load($class) {
+	public function load($class)
+	{
 		// Separate the class name and its namespace
 		$parts = explode('\\', $class);
 		$className = array_pop($parts);
