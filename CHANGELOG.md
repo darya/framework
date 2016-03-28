@@ -6,6 +6,7 @@
 - Implemented a new `Foundation` namespace to house classes that aid the set up
   of an application, including a configuration interface with implementations
   and a handful of default service providers.
+- Moved the autoloader to this namespace.
 
 ### ORM
 - Implemented a database-specific query object that provides table joins and

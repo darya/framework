@@ -4,6 +4,8 @@ namespace Darya\Database\Storage\Query;
 /**
  * Represents a join from one resource to another.
  * 
+ * TODO: Formalise join types as constants.
+ * 
  * @property-read string $type
  * @property-read string $resource
  * @property-read string $alias
