@@ -7,7 +7,8 @@ dialects.
 ## Usage
 
 - [Connections](#connections)
-- [Results](#results)
+  - [Queries](#queries)
+  - [Results](#results)
 - [Storage](#storage)
 - [Joins & Subqueries](#joins--subqueries)
   - [Simple joins](#simple-joins)
@@ -79,7 +80,6 @@ Access result metadata.
 
 ```php
 $result->count;
-$result->error;
 $result->fields;
 $result->affected;
 $result->insertId;
