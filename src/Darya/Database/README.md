@@ -129,8 +129,8 @@ You can access metadata and error data in the same way as connection queries.
 
 ```php
 // Queries
-$result->query;        // Darya\Database\Storage\Query
-$result->databaseQuery // Darya\Database\Query
+$result->query;         // Darya\Database\Storage\Query
+$result->databaseQuery; // Darya\Database\Query
 
 // Metadata
 $result->count;
@@ -151,7 +151,7 @@ Database storage queries offer extra query builder functionality.
 #### Simple joins
 
 ```php
-$result = $storage->query('users', array('users.*'))
+$result = $storage->query('users', 'users.*')
 	->join('comments', 'comments.user_id = users.id')
 	->where('comments.body like', '%darya%')
 	->read();
@@ -191,7 +191,7 @@ Insert into a table using the result of another query.
 ```php
 $storage->query('users_archive')->insertFrom(
 	$storage->query('users')->where('created <=', strtotime('-1 year'))
-);
+)->execute();
 ```
 
 This works when providing columns too.
@@ -201,5 +201,5 @@ $storage->query('users_archive', array('id', 'name'))->insertFrom(
 	$storage->query('users', array('id', 'name'))->where(
 		'created <=', strtotime('-1 year')
 	)
-);
+)->execute();
 ```

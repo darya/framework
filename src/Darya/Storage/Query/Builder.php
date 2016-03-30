@@ -19,22 +19,30 @@ use Darya\Storage\Queryable;
 class Builder {
 	
 	/**
-	 * @var Query The query to execute
+	 * The query to execute.
+	 * 
+	 * @var Query
 	 */
 	protected $query;
 	
 	/**
-	 * @var Queryable The storage interface to query
+	 * The storage interface to query.
+	 * 
+	 * @var Queryable
 	 */
 	protected $storage;
 	
 	/**
+	 * A callback that processes results.
+	 * 
 	 * @var callback
 	 */
 	protected $callback;
 	
 	/**
-	 * @var array Query methods that should trigger query execution
+	 * Query methods that should trigger query execution.
+	 * 
+	 * @var array
 	 */
 	protected static $executors = array(
 		'all', 'read', 'select', 'distinct', 'delete'
