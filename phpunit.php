@@ -1,9 +1,9 @@
 <?php
 date_default_timezone_set('Europe/London');
 
-include 'src/Darya/Common/Autoloader.php';
+include 'src/Darya/Foundation/Autoloader.php';
 
-use Darya\Common\Autoloader;
+use Darya\Foundation\Autoloader;
 
 $autoloader = new Autoloader(__DIR__, array(
 	'Darya' => 'src'

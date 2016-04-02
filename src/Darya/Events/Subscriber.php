@@ -6,19 +6,20 @@ namespace Darya\Events;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Subscriber {
-	
+interface Subscriber
+{
 	/**
-	 * Returns event-to-listener pairs that this object subscribes to.
+	 * Retrieve the subscriptions.
 	 * 
 	 * Example:
-	 *   array(
+	 *   return array(
 	 *     'event.name'  => array($this, 'listener'),
-	 *     'other.event' => function($argument) { return $argument; }
+	 *     'other.event' => function ($argument) {
+	 *       return $argument;
+	 *     }
 	 *   );
 	 * 
 	 * @return array
 	 */
 	public function getEventSubscriptions();
-	
 }

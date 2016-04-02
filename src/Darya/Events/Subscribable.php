@@ -8,20 +8,19 @@ use Darya\Events\Subscriber;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Subscribable {
-	
+interface Subscribable
+{
 	/**
 	 * Register the given subscriber's event listeners.
 	 * 
-	 * @param \Darya\Events\Subscriber $subscriber
+	 * @param Subscriber $subscriber
 	 */
 	public function subscribe(Subscriber $subscriber);
 	
 	/**
 	 * Unregister the given subscriber's event listeners.
 	 * 
-	 * @param \Darya\Events\Subscriber $subscriber
+	 * @param Subscriber $subscriber
 	 */
 	public function unsubscribe(Subscriber $subscriber);
-	
 }

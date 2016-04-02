@@ -9,8 +9,8 @@ use Darya\Events\Subscriber;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Dispatcher implements Dispatchable {
-	
+class Dispatcher implements Dispatchable, Subscribable
+{
 	/**
 	 * Keys are event names and values are callables.
 	 * 
@@ -19,11 +19,12 @@ class Dispatcher implements Dispatchable {
 	protected $listeners;
 	
 	/**
-	 * Ensure that the listeners index for the given event exists.
+	 * Ensure that a listeners array exists for the given event.
 	 * 
 	 * @param string $event
 	 */
-	private function touch($event) {
+	protected function touch($event)
+	{
 		if (!isset($this->listeners[$event])) {
 			$this->listeners[$event] = array();
 		}
@@ -36,8 +37,10 @@ class Dispatcher implements Dispatchable {
 	 * @param callable $callable
 	 * @return void
 	 */
-	public function listen($event, $callable) {
+	public function listen($event, $callable)
+	{
 		$this->touch($event);
+		
 		$this->listeners[$event][] = $callable;
 	}
 	
@@ -47,8 +50,10 @@ class Dispatcher implements Dispatchable {
 	 * @param string   $event
 	 * @param callable $callable
 	 */
-	public function unlisten($event, $callable) {
+	public function unlisten($event, $callable)
+	{
 		$this->touch($event);
+		
 		$this->listeners[$event] = array_filter($this->listeners[$event], function($value) use ($callable) {
 			return $value !== $callable;
 		});
@@ -57,9 +62,10 @@ class Dispatcher implements Dispatchable {
 	/**
 	 * Register the given subscriber's event listeners.
 	 * 
-	 * @param \Darya\Events\Subscriber $subscriber
+	 * @param Subscriber $subscriber
 	 */
-	public function subscribe(Subscriber $subscriber) {
+	public function subscribe(Subscriber $subscriber)
+	{
 		$subscriptions = $subscriber->getEventSubscriptions();
 		
 		foreach ($subscriptions as $event => $listener) {
@@ -70,9 +76,10 @@ class Dispatcher implements Dispatchable {
 	/**
 	 * Unregister the given subscriber's event listeners.
 	 * 
-	 * @param \Darya\Events\Subscriber $subscriber
+	 * @param Subscriber $subscriber
 	 */
-	public function unsubscribe(Subscriber $subscriber) {
+	public function unsubscribe(Subscriber $subscriber)
+	{
 		$subscriptions = $subscriber->getEventSubscriptions();
 		
 		foreach ($subscriptions as $event => $listener) {
@@ -89,8 +96,10 @@ class Dispatcher implements Dispatchable {
 	 * @param array  $arguments [optional]
 	 * @return array
 	 */
-	public function dispatch($event, array $arguments = array()) {
+	public function dispatch($event, array $arguments = array())
+	{
 		$this->touch($event);
+		
 		$results = array();
 		
 		foreach ((array) $this->listeners[$event] as $listener) {
@@ -101,5 +110,4 @@ class Dispatcher implements Dispatchable {
 		
 		return $results;
 	}
-	
 }
