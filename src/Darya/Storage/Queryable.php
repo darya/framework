@@ -8,8 +8,8 @@ use Darya\Storage\Query;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Queryable {
-	
+interface Queryable
+{
 	/**
 	 * Execute the given query.
 	 * 
@@ -26,5 +26,4 @@ interface Queryable {
 	 * @return \Darya\Storage\Query\Builder
 	 */
 	public function query($resource, $fields = array());
-	
 }

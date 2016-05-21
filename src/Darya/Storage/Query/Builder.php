@@ -10,6 +10,8 @@ use Darya\Storage\Queryable;
  * Forwards method calls to a storage query and executes it on the given
  * queryable storage interface once the query has been built.
  * 
+ * TODO: Implement event dispatcher awareness.
+ * 
  * @property-read Query     $query
  * @property-read Queryable $storage
  * @property-read callable  $callback
