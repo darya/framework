@@ -10,7 +10,7 @@ use Darya\Storage\Queryable;
  * Forwards method calls to a storage query and executes it on the given
  * queryable storage interface once the query has been built.
  * 
- * TODO: Implement event dispatcher awares.
+ * TODO: Implement event dispatcher awareness.
  * 
  * @property-read Query     $query
  * @property-read Queryable $storage
@@ -18,8 +18,8 @@ use Darya\Storage\Queryable;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Builder {
-	
+class Builder
+{
 	/**
 	 * The query to execute.
 	 * 
@@ -56,7 +56,8 @@ class Builder {
 	 * @param Query     $query
 	 * @param Queryable $storage
 	 */
-	public function __construct(Query $query, Queryable $storage) {
+	public function __construct(Query $query, Queryable $storage)
+	{
 		$this->query = $query;
 		$this->storage = $storage;
 	}
@@ -71,7 +72,8 @@ class Builder {
 	 * @param array  $arguments
 	 * @return $this|\Darya\Storage\Result
 	 */
-	public function __call($method, $arguments) {
+	public function __call($method, $arguments)
+	{
 		call_user_func_array(array($this->query, $method), $arguments);
 		
 		if (in_array($method, static::$executors)) {
@@ -87,7 +89,8 @@ class Builder {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->$property;
 	}
 	
@@ -99,7 +102,8 @@ class Builder {
 	 * 
 	 * @param callback $callback
 	 */
-	public function callback($callback) {
+	public function callback($callback)
+	{
 		$this->callback = $callback;
 	}
 	
@@ -108,7 +112,8 @@ class Builder {
 	 * 
 	 * @return mixed
 	 */
-	public function execute() {
+	public function execute()
+	{
 		$result = $this->storage->execute($this->query);
 		
 		if (!is_callable($this->callback)) {
@@ -123,7 +128,8 @@ class Builder {
 	 * 
 	 * @return mixed
 	 */
-	public function cheers() {
+	public function cheers()
+	{
 		return $this->execute();
 	}
 }

@@ -8,15 +8,16 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Sorter {
-	
+class Sorter
+{
 	/**
 	 * Normalize the given sorting order array.
 	 * 
 	 * @param array $order
 	 * @return array
 	 */
-	protected static function normalizeOrder(array $order = array()) {
+	protected static function normalizeOrder(array $order = array())
+	{
 		$result = array();
 		
 		foreach ($order as $key => $value) {
@@ -38,7 +39,8 @@ class Sorter {
 	 * @param array|string $order
 	 * @return array
 	 */
-	protected static function prepareOrder($order) {
+	protected static function prepareOrder($order)
+	{
 		if (is_array($order)) {
 			return static::normalizeOrder($order);
 		}
@@ -59,7 +61,8 @@ class Sorter {
 	 * @param array|string $order [optional]
 	 * @return array
 	 */
-	public function sort(array $data, $order = array()) {
+	public function sort(array $data, $order = array())
+	{
 		$order = $this->prepareOrder($order);
 		
 		if (empty($order)) {
@@ -100,5 +103,4 @@ class Sorter {
 		
 		return $data;
 	}
-	
 }

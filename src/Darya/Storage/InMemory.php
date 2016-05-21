@@ -18,8 +18,8 @@ use Darya\Storage\Sorter;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class InMemory implements Readable, Modifiable, Searchable, Aggregational, Queryable {
-	
+class InMemory implements Readable, Modifiable, Searchable, Aggregational, Queryable
+{
 	/**
 	 * The in-memory data.
 	 * 
@@ -46,7 +46,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * 
 	 * @param array $data [optional]
 	 */
-	public function __construct(array $data = array()) {
+	public function __construct(array $data = array())
+	{
 		$this->data = $data;
 		$this->filterer = new Filterer;
 		$this->sorter = new Sorter;
@@ -60,7 +61,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int   $offset [optional]
 	 * @return array
 	 */
-	protected static function limit(array $data, $limit = 0, $offset = 0) {
+	protected static function limit(array $data, $limit = 0, $offset = 0)
+	{
 		return array_slice($data, $offset, $limit ?: null);
 	}
 	
@@ -76,7 +78,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function read($resource, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public function read($resource, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		if (empty($this->data[$resource])) {
 			return array();
 		}
@@ -103,7 +106,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		$data = $this->read($resource, $filter, $order, $limit, $offset);
 		
 		if (empty($fields) || $fields === '*') {
@@ -138,7 +142,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param array  $filter   [optional]
 	 * @return int
 	 */
-	public function count($resource, array $filter = array()) {
+	public function count($resource, array $filter = array())
+	{
 		if (empty($this->data[$resource])) {
 			return 0;
 		}
@@ -153,7 +158,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param array  $data
 	 * @return bool
 	 */
-	public function create($resource, $data) {
+	public function create($resource, $data)
+	{
 		if (!isset($this->data[$resource])) {
 			$this->data[$resource] = array();
 		}
@@ -172,7 +178,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int    $limit    [optional]
 	 * @return int|bool
 	 */
-	public function update($resource, $data, array $filter = array(), $limit = 0) {
+	public function update($resource, $data, array $filter = array(), $limit = 0)
+	{
 		if (empty($this->data[$resource])) {
 			return;
 		}
@@ -205,7 +212,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int    $limit    [optional]
 	 * @return int|bool
 	 */
-	public function delete($resource, array $filter = array(), $limit = null) {
+	public function delete($resource, array $filter = array(), $limit = null)
+	{
 		if (empty($this->data[$resource])) {
 			return;
 		}
@@ -226,7 +234,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function search($resource, $query, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function search($resource, $query, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		if (empty($query) || empty($resource)) {
 			return $this->read($resource, $filter, $order, $limit, $offset);
 		}
@@ -256,7 +265,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int    $offset   [optional]
 	 * @return array
 	 */
-	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		$list = array();
 		
 		$listing = $this->listing($resource, $field, $filter, $order, $limit, $offset);
@@ -332,8 +342,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * 
 	 * @return string|bool
 	 */
-	public function error() {
+	public function error()
+	{
 		return false;
 	}
-	
 }

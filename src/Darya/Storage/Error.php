@@ -9,8 +9,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Error {
-	
+class Error
+{
 	/**
 	 * @var int
 	 */
@@ -27,7 +27,8 @@ class Error {
 	 * @param int    $number
 	 * @param string $message
 	 */
-	public function __construct($number, $message) {
+	public function __construct($number, $message)
+	{
 		$this->number = (int) $number;
 		$this->message = (string) $message;
 	}
@@ -38,8 +39,8 @@ class Error {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->$property;
 	}
-	
 }

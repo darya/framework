@@ -6,8 +6,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Modifiable {
-	
+interface Modifiable
+{
 	/**
 	 * Create resource instances in the data store.
 	 * 
@@ -49,5 +49,4 @@ interface Modifiable {
 	 * @return string|bool
 	 */
 	public function error();
-	
 }

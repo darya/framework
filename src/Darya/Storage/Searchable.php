@@ -6,8 +6,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Searchable {
-	
+interface Searchable
+{
 	/**
 	 * Search for resource data with fields that match the given query and
 	 * criteria.
@@ -22,5 +22,4 @@ interface Searchable {
 	 * @return array
 	 */
 	public function search($resource, $query, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0);
-	
 }

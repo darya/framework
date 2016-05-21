@@ -8,8 +8,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Filterer {
-	
+class Filterer
+{
 	/**
 	 * @var array Filter comparison operators
 	 */
@@ -40,7 +40,8 @@ class Filterer {
 	/**
 	 * Separate the given filter field into a field and its operator.
 	 * 
-	 * Simply splits the given string on the first space found.
+	 * Simply splits the given string on the first space found after trimming
+	 * the input.
 	 * 
 	 * Usage:
 	 *   list($field, $operator) = $filterer->separateField($field);
@@ -48,7 +49,8 @@ class Filterer {
 	 * @param string $field
 	 * @return array array($field, $operator)
 	 */
-	public static function separateField($field) {
+	public static function separateField($field)
+	{
 		return array_pad(explode(' ', trim($field), 2), 2, null);
 	}
 	
@@ -59,7 +61,8 @@ class Filterer {
 	 * @param mixed  $value
 	 * @return string
 	 */
-	public static function prepareOperator($operator, $value) {
+	public static function prepareOperator($operator, $value)
+	{
 		$operator = trim($operator);
 		
 		$operator = in_array(strtolower($operator), static::$operators) ? $operator : '=';
@@ -95,7 +98,8 @@ class Filterer {
 	 * @param string $operator
 	 * @return string
 	 */
-	protected static function getComparisonMethod($operator) {
+	protected static function getComparisonMethod($operator)
+	{
 		return isset(static::$methods[$operator]) ? static::$methods[$operator] : 'equal';
 	}
 	
@@ -106,7 +110,8 @@ class Filterer {
 	 * @param string $method
 	 * @return bool
 	 */
-	protected static function methodHandlesArrays($method) {
+	protected static function methodHandlesArrays($method)
+	{
 		return $method === 'in' || $method === 'notIn';
 	}
 	
@@ -117,7 +122,8 @@ class Filterer {
 	 * @param bool  $or     [optional]
 	 * @return \Closure
 	 */
-	public function closure(array $filter, $or = false) {
+	public function closure(array $filter, $or = false)
+	{
 		$filterer = $this;
 		
 		return function ($row) use ($filterer, $filter, $or) {
@@ -133,7 +139,8 @@ class Filterer {
 	 * @param string $value
 	 * @return string
 	 */
-	public function escape($value) {
+	public function escape($value)
+	{
 		return preg_replace('/([%_])/', '\\$1', $value);
 	}
 	
@@ -144,7 +151,8 @@ class Filterer {
 	 * @param array $filter [optional]
 	 * @return array
 	 */
-	public function filter(array $data, array $filter = array()) {
+	public function filter(array $data, array $filter = array())
+	{
 		if (empty($filter)) {
 			return $data;
 		}
@@ -162,7 +170,8 @@ class Filterer {
 	 * @param int   $limit  [optional]
 	 * @return array
 	 */
-	public function reject(array $data, array $filter = array(), $limit = 0) {
+	public function reject(array $data, array $filter = array(), $limit = 0)
+	{
 		if (empty($filter)) {
 			return $data;
 		}
@@ -186,7 +195,8 @@ class Filterer {
 	 * @param bool  $or     [optional]
 	 * @return bool
 	 */
-	public function matches(array $row, array $filter = array(), $or = false) {
+	public function matches(array $row, array $filter = array(), $or = false)
+	{
 		if (empty($filter)) {
 			return true;
 		}
@@ -241,7 +251,8 @@ class Filterer {
 	 * @param int      $limit    [optional]
 	 * @return array
 	 */
-	public function map(array $data, array $filter, $callback, $limit = 0) {
+	public function map(array $data, array $filter, $callback, $limit = 0)
+	{
 		if (!is_callable($callback)) {
 			return $data;
 		}
@@ -274,7 +285,8 @@ class Filterer {
 	 * @param mixed  $value
 	 * @return bool
 	 */
-	protected function compare($method, $actual, $value) {
+	protected function compare($method, $actual, $value)
+	{
 		if (!is_array($value) || static::methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
@@ -297,7 +309,8 @@ class Filterer {
 	 * @param mixed  $value
 	 * @return bool
 	 */
-	protected function compareOr($method, $actual, $value) {
+	protected function compareOr($method, $actual, $value)
+	{
 		if (!is_array($value) || static::methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
 		}
@@ -318,7 +331,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function equal($actual, $value) {
+	protected function equal($actual, $value)
+	{
 		if (is_string($actual) && is_string($value)) {
 			$actual = strtolower($actual);
 			$value  = strtolower($value);
@@ -334,7 +348,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function notEqual($actual, $value) {
+	protected function notEqual($actual, $value)
+	{
 		return !$this->equal($actual, $value);
 	}
 	
@@ -346,7 +361,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function greater($actual, $value) {
+	protected function greater($actual, $value)
+	{
 		return $actual > $value;
 	}
 	
@@ -358,7 +374,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function smaller($actual, $value) {
+	protected function smaller($actual, $value)
+	{
 		return $actual < $value;
 	}
 	
@@ -370,7 +387,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function greaterOrsmaller($actual, $value) {
+	protected function greaterOrsmaller($actual, $value)
+	{
 		return $actual <> $value;
 	}
 	
@@ -382,7 +400,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function greaterOrEqual($actual, $value) {
+	protected function greaterOrEqual($actual, $value)
+	{
 		return $actual >= $value;
 	}
 	
@@ -394,7 +413,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function smallerOrEqual($actual, $value) {
+	protected function smallerOrEqual($actual, $value)
+	{
 		return $actual <= $value;
 	}
 	
@@ -405,7 +425,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function in($actual, $value) {
+	protected function in($actual, $value)
+	{
 		return in_array($actual, (array) $value);
 	}
 	
@@ -417,7 +438,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function notIn($actual, $value) {
+	protected function notIn($actual, $value)
+	{
 		return !$this->in($actual, $value);
 	}
 	
@@ -428,7 +450,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function is($actual, $value) {
+	protected function is($actual, $value)
+	{
 		return $actual === $value;
 	}
 	
@@ -440,7 +463,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function isNot($actual, $value) {
+	protected function isNot($actual, $value)
+	{
 		return !$this->is($actual, $value);
 	}
 	
@@ -452,7 +476,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function like($actual, $value) {
+	protected function like($actual, $value)
+	{
 		$value = preg_quote($value, '/');
 		
 		$pattern = '/' . preg_replace(array('/([^\\\])?_/', '/([^\\\])?%/'), array('$1.', '$1.*'), $value) . '/i';
@@ -468,7 +493,8 @@ class Filterer {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function notLike($actual, $value) {
+	protected function notLike($actual, $value)
+	{
 		return !$this->like($actual, $value);
 	}
 }

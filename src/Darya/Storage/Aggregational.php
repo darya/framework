@@ -6,8 +6,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Aggregational {
-	
+interface Aggregational
+{
 	/**
 	 * Retrieve the distinct values of the given resource's field.
 	 * 
@@ -22,5 +22,4 @@ interface Aggregational {
 	 * @return array
 	 */
 	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = 0, $offset = 0);
-	
 }

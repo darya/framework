@@ -6,8 +6,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Readable {
-	
+interface Readable
+{
 	/**
 	 * Retrieve resource data using the given criteria.
 	 * 
@@ -45,5 +45,4 @@ interface Readable {
 	 * @return int
 	 */
 	public function count($resource, array $filter = array());
-	
 }
