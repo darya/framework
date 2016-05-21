@@ -10,7 +10,7 @@ use Darya\Storage\Queryable;
  * Forwards method calls to a storage query and executes it on the given
  * queryable storage interface once the query has been built.
  * 
- * TODO: Implement event dispatcher awareness.
+ * TODO: Implement event dispatcher awares.
  * 
  * @property-read Query     $query
  * @property-read Queryable $storage
@@ -47,7 +47,7 @@ class Builder {
 	 * @var array
 	 */
 	protected static $executors = array(
-		'all', 'read', 'select', 'distinct', 'delete'
+		'all', 'read', 'select', 'unique', 'distinct', 'delete'
 	);
 	
 	/**

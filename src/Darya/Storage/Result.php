@@ -18,8 +18,8 @@ use Darya\Storage\Query;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Result extends AbstractResult {
-	
+class Result extends AbstractResult
+{
 	/**
 	 * The storage query that produced this result.
 	 * 
@@ -42,12 +42,12 @@ class Result extends AbstractResult {
 	 * @param array $info  [optional]
 	 * @param Error $error [optional]
 	 */
-	public function __construct(Query $query, array $data = array(), array $info = array(), Error $error = null) {
+	public function __construct(Query $query, array $data = array(), array $info = array(), Error $error = null)
+	{
 		$this->query = $query;
 		$this->data  = $data;
 		$this->error = $error;
 		
 		$this->setInfo($info);
 	}
-	
 }

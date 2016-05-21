@@ -17,12 +17,12 @@ use IteratorAggregate;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractResult implements IteratorAggregate {
-	
+abstract class AbstractResult implements IteratorAggregate
+{
 	/**
 	 * The query that produced this result.
 	 * 
-	 * @var mixed
+	 * @var object
 	 */
 	protected $query;
 	
@@ -36,7 +36,7 @@ abstract class AbstractResult implements IteratorAggregate {
 	/**
 	 * The error that occurred when executing the query, if any.
 	 * 
-	 * @var mixed|null
+	 * @var object
 	 */
 	protected $error;
 	
@@ -74,7 +74,8 @@ abstract class AbstractResult implements IteratorAggregate {
 	 * @param string $string
 	 * @return string
 	 */
-	protected static function snakeToCamel($string) {
+	protected static function snakeToCamel($string)
+	{
 		return preg_replace_callback('/_(.)/', function($matches) {
 			return strtoupper($matches[1]);
 		}, $string);
@@ -88,7 +89,8 @@ abstract class AbstractResult implements IteratorAggregate {
 	 * 
 	 * @return array
 	 */
-	public function getInfo() {
+	public function getInfo()
+	{
 		return array(
 			'count' => $this->count,
 			'fields' => $this->fields,
@@ -104,7 +106,8 @@ abstract class AbstractResult implements IteratorAggregate {
 	 * 
 	 * @param array $info
 	 */
-	protected function setInfo(array $info) {
+	protected function setInfo(array $info)
+	{
 		$keys = array_keys($this->getInfo());
 		
 		foreach ($keys as $key) {
@@ -121,7 +124,8 @@ abstract class AbstractResult implements IteratorAggregate {
 	 * 
 	 * @return \Traversable
 	 */
-	public function getIterator() {
+	public function getIterator()
+	{
 		return new ArrayIterator($this->data);
 	}
 	
@@ -131,7 +135,8 @@ abstract class AbstractResult implements IteratorAggregate {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->$property;
 	}
 	
@@ -141,7 +146,8 @@ abstract class AbstractResult implements IteratorAggregate {
 	 * @param string $property
 	 * @return bool
 	 */
-	public function __isset($property) {
+	public function __isset($property)
+	{
 		return isset($this->$property);
 	}
 }

@@ -12,9 +12,10 @@
 - Implemented a database-specific query object that provides table joins and
   subqueries (which database query translators now use).
 - Fixed a MySQL connection query bug that occured without the mysqlnd extension.
-- Model::data() now returns transformed (non-raw attributes). Raw attribute
-  access has moved to Model::rawData(). The toArray(), toJson() and
-  getIterator() methods now utilise the transformed attributes.
+- `Model::data()` now returns transformed (non-raw attributes). Raw attribute
+  access has moved to `Model::rawData()`. The `toArray()`, `toJson()` and
+  `getIterator()` methods now utilise the transformed attributes.
+- Added unique() method to `Query` objects and `Query\Builder` executor methods.
 
 ## v0.5.0-beta2 - Feb 18, 2015
 
@@ -22,7 +23,7 @@
 - Implemented relation constraints
 - Improved model hydration, generation and reinstatement
 - Tested relations and records more thoroughly
-- Implemented dot notation for `Records` for accessing relation attributes
+- Implemented dot notation for `Record`s for accessing relation attributes
 - Refactored relation naming and factory method
   - Allows string keys in relation definitions, which call methods on the
     relation when it is built, such as `'foreignKey'`, `'localKey'` and

@@ -19,8 +19,8 @@ namespace Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Query {
-	
+class Query
+{
 	const CREATE = 'create';
 	const READ   = 'read';
 	const UPDATE = 'update';
@@ -28,6 +28,8 @@ class Query {
 	
 	/**
 	 * Determines whether to return unique resource data.
+	 * 
+	 * TODO: Rename to $unique.
 	 * 
 	 * @var bool
 	 */
@@ -99,7 +101,8 @@ class Query {
 	 * @param int          $limit    [optional]
 	 * @param int          $offset   [optional]
 	 */
-	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = 0, $offset = 0) {
+	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = 0, $offset = 0)
+	{
 		$this->type   = static::READ;
 		
 		$this->resource = $resource;
@@ -116,7 +119,8 @@ class Query {
 	 * @param mixed $type
 	 * @param array $data [optional]
 	 */
-	protected function modify($type, array $data = array()) {
+	protected function modify($type, array $data = array())
+	{
 		$this->type = $type;
 		$this->data = $data;
 	}
@@ -126,7 +130,8 @@ class Query {
 	 * 
 	 * @return $this
 	 */
-	public function all() {
+	public function all()
+	{
 		$this->distinct = false;
 		
 		return $this;
@@ -137,8 +142,21 @@ class Query {
 	 * 
 	 * @return $this
 	 */
-	public function distinct() {
+	public function unique()
+	{
 		$this->distinct = true;
+		
+		return $this;
+	}
+	
+	/**
+	 * Alias for unique().
+	 * 
+	 * @return $this
+	 */
+	public function distinct()
+	{
+		$this->unique();
 		
 		return $this;
 	}
@@ -149,7 +167,8 @@ class Query {
 	 * @param string $resource
 	 * @return $this
 	 */
-	public function resource($resource) {
+	public function resource($resource)
+	{
 		$this->resource = $resource;
 		
 		return $this;
@@ -163,7 +182,8 @@ class Query {
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function fields($fields = array()) {
+	public function fields($fields = array())
+	{
 		$this->fields = (array) $fields;
 		
 		return $this;
@@ -175,7 +195,8 @@ class Query {
 	 * @param array $data
 	 * @return $this
 	 */
-	public function create(array $data) {
+	public function create(array $data)
+	{
 		$this->modify(static::CREATE, $data);
 		
 		return $this;
@@ -189,7 +210,8 @@ class Query {
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function read($fields = array()) {
+	public function read($fields = array())
+	{
 		$this->type = static::READ;
 		
 		if ($fields) {
@@ -205,7 +227,8 @@ class Query {
 	 * @param array $data
 	 * @return $this
 	 */
-	public function update(array $data) {
+	public function update(array $data)
+	{
 		$this->modify(static::UPDATE, $data);
 		
 		return $this;
@@ -216,7 +239,8 @@ class Query {
 	 * 
 	 * @return $this
 	 */
-	public function delete() {
+	public function delete()
+	{
 		$this->type = static::DELETE;
 		
 		return $this;
@@ -228,7 +252,8 @@ class Query {
 	 * @param array $data
 	 * @return $this
 	 */
-	public function insert(array $data) {
+	public function insert(array $data)
+	{
 		$this->create($data);
 		
 		return $this;
@@ -240,7 +265,8 @@ class Query {
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function select($fields = array()) {
+	public function select($fields = array())
+	{
 		$this->read($fields);
 		
 		return $this;
@@ -253,7 +279,8 @@ class Query {
 	 * @param mixed  $value [optional]
 	 * @return $this
 	 */
-	public function filter($field, $value = null) {
+	public function filter($field, $value = null)
+	{
 		$this->filter = array_merge($this->filter, array($field => $value));
 		
 		return $this;
@@ -265,7 +292,8 @@ class Query {
 	 * @param array $filters
 	 * @return $this
 	 */
-	public function filters(array $filters = array()) {
+	public function filters(array $filters = array())
+	{
 		$this->filter = array_merge($this->filter, $filters);
 		
 		return $this;
@@ -278,7 +306,8 @@ class Query {
 	 * @param mixed  $value [optional]
 	 * @return $this
 	 */
-	public function where($field, $value = null) {
+	public function where($field, $value = null)
+	{
 		$this->filter($field, $value);
 		
 		return $this;
@@ -293,7 +322,8 @@ class Query {
 	 * @param string $order [optional]
 	 * @return $this
 	 */
-	public function order($field, $order = 'asc') {
+	public function order($field, $order = 'asc')
+	{
 		$this->order = array_merge($this->order, array($field => $order));
 		
 		return $this;
@@ -307,7 +337,8 @@ class Query {
 	 * @param array $orders
 	 * @return $this
 	 */
-	public function orders(array $orders = array()) {
+	public function orders(array $orders = array())
+	{
 		$prepared = array();
 		
 		foreach ($orders as $field => $order) {
@@ -329,7 +360,8 @@ class Query {
 	 * @param string $field
 	 * @param string $order [optional]
 	 */
-	public function sort($field, $order = 'asc') {
+	public function sort($field, $order = 'asc')
+	{
 		$this->order($field, $order);
 		
 		return $this;
@@ -344,7 +376,8 @@ class Query {
 	 * @param int $offset [optional]
 	 * @return $this
 	 */
-	public function limit($limit, $offset = 0) {
+	public function limit($limit, $offset = 0)
+	{
 		$this->limit = $limit;
 		
 		if (is_numeric($offset)) {
@@ -360,7 +393,8 @@ class Query {
 	 * @param int $offset
 	 * @return this
 	 */
-	public function offset($offset) {
+	public function offset($offset)
+	{
 		$this->offset = (int) $offset;
 		
 		return $this;
@@ -372,7 +406,8 @@ class Query {
 	 * @param int $offset
 	 * @return $this
 	 */
-	public function skip($offset) {
+	public function skip($offset)
+	{
 		$this->offset($offset);
 		
 		return $this;
@@ -383,7 +418,8 @@ class Query {
 	 * 
 	 * @param string $property
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		if (property_exists($this, $property)) {
 			return $this->$property;
 		}

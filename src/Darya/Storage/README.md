@@ -18,11 +18,13 @@ database, or even a file system.
   - [Filters](#filters)
   - [Orders](#orders)
   - [Limit & offset](#limit--offset)
+  - [Unique](#unique)
 - [Results](#results)
 - [Queryable interface](#queryable-interface)
   - [`execute()`](#execute)
   - [`query()`](#query)
 - [Query builder](#query-builder)
+  - [Callbacks](#callbacks)
 
 ### Queries
 
@@ -44,6 +46,9 @@ $query = new Query('users');
 
 // Change the resource of an existing query
 $query->resource('users');
+
+// Retrieve the resource of the query
+$resource = $query->resource;
 ```
 
 In the context of an SQL database, a resource is a database table.
@@ -62,6 +67,9 @@ $query = new Query('users', ['firstname', 'surname']);
 
 // Change the fields of an existing query
 $query->fields(['age', 'last_login']);
+
+// Retrieve the fields of the query
+$fields = $query->fields;
 ```
 
 In the context of an SQL database, fields are the columns of a database table.
@@ -93,9 +101,15 @@ $query->update([
 
 // Delete any matching items
 $query->delete();
+
+// Retrieve the type of the query
+$type = $query->type;
+
+// Retrieve the data to be created or updated
+$data = $query->data;
 ```
 
-In the context of an SQL database, these methods would become `INSERT`,
+In the context of an SQL database, these methods would represent `INSERT`,
 `SELECT`, `UPDATE` and `DELETE` queries.
 
 #### Filters
@@ -138,6 +152,9 @@ $query->filters([
 		'surname   like' => '%Bar%'
 	]
 ]);
+
+// Retrieve the set of query filters
+$filters = $query->filter;
 ```
 
 In the context of an SQL database, filters become a `WHERE` clause. You can use
@@ -155,8 +172,8 @@ AND (firstname LIKE '%Foo%' OR surname LIKE '%Bar%')
 
 #### Orders
 
-Orders are used to sort items by a given set of fields in ascending or descending
-order.
+Orders are used to sort items by a given set of fields in ascending or
+descending order for `read()` queries.
 
 ```php
 // Sort by surname in ascending order
@@ -170,6 +187,9 @@ $query->orders([
     'firstname',
     'surname' => 'desc'
 ]);
+
+// Retrieve the set of query orders
+$orders = $query->order;
 ```
 
 In the context of an SQL database, orders become an `ORDER` clause. You can use
@@ -177,11 +197,76 @@ the `sort()` alias method in place of the `order()` method.
 
 #### Limit & offset
 
-TODO.
+Limit & offset are used to constrain the number of items and skip past the a
+number of matching items that can be retrieved from `read()` queries, and in
+some cases those affected by `update()` and `delete()` queries.
+
+```php
+// Retrieve 5 items
+$query->limit(5);
+
+// Retrieve 5 items after skipping the first 10 items
+$query->limit(5, 10);
+
+// Skip 5 items
+$query->offset(5);
+
+// Retrieve the limit and offset of the query
+$limit  = $query->limit;
+$offset = $query->offset;
+```
+
+In the context of an SQL database, limit & offset become a `LIMIT` clause. You
+can use the `skip()` alias method in place of the `offset()` method.
+
+#### Unique
+
+Unique queries return items that are unique across all of their fields.
+
+```php
+$query->unique();
+```
+
+To change a unique query back to a regular query that returns all rows, just
+use the `all()` method.
+
+```php
+$query->all();
+```
+
+In the context of an SQL database, the unique setting translates to using
+a `SELECT DISTINCT` statement. You can also use the `distinct()` alias method
+in place of the `unique()` method.
 
 ### Results
 
-TODO.
+The `Result` class provides a consistent way to represent storage results.
+
+```php
+// Retrieve the storage query that led to this result
+$query = $result->query;
+
+// Retrieve any error that occurred with the query
+if ($result->error) {
+    $errorNumber  = $result->error->number;
+    $errorMessage = $result->error->message;
+}
+
+// Retrieve any data retrieved by the query
+$data = $result->data;
+
+// Or iterate over the result data using the result object directly
+foreach ($result as $item) {
+    $firstname = $item['firstname'];
+    $surname   = $item['surname'];
+}
+
+// Retrieve other result metadata
+$count    = $result->count;
+$fields   = $result->fields;
+$affected = $result->affected;
+$insertId = $result->insertId;
+```
 
 ### Queryable interface
 
@@ -241,4 +326,69 @@ and interoperable with anything that works with the base `Query` class.
 
 ### Query builder
 
-TODO.
+Query builders encapsulate a fluent [`Query`](#queries) in the context of some
+[`Queryable` storage](#queryable-interface).
+
+They work in the same way as `Query` objects, but have the added ability to
+execute themselves against storage and return a [`Result`](#results) in the same
+call chain, as well as process the `Result`s before they're returned.
+
+```php
+use Darya\Storage\Query;
+
+$query = new Query\Builder(new Query('users'), $storage);
+
+$result = $query->where('id >', 5)->execute();
+```
+
+Storage interfaces can open query builders on themselves for you. Just pass a
+resource to their [`query()`](#query) method.
+
+This makes it effortless to fluently build and execute a query.
+
+```php
+$result = $storage->query('users')->where('id > 5')->execute();
+
+foreach ($result as $item) {
+    // ...
+}
+```
+
+Execution can also be triggered by existing methods on query objects.
+
+`all()`, `read()`, `select()`, `unique()`, `distinct()`, and `delete()` methods
+are query executors in the context of a builder.
+
+```php
+// Delete users with IDs less than 50 and retrieve how many were deleted
+$deleted = $storage->query('users')->where('id <', 50)->delete()->affected;
+
+// Read unique first names beginning with C
+$result = $storage->query('users', 'firstname')->where('firstname like', 'C%')->unique();
+```
+
+#### Callbacks
+
+You can attach a [PHP
+callables](http://php.net/manual/en/language.types.callable.php) to query
+builders to process results before they're returned from execution.
+
+```php
+use Darya\Storage\Result;
+
+$query = $storage->query('users')->callback(function (Result $result) {
+    $users = array();
+    
+    foreach ($result as $item) {
+        $users[] = new User($item);
+    }
+    
+    return $users;
+});
+
+// User[]
+$users = $query->where('surname', 'Foo')->read();
+```
+
+This functionality is used by the ORM package to convert query results into to
+the desired model objects.
