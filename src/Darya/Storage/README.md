@@ -240,7 +240,7 @@ in place of the `unique()` method.
 
 ### Results
 
-The `Result` class provides a consistent way to represent storage results.
+The `Result` class provides a consistent way to represent storage query results.
 
 ```php
 // Retrieve the storage query that led to this result
@@ -250,6 +250,8 @@ $query = $result->query;
 if ($result->error) {
     $errorNumber  = $result->error->number;
     $errorMessage = $result->error->message;
+    
+    throw new Exception("Storage error $errorNumber: $errorMessage");
 }
 
 // Retrieve any data retrieved by the query
@@ -308,9 +310,10 @@ The `query()` method accepts a resource to query and optionally the fields to
 act upon, returning a ready-to-use [query builder](#query-builder).
 
 While it might *only* seem like a convenience method at first by saving you
-from instantiating your own [`Query`](#queries) objects, it more importantly
-allows implementors to easily provide their own [query builders](#query-builder)
-that could make use of an extended `Query` class.
+from instantiating your own [`Query`](#queries) and
+[`Query\Builder`](#query-builder) objects, it more importantly allows
+implementors to easily provide their own query builders that can make use of an
+extended `Query` class.
 
 This is how the `Darya\Database\Storage` class works; by returning
 `Query\Builder` that uses an extension of the base `Query` class, which provides
@@ -321,8 +324,9 @@ extended `Database\Storage\Query`.
 
 This allows for flexibility without sacrificing the structured approach, and
 leaves it to the developer to choose between exposing their application to the
-usage of extra features (joins, subqueries) or where to keep it strictly CRUD
-and interoperable with anything that works with the base `Query` class.
+usage of extra features (joins, subqueries) or whether to keep it strictly CRUD
+and interoperable with any `Queryable` storage that works with the base `Query`
+class.
 
 ### Query builder
 
