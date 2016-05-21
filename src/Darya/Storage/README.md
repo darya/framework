@@ -15,10 +15,13 @@ database, or even a file system.
   - [Resource](#resource)
   - [Fields](#fields)
   - [CRUD](#crud)
+  - [Filters](#filters)
+  - [Orders](#orders)
+  - [Limit & offset](#limit--offset)
 - [Results](#results)
 - [Queryable interface](#queryable-interface)
-  - [`execute()`](#-execute-)
-  - [`query()`](#-query-)
+  - [`execute()`](#execute)
+  - [`query()`](#query)
 - [Query builder](#query-builder)
 
 ### Queries
@@ -171,6 +174,10 @@ $query->orders([
 
 In the context of an SQL database, orders become an `ORDER` clause. You can use
 the `sort()` alias method in place of the `order()` method.
+
+#### Limit & offset
+
+TODO.
 
 ### Results
 
