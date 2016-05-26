@@ -4,9 +4,8 @@ Darya's storage package provides tools and interfaces for interacting with
 queryable storage in a consistent and convenient way.
 
 Some of the examples below explain features in the context of an SQL database,
-but the core concept behind the package is the abstraction of
-[CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) in an
-extensible way.
+but the core concept behind the package is the extensible abstraction of
+[CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete).
 
 This means it could be used for an SQL database, a NoSQL database, or even a
 file system.
