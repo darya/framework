@@ -8,8 +8,8 @@ namespace Darya\ORM\Model;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-trait TransformerTrait {
-	
+trait TransformerTrait
+{
 	/**
 	 * Transform the given value depending on the given type.
 	 * 
@@ -19,7 +19,8 @@ trait TransformerTrait {
 	 * @param string $type  [optional]
 	 * @return mixed
 	 */
-	public function transform($value, $type = '') {
+	public function transform($value, $type = '')
+	{
 		$method = 'transform' . ucfirst($type);
 		
 		if (method_exists($this, $method)) {
@@ -28,5 +29,4 @@ trait TransformerTrait {
 		
 		return $value;
 	}
-	
 }

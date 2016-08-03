@@ -17,8 +17,8 @@ use Darya\Storage\Query\Builder;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Record extends Model {
-	
+class Record extends Model
+{
 	/**
 	 * Overrides the name of the database table that persists the model. The
 	 * model's lowercased class name is used if this is not set.
@@ -28,22 +28,30 @@ class Record extends Model {
 	protected $table;
 	
 	/**
-	 * @var Readable Instance storage
+	 * Instance storage.
+	 * 
+	 * @var Readable
 	 */
 	protected $storage;
 	
 	/**
-	 * @var Readable Shared storage
+	 * Shared storage.
+	 * 
+	 * @var Readable
 	 */
 	protected static $sharedStorage;
 	
 	/**
-	 * @var array Definitions of related models
+	 * Definitions of related models.
+	 * 
+	 * @var array
 	 */
 	protected $relations = array();
 	
 	/**
-	 * @var array Default searchable attributes
+	 * Default searchable attributes.
+	 * 
+	 * @var array
 	 */
 	protected $search = array();
 	
@@ -53,7 +61,8 @@ class Record extends Model {
 	 * 
 	 * @param mixed $data An array of key-value attributes to set or a primary key to load by
 	 */
-	public function __construct($data = null) {
+	public function __construct($data = null)
+	{
 		if (is_numeric($data) || is_string($data)) {
 			$this->data = static::load($data);
 		}
@@ -66,7 +75,8 @@ class Record extends Model {
 	 * 
 	 * @param string $attribute
 	 */
-	public function has($attribute) {
+	public function has($attribute)
+	{
 		return $this->hasRelated($attribute) || parent::has($attribute);
 	}
 	
@@ -76,7 +86,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return mixed
 	 */
-	public function get($attribute) {
+	public function get($attribute)
+	{
 		list($attribute, $subattribute) = array_pad(explode('.',  $attribute, 2), 2, null);
 		
 		if ($this->hasRelation($attribute)) {
@@ -98,7 +109,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @param mixed  $value
 	 */
-	public function set($attribute, $value = null) {
+	public function set($attribute, $value = null)
+	{
 		if (is_string($attribute) && $this->hasRelation($attribute)) {
 			return $this->setRelated($attribute, $value);
 		}
@@ -117,7 +129,8 @@ class Record extends Model {
 	 * 
 	 * @return string
 	 */
-	public function table() {
+	public function table()
+	{
 		if ($this->table) {
 			return $this->table;
 		}
@@ -135,7 +148,8 @@ class Record extends Model {
 	 * 
 	 * @return Readable
 	 */
-	public function storage(Readable $storage = null) {
+	public function storage(Readable $storage = null)
+	{
 		$this->storage = $storage ?: $this->storage;
 		
 		return $this->storage ?: static::getSharedStorage();
@@ -146,7 +160,8 @@ class Record extends Model {
 	 * 
 	 * @return Readable
 	 */
-	public static function getSharedStorage() {
+	public static function getSharedStorage()
+	{
 		return static::$sharedStorage;
 	}
 	
@@ -155,7 +170,8 @@ class Record extends Model {
 	 * 
 	 * @param Readable $storage
 	 */
-	public static function setSharedStorage(Readable $storage) {
+	public static function setSharedStorage(Readable $storage)
+	{
 		static::$sharedStorage = $storage;
 	}
 	
@@ -165,7 +181,8 @@ class Record extends Model {
 	 * 
 	 * @return array
 	 */
-	protected function prepareData() {
+	protected function prepareData()
+	{
 		$types = $this->attributes;
 		
 		$changed = array_intersect_key($this->data, array_flip($this->changed));
@@ -207,7 +224,8 @@ class Record extends Model {
 	 * @param mixed $filter
 	 * @return string
 	 */
-	protected static function prepareFilter($filter) {
+	protected static function prepareFilter($filter)
+	{
 		if ($filter === null) {
 			return array();
 		}
@@ -227,7 +245,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return array
 	 */
-	protected static function prepareListing($data, $attribute) {
+	protected static function prepareListing($data, $attribute)
+	{
 		$instance = new static;
 		$key = $instance->key();
 		
@@ -251,7 +270,8 @@ class Record extends Model {
 	 * @param int              $offset [optional]
 	 * @return array
 	 */
-	public static function load($filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public static function load($filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		$instance = new static;
 		$storage = $instance->storage();
 		$filter = static::prepareFilter($filter);
@@ -268,7 +288,8 @@ class Record extends Model {
 	 * @param array|string     $order  [optional]
 	 * @return Record|bool
 	 */
-	public static function find($filter = array(), $order = array()) {
+	public static function find($filter = array(), $order = array())
+	{
 		$data = static::load($filter, $order, 1);
 		
 		return !empty($data[0]) ? new static($data[0]) : false;
@@ -282,7 +303,8 @@ class Record extends Model {
 	 * @param array|string     $order  [optional]
 	 * @return Record
 	 */
-	public static function findOrNew($filter = array(), $order = array()) {
+	public static function findOrNew($filter = array(), $order = array())
+	{
 		$instance = static::find($filter, $order);
 		
 		return $instance === false ? new static : $instance;
@@ -297,7 +319,8 @@ class Record extends Model {
 	 * @param int              $offset [optional]
 	 * @return array
 	 */
-	public static function all($filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public static function all($filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		return static::hydrate(static::load($filter, $order, $limit, $offset));
 	}
 	
@@ -311,7 +334,8 @@ class Record extends Model {
 	 * @param int              $offset    [optional]
 	 * @return array
 	 */
-	public static function eager($relations, $filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public static function eager($relations, $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		$instance = new static;
 		$instances = static::all($filter, $order, $limit, $offset);
 		
@@ -335,7 +359,8 @@ class Record extends Model {
 	 * @param int              $offset     [optional]
 	 * @return array
 	 */
-	public static function search($query, $attributes = array(), $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public static function search($query, $attributes = array(), $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		$instance = new static;
 		$storage = $instance->storage();
 		
@@ -361,7 +386,8 @@ class Record extends Model {
 	 * @param int    $offset    [optional]
 	 * @return array
 	 */
-	public static function listing($attribute, $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public static function listing($attribute, $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		$instance = new static;
 		$storage = $instance->storage();
 		
@@ -380,7 +406,8 @@ class Record extends Model {
 	 * @param int    $offset    [optional]
 	 * @return array
 	 */
-	public static function distinct($attribute, $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public static function distinct($attribute, $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		$instance = new static;
 		$storage = $instance->storage();
 		
@@ -396,7 +423,8 @@ class Record extends Model {
 	 * 
 	 * @return Builder
 	 */
-	public static function query() {
+	public static function query()
+	{
 		$instance = new static;
 		$storage = $instance->storage();
 		
@@ -419,7 +447,8 @@ class Record extends Model {
 	 * 
 	 * @return bool
 	 */
-	public function save() {
+	public function save()
+	{
 		if ($this->validate()) {
 			$storage = $this->storage();
 			$class = get_class($this);
@@ -468,7 +497,8 @@ class Record extends Model {
 	 * @param array $instances
 	 * @return int
 	 */
-	public static function saveMany($instances) {
+	public static function saveMany($instances)
+	{
 		$failed = 0;
 		
 		foreach ($instances as $instance) {
@@ -485,7 +515,8 @@ class Record extends Model {
 	 * 
 	 * @return bool
 	 */
-	public function delete() {
+	public function delete()
+	{
 		if ($this->id()) {
 			$storage = $this->storage();
 			
@@ -502,7 +533,8 @@ class Record extends Model {
 	 * 
 	 * @return array
 	 */
-	public function relationAttributes() {
+	public function relationAttributes()
+	{
 		return array_keys($this->relations);
 	}
 	
@@ -512,7 +544,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return bool
 	 */
-	protected function hasRelation($attribute) {
+	protected function hasRelation($attribute)
+	{
 		$attribute = $this->prepareAttribute($attribute);
 		
 		return isset($this->relations[$attribute]);
@@ -524,7 +557,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return Relation
 	 */
-	public function relation($attribute) {
+	public function relation($attribute)
+	{
 		if (!$this->hasRelation($attribute)) {
 			return null;
 		}
@@ -550,7 +584,8 @@ class Record extends Model {
 	 * 
 	 * @return Relation[]
 	 */
-	public function relations() {
+	public function relations()
+	{
 		$relations = array();
 		
 		foreach ($this->relationAttributes() as $attribute) {
@@ -566,7 +601,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return bool
 	 */
-	protected function hasRelated($attribute) {
+	protected function hasRelated($attribute)
+	{
 		$attribute = $this->prepareAttribute($attribute);
 		
 		return $this->hasRelation($attribute) && $this->relation($attribute)->count();
@@ -578,7 +614,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @return array
 	 */
-	public function related($attribute) {
+	public function related($attribute)
+	{
 		if (!$this->hasRelation($attribute)) {
 			return null;
 		}
@@ -596,7 +633,8 @@ class Record extends Model {
 	 * @param string $attribute
 	 * @param mixed  $value
 	 */
-	protected function setRelated($attribute, $value) {
+	protected function setRelated($attribute, $value)
+	{
 		if (!$this->hasRelation($attribute)) {
 			return;
 		}
@@ -615,7 +653,8 @@ class Record extends Model {
 	 * 
 	 * @return array
 	 */
-	public function defaultSearchAttributes() {
+	public function defaultSearchAttributes()
+	{
 		return $this->search;
 	}
 	
@@ -626,8 +665,8 @@ class Record extends Model {
 	 * @param array  $arguments
 	 * @return Relation
 	 */
-	public function __call($method, $arguments) {
+	public function __call($method, $arguments)
+	{
 		return $this->relation($method);
 	}
-	
 }

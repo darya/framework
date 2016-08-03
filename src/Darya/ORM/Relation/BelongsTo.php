@@ -9,12 +9,13 @@ use Darya\ORM\Relation;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class BelongsTo extends Relation {
-	
+class BelongsTo extends Relation
+{
 	/**
 	 * Set the default keys for the relation if they have not yet been set.
 	 */
-	protected function setDefaultKeys() {
+	protected function setDefaultKeys()
+	{
 		if (!$this->foreignKey) {
 			$this->foreignKey = $this->prepareForeignKey(get_class($this->target));
 		}
@@ -27,7 +28,8 @@ class BelongsTo extends Relation {
 	 * 
 	 * @return array
 	 */
-	protected function defaultConstraint() {
+	protected function defaultConstraint()
+	{
 		return array($this->localKey => $this->parent->get($this->foreignKey));
 	}
 	
@@ -39,7 +41,8 @@ class BelongsTo extends Relation {
 	 * @param array $instances
 	 * @return array
 	 */
-	public function eager(array $instances) {
+	public function eager(array $instances)
+	{
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, $this->foreignKey);
 		
@@ -72,7 +75,8 @@ class BelongsTo extends Relation {
 	 * 
 	 * @return Record|null
 	 */
-	public function retrieve() {
+	public function retrieve()
+	{
 		if ($this->parent->get($this->foreignKey)) {
 			return $this->one();
 		}
@@ -84,7 +88,8 @@ class BelongsTo extends Relation {
 	 * @param Record $instance
 	 * @return bool
 	 */
-	public function associate(Record $instance) {
+	public function associate(Record $instance)
+	{
 		$instance->save();
 		$this->set(array($instance));
 		$this->parent->set($this->foreignKey, $instance->id());
@@ -97,11 +102,11 @@ class BelongsTo extends Relation {
 	 * 
 	 * @return bool
 	 */
-	public function dissociate() {
+	public function dissociate()
+	{
 		$this->clear();
 		$this->parent->set($this->foreignKey, 0);
 		
 		return $this->parent->save();
 	}
-	
 }

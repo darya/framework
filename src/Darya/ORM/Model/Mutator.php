@@ -12,8 +12,8 @@ use Darya\ORM\Model\TransformerTrait;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Mutator implements Transformer {
-	
+class Mutator implements Transformer
+{
 	use TransformerTrait;
 	
 	/**
@@ -26,15 +26,32 @@ class Mutator implements Transformer {
 	 * 
 	 * @param string $dateFormat
 	 */
-	public function __construct($dateFormat) {
+	public function __construct($dateFormat)
+	{
 		$this->dateFormat = $dateFormat;
 	}
 	
-	public function transformInt($value) {
+	/**
+	 * Transform a value to an integer.
+	 * 
+	 * @param mixed $value
+	 * @return int
+	 */
+	public function transformInt($value)
+	{
 		return (int) $value;
 	}
 	
-	public function transformDate($value) {
+	/**
+	 * Transform a value to a timestamp integer.
+	 * 
+	 * TODO: Attempt to use the currently set date format. Fall back otherwise.
+	 * 
+	 * @param mixed $value
+	 * @return int
+	 */
+	public function transformDate($value)
+	{
 		if (is_string($value)) {
 			$value = strtotime(str_replace('/', '-', $value));
 		}
@@ -46,15 +63,40 @@ class Mutator implements Transformer {
 		return $value;
 	}
 	
-	public function transformDatetime($value) {
+	/**
+	 * Transform a value to a timestamp integer.
+	 * 
+	 * Currently an alias for transformDate().
+	 * 
+	 * @param mixed $value
+	 * @return int
+	 */
+	public function transformDatetime($value)
+	{
 		return $this->transformDate($value);
 	}
 	
-	public function transformTime($value) {
+	/**
+	 * Transform a value to a timestamp integer.
+	 * 
+	 * Currently an alias for transformDate().
+	 * 
+	 * @param mixed $value
+	 * @return int
+	 */
+	public function transformTime($value)
+	{
 		return $this->transformDate($value);
 	}
 	
-	public function transformArray($value) {
+	/**
+	 * Transform a value to a JSON string.
+	 * 
+	 * @param mixed $value
+	 * @return string
+	 */
+	public function transformArray($value)
+	{
 		if (is_array($value)) {
 			$value = json_encode($value);
 		}
@@ -62,8 +104,16 @@ class Mutator implements Transformer {
 		return $value;
 	}
 	
-	public function transformJson($value) {
+	/**
+	 * Transform a value to a JSON string.
+	 * 
+	 * Alias for transformArray().
+	 * 
+	 * @param mixed $value
+	 * @return string
+	 */
+	public function transformJson($value)
+	{
 		return $this->transformArray($value);
 	}
-	
 }

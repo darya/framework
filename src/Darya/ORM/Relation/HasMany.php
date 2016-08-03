@@ -9,8 +9,8 @@ use Darya\ORM\Relation;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class HasMany extends Has {
-	
+class HasMany extends Has
+{
 	/**
 	 * Eagerly load the related models of the given parent instances.
 	 * 
@@ -41,7 +41,8 @@ class HasMany extends Has {
 	 * @param array $instances
 	 * @return array
 	 */
-	public function eager(array $instances) {
+	public function eager(array $instances)
+	{
 		if ($this->parent instanceof $this->target) {
 			return $this->eagerSelf($instances);
 		}
@@ -83,7 +84,8 @@ class HasMany extends Has {
 	 * @param Record[] $related
 	 * @return Record[]
 	 */
-	protected function match(array $instances, array $related) {
+	protected function match(array $instances, array $related)
+	{
 		$list = $this->adjacencyList($related);
 		
 		foreach ($instances as $instance) {
@@ -100,7 +102,8 @@ class HasMany extends Has {
 	 * 
 	 * @return Record[]
 	 */
-	public function retrieve() {
+	public function retrieve()
+	{
 		return $this->all();
 	}
 	
@@ -116,7 +119,8 @@ class HasMany extends Has {
 	 * @param Record[]|Record $instances
 	 * @return int
 	 */
-	public function associate($instances) {
+	public function associate($instances)
+	{
 		$ids = array();
 		
 		foreach (static::arrayify($instances) as $instance) {
@@ -138,7 +142,8 @@ class HasMany extends Has {
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate($instances = array()) {
+	public function dissociate($instances = array())
+	{
 		$ids = array();
 		
 		$successful = 0;
@@ -173,7 +178,8 @@ class HasMany extends Has {
 	 * 
 	 * @return int
 	 */
-	public function purge() {
+	public function purge()
+	{
 		$this->related = array();
 		
 		return (int) $this->storage()->update($this->target->table(), array(
@@ -182,5 +188,4 @@ class HasMany extends Has {
 			$this->foreignKey => $this->parent->get($this->localKey)
 		));
 	}
-	
 }

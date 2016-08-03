@@ -25,13 +25,18 @@ use Darya\Storage\Readable;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Relation {
-	
+abstract class Relation
+{
 	const HAS             = 'has';
 	const HAS_MANY        = 'has_many';
 	const BELONGS_TO      = 'belongs_to';
 	const BELONGS_TO_MANY = 'belongs_to_many';
 	
+	/**
+	 * A map of relation type constants to their respective implementations.
+	 * 
+	 * @var array
+	 */
 	protected static $classMap = array(
 		self::HAS             => 'Darya\ORM\Relation\Has',
 		self::HAS_MANY        => 'Darya\ORM\Relation\HasMany',
@@ -40,52 +45,72 @@ abstract class Relation {
 	);
 	
 	/**
-	 * @var string The name of the relation in the context of the parent model
+	 * The name of the relation in the context of the parent model.
+	 * 
+	 * @var string
 	 */
 	protected $name = '';
 	
 	/**
-	 * @var Record Parent model
+	 * The parent model.
+	 * 
+	 * @var Record
 	 */
 	protected $parent;
 	
 	/**
-	 * @var Record Target model
+	 * The target model.
+	 * 
+	 * @var Record
 	 */
 	protected $target;
 	
 	/**
-	 * @var string Foreign key on the "belongs-to" model
+	 * Foreign key on the "belongs-to" model.
+	 * 
+	 * @var string
 	 */
 	protected $foreignKey;
 	
 	/**
-	 * @var string Local key on the "has" model
+	 * Local key on the "has" model.
+	 * 
+	 * @var string
 	 */
 	protected $localKey;
 	
 	/**
-	 * @var array Filter for constraining related models loaded from storage
+	 * Filter for constraining related models loaded from storage.
+	 * 
+	 * @var array
 	 */
 	protected $constraint = array();
 	
 	/**
-	 * @var array Sort order for related models
+	 * Sort order for related models.
+	 * 
+	 * @var array
 	 */
 	protected $sort = array();
 	
 	/**
-	 * @var Record[] The related instances
+	 * The related instances.
+	 * 
+	 * @var Record[]
 	 */
 	protected $related = array();
 	
 	/**
-	 * @var bool Determines whether related instances have been loaded
+	 * Determines whether related instances have been loaded.
+	 * 
+	 * @var bool
 	 */
 	protected $loaded = false;
 	
 	/**
-	 * @var Readable Storage interface
+	 * The storage interface.
+	 * 
+	 * @var Readable
 	 */
 	protected $storage;
 	
@@ -99,7 +124,8 @@ abstract class Relation {
 	 * @param mixed $value
 	 * @return array
 	 */
-	protected static function arrayify($value) {
+	protected static function arrayify($value)
+	{
 		return !is_array($value) ? array($value) : $value;
 	}
 	
@@ -109,7 +135,8 @@ abstract class Relation {
 	 * @param array $array
 	 * @return array array($numeric, $strings)
 	 */
-	protected static function separateKeys(array $array) {
+	protected static function separateKeys(array $array)
+	{
 		$numeric = array();
 		$strings = array();
 		
@@ -131,7 +158,8 @@ abstract class Relation {
 	 * @param string $type
 	 * @return string
 	 */
-	protected static function resolveClass($type) {
+	protected static function resolveClass($type)
+	{
 		if (isset(static::$classMap[$type])) {
 			return static::$classMap[$type];
 		}
@@ -149,7 +177,8 @@ abstract class Relation {
 	 * @param array  $arguments
 	 * @return Relation
 	 */
-	public static function factory($type = self::HAS, array $arguments) {
+	public static function factory($type = self::HAS, array $arguments)
+	{
 		$class = static::resolveClass($type);
 		
 		$reflection = new ReflectionClass($class);
@@ -176,7 +205,8 @@ abstract class Relation {
 	 * @param string $foreignKey [optional] Custom foreign key
 	 * @param array  $constraint [optional] Constraint filter for related models
 	 */
-	public function __construct(Record $parent, $target, $foreignKey = null, array $constraint = array()) {
+	public function __construct(Record $parent, $target, $foreignKey = null, array $constraint = array())
+	{
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
 			throw new Exception('Target class not does not extend Darya\ORM\Record');
 		}
@@ -195,7 +225,8 @@ abstract class Relation {
 	 * @param string $class
 	 * @return string
 	 */
-	protected function delimitClass($class) {
+	protected function delimitClass($class)
+	{
 		$split = explode('\\', $class);
 		$class = end($split);
 		
@@ -210,7 +241,8 @@ abstract class Relation {
 	 * @param string $class
 	 * @return string
 	 */
-	protected function prepareForeignKey($class) {
+	protected function prepareForeignKey($class)
+	{
 		return $this->delimitClass($class) . '_id';
 	}
 	
@@ -219,7 +251,8 @@ abstract class Relation {
 	 * 
 	 * @return array
 	 */
-	protected function defaultConstraint() {
+	protected function defaultConstraint()
+	{
 		return array(
 			$this->foreignKey => $this->parent->id()
 		);
@@ -243,7 +276,8 @@ abstract class Relation {
 	 * @param string                $index     [optional]
 	 * @return array
 	 */
-	protected static function attributeList($instances, $attribute, $index = null) {
+	protected static function attributeList($instances, $attribute, $index = null)
+	{
 		$values = array();
 		
 		foreach (static::arrayify($instances) as $instance) {
@@ -268,7 +302,8 @@ abstract class Relation {
 	 * @param string   $index     [optional]
 	 * @return array
 	 */
-	protected function adjacencyList(array $instances, $index = null) {
+	protected function adjacencyList(array $instances, $index = null)
+	{
 		$index = $index ?: $this->foreignKey;
 		
 		$related = array();
@@ -287,7 +322,8 @@ abstract class Relation {
 	 * 
 	 * @param int[] $ids
 	 */
-	protected function reduce(array $ids = array()) {
+	protected function reduce(array $ids = array())
+	{
 		if (empty($this->related)) {
 			return;
 		}
@@ -313,7 +349,8 @@ abstract class Relation {
 	 * 
 	 * @param Record $instance
 	 */
-	protected function replace(Record $instance) {
+	protected function replace(Record $instance)
+	{
 		$this->verify($instance);
 		
 		$this->retrieve();
@@ -340,7 +377,8 @@ abstract class Relation {
 	 * 
 	 * @param Record $instance
 	 */
-	protected function persist(Record $instance) {
+	protected function persist(Record $instance)
+	{
 		if (!$instance->id()) {
 			$instance->save();
 		}
@@ -355,7 +393,8 @@ abstract class Relation {
 	 * @param Record[]|Record $instances
 	 * @throws Exception
 	 */
-	protected function verify($instances) {
+	protected function verify($instances)
+	{
 		static::verifyModels($instances, get_class($this->target));
 	}
 	
@@ -366,7 +405,8 @@ abstract class Relation {
 	 * @param string          $class
 	 * @throws Exception
 	 */
-	protected static function verifyModels($instances, $class) {
+	protected static function verifyModels($instances, $class)
+	{
 		if (!class_exists($class)) {
 			return;
 		}
@@ -387,7 +427,8 @@ abstract class Relation {
 	 * @param Record[]|Record $instances
 	 * @throws Exception
 	 */
-	protected function verifyParents($instances) {
+	protected function verifyParents($instances)
+	{
 		static::verifyModels($instances, get_class($this->parent));
 	}
 	
@@ -398,7 +439,8 @@ abstract class Relation {
 	 * 
 	 * @param Readable $storage
 	 */
-	public function storage(Readable $storage = null) {
+	public function storage(Readable $storage = null)
+	{
 		$this->storage = $storage ?: $this->storage;
 		
 		return $this->storage ?: $this->target->storage() ?: $this->parent->storage();
@@ -410,7 +452,8 @@ abstract class Relation {
 	 * @param string $name [optional]
 	 * @return string
 	 */
-	public function name($name = '') {
+	public function name($name = '')
+	{
 		$this->name = (string) $name ?: $this->name;
 		
 		return $this->name;
@@ -422,7 +465,8 @@ abstract class Relation {
 	 * @param string $foreignKey [optional]
 	 * @return string
 	 */
-	public function foreignKey($foreignKey = '') {
+	public function foreignKey($foreignKey = '')
+	{
 		$this->foreignKey = (string) $foreignKey ?: $this->foreignKey;
 		
 		return $this->foreignKey;
@@ -434,7 +478,8 @@ abstract class Relation {
 	 * @param string $localKey [optional]
 	 * @return string
 	 */
-	public function localKey($localKey = '') {
+	public function localKey($localKey = '')
+	{
 		$this->localKey = (string) $localKey ?: $this->localKey;
 		
 		return $this->localKey;
@@ -445,7 +490,8 @@ abstract class Relation {
 	 * 
 	 * @param array $filter
 	 */
-	public function constrain(array $filter) {
+	public function constrain(array $filter)
+	{
 		$this->constraint = $filter;
 	}
 	
@@ -454,7 +500,8 @@ abstract class Relation {
 	 * 
 	 * @return array
 	 */
-	public function constraint() {
+	public function constraint()
+	{
 		return $this->constraint;
 	}
 	
@@ -463,7 +510,8 @@ abstract class Relation {
 	 * 
 	 * @return array
 	 */
-	public function filter() {
+	public function filter()
+	{
 		return array_merge($this->defaultConstraint(), $this->constraint());
 	}
 	
@@ -472,7 +520,8 @@ abstract class Relation {
 	 * 
 	 * @param array|string $order
 	 */
-	public function sort($order) {
+	public function sort($order)
+	{
 		return $this->sort = $order;
 	}
 	
@@ -481,7 +530,8 @@ abstract class Relation {
 	 * 
 	 * @return array|string
 	 */
-	public function order() {
+	public function order()
+	{
 		return $this->sort;
 	}
 	
@@ -493,7 +543,8 @@ abstract class Relation {
 	 * @param int $limit [optional]
 	 * @return array
 	 */
-	public function read($limit = 0) {
+	public function read($limit = 0)
+	{
 		return $this->storage()->read($this->target->table(), $this->filter(), $this->order(), $limit);
 	}
 	
@@ -503,7 +554,8 @@ abstract class Relation {
 	 * @param int $limit [optional]
 	 * @return Record[]
 	 */
-	public function load($limit = 0) {
+	public function load($limit = 0)
+	{
 		$data = $this->read($limit);
 		$class = get_class($this->target);
 		$this->related = $class::generate($data);
@@ -517,7 +569,8 @@ abstract class Relation {
 	 * 
 	 * @return bool
 	 */
-	public function loaded() {
+	public function loaded()
+	{
 		return $this->loaded;
 	}
 	
@@ -543,7 +596,8 @@ abstract class Relation {
 	 * 
 	 * @return Record|null
 	 */
-	public function one() {
+	public function one()
+	{
 		if (!$this->loaded()) {
 			$this->load(1);
 		}
@@ -556,7 +610,8 @@ abstract class Relation {
 	 * 
 	 * @return Record[]|null
 	 */
-	public function all() {
+	public function all()
+	{
 		if (!$this->loaded()) {
 			$this->load();
 		}
@@ -571,7 +626,8 @@ abstract class Relation {
 	 * 
 	 * @return int
 	 */
-	public function count() {
+	public function count()
+	{
 		if (!$this->loaded()) {
 			return $this->storage()->count($this->target->table(), $this->filter());
 		}
@@ -584,7 +640,8 @@ abstract class Relation {
 	 * 
 	 * @param Record[] $instances
 	 */
-	public function set($instances) {
+	public function set($instances)
+	{
 		$this->verify($instances);
 		$this->related = static::arrayify($instances);
 		$this->loaded = true;
@@ -593,7 +650,8 @@ abstract class Relation {
 	/**
 	 * Clear the related models.
 	 */
-	public function clear() {
+	public function clear()
+	{
 		$this->related = array();
 		$this->loaded = false;
 	}
@@ -604,10 +662,10 @@ abstract class Relation {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		if (property_exists($this, $property)) {
 			return $this->$property;
 		}
 	}
-	
 }

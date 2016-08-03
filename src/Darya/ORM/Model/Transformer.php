@@ -6,8 +6,8 @@ namespace Darya\ORM\Model;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Transformer {
-	
+interface Transformer
+{
 	/**
 	 * Transform the given value depending on the given type.
 	 * 
@@ -17,5 +17,4 @@ interface Transformer {
 	 * @param string $type  [optional]
 	 */
 	public function transform($value, $type = '');
-	
 }

@@ -15,8 +15,8 @@ use Darya\ORM\Model\Transformer;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
-	
+abstract class Model implements ArrayAccess, IteratorAggregate, Serializable
+{
 	/**
 	 * Attribute names as keys and types as values.
 	 * 
@@ -39,7 +39,9 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	protected $valid = false;
 	
 	/**
-	 * @var array Errors that occured with validation
+	 * Errors that occured with validation.
+	 * 
+	 * @var array
 	 */
 	protected $errors = array();
 	
@@ -62,7 +64,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param array $data [optional] Attributes to set on the model
 	 */
-	public function __construct($data = array()) {
+	public function __construct($data = array())
+	{
 		$this->setMany($data);
 	}
 	
@@ -72,7 +75,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param array $rows
 	 * @return array
 	 */
-	public static function generate(array $rows = array()) {
+	public static function generate(array $rows = array())
+	{
 		$instances = array();
 		
 		foreach ($rows as $key => $attributes) {
@@ -91,7 +95,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param array $rows
 	 * @return array
 	 */
-	public static function hydrate(array $rows = array()) {
+	public static function hydrate(array $rows = array())
+	{
 		$instances = static::generate($rows);
 		
 		foreach ($instances as $instance) {
@@ -107,7 +112,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param Model[]|Model $model
 	 * @return array
 	 */
-	public static function convertToArray($model) {
+	public static function convertToArray($model)
+	{
 		if (is_object($model)) {
 			if (method_exists($model, 'toArray')) {
 				$model = $model->toArray();
@@ -132,7 +138,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param int           $options [optional] json_encode() options
 	 * @return string
 	 */
-	public static function convertToJson($model, $options = null) {
+	public static function convertToJson($model, $options = null)
+	{
 		return json_encode(static::convertToArray($model), $options);
 	}
 	
@@ -142,7 +149,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $attribute
 	 * @return string
 	 */
-	protected function prepareAttribute($attribute) {
+	protected function prepareAttribute($attribute)
+	{
 		$attribute = strtolower($attribute);
 		
 		if ($attribute === 'id') {
@@ -157,7 +165,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function attributes() {
+	public function attributes()
+	{
 		return array_keys($this->attributes) ?: array_keys($this->data ?: array());
 	}
 	
@@ -168,7 +177,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function attributeTypes() {
+	public function attributeTypes()
+	{
 		return $this->attributes;
 	}
 	
@@ -177,7 +187,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return Transformer
 	 */
-	public function getAttributeAccessor() {
+	public function getAttributeAccessor()
+	{
 		return new Accessor($this->dateFormat());
 	}
 	
@@ -186,7 +197,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return Transformer
 	 */
-	public function getAttributeMutator() {
+	public function getAttributeMutator()
+	{
 		return new Mutator($this->dateFormat());
 	}
 	
@@ -197,7 +209,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return string
 	 */
-	public function key() {
+	public function key()
+	{
 		if (!isset($this->key)) {
 			return 'id';
 		}
@@ -210,7 +223,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return mixed
 	 */
-	public function id() {
+	public function id()
+	{
 		return $this->access($this->key());
 	}
 	
@@ -219,7 +233,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function changed() {
+	public function changed()
+	{
 		return array_intersect_key($this->data, array_flip($this->changed));
 	}
 	
@@ -227,7 +242,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * Clear the record of changed attributes on the model, declaring the
 	 * current attributes as unmodified.
 	 */
-	public function reinstate() {
+	public function reinstate()
+	{
 		$this->changed = array();
 	}
 	
@@ -238,7 +254,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function data() {
+	public function data()
+	{
 		$data = array();
 		
 		foreach (array_keys($this->data) as $attribute) {
@@ -255,7 +272,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function rawData() {
+	public function rawData()
+	{
 		return $this->data;
 	}
 	
@@ -265,7 +283,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $attribute
 	 * @return bool
 	 */
-	public function has($attribute) {
+	public function has($attribute)
+	{
 		return isset($this->data[$this->prepareAttribute($attribute)]);
 	}
 	
@@ -275,7 +294,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $attribute
 	 * @return bool
 	 */
-	protected function mutable($attribute) {
+	protected function mutable($attribute)
+	{
 		return isset($this->attributes[$this->prepareAttribute($attribute)]);
 	}
 	
@@ -285,24 +305,25 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $attribute
 	 * @return mixed
 	 */
-	protected function access($attribute) {
-		if ($this->has($attribute)) {
-			$attribute = $this->prepareAttribute($attribute);
-			
-			$value = $this->data[$attribute];
-			
-			if (!$this->mutable($attribute)) {
-				return $value;
-			}
-			
-			$type = $this->attributes[$attribute];
-			
-			$accessor = $this->getAttributeAccessor();
-			
-			return $accessor->transform($value, $type);
+	protected function access($attribute)
+	{
+		if (!$this->has($attribute)) {
+			return null;
 		}
 		
-		return null;
+		$attribute = $this->prepareAttribute($attribute);
+		
+		$value = $this->data[$attribute];
+		
+		if (!$this->mutable($attribute)) {
+			return $value;
+		}
+		
+		$type = $this->attributes[$attribute];
+		
+		$accessor = $this->getAttributeAccessor();
+		
+		return $accessor->transform($value, $type);
 	}
 	
 	/**
@@ -312,7 +333,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param mixed  $value [optional]
 	 * @return mixed
 	 */
-	protected function mutate($attribute, $value = null) {
+	protected function mutate($attribute, $value = null)
+	{
 		if (!$this->mutable($attribute)) {
 			return $value;
 		}
@@ -330,7 +352,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $attribute
 	 * @return mixed
 	 */
-	public function get($attribute) {
+	public function get($attribute)
+	{
 		if ($attribute === 'id') {
 			return $this->id();
 		}
@@ -346,7 +369,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param array|string $attribute
 	 * @param mixed        $value [optional]
 	 */
-	public function set($attribute, $value = null) {
+	public function set($attribute, $value = null)
+	{
 		if (is_array($attribute)) {
 			return $this->setMany($attribute);
 		}
@@ -365,8 +389,9 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param array $values
 	 */
-	public function setMany($values) {
-		foreach ((array) $values as $attribute => $value) {
+	public function setMany($values)
+	{
+		foreach ((array) $values as $attribute => $value){
 			$this->set($attribute, $value);
 		}
 	}
@@ -376,7 +401,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param string $attribute
 	 */
-	public function remove($attribute) {
+	public function remove($attribute)
+	{
 		unset($this->data[$this->prepareAttribute($attribute)]);
 	}
 	
@@ -385,7 +411,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return string
 	 */
-	public function dateFormat() {
+	public function dateFormat()
+	{
 		return 'Y-m-d H:i:s';
 	}
 	
@@ -397,7 +424,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param int $time [optional]
 	 */
-	public function stamp($time = null) {
+	public function stamp($time = null)
+	{
 		$time = $time ?: time();
 		$this->set('modified', $time);
 		
@@ -411,7 +439,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return bool
 	 */
-	public function validate() {
+	public function validate()
+	{
 		return $this->valid = !count($this->errors);
 	}
 	
@@ -421,7 +450,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function errors() {
+	public function errors()
+	{
 		return $this->errors;
 	}
 	
@@ -430,7 +460,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function toArray() {
+	public function toArray()
+	{
 		return static::convertToArray($this->data());
 	}
 	
@@ -439,7 +470,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return string
 	 */
-	public function toJson() {
+	public function toJson()
+	{
 		return json_encode($this->jsonSerialize());
 	}
 	
@@ -449,7 +481,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $property
 	 * @return bool
 	 */
-	public function __isset($property) {
+	public function __isset($property)
+	{
 		return $this->has($property);
 	}
 	
@@ -459,7 +492,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->get($property);
 	}
 	
@@ -469,7 +503,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param string $property
 	 * @param mixed  $value
 	 */
-	public function __set($property, $value) {
+	public function __set($property, $value)
+	{
 		$this->set($property, $value);
 	}
 	
@@ -478,7 +513,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param string $property
 	 */
-	public function __unset($property) {
+	public function __unset($property)
+	{
 		$this->remove($property);
 	}
 	
@@ -488,7 +524,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param mixed $offset
 	 * @return bool
 	 */
-	public function offsetExists($offset) {
+	public function offsetExists($offset)
+	{
 		return $this->has($offset);
 	}
 	
@@ -498,7 +535,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param mixed $offset
 	 * @return mixed
 	 */
-	public function offsetGet($offset) {
+	public function offsetGet($offset)
+	{
 		return $this->get($offset);
 	}
 	
@@ -508,7 +546,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * @param mixed $offset
 	 * @param mixed $value
 	 */
-	public function offsetSet($offset, $value) {
+	public function offsetSet($offset, $value)
+	{
 		$this->set($offset, $value);
 	}
 	
@@ -517,7 +556,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param mixed $offset
 	 */
-	public function offsetUnset($offset) {
+	public function offsetUnset($offset)
+	{
 		$this->remove($offset);
 	}
 	
@@ -526,7 +566,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return \Traversable
 	 */
-	public function getIterator() {
+	public function getIterator()
+	{
 		return new ArrayIterator($this->data());
 	}
 	
@@ -535,7 +576,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return string
 	 */
-	public function serialize() {
+	public function serialize()
+	{
 		return serialize($this->data);
 	}
 	
@@ -544,7 +586,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @param string $serialized
 	 */
-	public function unserialize($serialized) {
+	public function unserialize($serialized)
+	{
 		$this->data = unserialize($serialized);
 	}
 	
@@ -553,8 +596,8 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable {
 	 * 
 	 * @return array
 	 */
-	public function jsonSerialize() {
+	public function jsonSerialize()
+	{
 		return $this->toArray();
 	}
-	
 }

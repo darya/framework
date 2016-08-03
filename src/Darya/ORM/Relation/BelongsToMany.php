@@ -12,8 +12,8 @@ use Darya\ORM\Relation;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class BelongsToMany extends Relation {
-	
+class BelongsToMany extends Relation
+{
 	/**
 	 * @var array
 	 */
@@ -64,7 +64,8 @@ class BelongsToMany extends Relation {
 	 * @param array $new
 	 * @return array
 	 */
-	protected static function insertIds($old, $new) {
+	protected static function insertIds($old, $new)
+	{
 		$oldIds = array();
 		$newIds = array();
 		
@@ -91,7 +92,8 @@ class BelongsToMany extends Relation {
 	 * @param array $relations
 	 * @return array
 	 */
-	protected function bundleRelations(array $relations) {
+	protected function bundleRelations(array $relations)
+	{
 		$bundle = array();
 		
 		foreach ($relations as $relation) {
@@ -111,7 +113,8 @@ class BelongsToMany extends Relation {
 	 * @param Record[]|Record|array $instances
 	 * @return Record[]
 	 */
-	protected static function listById($instances) {
+	protected static function listById($instances)
+	{
 		$list = array();
 		
 		foreach ((array) $instances as $instance) {
@@ -124,7 +127,8 @@ class BelongsToMany extends Relation {
 	/**
 	 * Set the default keys for the relation if they have not already been set.
 	 */
-	protected function setDefaultKeys() {
+	protected function setDefaultKeys()
+	{
 		if (!$this->foreignKey) {
 			$this->foreignKey = $this->prepareForeignKey(get_class($this->target));
 		}
@@ -139,7 +143,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * Sorts parent and related class names alphabetically.
 	 */
-	protected function setDefaultTable() {
+	protected function setDefaultTable()
+	{
 		if ($this->table) {
 			return;
 		}
@@ -158,7 +163,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return array
 	 */
-	protected function defaultAssociationConstraint() {
+	protected function defaultAssociationConstraint()
+	{
 		return array($this->localKey => $this->parent->id());
 	}
 	
@@ -167,7 +173,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @param array $filter
 	 */
-	public function constrainAssociation(array $filter) {
+	public function constrainAssociation(array $filter)
+	{
 		$this->associationConstraint = $filter;
 	}
 	
@@ -176,7 +183,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return array
 	 */
-	public function associationConstraint() {
+	public function associationConstraint()
+	{
 		return $this->associationConstraint;
 	}
 	
@@ -185,7 +193,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return array
 	 */
-	public function associationFilter() {
+	public function associationFilter()
+	{
 		return array_merge($this->defaultAssociationConstraint(), $this->associationConstraint());
 	}
 	
@@ -197,7 +206,8 @@ class BelongsToMany extends Relation {
 	 * @param array $related
 	 * @return array
 	 */
-	public function filter(array $related = array()) {
+	public function filter(array $related = array())
+	{
 		$filter = array();
 		
 		if (!empty($related)) {
@@ -215,7 +225,8 @@ class BelongsToMany extends Relation {
 	 * @param string $table [optional]
 	 * @return string
 	 */
-	public function table($table = null) {
+	public function table($table = null)
+	{
 		$this->table = (string) $table ?: $this->table;
 		
 		return $this->table;
@@ -229,7 +240,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @param int $limit
 	 */
-	protected function relatedIds($limit = 0) {
+	protected function relatedIds($limit = 0)
+	{
 		$associations = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
 		
 		if (empty($this->filter())) {
@@ -249,7 +261,8 @@ class BelongsToMany extends Relation {
 	 * @param int $limit
 	 * @return array
 	 */
-	public function read($limit = 0) {
+	public function read($limit = 0)
+	{
 		return $this->storage()->read(
 			$this->target->table(),
 			array(
@@ -267,7 +280,8 @@ class BelongsToMany extends Relation {
 	 * @param array $instances
 	 * @return array
 	 */
-	public function eager(array $instances) {
+	public function eager(array $instances)
+	{
 		$this->verifyParents($instances);
 		
 		// Grab IDs of parent instances
@@ -325,7 +339,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return Record[]
 	 */
-	public function retrieve() {
+	public function retrieve()
+	{
 		return $this->all();
 	}
 	
@@ -337,7 +352,8 @@ class BelongsToMany extends Relation {
 	 * @param Record[]|Record $instances
 	 * @return int
 	 */
-	public function associate($instances) {
+	public function associate($instances)
+	{
 		$instances = static::arrayify($instances);
 		
 		$existing = $this->storage()->read($this->table, array(
@@ -373,7 +389,8 @@ class BelongsToMany extends Relation {
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate($instances) {
+	public function dissociate($instances)
+	{
 		$instances = static::arrayify($instances);
 		
 		$ids = array();
@@ -403,7 +420,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return int
 	 */
-	public function purge() {
+	public function purge()
+	{
 		$this->clear(); // Force a reload because diffing would be a pain
 		
 		return (int) $this->storage()->delete($this->table, array(
@@ -419,7 +437,8 @@ class BelongsToMany extends Relation {
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function sync($instances) {
+	public function sync($instances)
+	{
 		$this->purge();
 		
 		return $this->associate($instances);
@@ -432,7 +451,8 @@ class BelongsToMany extends Relation {
 	 * 
 	 * @return int
 	 */
-	public function count() {
+	public function count()
+	{
 		if ($this->loaded()) {
 			return parent::count();
 		}
@@ -445,5 +465,4 @@ class BelongsToMany extends Relation {
 		
 		return $this->storage()->count($this->target->table(), $filter);
 	}
-	
 }

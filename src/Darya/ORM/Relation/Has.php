@@ -10,12 +10,13 @@ use Darya\ORM\Relation;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Has extends Relation {
-	
+class Has extends Relation
+{
 	/**
 	 * Set the default keys for the relation if they have not yet been set.
 	 */
-	protected function setDefaultKeys() {
+	protected function setDefaultKeys()
+	{
 		if (!$this->foreignKey) {
 			$this->foreignKey = $this->prepareForeignKey(get_class($this->parent));
 		}
@@ -31,7 +32,8 @@ class Has extends Relation {
 	 * @param array $instances
 	 * @return array
 	 */
-	public function eager(array $instances) {
+	public function eager(array $instances)
+	{
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, 'id');
 		
@@ -64,7 +66,8 @@ class Has extends Relation {
 	 * 
 	 * @return Record|null
 	 */
-	public function retrieve() {
+	public function retrieve()
+	{
 		return $this->one();
 	}
 	
@@ -76,7 +79,8 @@ class Has extends Relation {
 	 * @param array $ids [optional]
 	 * @return int
 	 */
-	public function save($ids = array()) {
+	public function save($ids = array())
+	{
 		$successful = 0;
 		
 		foreach ($this->related as $model) {
@@ -101,7 +105,8 @@ class Has extends Relation {
 	 * @param Record $instance
 	 * @return int
 	 */
-	public function associate($instance) {
+	public function associate($instance)
+	{
 		$this->dissociate();
 		
 		$this->verify($instance);
@@ -117,7 +122,8 @@ class Has extends Relation {
 	 * 
 	 * @return int
 	 */
-	public function dissociate() {
+	public function dissociate()
+	{
 		$associated = $this->retrieve();
 		
 		if (!$associated) {
@@ -130,5 +136,4 @@ class Has extends Relation {
 		
 		return $associated->save();
 	}
-	
 }
