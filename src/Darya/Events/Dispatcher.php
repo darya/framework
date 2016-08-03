@@ -54,7 +54,7 @@ class Dispatcher implements Dispatchable, Subscribable
 	{
 		$this->touch($event);
 		
-		$this->listeners[$event] = array_filter($this->listeners[$event], function($value) use ($callable) {
+		$this->listeners[$event] = array_filter($this->listeners[$event], function ($value) use ($callable) {
 			return $value !== $callable;
 		});
 	}

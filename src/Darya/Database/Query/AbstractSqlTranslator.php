@@ -42,7 +42,7 @@ abstract class AbstractSqlTranslator implements Translator
 	 */
 	protected static function concatenate($strings, $delimiter = ' ')
 	{
-		$strings = array_filter($strings, function($value) {
+		$strings = array_filter($strings, function ($value) {
 			return !empty($value);
 		});
 		

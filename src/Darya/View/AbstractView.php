@@ -84,7 +84,7 @@ abstract class AbstractView implements View {
 	 * @param string|array $extensions
 	 */
 	public static function registerExtensions($extensions) {
-		$extensions = array_map(function($extension) {
+		$extensions = array_map(function ($extension) {
 			return '.' . ltrim(trim($extension), '.');
 		}, (array) $extensions);
 		

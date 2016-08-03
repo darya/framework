@@ -6,8 +6,8 @@ namespace Darya\Events;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Dispatchable {
-	
+interface Dispatchable
+{
 	/**
 	 * Dispatch the given event.
 	 * 
@@ -34,5 +34,4 @@ interface Dispatchable {
 	 * @param callable $callable
 	 */
 	public function unlisten($event, $callable);
-	
 }

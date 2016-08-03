@@ -75,7 +75,7 @@ class Sorter
 			$item = array($index++, $item);
 		}
 		
-		usort($data, function($a, $b) use ($order) {
+		usort($data, function ($a, $b) use ($order) {
 			foreach ($order as $field => $direction) {
 				if (!isset($a[1][$field]) || !isset($b[1][$field])) {
 					continue;

@@ -125,7 +125,7 @@ class Record extends Model {
 		$split = explode('\\', get_class($this));
 		$class = end($split);
 		
-		return preg_replace_callback('/([A-Z])/', function($matches) {
+		return preg_replace_callback('/([A-Z])/', function ($matches) {
 			return '_' . strtolower($matches[1]);
 		}, lcfirst($class)) . 's';
 	}
@@ -407,7 +407,7 @@ class Record extends Model {
 		$query = new Query($instance->table());
 		$builder = new Builder($query, $storage);
 		
-		$builder->callback(function($result) use ($instance) {
+		$builder->callback(function ($result) use ($instance) {
 			return $instance::hydrate($result->data);
 		});
 		
