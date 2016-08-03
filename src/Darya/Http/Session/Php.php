@@ -9,15 +9,16 @@ use Darya\Http\Session;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Php implements ArrayAccess, Session {
-	
+class Php implements ArrayAccess, Session
+{
 	/**
 	 * Magic method that determines whether a session key is set.
 	 * 
 	 * @param string $property
 	 * @return bool
 	 */
-	public function __isset($property) {
+	public function __isset($property)
+	{
 		return $this->has($property);
 	}
 	
@@ -27,7 +28,8 @@ class Php implements ArrayAccess, Session {
 	 * @param string $property
 	 * @return bool
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->get($property);
 	}
 	
@@ -37,7 +39,8 @@ class Php implements ArrayAccess, Session {
 	 * @param string $property
 	 * @param mixed  $value
 	 */
-	public function __set($property, $value) {
+	public function __set($property, $value)
+	{
 		$this->set($property, $value);
 	}
 	
@@ -45,7 +48,8 @@ class Php implements ArrayAccess, Session {
 	 * @param  mixed $offset
 	 * @return bool
 	 */
-	public function offsetExists($offset) {
+	public function offsetExists($offset)
+	{
 		return $this->has($offset);
 	}
 	
@@ -53,7 +57,8 @@ class Php implements ArrayAccess, Session {
 	 * @param  mixed $offset
 	 * @return bool
 	 */
-	public function offsetGet($offset) {
+	public function offsetGet($offset)
+	{
 		return $this->get($offset);
 	}
 	
@@ -61,14 +66,16 @@ class Php implements ArrayAccess, Session {
 	 * @param mixed $offset
 	 * @param mixed $value
 	 */
-	public function offsetSet($offset, $value) {
+	public function offsetSet($offset, $value)
+	{
 		$this->set($offset, $value);
 	}
 	
 	/**
 	 * @param mixed $offset
 	 */
-	public function offsetUnset($offset) {
+	public function offsetUnset($offset)
+	{
 		$this->delete($offset);
 	}
 	
@@ -77,7 +84,8 @@ class Php implements ArrayAccess, Session {
 	 * 
 	 * @return bool
 	 */
-	public function start() {
+	public function start()
+	{
 		return session_start();
 	}
 	
@@ -86,7 +94,8 @@ class Php implements ArrayAccess, Session {
 	 *
 	 * @return bool
 	 */
-	public function started() {
+	public function started()
+	{
 		return session_id() != '';
 	}
 	
@@ -96,7 +105,8 @@ class Php implements ArrayAccess, Session {
 	 * @param string $key
 	 * @return bool
 	 */
-	public function has($key) {
+	public function has($key)
+	{
 		return isset($_SESSION[$key]);
 	}
 	
@@ -106,7 +116,8 @@ class Php implements ArrayAccess, Session {
 	 * @param string $key
 	 * @return mixed
 	 */
-	public function get($key) {
+	public function get($key)
+	{
 		return isset($_SESSION[$key]) ? $_SESSION[$key] : null;
 	}
 	
@@ -116,7 +127,8 @@ class Php implements ArrayAccess, Session {
 	 * @param string $key
 	 * @param mixed  $value
 	 */
-	public function set($key, $value) {
+	public function set($key, $value)
+	{
 		return $_SESSION[$key] = $value;
 	}
 	
@@ -126,7 +138,8 @@ class Php implements ArrayAccess, Session {
 	 * @param string $key
 	 * @return mixed Value of the deleted variable
 	 */
-	public function delete($key) {
+	public function delete($key)
+	{
 		if (isset($_SESSION[$key])) {
 			$deleted = $_SESSION[$key];
 			
@@ -137,5 +150,4 @@ class Php implements ArrayAccess, Session {
 		
 		return null;
 	}
-	
 }

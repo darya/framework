@@ -6,8 +6,8 @@ namespace Darya\Http;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Session {
-	
+interface Session
+{
 	/**
 	 * Create a new session or resume an existing one.
 	 * 
@@ -53,5 +53,4 @@ interface Session {
 	 * @return mixed Value of the deleted variable
 	 */
 	public function delete($key);
-	
 }

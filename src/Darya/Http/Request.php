@@ -21,15 +21,19 @@ use Darya\Http\Session;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Request {
-	
+class Request
+{
 	/**
-	 * @var array Request data types to treat case-insensitively
+	 * Request data types to be treated case-insensitively.
+	 * 
+	 * @var array
 	 */
 	protected static $caseInsensitive = array('server', 'header');
 	
 	/**
-	 * @var array Request data
+	 * The request data.
+	 * 
+	 * @var array
 	 */
 	protected $data = array(
 		'get'     => array(),
@@ -42,22 +46,30 @@ class Request {
 	);
 	
 	/**
-	 * @var string Request body content
+	 * Request body content.
+	 * 
+	 * @var string
 	 */
 	protected $content;
 	
 	/**
+	 * The session that belongs to this request.
+	 * 
 	 * @var \Darya\Http\Session
 	 */
 	protected $session;
 	
 	/**
-	 * @var \Darya\Routing\Router Router that matched this request
+	 * The router that matched this request.
+	 * 
+	 * @var \Darya\Routing\Router
 	 */
 	public $router;
 	
 	/**
-	 * @var \Darya\Routing\Route Route that this request was matched with
+	 * The route that this request was matched with.
+	 * 
+	 * @var \Darya\Routing\Route
 	 */
 	public $route;
 	
@@ -68,7 +80,8 @@ class Request {
 	 * @param string $type
 	 * @return bool
 	 */
-	protected static function isCaseInsensitive($type) {
+	protected static function isCaseInsensitive($type)
+	{
 		return in_array($type, static::$caseInsensitive);
 	}
 	
@@ -84,7 +97,8 @@ class Request {
 	 * @param array $data
 	 * @return array
 	 */
-	protected static function prepareData(array $data) {
+	protected static function prepareData(array $data)
+	{
 		$data = array_change_key_case($data);
 		
 		foreach (array_keys($data) as $type) {
@@ -115,7 +129,8 @@ class Request {
 	 * @param string $url
 	 * @return array
 	 */
-	protected static function parseUrl($url) {
+	protected static function parseUrl($url)
+	{
 		$components = parse_url($url);
 		
 		return array_merge(array(
@@ -136,7 +151,8 @@ class Request {
 	 * @param string $query
 	 * @return array
 	 */
-	protected static function parseQuery($query) {
+	protected static function parseQuery($query)
+	{
 		$values = array();
 		parse_str($query, $values);
 		
@@ -152,7 +168,8 @@ class Request {
 	 * @param Session $session [optional]
 	 * @return Request
 	 */
-	public static function create($url, $method = 'GET', $data = array(), Session $session = null) {
+	public static function create($url, $method = 'GET', $data = array(), Session $session = null)
+	{
 		$components = static::parseUrl($url);
 		$data = static::prepareData($data);
 		
@@ -198,7 +215,8 @@ class Request {
 	 * @param array $server
 	 * @return array
 	 */
-	public static function headersFromGlobals(array $server) {
+	public static function headersFromGlobals(array $server)
+	{
 		$headers = array();
 		
 		foreach ($server as $key => $value) {
@@ -219,7 +237,8 @@ class Request {
 	 * @param \Darya\Http\Session $session [optional]
 	 * @return \Darya\Http\Request
 	 */
-	public static function createFromGlobals(Session $session = null) {
+	public static function createFromGlobals(Session $session = null)
+	{
 		$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
 			'get'    => $_GET,
 			'post'   => $_POST,
@@ -244,7 +263,8 @@ class Request {
 	 * @param array $server
 	 * @param array $header
 	 */
-	public function __construct(array $get, array $post, array $cookie, array $file, array $server, array $header) {
+	public function __construct(array $get, array $post, array $cookie, array $file, array $server, array $header)
+	{
 		$this->data = static::prepareData(compact('get', 'post', 'cookie', 'file', 'server', 'header'));
 	}
 	
@@ -253,7 +273,8 @@ class Request {
 	 * 
 	 * @return bool
 	 */
-	public function hasSession() {
+	public function hasSession()
+	{
 		return !is_null($this->session);
 	}
 	
@@ -263,7 +284,8 @@ class Request {
 	 * 
 	 * @param \Darya\Http\Session $session
 	 */
-	public function setSession(Session $session = null) {
+	public function setSession(Session $session = null)
+	{
 		if (is_object($session) && !$session->started()) {
 			$session->start();
 		}
@@ -287,7 +309,8 @@ class Request {
 	 * @param mixed  $default [optional]
 	 * @return mixed
 	 */
-	public function data($type = null, $key = null, $default = null) {
+	public function data($type = null, $key = null, $default = null)
+	{
 		$type = strtolower($type);
 		
 		if (isset($this->data[$type])) {
@@ -311,7 +334,8 @@ class Request {
 	 * @param string $property
 	 * @return array
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->data($property);
 	}
 	
@@ -321,7 +345,8 @@ class Request {
 	 * @param string $method
 	 * @param array  $arguments
 	 */
-	public function __call($method, $arguments) {
+	public function __call($method, $arguments)
+	{
 		$arguments = array_merge(array($method), array_slice($arguments, 0, 2));
 		
 		return call_user_func_array(array($this, 'data'), $arguments);
@@ -334,7 +359,8 @@ class Request {
 	 * @param string $key
 	 * @return bool
 	 */
-	public function has($key) {
+	public function has($key)
+	{
 		return isset($this->data['get'][$key]) || isset($this->data['post'][$key]);
 	}
 	
@@ -345,7 +371,8 @@ class Request {
 	 * @param string $key
 	 * @return mixed
 	 */
-	public function any($key = null) {
+	public function any($key = null)
+	{
 		return $this->method('post') && isset($this->data['post'][$key]) ? $this->post($key) : $this->get($key);
 	}
 	
@@ -354,7 +381,8 @@ class Request {
 	 * 
 	 * @return string
 	 */
-	public function uri() {
+	public function uri()
+	{
 		return $this->server('request_uri');
 	}
 	
@@ -363,7 +391,8 @@ class Request {
 	 * 
 	 * @return string
 	 */
-	public function host() {
+	public function host()
+	{
 		return $this->server('server_name') ?: $this->server('server_addr');
 	}
 	
@@ -372,7 +401,8 @@ class Request {
 	 * 
 	 * @return string
 	 */
-	public function path() {
+	public function path()
+	{
 		$path = $this->server('path_info');
 		
 		if ($path) {
@@ -391,7 +421,8 @@ class Request {
 	 * @param string $method [optional]
 	 * @return string|bool
 	 */
-	public function method($method = null) {
+	public function method($method = null)
+	{
 		$method = strtolower($method);
 		$requestMethod = strtolower($this->server('request_method'));
 		
@@ -403,7 +434,8 @@ class Request {
 	 * 
 	 * @return string
 	 */
-	public function content() {
+	public function content()
+	{
 		if ($this->content === null) {
 			$this->content = file_get_contents('php://input');
 		}
@@ -416,7 +448,8 @@ class Request {
 	 * 
 	 * @return string
 	 */
-	public function ip() {
+	public function ip()
+	{
 		return $this->server('remote_addr');
 	}
 	
@@ -427,7 +460,8 @@ class Request {
 	 * 
 	 * @return bool
 	 */
-	public function ajax() {
+	public function ajax()
+	{
 		return $this->has('ajax')
 		|| strtolower($this->server('http_x_requested_with')) == 'xmlhttprequest'
 		|| strtolower($this->header('x-requested-with')) == 'xmlhttprequest';
@@ -440,7 +474,8 @@ class Request {
 	 * @param string|array $values A single value or set of values to add
 	 * @return bool
 	 */
-	public function flash($key, $values) {
+	public function flash($key, $values)
+	{
 		if ($this->hasSession()) {
 			$flash = $this->session->get('flash') ?: array();
 			
@@ -468,7 +503,8 @@ class Request {
 	 * @param string $key [optional] Flash data key
 	 * @return array
 	 */
-	public function flashes($key = null) {
+	public function flashes($key = null)
+	{
 		$data = array();
 		
 		if ($this->hasSession()) {
@@ -497,7 +533,8 @@ class Request {
 	 * @param string $key Entity key (post parameter name)
 	 * @return array
 	 */
-	public function postObjectData($key = null) {
+	public function postObjectData($key = null)
+	{
 		$post = $this->post($key);
 		$data = array();
 		
@@ -511,5 +548,4 @@ class Request {
 		
 		return $data;
 	}
-	
 }

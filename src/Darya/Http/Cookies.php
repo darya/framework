@@ -6,8 +6,8 @@ namespace Darya\Http;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Cookies {
-	
+class Cookies
+{
 	/**
 	 * The cookies data.
 	 * 
@@ -25,7 +25,8 @@ class Cookies {
 	 * @param string $property [optional]
 	 * @return string
 	 */
-	public function get($key, $property = 'value') {
+	public function get($key, $property = 'value')
+	{
 		return isset($this->cookies[$key]) && isset($this->cookies[$key][$property]) ? $this->cookies[$key][$property] : null;
 	}
 	
@@ -35,7 +36,8 @@ class Cookies {
 	 * @param string $key
 	 * @return bool
 	 */
-	public function has($key) {
+	public function has($key)
+	{
 		return isset($this->cookies[$key]);
 	}
 	
@@ -46,7 +48,8 @@ class Cookies {
 	 * @param string $value
 	 * @param int    $expire
 	 */
-	public function set($key, $value, $expire, $path = '/') {
+	public function set($key, $value, $expire, $path = '/')
+	{
 		if (is_string($expire)) {
 			$expire = strtotime($expire);
 		}
@@ -59,7 +62,8 @@ class Cookies {
 	 * 
 	 * @return array
 	 */
-	public function all() {
+	public function all()
+	{
 		return $this->cookies;
 	}
 	
@@ -69,7 +73,8 @@ class Cookies {
 	 * @param string $key
 	 * @return array
 	 */
-	public function properties($key) {
+	public function properties($key)
+	{
 		return isset($this->cookies[$key]) ? $this->cookies[$key] : array();
 	}
 	
@@ -78,7 +83,8 @@ class Cookies {
 	 * 
 	 * @param string $key
 	 */
-	public function delete($key) {
+	public function delete($key)
+	{
 		if (isset($this->cookies[$key])) {
 			$this->cookies[$key]['value'] = '';
 			$this->cookies[$key]['expire'] = 0;
@@ -88,10 +94,10 @@ class Cookies {
 	/**
 	 * Send the header data for cookies.
 	 */
-	public function send() {
+	public function send()
+	{
 		foreach ($this->cookies as $key => $values) {
 			setcookie($key, $values['value'], $values['expire'], $values['path'] ?: '/');
 		}
 	}
-	
 }

@@ -12,45 +12,61 @@ use Darya\Http\Cookies;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Response {
-	
+class Response
+{
 	/**
-	 * @var int HTTP status code
+	 * HTTP status code.
+	 * 
+	 * @var int
 	 */
 	private $status = 200;
 	
 	/**
-	 * @var array HTTP headers
+	 * HTTP headers.
+	 * 
+	 * @var array
 	 */
 	private $headers = array();
 	
 	/**
-	 * @var Cookies Cookie key/values
+	 * Cookie key/values.
+	 * 
+	 * @var Cookies
 	 */
 	private $cookies;
 	
 	/**
-	 * @var string Response content
+	 * Response content.
+	 * 
+	 * @var string
 	 */
 	private $content = null;
 	
 	/**
-	 * @var bool Whether the response headers have been sent
+	 * Whether the response headers have been sent.
+	 * 
+	 * @var bool
 	 */
 	private $headersSent = false;
 	
 	/**
-	 * @var bool Whether the response content has been sent
+	 * Whether the response content has been sent.
+	 * 
+	 * @var bool
 	 */
 	private $contentSent = false;
 	
 	/**
-	 * @var bool Whether the response has been redirected
+	 * Whether the response has been redirected.
+	 * 
+	 * @var bool
 	 */
 	private $redirected = false;
 	
 	/**
-	 * @var array Properties that can be read dynamically
+	 * Properties that can be read dynamically.
+	 * 
+	 * @var array
 	 */
 	private $properties = array(
 		'status', 'headers', 'cookies', 'content', 'redirected'
@@ -65,7 +81,8 @@ class Response {
 	 * @param mixed $content
 	 * @return string
 	 */
-	public static function prepareContent($content) {
+	public static function prepareContent($content)
+	{
 		if (is_object($content) && method_exists($content, '__toString')) {
 			$content = $content->__toString();
 		} else if (is_array($content)) {
@@ -83,7 +100,8 @@ class Response {
 	 * @param mixed $content [optional]
 	 * @param array $headers [optional]
 	 */
-	public function __construct($content = null, array $headers = array()) {
+	public function __construct($content = null, array $headers = array())
+	{
 		if ($content !== null) {
 			$this->content($content);
 		}
@@ -101,7 +119,8 @@ class Response {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		if (isset($this->properties[$property])) {
 			return $this->$property;
 		}
@@ -113,7 +132,8 @@ class Response {
 	 * @param int|string $status [optional]
 	 * @return int
 	 */
-	public function status($status = null) {
+	public function status($status = null)
+	{
 		if (is_numeric($status)) {
 			$this->status = (int) $status;
 		}
@@ -126,7 +146,8 @@ class Response {
 	 * 
 	 * @param string $header
 	 */
-	public function header($header) {
+	public function header($header)
+	{
 		$header = (string) $header;
 		
 		if (strlen($header)) {
@@ -141,7 +162,8 @@ class Response {
 	 * @param array|string $headers [optional]
 	 * @return array
 	 */
-	public function headers($headers = array()) {
+	public function headers($headers = array())
+	{
 		foreach ((array) $headers as $header) {
 			$this->header($header);
 		}
@@ -155,7 +177,8 @@ class Response {
 	 * @param mixed $content [optional]
 	 * @return string
 	 */
-	public function content($content = null) {
+	public function content($content = null)
+	{
 		if (is_array($content)) {
 			$this->header('Content-Type: application/json');
 		}
@@ -172,7 +195,8 @@ class Response {
 	 * 
 	 * @return string
 	 */
-	public function body() {
+	public function body()
+	{
 		return static::prepareContent($this->content);
 	}
 	
@@ -181,7 +205,8 @@ class Response {
 	 * 
 	 * @return bool
 	 */
-	public function hasContent() {
+	public function hasContent()
+	{
 		return $this->content !== null && $this->content !== false;
 	}
 	
@@ -193,7 +218,8 @@ class Response {
 	 * @param string $url
 	 * @return $this
 	 */
-	public function redirect($url) {
+	public function redirect($url)
+	{
 		$this->header("Location: $url");
 		$this->redirected = true;
 		
@@ -205,7 +231,8 @@ class Response {
 	 * 
 	 * @return bool
 	 */
-	public function redirected() {
+	public function redirected()
+	{
 		return $this->redirected;
 	}
 	
@@ -214,7 +241,8 @@ class Response {
 	 * 
 	 * @return bool
 	 */
-	protected function headersSent() {
+	protected function headersSent()
+	{
 		return $this->headersSent || headers_sent();
 	}
 	
@@ -223,14 +251,16 @@ class Response {
 	 * 
 	 * @return bool
 	 */
-	 protected function contentSent() {
+	 protected function contentSent()
+	 {
 	 	return $this->contentSent;
 	 }
 	
 	/**
 	 * Sends the current HTTP status of the response.
 	 */
-	protected function sendStatus() {
+	protected function sendStatus()
+	{
 		if (function_exists('http_response_code')) {
 			http_response_code($this->status);
 		} else {
@@ -241,7 +271,8 @@ class Response {
 	/**
 	 * Sends all the currently set cookies.
 	 */
-	protected function sendCookies() {
+	protected function sendCookies()
+	{
 		$this->cookies->send();
 	}
 	
@@ -253,7 +284,8 @@ class Response {
 	 * 
 	 * @return bool
 	 */
-	public function sendHeaders() {
+	public function sendHeaders()
+	{
 		if (!$this->headersSent()) {
 			$this->sendStatus();
 			$this->sendCookies();
@@ -276,7 +308,8 @@ class Response {
 	 * 
 	 * @return bool
 	 */
-	public function sendContent() {
+	public function sendContent()
+	{
 		if ($this->headersSent() && !$this->contentSent() && !$this->redirected) {
 			echo $this->body();
 			
@@ -293,12 +326,12 @@ class Response {
 	 * 
 	 * If the response has been redirected, only headers will be sent.
 	 */
-	public function send() {
+	public function send()
+	{
 		$this->sendHeaders();
 		
 		if (!$this->redirected) {
 			$this->sendContent();
 		}
 	}
-	
 }
