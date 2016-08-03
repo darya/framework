@@ -9,8 +9,8 @@ namespace Darya\Database;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Query {
-	
+class Query
+{
 	/**
 	 * The SQL query string.
 	 * 
@@ -31,7 +31,8 @@ class Query {
 	 * @param string $string
 	 * @param array  $parameters [optional]
 	 */
-	public function __construct($string, $parameters = array()) {
+	public function __construct($string, $parameters = array())
+	{
 		$this->string = $string;
 		$this->parameters = $parameters;
 	}
@@ -42,7 +43,8 @@ class Query {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		return $this->$property;
 	}
 	
@@ -51,8 +53,8 @@ class Query {
 	 * 
 	 * @return string
 	 */
-	public function __toString() {
+	public function __toString()
+	{
 		return $this->string;
 	}
-	
 }

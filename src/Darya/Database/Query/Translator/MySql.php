@@ -8,15 +8,16 @@ use Darya\Database\Query\AbstractSqlTranslator;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class MySql extends AbstractSqlTranslator {
-	
+class MySql extends AbstractSqlTranslator
+{
 	/**
 	 * Resolve the given value as an identifier.
 	 * 
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
-	protected function resolveIdentifier($identifier) {
+	protected function resolveIdentifier($identifier)
+	{
 		if (!is_string($identifier)) {
 			return $identifier;
 		}
@@ -37,7 +38,8 @@ class MySql extends AbstractSqlTranslator {
 	 * @param int $offset [optional]
 	 * @return string
 	 */
-	protected function prepareLimit($limit = 0, $offset = 0) {
+	protected function prepareLimit($limit = 0, $offset = 0)
+	{
 		if (!static::limitIsUseful($limit, $offset)) {
 			return null;
 		}
@@ -67,7 +69,8 @@ class MySql extends AbstractSqlTranslator {
 	 * @param bool         $distinct [optional]
 	 * @return string
 	 */
-	protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false) {
+	protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false)
+	{
 		$table = $this->identifier($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
@@ -84,7 +87,8 @@ class MySql extends AbstractSqlTranslator {
 	 * @param string $limit [optional]
 	 * @return string
 	 */
-	protected function prepareUpdate($table, $data, $where = null, $limit = null) {
+	protected function prepareUpdate($table, $data, $where = null, $limit = null)
+	{
 		$table = $this->identifier($table);
 		
 		foreach ($data as $key => $value) {
@@ -106,7 +110,8 @@ class MySql extends AbstractSqlTranslator {
 	 * @param string $limit [optional]
 	 * @return string
 	 */
-	protected function prepareDelete($table, $where = null, $limit = null) {
+	protected function prepareDelete($table, $where = null, $limit = null)
+	{
 		$table = $this->identifier($table);
 		
 		if ($table == '*' || !$table || !$where) {
@@ -115,5 +120,4 @@ class MySql extends AbstractSqlTranslator {
 		
 		return static::concatenate(array('DELETE FROM', $table, $where, $limit));
 	}
-	
 }

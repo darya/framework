@@ -16,8 +16,8 @@ use Darya\Database\Query\Translator;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class MySql extends AbstractConnection {
-	
+class MySql extends AbstractConnection
+{
 	/**
 	 * Copy a flat array. Aids copying fetched results without the mysqlnd
 	 * extension installed without retaining references to array elements.
@@ -27,7 +27,8 @@ class MySql extends AbstractConnection {
 	 * @param array $array
 	 * @return array
 	 */
-	protected static function copyArray($array) {
+	protected static function copyArray($array)
+	{
 		$copy = array();
 		
 		foreach ($array as $key => $value) {
@@ -49,7 +50,8 @@ class MySql extends AbstractConnection {
 	 * @param mysqli_stmt $statement
 	 * @return array array($data, $fields, $count)
 	 */
-	protected function fetchResult(mysqli_stmt $statement) {
+	protected function fetchResult(mysqli_stmt $statement)
+	{
 		if (!method_exists($statement, 'get_result')) {
 			return $this->fetchResultWithoutNativeDriver($statement);
 		}
@@ -76,7 +78,8 @@ class MySql extends AbstractConnection {
 	 * @param mysqli_stmt $statement
 	 * @return array
 	 */
-	protected function fetchResultWithoutNativeDriver(mysqli_stmt $statement) {
+	protected function fetchResultWithoutNativeDriver(mysqli_stmt $statement)
+	{
 		$statement->store_result();
 		
 		$data = array();
@@ -111,7 +114,8 @@ class MySql extends AbstractConnection {
 	 * @param mixed $parameter
 	 * @return string
 	 */
-	protected function prepareType($parameter) {
+	protected function prepareType($parameter)
+	{
 		if (is_int($parameter)) {
 			return 'i';
 		}
@@ -132,7 +136,8 @@ class MySql extends AbstractConnection {
 	 * @param array $parameters
 	 * @return array
 	 */
-	protected function prepareReferences(array $parameters) {
+	protected function prepareReferences(array $parameters)
+	{
 		$references = array();
 		
 		foreach ($parameters as $key => $value) {
@@ -149,7 +154,8 @@ class MySql extends AbstractConnection {
 	 * @param array  $parameters [optional]
 	 * @return \mysqli_stmt
 	 */
-	protected function prepareStatement($query, $parameters = array()) {
+	protected function prepareStatement($query, $parameters = array())
+	{
 		$statement = $this->connection->stmt_init();
 		
 		if (!$statement->prepare($query)) {
@@ -182,7 +188,8 @@ class MySql extends AbstractConnection {
 	 * @param mysqli_stmt $statement
 	 * @return array
 	 */
-	protected function prepareStatementResult(mysqli_stmt $statement) {
+	protected function prepareStatementResult(mysqli_stmt $statement)
+	{
 		list($data, $fields, $count) = $this->fetchResult($statement);
 		
 		$result = array(
@@ -203,7 +210,8 @@ class MySql extends AbstractConnection {
 	 * 
 	 * @return bool
 	 */
-	public function connect() {
+	public function connect()
+	{
 		if ($this->connected()) {
 			return true;
 		}
@@ -228,14 +236,16 @@ class MySql extends AbstractConnection {
 	 * 
 	 * @return bool
 	 */
-	public function connected() {
+	public function connected()
+	{
 		return $this->connected && !$this->connection->connect_errno;
 	}
 	
 	/**
 	 * Close the connection.
 	 */
-	public function disconnect() {
+	public function disconnect()
+	{
 		$this->connection->close();
 		$this->connected = false;
 	}
@@ -245,7 +255,8 @@ class MySql extends AbstractConnection {
 	 * 
 	 * @return Translator
 	 */
-	public function translator() {
+	public function translator()
+	{
 		if (!$this->translator) {
 			$this->translator = new Translator\MySql;
 		}
@@ -262,7 +273,8 @@ class MySql extends AbstractConnection {
 	 * @param array        $parameters [optional]
 	 * @return Result
 	 */
-	public function query($query, array $parameters = array()) {
+	public function query($query, array $parameters = array())
+	{
 		if (!$query instanceof Query) {
 			$query = new Query((string) $query, $parameters);
 		}
@@ -328,7 +340,8 @@ class MySql extends AbstractConnection {
 	 * @param string $string
 	 * @return string
 	 */
-	public function escape($string) {
+	public function escape($string)
+	{
 		$this->connect();
 		
 		return $this->connection->real_escape_string($string);
@@ -342,7 +355,8 @@ class MySql extends AbstractConnection {
 	 * 
 	 * @return Error
 	 */
-	public function error() {
+	public function error()
+	{
 		$connectionError = $this->connectionError();
 		
 		if ($connectionError) {
@@ -365,7 +379,8 @@ class MySql extends AbstractConnection {
 	 * 
 	 * @return Error
 	 */
-	protected function connectionError() {
+	protected function connectionError()
+	{
 		if (!$this->connection) {
 			return null;
 		}
@@ -380,5 +395,4 @@ class MySql extends AbstractConnection {
 		
 		return null;
 	}
-	
 }

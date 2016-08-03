@@ -10,8 +10,8 @@ use Darya\Storage\Query as StorageQuery;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractConnection implements Connection {
-	
+abstract class AbstractConnection implements Connection
+{
 	/**
 	 * Connection object or link identifier.
 	 * 
@@ -66,7 +66,8 @@ abstract class AbstractConnection implements Connection {
 	 * @param string $name Database to select
 	 * @param int    $port [optional] Port to connect to
 	 */
-	public function __construct($host, $user, $pass, $name, $port = null) {
+	public function __construct($host, $user, $pass, $name, $port = null)
+	{
 		$this->details = array(
 			'host' => $host,
 			'user' => $user,
@@ -81,7 +82,8 @@ abstract class AbstractConnection implements Connection {
 	 * 
 	 * @param Dispatchable $dispatcher
 	 */
-	public function setEventDispatcher(Dispatchable $dispatcher) {
+	public function setEventDispatcher(Dispatchable $dispatcher)
+	{
 		$this->eventDispatcher = $dispatcher;
 	}
 	
@@ -93,7 +95,8 @@ abstract class AbstractConnection implements Connection {
 	 * @param mixed  $arguments [optional]
 	 * @return array
 	 */
-	protected function event($name, array $arguments = array()) {
+	protected function event($name, array $arguments = array())
+	{
 		if ($this->eventDispatcher) {
 			return $this->eventDispatcher->dispatch($name, $arguments);
 		}
@@ -106,7 +109,8 @@ abstract class AbstractConnection implements Connection {
 	 * 
 	 * @return bool
 	 */
-	public function connected() {
+	public function connected()
+	{
 		return $this->connected;
 	}
 	
@@ -123,7 +127,8 @@ abstract class AbstractConnection implements Connection {
 	 * @param StorageQuery $storageQuery
 	 * @return \Darya\Database\Query
 	 */
-	public function translate(StorageQuery $storageQuery) {
+	public function translate(StorageQuery $storageQuery)
+	{
 		return $this->translator()->translate($storageQuery);
 	}
 	
@@ -132,7 +137,8 @@ abstract class AbstractConnection implements Connection {
 	 * 
 	 * @return \Darya\Database\Error
 	 */
-	public function error() {
+	public function error()
+	{
 		return $this->lastResult->error;
 	}
 	
@@ -141,8 +147,8 @@ abstract class AbstractConnection implements Connection {
 	 * 
 	 * @return \Darya\Database\Result
 	 */
-	public function lastResult() {
+	public function lastResult()
+	{
 		return $this->lastResult;
 	}
-	
 }

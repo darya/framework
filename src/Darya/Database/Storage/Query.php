@@ -14,8 +14,8 @@ use Darya\Storage\Query as StorageQuery;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Query extends StorageQuery {
-	
+class Query extends StorageQuery
+{
 	/**
 	 * Joins to apply to the query.
 	 * 
@@ -38,7 +38,8 @@ class Query extends StorageQuery {
 	 * @param string $type      [optional]
 	 * @return $this
 	 */
-	public function join($resource, $condition = null, $type = 'inner') {
+	public function join($resource, $condition = null, $type = 'inner')
+	{
 		$join = new Join($type, $resource);
 		
 		if (is_callable($condition)) {
@@ -59,7 +60,8 @@ class Query extends StorageQuery {
 	 * @param mixed  $condition
 	 * @return $this
 	 */
-	public function leftJoin($resource, $condition = null) {
+	public function leftJoin($resource, $condition = null)
+	{
 		$this->join($resource, $condition, 'left');
 		
 		return $this;
@@ -72,7 +74,8 @@ class Query extends StorageQuery {
 	 * @param mixed  $condition
 	 * @return $this
 	 */
-	public function rightJoin($resource, $condition = null) {
+	public function rightJoin($resource, $condition = null)
+	{
 		$this->join($resource, $condition, 'right');
 		
 		return $this;
@@ -86,7 +89,8 @@ class Query extends StorageQuery {
 	 * @param StorageQuery $query
 	 * @return $this
 	 */
-	public function createFrom(StorageQuery $query) {
+	public function createFrom(StorageQuery $query)
+	{
 		$this->modify(static::CREATE);
 		$this->insertSubquery = $query;
 		
@@ -99,8 +103,8 @@ class Query extends StorageQuery {
 	 * @param StorageQuery $query
 	 * @return $this
 	 */
-	public function insertFrom(StorageQuery $query) {
-		$this->modify(static::CREATE);
+	public function insertFrom(StorageQuery $query)
+	{
 		$this->createFrom($query);
 		
 		return $this;

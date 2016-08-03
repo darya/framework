@@ -20,8 +20,8 @@ use Darya\Storage\Query\Builder as QueryBuilder;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Storage implements Aggregational, Readable, Modifiable, Queryable, Searchable {
-	
+class Storage implements Aggregational, Readable, Modifiable, Queryable, Searchable
+{
 	/**
 	 * @var Connection
 	 */
@@ -32,7 +32,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * @param Connection $connection
 	 */
-	public function __construct(Connection $connection) {
+	public function __construct(Connection $connection)
+	{
 		$this->connection = $connection;
 	}
 	
@@ -43,7 +44,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param string $key
 	 * @return array
 	 */
-	protected static function flatten(array $data, $key) {
+	protected static function flatten(array $data, $key)
+	{
 		$flat = array();
 		
 		foreach ($data as $row) {
@@ -61,7 +63,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param array|string $order
 	 * @return array
 	 */
-	protected static function prepareOrder($order) {
+	protected static function prepareOrder($order)
+	{
 		if (is_array($order)) {
 			return $order;
 		}
@@ -86,7 +89,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int    $offset [optional]
 	 * @return array
 	 */
-	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = 0, $offset = 0) {
+	public function distinct($table, $column, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	{
 		$query = new StorageQuery($table, array($column), $filter, static::prepareOrder($order), $limit, $offset);
 		$query->distinct();
 		
@@ -106,7 +110,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int          $offset [optional]
 	 * @return array
 	 */
-	public function listing($table, $columns, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function listing($table, $columns, array $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		$query = new StorageQuery($table, (array) $columns, $filter, static::prepareOrder($order), $limit, $offset);
 		
 		return $this->execute($query)->data;
@@ -124,7 +129,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int          $offset [optional]
 	 * @return array
 	 */
-	public function read($table, array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function read($table, array $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		$query = new StorageQuery($table, array(), $filter, static::prepareOrder($order), $limit, $offset);
 		
 		return $this->execute($query)->data;
@@ -137,7 +143,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param array  $filter [optional]
 	 * @return int
 	 */
-	public function count($table, array $filter = array()) {
+	public function count($table, array $filter = array())
+	{
 		$query = new StorageQuery($table, array(1), $filter);
 		
 		return $this->execute($query)->count;
@@ -152,7 +159,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param array  $data
 	 * @return int
 	 */
-	public function create($table, $data) {
+	public function create($table, $data)
+	{
 		$query = new StorageQuery($table);
 		$query->create($data);
 		
@@ -174,7 +182,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int    $limit  [optional]
 	 * @return int|bool
 	 */
-	public function update($table, $data, array $filter = array(), $limit = null) {
+	public function update($table, $data, array $filter = array(), $limit = null)
+	{
 		if (!$data) {
 			return true;
 		}
@@ -200,7 +209,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int    $limit  [optional]
 	 * @return int|bool
 	 */
-	public function delete($table, array $filter = array(), $limit = null) {
+	public function delete($table, array $filter = array(), $limit = null)
+	{
 		if ($table == '*' || empty($table) || empty($filter)) {
 			return null;
 		}
@@ -219,7 +229,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param Query $storageQuery
 	 * @return DatabaseStorageResult
 	 */
-	public function execute(StorageQuery $storageQuery) {
+	public function execute(StorageQuery $storageQuery)
+	{
 		$query = $this->connection->translate($storageQuery);
 		
 		$databaseResult = $this->connection->query($query->string, $query->parameters);
@@ -236,7 +247,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param array|string $columns  [optional]
 	 * @return Builder
 	 */
-	public function query($resource, $columns = array()) {
+	public function query($resource, $columns = array())
+	{
 		$query = new DatabaseStorageQuery($resource, (array) $columns);
 		
 		return new QueryBuilder($query, $this);
@@ -257,7 +269,8 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param int          $offset  [optional]
 	 * @return array
 	 */
-	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0) {
+	public function search($table, $query, $columns = array(), array $filter = array(), $order = array(), $limit = null, $offset = 0)
+	{
 		$order = static::prepareOrder($order);
 		
 		if (!is_string($query) || empty($columns)) {
@@ -285,12 +298,12 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * @return string|bool
 	 */
-	public function error() {
+	public function error()
+	{
 		if ($error = $this->connection->error()) {
 			return $error->message;
 		}
 		
 		return false;
 	}
-	
 }

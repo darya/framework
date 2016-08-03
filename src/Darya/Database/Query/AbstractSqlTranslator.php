@@ -13,8 +13,8 @@ use Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractSqlTranslator implements Translator {
-	
+abstract class AbstractSqlTranslator implements Translator
+{
 	/**
 	 * Filter comparison operators.
 	 * 
@@ -40,7 +40,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string $delimiter [optional]
 	 * @return string
 	 */
-	protected static function concatenate($strings, $delimiter = ' ') {
+	protected static function concatenate($strings, $delimiter = ' ')
+	{
 		$strings = array_filter($strings, function($value) {
 			return !empty($value);
 		});
@@ -58,7 +59,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param int $offset
 	 * @return bool
 	 */
-	protected static function limitIsUseful($limit, $offset) {
+	protected static function limitIsUseful($limit, $offset)
+	{
 		return (int) $limit !== 0 || (int) $offset !== 0;
 	}
 	
@@ -69,7 +71,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @return Database\Query
 	 * @throws InvalidArgumentException
 	 */
-	public function translate(Storage\Query $storageQuery) {
+	public function translate(Storage\Query $storageQuery)
+	{
 		$type = $storageQuery->type;
 		
 		$method = 'translate' . ucfirst($type);
@@ -89,7 +92,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
 	 */
-	protected function translateCreate(Storage\Query $storageQuery) {
+	protected function translateCreate(Storage\Query $storageQuery)
+	{
 		if ($storageQuery instanceof Database\Storage\Query && $storageQuery->insertSubquery) {
 			return new Database\Query(
 				$this->prepareInsertSelect($storageQuery->resource, $storageQuery->fields, $storageQuery->insertSubquery),
@@ -109,7 +113,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
 	 */
-	protected function translateRead(Storage\Query $storageQuery) {
+	protected function translateRead(Storage\Query $storageQuery)
+	{
 		if ($storageQuery instanceof Database\Storage\Query) {
 			return $this->translateDatabaseRead($storageQuery);
 		}
@@ -132,7 +137,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * 
 	 * @param Database\Storage\Query $storageQuery
 	 */
-	protected function translateDatabaseRead(Database\Storage\Query $storageQuery) {
+	protected function translateDatabaseRead(Database\Storage\Query $storageQuery)
+	{
 				return new Database\Query(
 			$this->prepareSelect($storageQuery->resource,
 				$this->prepareColumns($storageQuery->fields),
@@ -152,7 +158,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
 	 */
-	protected function translateUpdate(Storage\Query $storageQuery) {
+	protected function translateUpdate(Storage\Query $storageQuery)
+	{
 		return new Database\Query(
 			$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
 				$this->prepareWhere($storageQuery->filter),
@@ -168,7 +175,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $storageQuery
 	 * @return Database\Query
 	 */
-	protected function translateDelete(Storage\Query $storageQuery) {
+	protected function translateDelete(Storage\Query $storageQuery)
+	{
 		return new Database\Query(
 			$this->prepareDelete($storageQuery->resource,
 				$this->prepareWhere($storageQuery->filter),
@@ -196,7 +204,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
-	protected function identifier($identifier) {
+	protected function identifier($identifier)
+	{
 		if (is_array($identifier)) {
 			return array_map(array($this, 'identifier'), $identifier);
 		}
@@ -214,7 +223,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function translatable($value) {
+	protected function translatable($value)
+	{
 		return $value instanceof Storage\Query\Builder || $value instanceof Storage\Query;
 	}
 	
@@ -226,7 +236,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $query
 	 * @return Database\Query
 	 */
-	protected function translateTranslatable($query) {
+	protected function translateTranslatable($query)
+	{
 		if (!$this->translatable($query)) {
 			throw new InvalidArgumentException("Cannot translate query of type '" . get_class($query) . "'");
 		}
@@ -248,7 +259,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $value
 	 * @return string
 	 */
-	protected function translateValue($value) {
+	protected function translateValue($value)
+	{
 		$query = $this->translateTranslatable($value);
 		
 		return "($query)";
@@ -264,7 +276,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $value
 	 * @return array|string
 	 */
-	protected function value($value) {
+	protected function value($value)
+	{
 		if (is_array($value)) {
 			return array_map(array($this, 'value'), $value);
 		}
@@ -282,7 +295,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $value
 	 * @return string
 	 */
-	protected function resolveValue($value) {
+	protected function resolveValue($value)
+	{
 		if ($value === null) {
 			return 'NULL';
 		}
@@ -300,7 +314,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function resolvesPlaceholder($value) {
+	protected function resolvesPlaceholder($value)
+	{
 		return $this->resolveValue($value) === $this->placeholder;
 	}
 	
@@ -313,7 +328,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array $columns
 	 * @return array
 	 */
-	protected function prepareColumnAliases(array $columns) {
+	protected function prepareColumnAliases(array $columns)
+	{
 		foreach ($columns as $alias => &$column) {
 			if (is_string($alias) && preg_match('/^[\w]/', $alias)) {
 				$aliasIdentifier = $this->identifier($alias);
@@ -330,7 +346,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array|string $columns
 	 * @return string
 	 */
-	protected function prepareColumns($columns) {
+	protected function prepareColumns($columns)
+	{
 		if (empty($columns)) {
 			return '*';
 		}
@@ -348,7 +365,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string $operator
 	 * @return bool
 	 */
-	protected function validOperator($operator) {
+	protected function validOperator($operator)
+	{
 		$operator = trim($operator);
 		
 		return in_array(strtolower($operator), $this->operators);
@@ -363,7 +381,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string $operator
 	 * @return string
 	 */
-	protected function prepareRawOperator($operator) {
+	protected function prepareRawOperator($operator)
+	{
 		$operator = trim($operator);
 		
 		return $this->validOperator($operator) ? strtoupper($operator) : '=';
@@ -376,7 +395,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed  $value    [optional]
 	 * @return string
 	 */
-	protected function prepareOperator($operator, $value = null) {
+	protected function prepareOperator($operator, $value = null)
+	{
 		$operator = $this->prepareRawOperator($operator);
 		
 		if (!$this->resolvesPlaceholder($value)) {
@@ -408,7 +428,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string $type
 	 * @return string
 	 */
-	protected function prepareJoinType($type) {
+	protected function prepareJoinType($type)
+	{
 		if (in_array($type, array('left', 'right'))) {
 			return strtoupper($type) . ' JOIN';
 		}
@@ -422,7 +443,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Join $join
 	 * @return string
 	 */
-	protected function prepareJoinTable(Join $join) {
+	protected function prepareJoinTable(Join $join)
+	{
 		$table = $this->identifier($join->resource);
 		$alias = $this->identifier($join->alias);
 		
@@ -437,7 +459,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string $condition
 	 * @return string
 	 */
-	protected function prepareJoinCondition($condition) {
+	protected function prepareJoinCondition($condition)
+	{
 		$parts = preg_split('/\s+/', $condition, 3);
 		
 		if (count($parts) < 3) {
@@ -459,7 +482,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Join $join
 	 * @return string
 	 */
-	protected function prepareJoinConditions(Join $join) {
+	protected function prepareJoinConditions(Join $join)
+	{
 		$conditions = array();
 		
 		foreach ($join->conditions as $condition) {
@@ -477,7 +501,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Join $join
 	 * @return string
 	 */
-	protected function prepareJoin(Join $join) {
+	protected function prepareJoin(Join $join)
+	{
 		$table = $this->prepareJoinTable($join);
 		$conditions = $this->prepareJoinConditions($join);
 		
@@ -498,7 +523,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array $joins
 	 * @return string
 	 */
-	protected function prepareJoins(array $joins) {
+	protected function prepareJoins(array $joins)
+	{
 		$clauses = array();
 		
 		foreach ($joins as $join) {
@@ -515,7 +541,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param mixed  $given
 	 * @return string
 	 */
-	protected function prepareFilterCondition($column, $given) {
+	protected function prepareFilterCondition($column, $given)
+	{
 		list($left, $right) = array_pad(preg_split('/\s+/', $column, 2), 2, null);
 		
 		$column = $this->prepareColumns($left);
@@ -549,7 +576,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array $filter
 	 * @return array
 	 */
-	protected function prepareFilter(array $filter) {
+	protected function prepareFilter(array $filter)
+	{
 		$conditions = array();
 		
 		foreach ($filter as $column => $value) {
@@ -580,7 +608,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param bool   $excludeWhere [optional]
 	 * @return string
 	 */
-	protected function prepareWhere(array $filter, $comparison = 'AND', $excludeWhere = false) {
+	protected function prepareWhere(array $filter, $comparison = 'AND', $excludeWhere = false)
+	{
 		$conditions = $this->prepareFilter($filter);
 		
 		if (empty($conditions)) {
@@ -599,7 +628,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param string $direction [optional]
 	 * @return string
 	 */
-	protected function prepareOrder($column, $direction = null) {
+	protected function prepareOrder($column, $direction = null)
+	{
 		$column = $this->identifier($column);
 		$direction = $direction !== null ? strtoupper($direction) : 'ASC';
 		
@@ -619,7 +649,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array|string $order
 	 * @return string
 	 */
-	protected function prepareOrderBy($order) {
+	protected function prepareOrderBy($order)
+	{
 		$conditions = array();
 		
 		foreach ((array) $order as $key => $value) {
@@ -668,7 +699,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array  $data
 	 * @return string
 	 */
-	protected function prepareInsert($table, array $data) {
+	protected function prepareInsert($table, array $data)
+	{
 		$table = $this->identifier($table);
 		
 		$columns = $this->identifier(array_keys($data));
@@ -689,7 +721,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $subquery
 	 * @return string
 	 */
-	public function prepareInsertSelect($table, array $columns, Storage\Query $subquery) {
+	public function prepareInsertSelect($table, array $columns, Storage\Query $subquery)
+	{
 		$table = $this->identifier($table);
 		
 		if (!empty($columns)) {
@@ -729,7 +762,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array $columns
 	 * @return array
 	 */
-	protected function columnParameters($columns) {
+	protected function columnParameters($columns)
+	{
 		$parameters = array();
 		
 		foreach ($columns as $column) {
@@ -751,7 +785,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array $data
 	 * @return array
 	 */
-	protected function dataParameters($data) {
+	protected function dataParameters($data)
+	{
 		$parameters = array();
 		
 		foreach ($data as $value) {
@@ -769,7 +804,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Join[] $joins
 	 * @return array
 	 */
-	protected function joinParameters($joins) {
+	protected function joinParameters($joins)
+	{
 		$parameters = array();
 		
 		foreach ($joins as $join) {
@@ -785,7 +821,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param array $filter
 	 * @return array
 	 */
-	protected function filterParameters($filter) {
+	protected function filterParameters($filter)
+	{
 		$parameters = array();
 		
 		foreach ($filter as $index => $value) {
@@ -828,7 +865,8 @@ abstract class AbstractSqlTranslator implements Translator {
 	 * @param Storage\Query $storageQuery
 	 * @return array
 	 */
-	public function parameters(Storage\Query $storageQuery) {
+	public function parameters(Storage\Query $storageQuery)
+	{
 		$parameters = $this->columnParameters($storageQuery->fields);
 		
 		if (in_array($storageQuery->type, array(Storage\Query::CREATE, Storage\Query::UPDATE))) {
@@ -837,8 +875,9 @@ abstract class AbstractSqlTranslator implements Translator {
 		
 		$joinParameters = array();
 		
-		if ($storageQuery instanceof Database\Storage\Query)
+		if ($storageQuery instanceof Database\Storage\Query) {
 			$joinParameters = $this->joinParameters($storageQuery->joins);
+		}
 		
 		$parameters = array_merge(
 			$parameters,
@@ -848,5 +887,4 @@ abstract class AbstractSqlTranslator implements Translator {
 		
 		return $parameters;
 	}
-	
 }

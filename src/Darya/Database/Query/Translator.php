@@ -8,8 +8,8 @@ use Darya\Storage;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Translator {
-	
+interface Translator
+{
 	/**
 	 * Translate the given storage query to a database-specific query.
 	 * 
@@ -17,5 +17,4 @@ interface Translator {
 	 * @return \Darya\Database\Query
 	 */
 	public function translate(Storage\Query $storageQuery);
-	
 }

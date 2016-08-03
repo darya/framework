@@ -18,8 +18,8 @@ use Darya\Database\Query;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Result extends AbstractResult {
-	
+class Result extends AbstractResult
+{
 	/**
 	 * The database query that produced this result.
 	 * 
@@ -51,5 +51,4 @@ class Result extends AbstractResult {
 		
 		$this->setInfo($info);
 	}
-	
 }

@@ -9,8 +9,8 @@ use UnexpectedValueException;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Factory {
-	
+class Factory
+{
 	/**
 	 * The class name or database type name to use by default
 	 * 
@@ -32,9 +32,10 @@ class Factory {
 	/**
 	 * Instantiate a new database factory.
 	 * 
-	 * @param string $default
+	 * @param string $default [optional]
 	 */
-	public function __construct($default = null) {
+	public function __construct($default = null)
+	{
 		$this->default = $default ?: $this->default;
 	}
 	
@@ -44,7 +45,8 @@ class Factory {
 	 * @param array $options
 	 * @return array
 	 */
-	protected function prepareOptions(array $options) {
+	protected function prepareOptions(array $options)
+	{
 		return array_merge(array(
 			'hostname' => 'localhost',
 			'username' => null,
@@ -60,7 +62,8 @@ class Factory {
 	 * @param string $string
 	 * @return string
 	 */
-	protected function resolveClass($string) {
+	protected function resolveClass($string)
+	{
 		if (class_exists($string)) {
 			return $string;
 		}
@@ -80,7 +83,8 @@ class Factory {
 	 *                       'database' and optionally 'port'
 	 * @return Connection
 	 */
-	public function create($name = null, array $options = array()) {
+	public function create($name = null, array $options = array())
+	{
 		$name = $name ?: $this->default;
 		$class = $this->resolveClass($name);
 		$options = $this->prepareOptions($options);
@@ -97,5 +101,4 @@ class Factory {
 			$options['port']
 		);
 	}
-	
 }

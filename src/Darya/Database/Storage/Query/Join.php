@@ -72,7 +72,8 @@ class Join
 	 * @param string $resource
 	 * @return array
 	 */
-	protected static function resolveResource($resource) {
+	protected static function resolveResource($resource)
+	{
 		if (empty($resource)) {
 			return array(null, null);
 		}
@@ -145,5 +146,4 @@ class Join
 	{
 		return $this->$property;
 	}
-	
 }

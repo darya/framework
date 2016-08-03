@@ -12,14 +12,15 @@ use Darya\Database\Query;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class SqlServer extends AbstractConnection {
-	
+class SqlServer extends AbstractConnection
+{
 	/**
 	 * Initiate the connection.
 	 * 
 	 * @return bool
 	 */
-	public function connect() {
+	public function connect()
+	{
 		if ($this->connected()) {
 			return true;
 		}
@@ -46,7 +47,8 @@ class SqlServer extends AbstractConnection {
 	/**
 	 * Close the connection.
 	 */
-	public function disconnect() {
+	public function disconnect()
+	{
 		if ($this->connected()) {
 			sqlsrv_close($this->connection);
 		}
@@ -59,7 +61,8 @@ class SqlServer extends AbstractConnection {
 	 * 
 	 * @return Translator
 	 */
-	public function translator() {
+	public function translator()
+	{
 		if (!$this->translator) {
 			$this->translator = new Translator\SqlServer;
 		}
@@ -76,7 +79,8 @@ class SqlServer extends AbstractConnection {
 	 * @param string $query
 	 * @return int
 	 */
-	protected function queryInsertId($query) {
+	protected function queryInsertId($query)
+	{
 		if (!preg_match('/^\s*INSERT\s+INTO\b/i', $query)) {
 			return null;
 		}
@@ -93,7 +97,8 @@ class SqlServer extends AbstractConnection {
 	 * @param string $query
 	 * @return int
 	 */
-	protected function queryAffected($query) {
+	protected function queryAffected($query)
+	{
 		if (preg_match('/^\s*SELECT\b/i', $query)) {
 			return null;
 		}
@@ -113,7 +118,8 @@ class SqlServer extends AbstractConnection {
 	 * @param array        $parameters [optional]
 	 * @return Result
 	 */
-	public function query($query, array $parameters = array()) {
+	public function query($query, array $parameters = array())
+	{
 		if (!$query instanceof Query) {
 			$query = new Query($query, $parameters);
 		}
@@ -191,7 +197,8 @@ class SqlServer extends AbstractConnection {
 	 * 
 	 * @return Error
 	 */
-	public function error() {
+	public function error()
+	{
 		$errors = sqlsrv_errors(SQLSRV_ERR_ERRORS);
 		
 		if (!$errors) {

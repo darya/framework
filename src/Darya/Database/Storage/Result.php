@@ -13,8 +13,8 @@ use Darya\Storage\Result as StorageResult;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Result extends StorageResult {
-	
+class Result extends StorageResult
+{
 	/**
 	 * @var DatabaseQuery
 	 */
@@ -28,7 +28,8 @@ class Result extends StorageResult {
 	 * @param DatabaseResult $result
 	 * @return StorageResult
 	 */
-	public static function createWithDatabaseResult(StorageQuery $query, DatabaseResult $result) {
+	public static function createWithDatabaseResult(StorageQuery $query, DatabaseResult $result)
+	{
 		$instance = new static($query, $result->data, $result->getInfo(), $result->error);
 		
 		$instance->setDatabaseQuery($result->query);
@@ -41,8 +42,8 @@ class Result extends StorageResult {
 	 * 
 	 * @param DatabaseQuery $query
 	 */
-	public function setDatabaseQuery(DatabaseQuery $query) {
+	public function setDatabaseQuery(DatabaseQuery $query)
+	{
 		$this->databaseQuery = $query;
 	}
-	
 }

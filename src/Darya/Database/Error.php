@@ -11,6 +11,7 @@ use Darya\Storage\Error as StorageError;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Error extends StorageError {
+class Error extends StorageError
+{
 	
 }

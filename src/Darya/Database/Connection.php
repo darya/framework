@@ -8,8 +8,8 @@ use Darya\Storage\Query as StorageQuery;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Connection {
-	
+interface Connection
+{
 	/**
 	 * Initiate a connection to the database.
 	 */
@@ -50,5 +50,4 @@ interface Connection {
 	 * @return \Darya\Database\Error
 	 */
 	public function error();
-	
 }
