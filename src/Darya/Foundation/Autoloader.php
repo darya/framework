@@ -100,6 +100,7 @@ class Autoloader
 	{
 		if (is_file($path)) {
 			require_once $path;
+			
 			return true;
 		}
 		

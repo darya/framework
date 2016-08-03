@@ -43,7 +43,8 @@ class DebugService implements Provider
 	 * @param Configuration $configuration
 	 * @param Dispatcher    $events
 	 */
-	public function boot(Configuration $configuration, Dispatcher $events) {
+	public function boot(Configuration $configuration, Dispatcher $events)
+	{
 		if (!$configuration->get('debug') || !class_exists('Chrome')) {
 			return;
 		}

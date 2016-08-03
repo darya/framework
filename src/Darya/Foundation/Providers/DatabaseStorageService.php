@@ -27,10 +27,10 @@ class DatabaseStorageService implements Provider
 			'Darya\Database\Storage' => function ($container) {
 				return new Storage($container->resolve('Darya\Database\Connection'));
 			},
-			'Darya\Storage\Readable'   => 'Darya\Database\Storage',
-			'Darya\Storage\Modifiable' => 'Darya\Database\Storage',
-			'Darya\Storage\Searchable' => 'Darya\Database\Storage',
-			'Darya\Storage\Queryable'  => 'Darya\Database\Storage',
+			'Darya\Storage\Readable'      => 'Darya\Database\Storage',
+			'Darya\Storage\Modifiable'    => 'Darya\Database\Storage',
+			'Darya\Storage\Searchable'    => 'Darya\Database\Storage',
+			'Darya\Storage\Queryable'     => 'Darya\Database\Storage',
 			'Darya\Storage\Aggregational' => 'Darya\Database\Storage'
 		));
 	}
