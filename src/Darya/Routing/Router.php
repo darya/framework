@@ -17,28 +17,36 @@ use Darya\Service\Contracts\ContainerAware;
  * 
  * @author Chris Andrew <chris.andrew>
  */
-class Router implements ContainerAware {
-	
+class Router implements ContainerAware
+{
 	/**
-	 * @var array Regular expression replacements for matching route paths to request URIs
+	 * Regular expression replacements for matching route paths to request URIs.
+	 * 
+	 * @var array
 	 */
 	protected $patterns = array(
 		'#/:([A-Za-z0-9_-]+)#' => '(?:/(?<$1>[^/]+))',
-		'#/:params#' => '(?:/(?<params>.*))?'
+		'#/:params#'           => '(?:/(?<params>.*))?'
 	);
 	
 	/**
-	 * @var string Base URI to expect when matching routes
+	 * Base URI to expect when matching routes.
+	 * 
+	 * @var string
 	 */
 	protected $base;
 	
 	/**
-	 * @var array Collection of routes to match requests against
+	 * Collection of routes to match requests against.
+	 * 
+	 * @var array
 	 */
 	protected $routes = array();
 	
 	/**
-	 * @var array Default values for the router to apply to matched routes
+	 * Default values for the router to apply to matched routes.
+	 * 
+	 * @var array
 	 */
 	protected $defaults = array(
 		'namespace'  => null,
@@ -47,22 +55,30 @@ class Router implements ContainerAware {
 	);
 	
 	/**
-	 * @var array Set of callbacks for filtering matched routes and their parameters
+	 * Set of callbacks for filtering matched routes and their parameters.
+	 * 
+	 * @var array
 	 */
 	protected $filters = array();
 	
 	/**
-	 * @var \Darya\Events\Dispatchable
+	 * The event dispatcher to use for routing events.
+	 * 
+	 * @var Dispatchable
 	 */
 	protected $eventDispatcher;
 	
 	/**
-	 * @var \Darya\Service\Contracts\Container
+	 * The service container to use to resolve controllers and other callables.
+	 * 
+	 * @var Container
 	 */
 	protected $services;
 	
 	/**
-	 * @var callable Callable for handling dispatched requests that don't match a route
+	 * Callable for handling dispatched requests that don't match a route.
+	 * 
+	 * @var callable
 	 */
 	protected $errorHandler;
 	
@@ -73,7 +89,8 @@ class Router implements ContainerAware {
 	 * @param string $path Route path to prepare
 	 * @return string Regular expression that matches a route's path
 	 */
-	public function preparePattern($path) {
+	public function preparePattern($path)
+	{
 		foreach (array_reverse($this->patterns) as $pattern => $replacement) {
 			$path = preg_replace($pattern, $replacement, $path);
 		}
@@ -91,7 +108,8 @@ class Router implements ContainerAware {
 	 * @param string $controller Route path parameter controller string
 	 * @return string Controller class name
 	 */
-	public static function prepareController($controller) {
+	public static function prepareController($controller)
+	{
 		if (strpos($controller, 'Controller') === strlen($controller) - 10) {
 			return $controller;
 		}
@@ -110,7 +128,8 @@ class Router implements ContainerAware {
 	 * @param string $action URL action name
 	 * @return string Action method name
 	 */
-	public static function prepareAction($action) {
+	public static function prepareAction($action)
+	{
 		return preg_replace_callback('/-(.)/', function ($matches) {
 			return strtoupper($matches[1]);
 		}, $action);
@@ -119,10 +138,11 @@ class Router implements ContainerAware {
 	/**
 	 * Instantiates a new request using the given argument.
 	 *
-	 * @param \Darya\Http\Request|string $request
-	 * @return \Darya\Http\Request
+	 * @param Request|string $request
+	 * @return Request
 	 */
-	public static function prepareRequest($request) {
+	public static function prepareRequest($request)
+	{
 		if (!$request instanceof Request) {
 			$request = Request::create($request);
 		}
@@ -134,9 +154,10 @@ class Router implements ContainerAware {
 	 * Prepare a response object using the given value.
 	 * 
 	 * @param mixed $response
-	 * @return \Darya\Http\Response
+	 * @return Response
 	 */
-	public static function prepareResponse($response) {
+	public static function prepareResponse($response)
+	{
 		if (!$response instanceof Response) {
 			$response = new Response($response);
 		}
@@ -155,7 +176,8 @@ class Router implements ContainerAware {
 	 * @param array $routes   Routes to match
 	 * @param array $defaults Default router properties
 	 */
-	public function __construct(array $routes = array(), array $defaults = array()) {
+	public function __construct(array $routes = array(), array $defaults = array())
+	{
 		$this->add($routes);
 		$this->defaults($defaults);
 		$this->filter(array($this, 'resolve'));
@@ -165,9 +187,10 @@ class Router implements ContainerAware {
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 * 
-	 * @param \Darya\Events\Dispatchable $dispatcher
+	 * @param Dispatchable $dispatcher
 	 */
-	public function setEventDispatcher(Dispatchable $dispatcher) {
+	public function setEventDispatcher(Dispatchable $dispatcher)
+	{
 		$this->eventDispatcher = $dispatcher;
 	}
 	
@@ -175,9 +198,10 @@ class Router implements ContainerAware {
 	 * Set an optional service container for resolving the dependencies of
 	 * controllers and actions.
 	 * 
-	 * @param \Darya\Service\Contracts\Container $container
+	 * @param Container $container
 	 */
-	public function setServiceContainer(Container $container) {
+	public function setServiceContainer(Container $container)
+	{
 		$this->services = $container;
 	}
 	
@@ -186,7 +210,8 @@ class Router implements ContainerAware {
 	 * 
 	 * @param callable $handler
 	 */
-	public function setErrorHandler($handler) {
+	public function setErrorHandler($handler)
+	{
 		if (is_callable($handler)) {
 			$this->errorHandler = $handler;
 		}
@@ -198,12 +223,13 @@ class Router implements ContainerAware {
 	 * 
 	 * Returns the given response if no error handler is set.
 	 * 
-	 * @param \Darya\Http\Request  $request
-	 * @param \Darya\Http\Response $response
-	 * @param string               $message [optional]
-	 * @return \Darya\Http\Response
+	 * @param Request  $request
+	 * @param Response $response
+	 * @param string   $message  [optional]
+	 * @return Response
 	 */
-	protected function handleError(Request $request, Response $response, $message = null) {
+	protected function handleError(Request $request, Response $response, $message = null)
+	{
 		if ($this->errorHandler) {
 			$errorHandler = $this->errorHandler;
 			$response = static::prepareResponse($this->call($errorHandler, array($request, $response, $message)));
@@ -222,7 +248,8 @@ class Router implements ContainerAware {
 	 * @param array $arguments [optional]
 	 * @return mixed
 	 */
-	protected function call($callable, array $arguments = array()) {
+	protected function call($callable, array $arguments = array())
+	{
 		if (is_callable($callable)) {
 			if ($this->services) {
 				return $this->services->call($callable, $arguments);
@@ -237,13 +264,15 @@ class Router implements ContainerAware {
 	/**
 	 * Helper method for instantiating classes.
 	 * 
-	 * Instantiates the given class if it isn't already an object.
+	 * Instantiates the given class if it isn't already an object. Uses the
+	 * service container if available.
 	 * 
 	 * @param mixed $class
 	 * @param array $arguments [optional]
 	 * @return object
 	 */
-	protected function create($class, $arguments) {
+	protected function create($class, $arguments)
+	{
 		if (!is_object($class) && class_exists($class)) {
 			if ($this->services) {
 				$class = $this->services->create($class, $arguments);
@@ -264,7 +293,8 @@ class Router implements ContainerAware {
 	 * @param mixed  $arguments [optional]
 	 * @return array
 	 */
-	protected function event($name, array $arguments = array()) {
+	protected function event($name, array $arguments = array())
+	{
 		if ($this->eventDispatcher) {
 			return $this->eventDispatcher->dispatch($name, $arguments);
 		}
@@ -280,7 +310,8 @@ class Router implements ContainerAware {
 	 * @param mixed $subscriber
 	 * @return bool
 	 */
-	protected function subscribe($subscriber) {
+	protected function subscribe($subscriber)
+	{
 		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
 			$this->eventDispatcher->subscribe($subscriber);
 			return true;
@@ -298,7 +329,8 @@ class Router implements ContainerAware {
 	 * @param mixed $subscriber
 	 * @return bool
 	 */
-	protected function unsubscribe($subscriber) {
+	protected function unsubscribe($subscriber)
+	{
 		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
 			$this->eventDispatcher->unsubscribe($subscriber);
 			return true;
@@ -325,7 +357,8 @@ class Router implements ContainerAware {
 	 * @param string|array          $routes   Route definitions or a route path
 	 * @param callable|array|string $defaults Default parameters for the route if $routes is a route path
 	 */
-	public function add($routes, $defaults = null) {
+	public function add($routes, $defaults = null)
+	{
 		if (is_array($routes)) {
 			foreach ($routes as $path => $defaults) {
 				if ($defaults instanceof Route) {
@@ -347,7 +380,8 @@ class Router implements ContainerAware {
 	 * @param string $path     Path that matches the route
 	 * @param mixed  $defaults Default route parameters
 	 */
-	public function set($name, $path, $defaults = array()) {
+	public function set($name, $path, $defaults = array())
+	{
 		$this->routes[$name] = new Route($path, $defaults);
 	}
 	
@@ -357,7 +391,8 @@ class Router implements ContainerAware {
 	 * @param string $uri [optional]
 	 * @return string
 	 */
-	public function base($uri = null) {
+	public function base($uri = null)
+	{
 		if (!is_null($uri)) {
 			$this->base = $uri;
 		}
@@ -376,7 +411,8 @@ class Router implements ContainerAware {
 	 * @param array $defaults [optional]
 	 * @return array Router's default route parameters
 	 */
-	public function defaults(array $defaults = array()) {
+	public function defaults(array $defaults = array())
+	{
 		foreach ($defaults as $key => $value) {
 			$property = strtolower($key);
 			$this->defaults[$property] = $value;
@@ -392,9 +428,10 @@ class Router implements ContainerAware {
 	 * A route is passed by reference when matched by Router::match().
 	 * 
 	 * @param callable $callback
-	 * @return \Darya\Routing\Router
+	 * @return Router
 	 */
-	public function filter($callback) {
+	public function filter($callback)
+	{
 		if (is_callable($callback)) {
 			$this->filters[] = $callback;
 		}
@@ -407,9 +444,10 @@ class Router implements ContainerAware {
 	 * 
 	 * @param string $pattern
 	 * @param string $replacement
-	 * @return \Darya\Routing\Router
+	 * @return Router
 	 */
-	public function pattern($pattern, $replacement) {
+	public function pattern($pattern, $replacement)
+	{
 		$this->patterns[$pattern] = $replacement;
 		
 		return $this;
@@ -420,10 +458,11 @@ class Router implements ContainerAware {
 	 * 
 	 * Falls back to the router's default controller.
 	 * 
-	 * @param \Darya\Routing\Route $route
-	 * @return \Darya\Routing\Route
+	 * @param Route $route
+	 * @return Route
 	 */
-	protected function resolveRouteController(Route $route) {
+	protected function resolveRouteController(Route $route)
+	{
 		if (!$route->namespace) {
 			$route->namespace = $this->defaults['namespace'];
 		}
@@ -451,10 +490,11 @@ class Router implements ContainerAware {
 	 * 
 	 * Falls back to the router's default action.
 	 * 
-	 * @param \Darya\Routing\Route $route
-	 * @return \Darya\Routing\Route
+	 * @param Route $route
+	 * @return Route
 	 */
-	protected function resolveRouteAction(Route $route) {
+	protected function resolveRouteAction(Route $route)
+	{
 		if ($route->action) {
 			if (!is_string($route->action)) {
 				return $route;
@@ -483,10 +523,11 @@ class Router implements ContainerAware {
 	 * 
 	 * TODO: Also apply any other default parameters.
 	 * 
-	 * @param \Darya\Routing\Route $route
+	 * @param Route $route
 	 * @return bool
 	 */
-	public function resolve(Route $route) {
+	public function resolve(Route $route)
+	{
 		$this->resolveRouteController($route);
 		$this->resolveRouteAction($route);
 		
@@ -500,10 +541,11 @@ class Router implements ContainerAware {
 	 * This is a built in route filter that is registered by default. It expects
 	 * the `resolve` filter to have already been applied to the given route.
 	 * 
-	 * @param \Darya\Routing\Route $route
+	 * @param Route $route
 	 * @return bool
 	 */
-	public function dispatchable(Route $route) {
+	public function dispatchable(Route $route)
+	{
 		$dispatchableAction = is_callable($route->action);
 		
 		$dispatchableController =
@@ -520,7 +562,8 @@ class Router implements ContainerAware {
 	 * @param string $uri
 	 * @return string
 	 */
-	protected function stripBase($uri) {
+	protected function stripBase($uri)
+	{
 		if (!empty($this->base) && strpos($uri, $this->base) === 0) {
 			$uri = substr($uri, strlen($this->base));
 		}
@@ -533,11 +576,12 @@ class Router implements ContainerAware {
 	 * 
 	 * Optionally test against the given callback after testing against filters.
 	 * 
-	 * @param \Darya\Routing\Route $route
-	 * @param callable             $callback
+	 * @param Route    $route
+	 * @param callable $callback
 	 * @return bool
 	 */
-	protected function testMatchFilters(Route $route, $callback = null) {
+	protected function testMatchFilters(Route $route, $callback = null)
+	{
 		$filters = is_callable($callback) ? array_merge($this->filters, array($callback)) : $this->filters;
 		
 		foreach ($filters as $filter) {
@@ -558,12 +602,13 @@ class Router implements ContainerAware {
 	 * 
 	 * Fires the 'router.prefilter' event before testing against filters.
 	 * 
-	 * @param \Darya\Http\Request  $request
-	 * @param \Darya\Routing\Route $route
-	 * @param callable             $callback [optional]
+	 * @param Request  $request
+	 * @param Route    $route
+	 * @param callable $callback [optional]
 	 * @return bool
 	 */
-	protected function testMatch(Request $request, Route $route, $callback = null) {
+	protected function testMatch(Request $request, Route $route, $callback = null)
+	{
 		$path = $this->stripBase($request->path());
 		$pattern = $this->preparePattern($route->path());
 		
@@ -583,11 +628,12 @@ class Router implements ContainerAware {
 	/**
 	 * Match a request to one of the router's routes.
 	 * 
-	 * @param \Darya\Http\Request|string $request A request URI or a Request object to match
-	 * @param callable $callback [optional] Callback for filtering matched routes
-	 * @return \Darya\Routing\Route|bool The matched route
+	 * @param Request|string $request  A request URI or a Request object to match
+	 * @param callable       $callback [optional] Callback for filtering matched routes
+	 * @return Route|bool              The matched route
 	 */
-	public function match($request, $callback = null) {
+	public function match($request, $callback = null)
+	{
 		$request = static::prepareRequest($request);
 		
 		foreach ($this->routes as $route) {
@@ -612,13 +658,14 @@ class Router implements ContainerAware {
 	 * An error handler can be set (@see Router::setErrorHandler()) to handle
 	 * the request in the case that the given action is not callable.
 	 * 
-	 * @param \Darya\Http\Request  $request
-	 * @param \Darya\Http\Response $response
-	 * @param callable|string      $callable
-	 * @param array                $arguments [optional]
-	 * @return \Darya\Http\Response
+	 * @param Request         $request
+	 * @param Response        $response
+	 * @param callable|string $callable
+	 * @param array           $arguments [optional]
+	 * @return Response
 	 */
-	protected function dispatchCallable(Request $request, Response $response, $callable, array $arguments = array()) {
+	protected function dispatchCallable(Request $request, Response $response, $callable, array $arguments = array())
+	{
 		$requestResponse = array($request, $response);
 		
 		$responses = $this->event('router.before', $requestResponse);
@@ -652,11 +699,12 @@ class Router implements ContainerAware {
 	 * the request in the case that a route could not be matched. Returns null
 	 * in this case if an error handler is not set.
 	 * 
-	 * @param \Darya\Http\Request|string $request
-	 * @param \Darya\Http\Response       $response [optional]
-	 * @return \Darya\Http\Response
+	 * @param Request|string $request
+	 * @param Response       $response [optional]
+	 * @return Response
 	 */
-	public function dispatch($request, Response $response = null) {
+	public function dispatch($request, Response $response = null)
+	{
 		$request  = static::prepareRequest($request);
 		$response = static::prepareResponse($response);
 		
@@ -694,10 +742,11 @@ class Router implements ContainerAware {
 	 * 
 	 * Optionally pass through an existing response object.
 	 * 
-	 * @param \Darya\Http\Request|string $request
-	 * @param \Darya\Http\Response       $response [optional]
+	 * @param Request|string $request
+	 * @param Response       $response [optional]
 	 */
-	public function respond($request, Response $response = null) {
+	public function respond($request, Response $response = null)
+	{
 		$response = $this->dispatch($request, $response);
 		$response->send();
 	}
@@ -711,7 +760,8 @@ class Router implements ContainerAware {
 	 * @param array $parameters [optional]
 	 * @return string
 	 */
-	public function generate($path, array $parameters = array()) {
+	public function generate($path, array $parameters = array())
+	{
 		return preg_replace_callback('#/(:[A-Za-z0-9_-]+(\??))#', function ($match) use ($parameters) {
 			$parameter = trim($match[1], '?:');
 			
@@ -737,7 +787,8 @@ class Router implements ContainerAware {
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
-	public function path($name, array $parameters = array()) {
+	public function path($name, array $parameters = array())
+	{
 		$path = $name;
 		
 		if (isset($this->routes[$name])) {
@@ -760,8 +811,8 @@ class Router implements ContainerAware {
 	 * @param array  $parameters [optional]
 	 * @return string
 	 */
-	public function url($name, array $parameters = array()) {
+	public function url($name, array $parameters = array())
+	{
 		return $this->base . $this->path($name, $parameters);
 	}
-	
 }

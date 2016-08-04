@@ -10,35 +10,47 @@ namespace Darya\Routing;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Route {
-	
+class Route
+{
 	/**
-	 * @var array Reserved route parameter keys
+	 * Reserved route parameter keys.
+	 * 
+	 * @var array
 	 */
 	protected $reserved = array('namespace', 'controller', 'action');
 
 	/**
-	 * @var string URI path that matches the route - e.g. "/:controller/:action/:params"
+	 * URI path that matches the route - e.g. "/:controller/:action/:params"
+	 * 
+	 * @var string
 	 */
 	protected $path;
 	
 	/**
-	 * @var array Default path parameters
+	 * Default path parameters.
+	 * 
+	 * @var array
 	 */
 	protected $defaults = array();
 	
 	/**
-	 * @var array Matched path parameters
+	 * Matched path parameters.
+	 * 
+	 * @var array
 	 */
 	protected $matches = array();
 	
 	/**
-	 * @var array Matched path parameters prepared as controller arguments
+	 * Matched path parameters prepared as controller arguments.
+	 * 
+	 * @var array
 	 */
 	protected $parameters = array();
 	
 	/**
-	 * @var \Darya\Routing\Router The router that matched this route
+	 * The router that matched this route.
+	 * 
+	 * @var \Darya\Routing\Router
 	 */
 	public $router;
 	
@@ -50,7 +62,8 @@ class Route {
 	 * @param array $matches
 	 * @return array
 	 */
-	public static function prepareMatches($matches) {
+	public static function prepareMatches($matches)
+	{
 		$prepared = array();
 		
 		foreach ($matches as $key => $value) {
@@ -71,7 +84,8 @@ class Route {
 	 * @param array $matches Set of matches to prepare
 	 * @return array Set of route parameters to pass to a matched action
 	 */
-	public static function prepareParameters($matches) {
+	public static function prepareParameters($matches)
+	{
 		$parameters = array();
 		
 		foreach ($matches as $key => $value) {
@@ -100,7 +114,8 @@ class Route {
 	 * @param string $path     Path that matches the route
 	 * @param mixed  $defaults Default route parameters
 	 */
-	public function __construct($path, $defaults = array()) {
+	public function __construct($path, $defaults = array())
+	{
 		$this->path = $path;
 		$this->defaults($defaults);
 	}
@@ -110,7 +125,8 @@ class Route {
 	 * 
 	 * @return bool
 	 */
-	public function __isset($property) {
+	public function __isset($property)
+	{
 		return isset($this->parameters[$property]) || isset($this->defaults[$property]);
 	}
 	
@@ -121,7 +137,8 @@ class Route {
 	 * @param string $property
 	 * @param mixed  $value
 	 */
-	public function __set($property, $value) {
+	public function __set($property, $value)
+	{
 		$this->parameters[$property] = $value;
 	}
 	
@@ -133,7 +150,8 @@ class Route {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property) {
+	public function __get($property)
+	{
 		if (isset($this->parameters[$property])) {
 			return $this->parameters[$property];
 		}
@@ -149,7 +167,8 @@ class Route {
 	 * 
 	 * @return array
 	 */
-	public function arguments() {
+	public function arguments()
+	{
 		return array_diff_key($this->parameters(), array_flip($this->reserved));
 	}
 	
@@ -163,7 +182,8 @@ class Route {
 	 * @param mixed $parameters
 	 * @return array The route's default parameters
 	 */
-	public function defaults($parameters = array()) {
+	public function defaults($parameters = array())
+	{
 		if (is_array($parameters)) {
 			$this->defaults = array_merge($this->defaults, $parameters);
 		}
@@ -184,7 +204,8 @@ class Route {
 	 * 
 	 * @return bool
 	 */
-	public function matched() {
+	public function matched()
+	{
 		return !!$this->matches;
 	}
 	
@@ -198,7 +219,8 @@ class Route {
 	 * @param array $matches
 	 * @return array
 	 */
-	public function matches(array $matches = array()) {
+	public function matches(array $matches = array())
+	{
 		$this->matches = static::prepareMatches($matches);
 		
 		$this->parameters = static::prepareParameters($matches);
@@ -214,7 +236,8 @@ class Route {
 	 * @param array $parameters [optional]
 	 * @return array Route parameters
 	 */
-	public function parameters(array $parameters = array()) {
+	public function parameters(array $parameters = array())
+	{
 		$this->parameters = array_merge($this->parameters, $parameters);
 		
 		return array_merge($this->defaults, $this->parameters);
@@ -225,7 +248,8 @@ class Route {
 	 * 
 	 * @return string
 	 */
-	public function path() {
+	public function path()
+	{
 		return $this->path;
 	}
 	
@@ -237,12 +261,12 @@ class Route {
 	 * @param array $parameters [optional]
 	 * @return string
 	 */
-	public function url(array $parameters = array()) {
+	public function url(array $parameters = array())
+	{
 		if ($this->router) {
 			$parameters = array_merge($this->matches, $parameters);
 			
 			return $this->router->url($this->path, $parameters);
 		}
 	}
-	
 }
