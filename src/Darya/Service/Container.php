@@ -18,15 +18,19 @@ use Darya\Service\Contracts\Container as ContainerInterface;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Container implements ContainerInterface {
-	
+class Container implements ContainerInterface
+{
 	/**
-	 * @var array Set of abstracts as keys and implementations as values
+	 * Set of abstracts as keys and implementations as values.
+	 * 
+	 * @var array
 	 */
 	protected $services = array();
 	
 	/**
-	 * @var array Set of aliases as keys and interfaces as values
+	 * Set of aliases as keys and interfaces as values.
+	 * 
+	 * @var array
 	 */
 	protected $aliases = array();
 	
@@ -38,7 +42,8 @@ class Container implements ContainerInterface {
 	 * 
 	 * @param array $services [optional] Initial set of services and/or aliases
 	 */
-	public function __construct(array $services = array()) {
+	public function __construct(array $services = array())
+	{
 		$this->register(array(
 			'Darya\Service\Contracts\Container' => $this,
 			'Darya\Service\Container'           => $this
@@ -53,7 +58,8 @@ class Container implements ContainerInterface {
 	 * @param string $alias
 	 * @return mixed
 	 */
-	public function __get($alias) {
+	public function __get($alias)
+	{
 		return $this->resolve($alias);
 	}
 	
@@ -63,7 +69,8 @@ class Container implements ContainerInterface {
 	 * @param string $alias
 	 * @param mixed  $service
 	 */
-	public function __set($alias, $service) {
+	public function __set($alias, $service)
+	{
 		$this->register(array($alias => $service));
 	}
 	
@@ -74,7 +81,8 @@ class Container implements ContainerInterface {
 	 * @param string $abstract
 	 * @return bool
 	 */
-	public function has($abstract) {
+	public function has($abstract)
+	{
 		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]);
 	}
 	
@@ -89,7 +97,8 @@ class Container implements ContainerInterface {
 	 * @param string $abstract
 	 * @return mixed
 	 */
-	public function get($abstract) {
+	public function get($abstract)
+	{
 		if (isset($this->aliases[$abstract])) {
 			$abstract = $this->aliases[$abstract];
 			
@@ -109,7 +118,8 @@ class Container implements ContainerInterface {
 	 * @param string $abstract
 	 * @param mixed  $concrete
 	 */
-	public function set($abstract, $concrete) {
+	public function set($abstract, $concrete)
+	{
 		$this->services[$abstract] = is_callable($concrete) ? $this->share($concrete) : $concrete;
 	}
 	
@@ -118,7 +128,8 @@ class Container implements ContainerInterface {
 	 * 
 	 * @return array
 	 */
-	public function all() {
+	public function all()
+	{
 		return $this->services;
 	}
 	
@@ -128,7 +139,8 @@ class Container implements ContainerInterface {
 	 * @param string $alias
 	 * @param string $abstract
 	 */
-	public function alias($alias, $abstract) {
+	public function alias($alias, $abstract)
+	{
 		$this->aliases[$alias] = $abstract;
 	}
 	
@@ -140,7 +152,8 @@ class Container implements ContainerInterface {
 	 * 
 	 * @param array $services abstract => concrete and/or alias => abstract
 	 */
-	public function register(array $services = array()) {
+	public function register(array $services = array())
+	{
 		foreach ($services as $key => $value) {
 			if (is_string($value) && isset($this->services[$value])) {
 				$this->alias($key, $value);
@@ -159,7 +172,8 @@ class Container implements ContainerInterface {
 	 * @param array  $arguments [optional]
 	 * @return mixed
 	 */
-	public function resolve($abstract, array $arguments = array()) {
+	public function resolve($abstract, array $arguments = array())
+	{
 		$concrete = $this->get($abstract);
 		
 		if ($concrete instanceof Closure || is_callable($concrete)) {
@@ -186,7 +200,8 @@ class Container implements ContainerInterface {
 	 * @param callable $callable
 	 * @return \Closure
 	 */
-	public function share($callable) {
+	public function share($callable)
+	{
 		if (!is_callable($callable)) {
 			throw new ContainerException('Service is not callable in Container::share()');
 		}
@@ -212,7 +227,8 @@ class Container implements ContainerInterface {
 	 * @param array    $arguments [optional]
 	 * @return mixed
 	 */
-	public function call($callable, array $arguments = array()) {
+	public function call($callable, array $arguments = array())
+	{
 		if (!is_callable($callable)) {
 			return null;
 		}
@@ -239,7 +255,8 @@ class Container implements ContainerInterface {
 	 * @param array  $arguments [optional]
 	 * @return object
 	 */
-	public function create($class, array $arguments = array()) {
+	public function create($class, array $arguments = array())
+	{
 		$reflection = new ReflectionClass($class);
 		$constructor = $reflection->getConstructor();
 		
@@ -268,7 +285,8 @@ class Container implements ContainerInterface {
 	 * @param array $arguments
 	 * @return array
 	 */
-	protected function mergeResolvedParameters(array $resolved, array $arguments = array()) {
+	protected function mergeResolvedParameters(array $resolved, array $arguments = array())
+	{
 		if (!array_filter(array_keys($arguments), 'is_numeric')) {
 			return array_merge($resolved, $arguments);
 		} else {
@@ -280,11 +298,12 @@ class Container implements ContainerInterface {
 	/**
 	 * Resolve a set of reflection parameters.
 	 * 
-	 * @param \ReflectionParameter[] $parameters
-	 * @param array                  $arguments [optional]
+	 * @param ReflectionParameter[] $parameters
+	 * @param array                 $arguments [optional]
 	 * @return array
 	 */
-	protected function resolveParameters($parameters, array $arguments = array()) {
+	protected function resolveParameters($parameters, array $arguments = array())
+	{
 		$resolved = array();
 		
 		foreach ($parameters as $parameter) {
@@ -300,10 +319,11 @@ class Container implements ContainerInterface {
 	/**
 	 * Attempt to resolve a reflection parameter's argument.
 	 * 
-	 * @param \ReflectionParameter|null $parameter
+	 * @param ReflectionParameter|null $parameter
 	 * @return mixed
 	 */
-	protected function resolveParameter(ReflectionParameter $parameter) {
+	protected function resolveParameter(ReflectionParameter $parameter)
+	{
 		$type = $this->resolveParameterType($parameter);
 		
 		if ($type !== null) {
@@ -326,13 +346,13 @@ class Container implements ContainerInterface {
 	/**
 	 * Resolve the given reflection parameters type hint.
 	 * 
-	 * @param \ReflectionParameter $parameter
+	 * @param ReflectionParameter $parameter
 	 * @return string|null
 	 */
-	protected function resolveParameterType(ReflectionParameter $parameter) {
+	protected function resolveParameterType(ReflectionParameter $parameter)
+	{
 		$class = $parameter->getClass();
 		
 		return is_object($class) ? $class->name : null;
 	}
-	
 }

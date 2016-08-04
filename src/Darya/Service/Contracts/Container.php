@@ -4,10 +4,12 @@ namespace Darya\Service\Contracts;
 /**
  * Darya's service container interface.
  * 
+ * TODO: Conform to container-interop.
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Container {
-	
+interface Container
+{
 	/**
 	 * Determine whether the container has a service registered for the given
 	 * interface or alias.
@@ -100,5 +102,4 @@ interface Container {
 	 * @return object
 	 */
 	public function create($class, array $arguments = array());
-	
 }

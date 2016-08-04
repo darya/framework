@@ -9,9 +9,11 @@ use Darya\Service\Contracts\Container as ContainerInterface;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Facade {
-	
+abstract class Facade
+{
 	/**
+	 * The service container to use for service facades.
+	 * 
 	 * @var ContainerInterface
 	 */
 	protected static $serviceContainer;
@@ -21,7 +23,8 @@ abstract class Facade {
 	 * 
 	 * @param ContainerInterface $container
 	 */
-	public static function setServiceContainer(ContainerInterface $container) {
+	public static function setServiceContainer(ContainerInterface $container)
+	{
 		static::$serviceContainer = $container;
 	}
 	
@@ -41,7 +44,8 @@ abstract class Facade {
 	 * @param array  $parameters
 	 * @return mixed
 	 */
-	public static function __callStatic($method, $parameters) {
+	public static function __callStatic($method, $parameters)
+	{
 		$service = static::getServiceName();
 		
 		if (!static::$serviceContainer) {
@@ -60,5 +64,4 @@ abstract class Facade {
 		
 		return static::$serviceContainer->call(array($instance, $method), $parameters);
 	}
-	
 }

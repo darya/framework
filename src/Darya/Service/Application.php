@@ -11,10 +11,12 @@ use Darya\Service\Contracts\Provider as Provider;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Application extends Container implements ApplicationInterface {
-	
+class Application extends Container implements ApplicationInterface
+{
 	/**
-	 * @var array Set of service providers registered with the application
+	 * Set of service providers registered with the application.
+	 * 
+	 * @var array
 	 */
 	protected $providers = array();
 	
@@ -23,7 +25,8 @@ class Application extends Container implements ApplicationInterface {
 	 * 
 	 * @param array $services [optional] Initial set of services and/or aliases
 	 */
-	public function __construct(array $services = array()) {
+	public function __construct(array $services = array())
+	{
 		$this->register(array(
 			'Darya\Service\Contracts\Application' => $this,
 			'Darya\Service\Application'           => $this
@@ -37,20 +40,23 @@ class Application extends Container implements ApplicationInterface {
 	 * 
 	 * @param \Darya\Service\Contracts\Provider $provider
 	 */
-	public function provide(Provider $provider) {
+	public function provide(Provider $provider)
+	{
 		$this->providers[] = $provider;
 		$provider->register($this);
 	}
 	
 	/**
 	 * Boot all registered service providers.
+	 * 
+	 * TODO: Bootable interface.
 	 */
-	public function boot() {
+	public function boot()
+	{
 		foreach ($this->providers as $provider) {
 			if (method_exists($provider, 'boot')) {
 				$this->call(array($provider, 'boot'));
 			}
 		}
 	}
-	
 }

@@ -11,12 +11,12 @@ use Darya\Service\Contracts\Provider;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Application extends Container {
-	
+interface Application extends Container
+{
 	/**
 	 * Register a service provider with the application.
 	 * 
-	 * @param \Darya\Service\Contracts\Provider $provider
+	 * @param Provider $provider
 	 */
 	public function provide(Provider $provider);
 	
@@ -24,5 +24,4 @@ interface Application extends Container {
 	 * Boot all registered service providers.
 	 */
 	public function boot();
-	
 }
