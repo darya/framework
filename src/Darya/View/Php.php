@@ -8,14 +8,15 @@ use Darya\View\AbstractView;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Php extends AbstractView {
-	
+class Php extends AbstractView
+{
 	/**
 	 * Render the template.
 	 * 
 	 * @return string
 	 */
-	public function render() {
+	public function render()
+	{
 		chdir($this->directory);
 		extract($this->vars);
 		
@@ -29,5 +30,4 @@ class Php extends AbstractView {
 		error_reporting($error_reporting);
 		return $output;
 	}
-	
 }

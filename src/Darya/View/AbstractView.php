@@ -9,59 +9,78 @@ use Darya\View\Resolver;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class AbstractView implements View {
-	
+abstract class AbstractView implements View
+{
 	/**
-	 * @var string Optional shared base path for selecting template files
+	 * Optional shared base path for selecting template files.
+	 * 
+	 * @var string
 	 */
 	protected static $basePath;
 	
 	/**
-	 * @var array Set of template file extensions compatible with this view
+	 * Set of template file extensions compatible with this view.
+	 * 
+	 * @var array
 	 */
 	protected static $extensions = array();
 	
 	/**
-	 * @var array Variables to assign to all templates
+	 * Variables to assign to all templates.
+	 * 
+	 * @var array
 	 */
 	protected static $shared = array();
 	
 	/**
-	 * @var \Darya\View\Resolver Shared resolver for selecting template files
+	 * Shared resolver for selecting template files.
+	 * 
+	 * @var Resolver
 	 */
 	protected static $sharedResolver;
 	
 	/**
-	 * @var \Darya\View\Resolver Instance resolver for selecting template files
+	 * Instance resolver for selecting template files.
+	 * 
+	 * @var Resolver
 	 */
 	protected $resolver;
 	
 	/**
-	 * @var array Variables for configuring the view
+	 * Variables for configuring the view.
+	 * 
+	 * @var array
 	 */
 	protected $config = array();
 	
 	/**
-	 * @var string Path to the directory containing the view template
+	 * Path to the directory containing the view template.
+	 * 
+	 * @var string
 	 */
 	protected $directory;
 	
 	/**
-	 * @var string Filename of the view template
+	 * Filename of the view template.
+	 * 
+	 * @var string
 	 */
 	protected $file;
 	
 	/**
-	 * @var array Variables to assign to the template
+	 * Variables to assign to the template.
+	 * 
+	 * @var array
 	 */
 	protected $vars = array();
 	
 	/**
-	 * Set a shared base path for selecting template files
+	 * Set a shared base path for selecting template files.
 	 * 
 	 * @param string $path
 	 */
-	public static function setBasePath($path) {
+	public static function setBasePath($path)
+	{
 		$path = realpath($path);
 		
 		if (is_dir($path)) {
@@ -72,9 +91,10 @@ abstract class AbstractView implements View {
 	/**
 	 * Sets a resolver for all views.
 	 * 
-	 * @param \Darya\View\Resolver $resolver
+	 * @param Resolver $resolver
 	 */
-	public static function setSharedResolver(Resolver $resolver) {
+	public static function setSharedResolver(Resolver $resolver)
+	{
 		static::$sharedResolver = $resolver;
 	}
 	
@@ -83,7 +103,8 @@ abstract class AbstractView implements View {
 	 * 
 	 * @param string|array $extensions
 	 */
-	public static function registerExtensions($extensions) {
+	public static function registerExtensions($extensions)
+	{
 		$extensions = array_map(function ($extension) {
 			return '.' . ltrim(trim($extension), '.');
 		}, (array) $extensions);
@@ -98,7 +119,8 @@ abstract class AbstractView implements View {
 	 * @param array  $vars   [optional] Variables to assign to the template
 	 * @param array  $config [optional] Configuration variables for the view
 	 */
-	public function __construct($file = null, $vars = array(), $config = array()) {
+	public function __construct($file = null, $vars = array(), $config = array())
+	{
 		$this->select($file, $vars, $config);
 	}
 	
@@ -107,16 +129,18 @@ abstract class AbstractView implements View {
 	 * 
 	 * @return string
 	 */
-	public function __toString() {
+	public function __toString()
+	{
 		return $this->render();
 	}
 	
 	/**
 	 * Sets a resolver for this view.
 	 * 
-	 * @param \Darya\View\Resolver $resolver
+	 * @param Resolver $resolver
 	 */
-	public function setResolver(Resolver $resolver) {
+	public function setResolver(Resolver $resolver)
+	{
 		$this->resolver = $resolver;
 	}
 	
@@ -127,7 +151,8 @@ abstract class AbstractView implements View {
 	 * @param array  $vars 	 [optional] Variables to assign to the template immediately
 	 * @param array  $config [optional] Config variables for the view
 	 */
-	public function select($file, array $vars = array(), array $config = array()) {
+	public function select($file, array $vars = array(), array $config = array())
+	{
 		if (!empty($config)) {
 			$this->config($config);
 		}
@@ -147,7 +172,8 @@ abstract class AbstractView implements View {
 	 * @param string $path Absolute file path
 	 * @return bool
 	 */
-	protected function attempt($path) {
+	protected function attempt($path)
+	{
 		$path = realpath($path);
 		
 		if ($path && is_file($path)) {
@@ -168,7 +194,8 @@ abstract class AbstractView implements View {
 	 * @param string $path
 	 * @return string
 	 */
-	protected function resolve($path) {
+	protected function resolve($path)
+	{
 		if ($this->resolver) {
 			return $this->resolver->resolve($path);
 		} else if (static::$sharedResolver) {
@@ -185,7 +212,8 @@ abstract class AbstractView implements View {
 	 * @param string $path Path to template file
 	 * @return bool
 	 */
-	public function file($path) {
+	public function file($path)
+	{
 		$paths = array();
 		
 		$paths[] = $this->resolve($path);
@@ -215,7 +243,8 @@ abstract class AbstractView implements View {
 	 * @param string $directory [optional] Working directory path
 	 * @return string
 	 */
-	protected function directory($directory = null) {
+	protected function directory($directory = null)
+	{
 		$this->directory = $directory != '.' ? $directory : '';
 		
 		return $this->directory;
@@ -229,7 +258,8 @@ abstract class AbstractView implements View {
 	 * @param array $config [optional]
 	 * @return array
 	 */
-	public function config(array $config = array()) {
+	public function config(array $config = array())
+	{
 		$this->config = array_merge($this->config, $config);
 		
 		return $this->config;
@@ -240,17 +270,19 @@ abstract class AbstractView implements View {
 	 * 
 	 * @param array $vars
 	 */
-	public function assign(array $vars = array()) {
+	public function assign(array $vars = array())
+	{
 		$this->vars = array_merge($this->vars, $vars);
 	}
 	
 	/**
 	 * Get all variables or a particular variable assigned to the template.
 	 * 
-	 * @param string $key Key of a variable to return
+	 * @param string $key [optional] Key of a variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public function assigned($key = null) {
+	public function assigned($key = null)
+	{
 		return !is_null($key) && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
 	}
 	
@@ -259,7 +291,8 @@ abstract class AbstractView implements View {
 	 * 
 	 * @param array $vars
 	 */
-	public static function share(array $vars) {
+	public static function share(array $vars)
+	{
 		static::$shared = array_merge(static::$shared, $vars);
 	}
 	
@@ -269,8 +302,8 @@ abstract class AbstractView implements View {
 	 * @param string $key Key of a variable to return
 	 * @return mixed The value of variable $key if set, all variables otherwise
 	 */
-	public static function shared($key = null) {
+	public static function shared($key = null)
+	{
 		return !is_null($key) && isset(static::$shared[$key]) ? static::$shared[$key] : static::$shared;
 	}
-	
 }

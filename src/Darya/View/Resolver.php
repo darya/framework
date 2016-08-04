@@ -8,37 +8,51 @@ namespace Darya\View;
  * Optionally shares variables and configurations with all templates that are
  * resolved.
  * 
+ * TODO: $vars -> $variables
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
-class Resolver {
-	
+class Resolver
+{
 	/**
-	 * @var string View implementor to resolve
+	 * View implementor to resolve.
+	 * 
+	 * @var string
 	 */
 	protected $engine;
 	
 	/**
-	 * @var array Paths to search for templates within
+	 * Paths to search for templates within.
+	 * 
+	 * @var array
 	 */
 	protected $basePaths = array();
 	
 	/**
-	 * @var array Template file extensions to search for
+	 * Template file extensions to search for.
+	 * 
+	 * @var array
 	 */
 	protected $extensions = array();
 	
 	/**
-	 * @var array Extra directories to search within
+	 * Extra directories to search within.
+	 * 
+	 * @var array
 	 */
 	protected $directories = array('views');
 	
 	/**
-	 * @var array Variables to assign to all views that are resolved
+	 * Variables to assign to all views that are resolved.
+	 * 
+	 * @var array
 	 */
 	protected $shared = array();
 	
 	/**
-	 * @var array Config variables to set for all views that are resolved
+	 * Config variables to set for all views that are resolved.
+	 * 
+	 * @var array
 	 */
 	protected $config = array();
 	
@@ -48,18 +62,20 @@ class Resolver {
 	 * @param string $path
 	 * @return path
 	 */
-	public static function normalise($path) {
+	public static function normalise($path)
+	{
 		return preg_replace('~[\\\|/]+~', '/', rtrim($path, '\/'));
 	}
 	
 	/**
 	 * Create a new view resolver.
 	 * 
-	 * @param string $engine View implementor to resolve
-	 * @param string|array [optional] $path Single path or set of paths
-	 * @param string|array [optional] $extensions Template file extensions
+	 * @param string $engine           View implementor to resolve
+	 * @param string|array $path       [optional] Single path or set of paths
+	 * @param string|array $extensions [optional] Template file extensions
 	 */
-	public function __construct($engine, $basePath = null, $extensions = array()) {
+	public function __construct($engine, $basePath = null, $extensions = array())
+	{
 		$this->setEngine($engine);
 		
 		if ($basePath) {
@@ -76,7 +92,8 @@ class Resolver {
 	 * 
 	 * @param string $engine
 	 */
-	public function setEngine($engine) {
+	public function setEngine($engine)
+	{
 		if (!class_exists($engine) || !is_subclass_of($engine, 'Darya\View\View')) {
 			throw new \Exception("View engine $engine does not exist or does not extend Darya\View\View");
 		}
@@ -89,7 +106,8 @@ class Resolver {
 	 * 
 	 * @param string|array $path Single path or set of paths
 	 */
-	public function registerBasePaths($path) {
+	public function registerBasePaths($path)
+	{
 		if (is_array($path)) {
 			$this->basePaths = array_merge($this->basePaths, $path);
 		} else {
@@ -102,7 +120,8 @@ class Resolver {
 	 * 
 	 * @param string|array $extensions
 	 */
-	public function registerExtensions($extensions) {
+	public function registerExtensions($extensions)
+	{
 		foreach ((array) $extensions as $extension) {
 			$this->extensions[] = '.' . ltrim($extension, '.');
 		}
@@ -116,7 +135,8 @@ class Resolver {
 	 * 
 	 * @param string|array $directories
 	 */
-	public function registerDirectories($directories) {
+	public function registerDirectories($directories)
+	{
 		$directories = (array) $directories;
 		
 		foreach ($directories as $key => $directory) {
@@ -131,7 +151,8 @@ class Resolver {
 	 * 
 	 * @param array $vars
 	 */
-	public function share(array $vars = array()) {
+	public function share(array $vars = array())
+	{
 		$this->shared = array_merge($this->shared, $vars);
 	}
 	
@@ -140,7 +161,8 @@ class Resolver {
 	 * 
 	 * @param array $config
 	 */
-	public function shareConfig(array $config = array()) {
+	public function shareConfig(array $config = array())
+	{
 		$this->config = array_merge($this->config, $config);
 	}
 	
@@ -150,7 +172,8 @@ class Resolver {
 	 * @param string $path
 	 * @return array
 	 */
-	public function generate($path) {
+	public function generate($path)
+	{
 		$dirname = dirname($path);
 		$dir = $dirname != '.' ? $dirname : '';
 		$file = basename($path);
@@ -175,7 +198,8 @@ class Resolver {
 	 * @param string $path
 	 * @return string
 	 */
-	public function resolve($path) {
+	public function resolve($path)
+	{
 		$path = static::normalise($path);
 		
 		if (is_file($path)) {
@@ -197,7 +221,8 @@ class Resolver {
 	 * @param string $path
 	 * @return bool
 	 */
-	public function exists($path) {
+	public function exists($path)
+	{
 		return $this->resolve($path) !== null;
 	}
 	
@@ -209,7 +234,8 @@ class Resolver {
 	 * @param array  $vars [optional] Variables to assign to the View
 	 * @return View
 	 */
-	public function create($path = null, $vars = array()) {
+	public function create($path = null, $vars = array())
+	{
 		$file = $this->resolve($path);
 		
 		$engine = $this->engine;
@@ -218,5 +244,4 @@ class Resolver {
 		
 		return $engine;
 	}
-	
 }

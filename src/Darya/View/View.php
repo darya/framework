@@ -6,8 +6,8 @@ namespace Darya\View;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-interface View {
-	
+interface View
+{
 	/**
 	 * Select a template and optionally assign variables and configuration.
 	 * 
@@ -48,5 +48,4 @@ interface View {
 	 * @return string The rendered view
 	 */
 	public function render();
-	
 }
