@@ -70,8 +70,8 @@ class Resolver
 	/**
 	 * Create a new view resolver.
 	 * 
-	 * @param string $engine           View implementor to resolve
-	 * @param string|array $path       [optional] Single path or set of paths
+	 * @param string       $engine     View implementor to resolve
+	 * @param string|array $basePath   [optional] Single path or set of paths
 	 * @param string|array $extensions [optional] Template file extensions
 	 */
 	public function __construct($engine, $basePath = null, $extensions = array())
