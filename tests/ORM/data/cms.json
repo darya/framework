@@ -1,0 +1,79 @@
+{
+	"posts": [
+		{
+			"id": 1,
+			"title": "First post",
+			"author_id": 1,
+			"content": "Yeah, swag post."
+		},
+		{
+			"id": 2,
+			"title": "Second post",
+			"author_id": 1,
+			"content": "Yeah, even more swag post."
+		},
+		{
+			"id": 3,
+			"title": "Tiddy bress",
+			"author_id": 2,
+			"content": "Got me a couple tiddy bress"
+		}
+	],
+	"roles": [
+		{
+			"id": 1,
+			"name": "User"
+		},
+		{
+			"id": 2,
+			"name": "Moderator"
+		},
+		{
+			"id": 3,
+			"name": "Administrator"
+		},
+		{
+			"id": 4,
+			"name": "b0ss"
+		}
+	],
+	"user_roles": [
+		{
+			"user_id": 1,
+			"role_id": 3,
+			"sort": 1
+		},
+		{
+			"user_id": 1,
+			"role_id": 4,
+			"sort": 2
+		},
+		{
+			"user_id": 2,
+			"role_id": 2
+		},
+		{
+			"user_id": 3,
+			"role_id": 1
+		}
+	],
+	"users": [
+		{
+			"id": 1,
+			"firstname": "Chris",
+			"surname": "Andrew"
+		},
+		{
+			"id": 2,
+			"firstname": "Bethany",
+			"surname": "King"
+		},
+		{
+			"id": 3,
+			"firstname": "John",
+			"surname": "Smith",
+			"manager_id": 2,
+			"master_id": 1
+		}
+	]
+}
