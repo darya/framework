@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Database\Query;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Database\Error;
 use Darya\Database\Query;
 use Darya\Database\Result;

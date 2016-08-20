@@ -15,10 +15,19 @@
 		}
 	],
 	"require": {
-		"php": ">=5.4"
+		"php": ">=5.5",
+		"ext-date": "*",
+		"ext-json": "*"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "4.3.*"
+	},
+	"suggest": {
+		"ext-mysqli": "Required to use Darya's MySQL database connection",
+		"ext-mysqlnd": "Recommended when using Darya's MySQL database connection",
+		"ext-Reflection": "Required to use Darya's service package",
+		"ext-session": "Required to use Darya's native PHP session handler",
+		"ext-sqlsrv": "Required to use Darya's SQL Server database connection"
 	},
 	"autoload": {
 		"psr-0": {
@@ -27,6 +36,11 @@
 		"files": [
 			"src/Darya/Foundation/helpers.php"
 		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Darya\\Tests\\": "tests/"
+		}
 	},
 	"extra": {
 		"branch-alias": {

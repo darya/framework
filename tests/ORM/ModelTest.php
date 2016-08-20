@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\ORM;
+
+use PHPUnit_Framework_TestCase;
 use Darya\ORM\Model;
 
 class ModelTest extends PHPUnit_Framework_TestCase {

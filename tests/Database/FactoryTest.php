@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Database\Query;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Database\Factory;
 
 class FactoryTest extends PHPUnit_Framework_TestCase {

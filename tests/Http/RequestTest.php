@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Request;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Http\Request;
 
 class RequestTest extends PHPUnit_Framework_TestCase {

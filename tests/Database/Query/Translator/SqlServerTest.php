@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Database\Query\Translator;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Storage\Query;
 use Darya\Database\Connection;
 use Darya\Database\Query\Translator;

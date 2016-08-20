@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Storage;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Storage\InMemory;
 
 class InMemoryTest extends PHPUnit_Framework_TestCase {

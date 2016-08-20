@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Http;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Http\Cookies;
 
 class CookiesTest extends PHPUnit_Framework_TestCase {

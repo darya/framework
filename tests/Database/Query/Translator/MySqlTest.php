@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Database\Query\Translator;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Database\Storage\Query;
 use Darya\Storage\InMemory;
 use Darya\Database\Storage;

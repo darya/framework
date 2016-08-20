@@ -1,4 +1,7 @@
 <?php
+namespace Darya\Tests\Foundation;
+
+use PHPUnit_Framework_TestCase;
 use Darya\Foundation\Configuration;
 
 class ConfigurationTest extends PHPUnit_Framework_TestCase {

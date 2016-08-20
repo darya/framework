@@ -1,6 +1,15 @@
 <?php
+namespace Darya\Tests\ORM;
+
+use PHPUnit_Framework_TestCase;
+
 use Darya\ORM\Record;
 use Darya\Storage\InMemory;
+
+use Darya\Tests\ORM\Fixtures\Certificate;
+use Darya\Tests\ORM\Fixtures\Post;
+use Darya\Tests\ORM\Fixtures\Role;
+use Darya\Tests\ORM\Fixtures\User;
 
 /**
  * Tests Darya's active record ORM using in-memory storage.
@@ -9,8 +18,8 @@ use Darya\Storage\InMemory;
  * 
  * TODO: Set up integration tests that extend this using different storage.
  */
-class RecordTest extends PHPUnit_Framework_TestCase {
-	
+class RecordTest extends PHPUnit_Framework_TestCase
+{
 	/**
 	 * Data to use for the in-memory storage.
 	 * 
@@ -564,35 +573,3 @@ class RecordTest extends PHPUnit_Framework_TestCase {
 	
 }
 
-class Post extends Record
-{
-	protected $relations = array(
-		'author' => ['belongs_to', 'User', 'author_id']
-	);
-}
-
-class Role extends Record
-{
-	protected $relations = array(
-		'users' => ['belongs_to_many', 'User', null, null, 'user_roles']
-	);
-}
-
-class User extends Record
-{
-	protected $relations = array(
-		'padawan' => ['has',             'User', 'master_id'],
-		'manager' => ['belongs_to',      'User', 'manager_id'],
-		'master'  => ['belongs_to',      'User', 'master_id'],
-		'posts'   => ['has_many',        'Post', 'author_id'],
-		'roles'   => ['belongs_to_many', 'Role', null, null, 'user_roles']
-	);
-	
-	protected $search = array(
-		'firstname', 'surname'
-	);
-}
-
-class Certificate extends Record {
-	protected $table = 'certs';
-}
