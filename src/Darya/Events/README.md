@@ -46,7 +46,6 @@ To detach a listener, use `unlisten()`.
 $dispatcher->unlisten('event', $listener);
 ```
 
-
 ### Subscribers
 
 Subscribers are objects that listen to multiple events.
