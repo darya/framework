@@ -8,8 +8,9 @@ an application.
 - [Resolving dependencies](#resolving-dependencies)
   - [Instantiating classes](#instantiating-classes)
   - [Invoking callables](#invoking-callables)
-- [Registering services and aliases](#registering-services-and-aliases)
-- [Resolving services](#resolving-services)
+- [Services](#services)
+  - [Registering services and aliases](#registering-services-and-aliases)
+  - [Resolving services](#resolving-services)
 
 ### Resolving dependencies
 
@@ -64,7 +65,15 @@ $foo->bar instanceof Bar;      // true
 $foo->bar->baz instanceof Baz; // true
 ```
 
-### Registering services and aliases
+### Services
+
+Services are values, objects or closures registered with the container.
+
+They are most useful when registering concrete implementations of interfaces
+that can then be resolved automatically using the type hints of dependent
+classes or callables.
+
+#### Registering services and aliases
 
 Services can be values, objects, or closures.
 
@@ -99,7 +108,7 @@ By default, closures are treated as instance definitions instead of factories.
 This means the closure is executed once, when the service is first resolved,
 and its return value is retained for subsequent resolutions.
 
-### Resolving services
+#### Resolving services
 
 ```php
 // Resolve services by class or interface
