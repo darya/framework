@@ -50,7 +50,7 @@ $router = new Router(array(
 ));
 
 /**
- * @var Darya\Routing\Route 
+ * @var Darya\Routing\Route
  */
 $route = $router->match('/'); // $route->action == function() {return 'Hello world!';}
 ```

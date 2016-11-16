@@ -3,6 +3,7 @@ namespace Darya\Tests\Events;
 
 use PHPUnit_Framework_TestCase;
 use Darya\Events\Dispatcher;
+use Darya\Tests\Events\Fixtures\SimpleSubscriber;
 
 class DispatcherTest extends PHPUnit_Framework_TestCase
 {
@@ -40,5 +41,36 @@ class DispatcherTest extends PHPUnit_Framework_TestCase
 		$dispatcher->dispatch('some.event', array(1));
 		
 		$this->assertEquals(9, $count);
+	}
+	
+	public function testSubscribers()
+	{
+		$dispatcher = new Dispatcher;
+		
+		// Test with a single subscriber
+		$firstSubscriber = new SimpleSubscriber;
+		
+		$dispatcher->subscribe($firstSubscriber);
+		
+		$dispatcher->dispatch('some.event', array(1));
+		
+		$this->assertEquals(1, $firstSubscriber->number);
+		
+		// Test with two subscribers
+		$secondSubscriber = new SimpleSubscriber;
+		
+		$dispatcher->subscribe($secondSubscriber);
+		
+		$dispatcher->dispatch('some.event', array(1));
+		
+		$this->assertEquals(2, $firstSubscriber->number);
+		$this->assertEquals(1, $secondSubscriber->number);
+		
+		// Test after removing the first subscriber
+		$dispatcher->unsubscribe($firstSubscriber);
+		
+		$dispatcher->dispatch('some.event', array(1));
+		
+		$this->assertEquals(2, $secondSubscriber->number);
 	}
 }
