@@ -318,6 +318,15 @@ class MySql extends AbstractConnection
 		
 		$result = $this->prepareStatementResult($statement);
 		
+		if ($statement->errno) {
+			$error = new Error($statement->errno, $statement->error);
+			$this->lastResult = new Result($query, array(), array(), $error);
+			
+			$this->event('mysql.query', array($this->lastResult));
+			
+			return $this->lastResult;
+		}
+		
 		$statement->close();
 		
 		$info = array(
