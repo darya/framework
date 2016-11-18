@@ -18,7 +18,7 @@ class SqlServer extends AbstractSqlTranslator
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
-	public function resolveIdentifier($identifier)
+	protected function resolveIdentifier($identifier)
 	{
 		return $identifier;
 	}
@@ -52,16 +52,27 @@ class SqlServer extends AbstractSqlTranslator
 	 * @param string       $where    [optional]
 	 * @param string       $order    [optional]
 	 * @param string       $limit    [optional]
+	 * @param string       $groupings [optional]
+	 * @param string       $having    [optional]
 	 * @param bool         $distinct [optional]
 	 * @return string
 	 */
-	protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false)
-	{
+	protected function prepareSelect(
+		$table,
+		$columns,
+		$joins = null,
+		$where = null,
+		$order = null,
+		$limit = null,
+		$groupings = null,
+		$having = null,
+		$distinct = false
+	) {
 		$table = $this->identifier($table);
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $joins, $where, $order));
+		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $joins, $where, $order, $groupings, $having));
 	}
 	
 	/**

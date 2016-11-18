@@ -10,6 +10,8 @@ use Darya\Storage\Query as StorageQuery;
  * Provides joins and subqueries.
  * 
  * @property-read Join[]       $joins
+ * @property-read string[]     $groupings
+ * @property-read array        $having
  * @property-read StorageQuery $insertSubquery
  * 
  * @author Chris Andrew <chris@hexus.io>
@@ -22,6 +24,20 @@ class Query extends StorageQuery
 	 * @var Join[]
 	 */
 	protected $joins = array();
+	
+	/**
+	 * The set of fields to group results by.
+	 * 
+	 * @var string[]
+	 */
+	protected $groupings = array();
+	
+	/**
+	 * Filters to apply to results after grouping.
+	 * 
+	 * @var array
+	 */
+	protected $having = array();
 	
 	/**
 	 * The subquery to use for the insert query.
@@ -82,9 +98,62 @@ class Query extends StorageQuery
 	}
 	
 	/**
-	 * Make this a create query with the given subquery.
+	 * Add a grouping to the query.
 	 * 
-	 * Optionally selects
+	 * @param string $field
+	 * @return $this
+	 */
+	public function group($field)
+	{
+		$this->groupings[] = $field;
+		
+		$this->groupings = array_keys(array_count_values($this->groupings));
+		
+		return $this;
+	}
+	
+	/**
+	 * Add a set of groupings to the query.
+	 * 
+	 * @param string[] $fields
+	 * @return $this
+	 */
+	public function groupings($fields)
+	{
+		$this->groupings = array_merge($this->groupings, $fields);
+		
+		return $this;
+	}
+	
+	/**
+	 * Add a "having" filter condition to the query.
+	 * 
+	 * @param string $field
+	 * @param mixed  $value [optional]
+	 * @return $this
+	 */
+	public function having($field, $value = null)
+	{
+		$this->having = array_merge($this->having, array($field => $value));
+		
+		return $this;
+	}
+	
+	/**
+	 * Add multiple "having" filter conditions to the query.
+	 * 
+	 * @param array $filters
+	 * @return $this
+	 */
+	public function havings(array $filters = array())
+	{
+		$this->having = array_merge($this->having, $filters);
+		
+		return $this;
+	}
+	
+	/**
+	 * Make this a create query with the given subquery.
 	 * 
 	 * @param StorageQuery $query
 	 * @return $this

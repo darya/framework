@@ -120,12 +120,15 @@ abstract class AbstractSqlTranslator implements Translator
 		}
 		
 		return new Database\Query(
-			$this->prepareSelect($storageQuery->resource,
+			$this->prepareSelect(
+				$storageQuery->resource,
 				$this->prepareColumns($storageQuery->fields),
 				null,
 				$this->prepareWhere($storageQuery->filter),
 				$this->prepareOrderBy($storageQuery->order),
 				$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
+				null,
+				null,
 				$storageQuery->distinct
 			),
 			$this->parameters($storageQuery)
@@ -139,13 +142,15 @@ abstract class AbstractSqlTranslator implements Translator
 	 */
 	protected function translateDatabaseRead(Database\Storage\Query $storageQuery)
 	{
-				return new Database\Query(
+		return new Database\Query(
 			$this->prepareSelect($storageQuery->resource,
 				$this->prepareColumns($storageQuery->fields),
 				$this->prepareJoins($storageQuery->joins),
 				$this->prepareWhere($storageQuery->filter),
 				$this->prepareOrderBy($storageQuery->order),
 				$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
+				$this->prepareGroupBy($storageQuery->groupings),
+				$this->prepareHaving($storageQuery->having),
 				$storageQuery->distinct
 			),
 			$this->parameters($storageQuery)
@@ -674,6 +679,34 @@ abstract class AbstractSqlTranslator implements Translator
 	abstract protected function prepareLimit($limit = 0, $offset = 0);
 	
 	/**
+	 * Prepare a GROUP BY clause using the given groupings.
+	 * 
+	 * @param string[] $groupings
+	 * @return string
+	 */
+	protected function prepareGroupBy(array $groupings)
+	{
+		return count($groupings) ? 'GROUP BY ' . implode(', ', $this->identifier($groupings)) : null;
+	}
+	
+	/**
+	 * Prepare a HAVING clause using the given filter.
+	 * 
+	 * @param array $filter
+	 * @return string
+	 */
+	protected function prepareHaving(array $filter)
+	{
+		$clause = $this->prepareWhere($filter, 'AND', true);
+		
+		if (empty($clause)) {
+			return null;
+		}
+		
+		return "HAVING $clause";
+	}
+	
+	/**
 	 * Prepare a SELECT statement using the given columns, table, clauses and
 	 * options.
 	 * 
@@ -683,14 +716,26 @@ abstract class AbstractSqlTranslator implements Translator
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
-	 * @param string       $joins    [optional]
-	 * @param string       $where    [optional]
-	 * @param string       $order    [optional]
-	 * @param string       $limit    [optional]
-	 * @param bool         $distinct [optional]
+	 * @param string       $joins     [optional]
+	 * @param string       $where     [optional]
+	 * @param string       $order     [optional]
+	 * @param string       $limit     [optional]
+	 * @param string       $groupings [optional]
+	 * @param string       $having    [optional]
+	 * @param bool         $distinct  [optional]
 	 * @return string
 	 */
-	abstract protected function prepareSelect($table, $columns, $joins = null, $where = null, $order = null, $limit = null, $distinct = false);
+	abstract protected function prepareSelect(
+		$table,
+		$columns,
+		$joins = null,
+		$where = null,
+		$order = null,
+		$limit = null,
+		$groupings = null,
+		$having = null,
+		$distinct = false
+	);
 	
 	/**
 	 * Prepare an INSERT INTO statement using the given table and data.
@@ -706,8 +751,8 @@ abstract class AbstractSqlTranslator implements Translator
 		$columns = $this->identifier(array_keys($data));
 		$values  = $this->value(array_values($data));
 		
-		$columns = "(" . implode(", ", $columns) . ")";
-		$values  = "(" . implode(", ", $values) . ")";
+		$columns = '(' . implode(', ', $columns) . ')';
+		$values  = '(' . implode(', ', $values) . ')';
 		
 		return static::concatenate(array('INSERT INTO', $table, $columns, 'VALUES', $values));
 	}
@@ -874,15 +919,18 @@ abstract class AbstractSqlTranslator implements Translator
 		}
 		
 		$joinParameters = array();
+		$havingParameters = array();
 		
 		if ($storageQuery instanceof Database\Storage\Query) {
 			$joinParameters = $this->joinParameters($storageQuery->joins);
+			$havingParameters = $this->filterParameters($storageQuery->having);
 		}
 		
 		$parameters = array_merge(
 			$parameters,
 			$joinParameters,
-			$this->filterParameters($storageQuery->filter)
+			$this->filterParameters($storageQuery->filter),
+			$havingParameters
 		);
 		
 		return $parameters;
