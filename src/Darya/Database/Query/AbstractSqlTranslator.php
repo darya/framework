@@ -1,11 +1,11 @@
 <?php
 namespace Darya\Database\Query;
 
-use InvalidArgumentException;
 use Darya\Database;
 use Darya\Database\Query\Translator;
 use Darya\Database\Storage\Query\Join;
 use Darya\Storage;
+use InvalidArgumentException;
 
 /**
  * An abstract query translator that prepares SQL common across more than one
@@ -20,7 +20,10 @@ abstract class AbstractSqlTranslator implements Translator
 	 * 
 	 * @var array
 	 */
-	protected $operators = array('>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not', 'like', 'not like');
+	protected $operators = array(
+		'>=', '<=', '>', '<', '=', '!=', '<>', 'in', 'not in', 'is', 'is not',
+		'like', 'not like'
+	);
 	
 	/**
 	 * Placeholder for values in prepared queries.
@@ -53,7 +56,7 @@ abstract class AbstractSqlTranslator implements Translator
 	 * Determine whether the given limit and offset will make a difference to
 	 * a statement.
 	 * 
-	 * Simply determines whether both are non-zero integers.
+	 * Simply determines whether either is a non-zero integers.
 	 * 
 	 * @param int $limit
 	 * @param int $offset
@@ -240,6 +243,7 @@ abstract class AbstractSqlTranslator implements Translator
 	 * 
 	 * @param mixed $query
 	 * @return Database\Query
+	 * @throws InvalidArgumentException
 	 */
 	protected function translateTranslatable($query)
 	{
@@ -254,6 +258,8 @@ abstract class AbstractSqlTranslator implements Translator
 		if ($query instanceof Storage\Query) {
 			return $this->translate($query);
 		}
+		
+		throw new InvalidArgumentException("Cannot translate query of type '" . get_class($query) . "'");
 	}
 	
 	/**
