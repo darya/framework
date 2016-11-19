@@ -1,6 +1,6 @@
 # Darya Framework Changelog
 
-## Unreleased
+## v0.5.0-beta3 - Nov 19, 2016
 
 ### General
 - Added readmes for all packages, apart from Foundation
@@ -48,7 +48,7 @@
   to JSON
 - Added unique() method to `Query` objects and `Query\Builder` executor methods
 
-## v0.5.0-beta2 - Feb 18, 2015
+## v0.5.0-beta2 - Feb 18, 2016
 
 ### ORM
 - Implemented relation constraints

@@ -8,16 +8,18 @@ Darya is a PHP framework for web application development.
 
 Its components include:
 
-- [ORM](#/src/Darya/ORM)
+- [ORM](/src/Darya/ORM)
 - [CRUD storage abstractions](/src/Darya/Storage)
-- [Service container](#/src/Darya/Service)
+- [Service container](/src/Darya/Service)
 - [HTTP abstractions](/src/Darya/Http)
-- [Router](#/src/Darya/Routing)
-- [Event dispatcher](#/src/Darya/Events)
-- [Views](#/src/Darya/View)
+- [Router](/src/Darya/Routing)
+- [Event dispatcher](/src/Darya/Events)
+- [Views](/src/Darya/View)
 
 The framework is currently under development and the API is liable to change
-until v1.0.0. By then, each package will be split into its own repository.
+until v1.0.0.
+
+Eventually, each package will be split into its own repository.
 
 ## Installation
 
