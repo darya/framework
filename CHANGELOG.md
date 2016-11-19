@@ -2,20 +2,51 @@
 
 ## Unreleased
 
+### General
+- Added readmes for all packages, apart from Foundation
+- Simplified the framework readme
+- PSR-2 code style for all packages
+- PSR-4 namespacing for all unit tests
+
+### Database
+- Implemented a database-specific query object that provides table joins,
+  subqueries, `GROUP BY` and `HAVING`, which database query translators now
+  support
+- Fixed MySQL connection query issues that occurred without the `mysqlnd`
+  extension
+- Added missing error check after preparing MySQL query statement result -
+  Catches syntax or logical errors with queries, e.g. 'Subquery returns more
+  than 1 row' for column subqueries
+
 ### Foundation
 - Implemented a new `Foundation` namespace to house classes that aid the set up
   of an application, including a configuration interface with implementations
-  and a handful of default service providers.
-- Moved the autoloader to this namespace.
+  and a handful of default service providers
+- Moved the autoloader to this namespace
+
+### HTTP
+- Improved HTTP response
+  - Changed response to prepare content as a string when *sent* instead of when
+    the content is *set*
+  - Changed content type to `application/json` instead of `text/json` for array
+    content
+  - Implemented `Response::body()` for retrieving content as a string
+  - Removed old cookie methods
+  - Refactored and added more dynamic properties such as `status`, `headers`,
+    `cookies`, `content` and `redirected`
+  - Unit tested
 
 ### ORM
-- Implemented a database-specific query object that provides table joins and
-  subqueries (which database query translators now use).
-- Fixed a MySQL connection query bug that occured without the mysqlnd extension.
-- `Model::data()` now returns transformed (non-raw attributes). Raw attribute
-  access has moved to `Model::rawData()`. The `toArray()`, `toJson()` and
-  `getIterator()` methods now utilise the transformed attributes.
-- Added unique() method to `Query` objects and `Query\Builder` executor methods.
+- Lots of general improvements and refactoring for `Model` and `Record`
+- Implemented querying parameters (filter, order, limit) to relations and eager
+  loading in `Record`
+- `Model::data()` now returns transformed (non-raw attributes)
+  - Raw attribute access has moved to `Model::rawData()`
+  - The `toArray()`, `toJson()` and `getIterator()` methods now utilise the
+    transformed attributes
+- Implemented `Model::convertToJson()` - allows converting plain array of models
+  to JSON
+- Added unique() method to `Query` objects and `Query\Builder` executor methods
 
 ## v0.5.0-beta2 - Feb 18, 2015
 
