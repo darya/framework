@@ -42,6 +42,17 @@ Connections aren't initiated until you explicitly call either the `connect()` or
 $connection->connect();
 ```
 
+If you prefer, you can just instantiate a connection yourself.
+
+```
+use Darya\Database\Connection\MySql;
+use Darya\Database\Connection\SqlServer;
+
+$mySqlConnection = new MySql('hostname', 'username', 'password', 'database');
+
+$sqlServerConnection = new SqlServer('hostname', 'username', 'password', 'database');
+```
+
 ### Queries
 
 Perform simple queries and retrieve their result data.
