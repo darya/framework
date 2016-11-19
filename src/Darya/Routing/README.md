@@ -160,12 +160,13 @@ $router = new Router(array(
 echo $router->dispatch($_SERVER['REQUEST_URI']);
 ```
 
-With this configuration, visiting `/mate` will display `Hello mate!`, `/dude` will display `Hello dude!` and so on.
+With this configuration, visiting `/mate` will display `Hello mate!`, `/dude`
+will display `Hello dude!` and so on.
 
 #### Optional parameters
 
 You can make a URL parameter optional by appending the `?` character. You should
-make the function argument optional so that no error if there is no default 
+make the function argument optional so that no error if there is no default
 value for the parameter.
 
 ```php
@@ -213,7 +214,8 @@ You can assign any callable to a route and it will become the route's action
 parameter.
 
 ```php
-class MyClass {
+class MyClass
+{
 	public function myMethod($message) {
 		return $message ? "Message: $message" : 'No message';
 	}
@@ -231,7 +233,8 @@ use the `action` parameter as a method to call on the `controller`.
 The default value for the action parameter is `index`.
 
 ```php
-class MyClass {
+class MyClass
+{
 	public function index($message) {
 		return $message ? "Message: $message" : 'No message';
 	}
@@ -252,7 +255,8 @@ a route is matched. This is useful for allowing a single class to handle
 different requests.
 
 ```php
-class MyClass {
+class MyClass
+{
 	public function index() {
 		return 'Index!'
 	}
@@ -272,4 +276,4 @@ $router->respond('/test'); // Displays 'Test action!';
 
 You can also suffix a method name with Action and it will still be matched in
 the same way. This is useful in the case of using reserved words as action
-names. For example, `newAction` would be matched by the URL `/new`.
+names. For example, a `newAction()` method would be matched by the URL `/new`.
