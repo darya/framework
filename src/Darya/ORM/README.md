@@ -1,4 +1,4 @@
-# Darya\ORM
+# `Darya\ORM`
 
 Darya's ORM package provides a simple and flexible Active Record implementation,
 including a base class for domain models that makes common tasks a breeze.
