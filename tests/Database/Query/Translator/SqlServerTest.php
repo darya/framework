@@ -2,7 +2,7 @@
 namespace Darya\Tests\Database\Query\Translator;
 
 use PHPUnit_Framework_TestCase;
-use Darya\Storage\Query;
+use Darya\Database\Storage\Query;
 use Darya\Database\Connection;
 use Darya\Database\Query\Translator;
 
@@ -32,6 +32,14 @@ class SqlServerTest extends PHPUnit_Framework_TestCase {
 		$result = $translator->translate($query);
 		$this->assertEquals("SELECT id, firstname, lastname FROM users WHERE age >= ? AND name LIKE ? AND role_id IN (?, ?, ?, ?, ?) ORDER BY id ASC", $result->string);
 		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters);
+		
+		$query->group('firstname');
+		$query->having('id >', 6);
+		$query->having('id <', 7);
+		
+		$result = $translator->translate($query);
+		$this->assertEquals("SELECT id, firstname, lastname FROM users WHERE age >= ? AND name LIKE ? AND role_id IN (?, ?, ?, ?, ?) GROUP BY firstname HAVING id > ? AND id < ? ORDER BY id ASC", $result->string);
+		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5, 6, 7), $result->parameters);
 	}
 	
 	public function testInsert() {

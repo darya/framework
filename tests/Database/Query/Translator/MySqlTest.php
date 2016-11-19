@@ -40,6 +40,15 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$result = $translator->translate($query);
 		$this->assertEquals("SELECT `id`, `firstname`, `lastname` FROM `users` WHERE `age` >= ? AND `name` LIKE ? AND `role_id` IN (?, ?, ?, ?, ?) ORDER BY `id` ASC", $result->string);
 		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5), $result->parameters);
+		
+		$query->group('firstname');
+		$query->having('id >', 6);
+		$query->having('id <', 7);
+		
+		$result = $translator->translate($query);
+		$this->assertEquals("SELECT `id`, `firstname`, `lastname` FROM `users` WHERE `age` >= ? AND `name` LIKE ? AND `role_id` IN (?, ?, ?, ?, ?) GROUP BY `firstname` HAVING `id` > ? AND `id` < ? ORDER BY `id` ASC", $result->string);
+		$this->assertEquals(array(23, '%test%', 1, 2, '3', '4', 5, 6, 7), $result->parameters);
+		
 	}
 	
 	public function testSelectQueryFields() {
@@ -82,12 +91,12 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		$translator = $this->translator();
 		
 		$query = (new Query('users'))
-			->where('name', '%test%')
-			->where('name ', '%test%')
-			->where('name like', '%test%')
-			->where('name like ', '%test%')
-			->where('name not like', '%test%')
-			->where('name not like ', '%test%')
+			->where('name', '%test1%')
+			->where('name ', '%test2%')
+			->where('name like', '%test3%')
+			->where('name like ', '%test4%')
+			->where('name not like', '%test5%')
+			->where('name not like ', '%test6%')
 			->where('name like name')
 			->where('users.name like users.name')
 			->where('users.name not like users.name');
@@ -105,7 +114,7 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		);
 		
 		$this->assertEquals(
-			array('%test%', '%test%', '%test%', '%test%', '%test%', '%test%'),
+			array('%test1%', '%test2%', '%test3%', '%test4%', '%test5%', '%test6%'),
 			$result->parameters
 		);
 	}

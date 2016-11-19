@@ -86,7 +86,7 @@ class MySql extends AbstractSqlTranslator
 		
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
-		return static::concatenate(array('SELECT', $distinct, $columns, 'FROM', $table, $joins, $where, $order, $groupings, $having, $limit));
+		return static::concatenate(array('SELECT', $distinct, $columns, 'FROM', $table, $joins, $where, $groupings, $having, $order, $limit));
 	}
 	
 	/**
