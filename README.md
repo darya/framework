@@ -23,15 +23,16 @@ Eventually, each package will be split into its own repository.
 
 ## Installation
 
-Use [composer](https://getcomposer.org) to install the `darya/framework`
+Use [Composer](https://getcomposer.org) to install the `darya/framework`
 package.
 
 Otherwise just clone this repository into a directory such as
 `/vendor/darya/framework`.
 
 After this, you'll want to make use of a class autoloader to save you from
-having to manually include every class. You can use composer's autoloader or
-the autoloader that Darya provides.
+manually including classes.
+
+You can use Composer's autoloader or the autoloader that Darya provides.
 
 ### Composer's autoloader
 ```php

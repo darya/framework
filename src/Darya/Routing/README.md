@@ -1,6 +1,4 @@
-# Darya Framework
-
-## Routing
+# `Darya\Routing`
 
 Darya's router is the heart of the framework. It is used to match request paths to a `Route` object, which is essentially a set of parameters.
 
@@ -8,7 +6,7 @@ It can also be used to invoke functions or class methods derived from the parame
 
 This is a detailed set of examples of the different ways the router can be used.
 
-### Front controller
+## Front controller
 
 First, you'll want to set up a PHP script as a [front controller](http://en.wikipedia.org/wiki/Front_Controller_pattern). If you're using Apache as your web server you could achieve this with a `.htaccess` file at the root of your public directory. 
 
@@ -20,9 +18,9 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule .* index.php [L,QSA]
 ```
 
-### Router
+## Router
 
-#### Defining and matching routes
+### Defining and matching routes
 
 You can define routes in an array when instantiating a router using request
 paths for keys and route parameters defaults values.
@@ -55,7 +53,7 @@ $router = new Router(array(
 $route = $router->match('/'); // $route->action == function() {return 'Hello world!';}
 ```
 
-#### Route matching
+### Route matching
 
 Now that our `index.php` receives all requests for any files that don't exist, let's instantiate a router with its first route!
 
@@ -85,7 +83,7 @@ It then matches the current request URL to a route, and prints the matched route
 
 When no route is matched using the given request, the `match` method returns `false`.
 
-#### Setting a base URL
+### Setting a base URL
 
 If your application is not in your web server's root web directory, but instead in some subdirectory, you can let the router know by setting a base URL.
 
@@ -107,7 +105,7 @@ Now, provided your `.htaccess` and `index.php` files are in a subfolder named `d
 
 This works simply by removing the given base URL from the beginning of any URLs passed to the `match` method.
 
-#### Routing to functions
+### Routing to functions
 
 Darya's router's `dispatch` method can be used to run functions when a route is matched.
 
@@ -127,7 +125,7 @@ $router = new Router(array(
 echo $router->dispatch($_SERVER['REQUEST_URI']);
 ```
 
-#### Dynamic route parameters
+### Dynamic route parameters
 
 Darya's router is capable of matching parts of request URLs and setting them as properties on the matched route. If the route already has the matched property, it will be overwritten with the value in the request URL.
 
@@ -163,7 +161,7 @@ echo $router->dispatch($_SERVER['REQUEST_URI']);
 With this configuration, visiting `/mate` will display `Hello mate!`, `/dude`
 will display `Hello dude!` and so on.
 
-#### Optional parameters
+### Optional parameters
 
 You can make a URL parameter optional by appending the `?` character. You should
 make the function argument optional so that no error if there is no default
@@ -177,7 +175,7 @@ $router = new Router(array(
 ));
 ```
 
-#### Responding automatically
+### Responding automatically
 
 To avoid having to `echo` the result of your `dispatch` call you can use the
 `respond` method instead. This creates an HTTP response from whatever your
@@ -196,7 +194,7 @@ $router = new Router(array(
 $router->respond('/about/me'); // 'About me!'
 ```
 
-#### Error handling
+### Error handling
 
 If no route is matched by the request, `match` will return false and `dispatch`
 will return null after attempting to call an error handler. You can assign any
@@ -208,7 +206,7 @@ $router->setErrorHandler(function($request){
 });
 ```
 
-#### Routing to class methods
+### Routing to class methods
 
 You can assign any callable to a route and it will become the route's action
 parameter.
@@ -248,7 +246,7 @@ $router = new Router(array(
 Bear in mind that the class will not be instantiated if you assign routes this
 way. This is a task for Darya's `Dispatcher` class.
 
-#### Dynamic actions
+### Dynamic actions
 
 You can use dynamic parameters to decide which class method should be run when
 a route is matched. This is useful for allowing a single class to handle

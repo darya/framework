@@ -1,11 +1,9 @@
-# Darya Framework
-
-## HTTP Abstractions
+# `Darya\Http`
 
 Darya provides some simple abstractions for HTTP requests and responses, as well
 as session control.
 
-### Requests
+## Requests
 
 Request objects can be created with just a URI.
 
@@ -16,7 +14,7 @@ Request methods are treated case insensitively (and using lower case
 internally, in case you were interested (not that it's important (and this may
 well change to upper case at some point))).
 
-#### Creating requests
+### Creating requests
 
 ```php
 $request = Request::create('/hello');
@@ -43,17 +41,17 @@ This shortcut method does all of the above for you.
 $request = Request::createFromGlobals();
 ```
 
-#### Accessing request data
+### Accessing request data
 
 Assume the request URI `/hello?id=10` for the following examples.
 
-##### Retrieving the request URI
+#### Retrieving the request URI
 
 ```php
 // GET /hello?id=10
 $request->uri(); // '/hello'
 ```
-##### Determining the request method
+#### Determining the request method
 
 ```php
 $request->method();       // 'get'
@@ -61,7 +59,7 @@ $request->method('get');  // true
 $request->method('post'); // false
 ```
 
-##### Retrieving parameter values and other data
+#### Retrieving parameter values and other data
 
 ```php
 $request->get('id');  // 10
@@ -76,7 +74,7 @@ $request->server('REMOTE_ADDR');
 $request->ip(); // Same as the above
 ```
 
-##### Testing for an ajax request
+#### Testing for an ajax request
 
 ```php
 $request->header('X-Requested-With') == 'XmlHttpRequest';
