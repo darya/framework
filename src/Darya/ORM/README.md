@@ -29,10 +29,11 @@ $model = new Something(array(
 	'name' => 'Something',
 	'type' => 'A thing'
 ));
+```
 
 ### Interacting with model attributes
 
-```
+```php
 // Access its attributes using any convenient syntax
 $id   = $model->id;          // 72
 $name = $model['name'];      // 'Something'
