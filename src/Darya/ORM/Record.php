@@ -292,7 +292,15 @@ class Record extends Model
 	{
 		$data = static::load($filter, $order, 1);
 		
-		return !empty($data[0]) ? new static($data[0]) : false;
+		if (empty($data[0])) {
+			return false;
+		}
+		
+		$instance = new static($data[0]);
+		
+		$instance->reinstate();
+		
+		return $instance;
 	}
 	
 	/**
@@ -307,7 +315,13 @@ class Record extends Model
 	{
 		$instance = static::find($filter, $order);
 		
-		return $instance === false ? new static : $instance;
+		if ($instance === false) {
+			return new static;
+		}
+		
+		$instance->reinstate();
+		
+		return $instance;
 	}
 
 	/**

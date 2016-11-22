@@ -91,6 +91,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$user = User::find(2);
 		
 		$this->assertEquals('Bethany', $user->firstname);
+		
+		$this->assertEquals(array(), $user->changed());
 	}
 	
 	public function testAll() {
