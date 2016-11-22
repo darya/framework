@@ -147,7 +147,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$user = new User($data);
 		
-		// Also test changed attributes
+		// Also test changing an attribute
 		$user->firstname = 'Some';
 		$data['firstname'] = 'Some';
 		
@@ -165,6 +165,9 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(4, $user->id());
 		$this->assertEquals('Some', $user->firstname);
 		$this->assertEquals('User', $user->surname);
+		
+		// TODO: Test saving with no changed attributes, ensure no storage call
+		// TODO: Test that only changed attributes are saved
 	}
 	
 	public function testDistinct() {

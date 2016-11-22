@@ -463,42 +463,44 @@ class Record extends Model
 	 */
 	public function save()
 	{
-		if ($this->validate()) {
-			$storage = $this->storage();
-			$class = get_class($this);
-			
-			if (!$storage instanceof Modifiable) {
-				throw new Exception($class . ' storage is not modifiable');
-			}
-			
-			$data = $this->prepareData();
-			
-			if (!$this->id()) {
-				$id = $storage->create($this->table(), $data);
-				
-				if ($id) {
-					$this->set($this->key(), $id);
-					$this->reinstate();
-					
-					return true;
-				}
-			} else {
-				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
-				
-				if (!$updated) {
-					$updated = $storage->create($this->table(), $data) > 0;
-				}
-				
-				if ($updated) {
-					$this->reinstate();
-					
-					return true;
-				}
-			}
-			
-			$this->errors['save'] = "Failed to save $class instance";
-			$this->errors['storage'] = $this->storage()->error();
+		if (!$this->validate()) {
+			return false;
 		}
+		
+		$storage = $this->storage();
+		$class = get_class($this);
+		
+		if (!$storage instanceof Modifiable) {
+			throw new Exception($class . ' storage is not modifiable');
+		}
+		
+		$data = $this->prepareData();
+		
+		if (!$this->id()) {
+			$id = $storage->create($this->table(), $data);
+			
+			if ($id) {
+				$this->set($this->key(), $id);
+				$this->reinstate();
+				
+				return true;
+			}
+		} else {
+			$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
+			
+			if (!$updated) {
+				$updated = $storage->create($this->table(), $data) > 0;
+			}
+			
+			if ($updated) {
+				$this->reinstate();
+				
+				return true;
+			}
+		}
+		
+		$this->errors['save'] = "Failed to save $class instance";
+		$this->errors['storage'] = $this->storage()->error();
 		
 		return false;
 	}
