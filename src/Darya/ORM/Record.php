@@ -187,7 +187,7 @@ class Record extends Model
 		
 		$changed = array_intersect_key($this->data, array_flip($this->changed));
 		
-		$data = $this->id() && $changed ? $changed : $this->data;
+		$data = $this->id() ? $changed : $this->data;
 		
 		foreach ($data as $attribute => $value) {
 			if (isset($types[$attribute])) {
@@ -463,6 +463,7 @@ class Record extends Model
 	 */
 	public function save()
 	{
+		// Bail if the model is not valid
 		if (!$this->validate()) {
 			return false;
 		}
@@ -470,15 +471,24 @@ class Record extends Model
 		$storage = $this->storage();
 		$class = get_class($this);
 		
+		// Storage must be modifiable in order to save
 		if (!$storage instanceof Modifiable) {
 			throw new Exception($class . ' storage is not modifiable');
 		}
 		
 		$data = $this->prepareData();
 		
+		// Bail if there is no data to save
+		if (empty($data)) {
+			return true;
+		}
+		
 		if (!$this->id()) {
+			// Create a new item if there is no ID
 			$id = $storage->create($this->table(), $data);
 			
+			// If we get a new ID, it saved successfully, so let's update the
+			// model and clear its changes
 			if ($id) {
 				$this->set($this->key(), $id);
 				$this->reinstate();
@@ -486,12 +496,16 @@ class Record extends Model
 				return true;
 			}
 		} else {
+			// Attempt to update an existing item if there is an ID
 			$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
 			
+			// Otherwise it probably doesn't exist, so we can attempt to create
+			// TODO: Query result error check
 			if (!$updated) {
 				$updated = $storage->create($this->table(), $data) > 0;
 			}
 			
+			// If it updated successfully we can clear model's changes
 			if ($updated) {
 				$this->reinstate();
 				
