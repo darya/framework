@@ -101,6 +101,13 @@ abstract class Relation
 	protected $related = array();
 	
 	/**
+	 * Detached instances that need dissociating on save.
+	 * 
+	 * @var Record[]
+	 */
+	protected $detached = array();
+	
+	/**
 	 * Determines whether related instances have been loaded.
 	 * 
 	 * @var bool
@@ -638,6 +645,8 @@ abstract class Relation
 	/**
 	 * Set the related models.
 	 * 
+	 * Overwrites any currently set related models.
+	 * 
 	 * @param Record[] $instances
 	 */
 	public function set($instances)
@@ -657,7 +666,59 @@ abstract class Relation
 	}
 	
 	/**
-	 * Read-only access for relation properties.
+	 * Attach the given models.
+	 * 
+	 * @param Record[]|Record $instances
+	 */
+	public function attach($instances)
+	{
+		$this->verify($instances);
+		
+		foreach ($instances as $instance) {
+			$this->replace($instance);
+		}
+	}
+	
+	/**
+	 * Detach the given models.
+	 * 
+	 * @param Record[]|Record $instances
+	 */
+	public function detach($instances)
+	{
+		$this->verify($instances);
+		
+		$ids = array();
+		
+		foreach ($instances as $instance) {
+			$ids = $instance->id();
+		}
+		
+		foreach ($this->related as $related) {
+			$relatedIds[] = $related->id();
+		}
+		
+		$this->reduce(array_diff($relatedIds, $ids));
+		
+		$this->detached = array_merge($this->detached, $instances);
+	}
+	
+	/**
+	 * Save the relationship.
+	 * 
+	 * Associates related models and dissociates detached models.
+	 */
+	public function save()
+	{
+		$this->associate($this->related);
+		
+		$this->dissociate($this->detached);
+		
+		$this->detached = array();
+	}
+	
+	/**
+	 * Dynamic read-only access for relation properties.
 	 * 
 	 * @param string $property
 	 * @return mixed
