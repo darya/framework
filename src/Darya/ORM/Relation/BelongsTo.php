@@ -86,11 +86,11 @@ class BelongsTo extends Relation
 	 * Associate the given model.
 	 * 
 	 * @param Record[]|Record $instances
-	 * @return bool
+	 * @return int
 	 */
 	public function associate($instances)
 	{
-		$this->verify($instances);
+		$this->attach($instances);
 		$instances = static::arrayify($instances);
 		
 		if (empty($instances)) {
@@ -110,13 +110,13 @@ class BelongsTo extends Relation
 	 * Dissociate the related model.
 	 * 
 	 * @param Record[]|Record $instances [optional]
-	 * @return bool
+	 * @return int
 	 */
 	public function dissociate($instances = array())
 	{
 		$this->clear();
 		$this->parent->set($this->foreignKey, 0);
 		
-		return $this->parent->save();
+		return (int) $this->parent->save();
 	}
 }

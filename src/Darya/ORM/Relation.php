@@ -365,7 +365,7 @@ abstract class Relation
 		}
 		
 		foreach ($this->related as $key => $related) {
-			if ($related->id() === $instance->id()) {
+			if ($related->id() === $instance->id() || $related === $instance) {
 				$this->related[$key] = $instance;
 				
 				return;
@@ -747,11 +747,28 @@ abstract class Relation
 	 */
 	public function save(array $ids = array())
 	{
-		$this->associate($this->related);
+		$related = $this->related;
+		$detached = $this->detached;
 		
-		$this->dissociate($this->detached);
+		// Bail if we have nothing to associate or dissociate
+		if (empty($related) && empty($detached)) {
+			return;
+		}
 		
-		$this->detached = array();
+		// Filter the IDs to associate and dissociate if any have been given
+		if (!empty($ids)) {
+			$filter = function ($instance) use ($ids) {
+				return in_array($instance->id, $ids);
+			};
+			
+			$related = array_filter($related, $filter);
+			$detached = array_filter($detached, $filter);
+		}
+		
+		$this->associate($related);
+		$this->dissociate($detached);
+		
+		$this->detached = array_diff($detached, $this->detached);
 	}
 	
 	/**
