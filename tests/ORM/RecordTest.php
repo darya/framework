@@ -239,6 +239,49 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(0, $padawan->master_id);
 	}
 	
+	public function testHasAttachment()
+	{
+		$user = User::find(1);
+		
+		$padawan = new User([
+			'firstname' => 'Obi-Wan',
+			'surname'   => 'Kenobi'
+		]);
+		
+		$user->padawan()->attach($padawan);
+		
+		$this->assertEquals('Obi-Wan', $user->padawan->firstname);
+		
+		// TODO: Test direct set ($user->padawan = $padawan)
+	}
+	
+	public function testHasDetachment()
+	{
+		$user = User::find(1);
+		
+		$user->padawan()->detach($user->padawan);
+		
+		$this->assertEquals(null, $user->padawan);
+		
+		// TODO: Test unset()
+	}
+	
+	public function testHasSave()
+	{
+		$user = User::find(1);
+		
+		$padawan = new User([
+			'firstname' => 'Obi-Wan',
+			'surname'   => 'Kenobi'
+		]);
+		
+		$user->padawan()->attach($padawan);
+		
+		$user->save();
+		
+		// TODO: Assert that Obi-Wan is in storage
+	}
+	
 	public function testHasDotNotation() {
 		$user = User::find(1);
 		

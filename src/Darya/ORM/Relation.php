@@ -674,7 +674,7 @@ abstract class Relation
 	{
 		$this->verify($instances);
 		
-		foreach ($instances as $instance) {
+		foreach (static::arrayify($instances) as $instance) {
 			$this->replace($instance);
 		}
 	}
@@ -688,10 +688,13 @@ abstract class Relation
 	{
 		$this->verify($instances);
 		
+		$instances = static::arrayify($instances);
+		
 		$ids = array();
+		$relatedIds = array();
 		
 		foreach ($instances as $instance) {
-			$ids = $instance->id();
+			$ids[] = $instance->id();
 		}
 		
 		foreach ($this->related as $related) {
@@ -707,8 +710,13 @@ abstract class Relation
 	 * Save the relationship.
 	 * 
 	 * Associates related models and dissociates detached models.
+	 * 
+	 * Optionally accepts a set of IDs to save by. Saves all related models
+	 * otherwise.
+	 * 
+	 * @param int[] $ids
 	 */
-	public function save()
+	public function save(array $ids = array())
 	{
 		$this->associate($this->related);
 		
