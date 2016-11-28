@@ -125,8 +125,8 @@ abstract class Relation
 	 * Helper method for methods that accept single or multiple values, or for
 	 * just casting to an array without losing a plain object.
 	 * 
-	 * Returns a array with the given value as its sole element, if it is not an
-	 * array already.
+	 * Returns an array with the given value as its sole element, if it is not
+	 * an array already.
 	 * 
 	 * @param mixed $value
 	 * @return array
@@ -684,28 +684,35 @@ abstract class Relation
 	/**
 	 * Detach the given models.
 	 * 
-	 * @param Record[]|Record $instances
+	 * Detaches all related models if none are given.
+	 * 
+	 * @param Record[]|Record $instances [optional]
 	 */
-	public function detach($instances)
+	public function detach($instances = array())
 	{
 		$this->verify($instances);
 		
 		$instances = static::arrayify($instances);
 		
-		$ids = array();
 		$relatedIds = array();
-		
-		foreach ($instances as $instance) {
-			$ids[] = $instance->id();
-		}
+		$detached = array();
+		$ids = array();
 		
 		foreach ($this->related as $related) {
 			$relatedIds[] = $related->id();
 		}
 		
-		$this->reduce(array_diff($relatedIds, $ids));
+		foreach ($instances as $instance) {
+			$ids[] = $instance->id();
+			
+			if (in_array($instance->id(), $relatedIds)) {
+				$detached[] = $instance;
+			}
+		}
 		
-		$this->detached = array_merge($this->detached, $instances);
+		$this->reduce(array_diff($ids, $relatedIds));
+		
+		$this->detached = array_merge($this->detached, $detached);
 	}
 	
 	/**

@@ -263,13 +263,43 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	
 	public function testHasDetachment()
 	{
+		// Test detaching an existing model
 		$user = User::find(1);
 		
-		$user->padawan()->detach($user->padawan);
+		$user->padawan;
 		
-		$this->assertEquals(null, $user->padawan);
+		$user->padawan()->detach();
 		
-		// TODO: Test unset()
+		$this->assertNull(null, $user->padawan);
+		
+		// Test detaching a passed existing model
+		$user = User::find(1);
+		
+		$padawan = $user->padawan;
+		
+		$this->assertNotNull($padawan);
+		
+		$user->padawan()->detach($padawan);
+		
+		$this->assertNull($user->padawan);
+		
+		// Test unset()
+		$user = User::find(1);
+		
+		$user->padawan;
+		
+		unset($user->padawan);
+		
+		$this->assertNull($user->padawan);
+		
+		// Test nulling
+		$user = User::find(1);
+		
+		$user->padawan;
+		
+		$user->padawan = null;
+		
+		$this->assertNull($user->padawan);
 	}
 	
 	public function testHasSave()

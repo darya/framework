@@ -119,6 +119,20 @@ class Record extends Model
 	}
 	
 	/**
+	 * Unset the value for an attribute or relation on the model.
+	 * 
+	 * @param string $attribute
+	 */
+	public function remove($attribute)
+	{
+		if ($this->hasRelation($attribute)) {
+			return $this->unsetRelated($attribute);
+		}
+		
+		parent::remove($attribute);
+	}
+	
+	/**
 	 * Retrieve the name of the table this model belongs to.
 	 * 
 	 * If none is set, it defaults to creating it from the class name.
@@ -639,11 +653,25 @@ class Record extends Model
 		
 		$relation = $this->relation($attribute);
 		
-		if ($value !== null && !($value instanceof $relation->target) && !is_array($value)) {
-			return;
+		if ($value === null) {
+			return $relation->detach();
 		}
 		
 		$relation->attach($value);
+	}
+
+	/**
+	 * Unset the models of the given relation.
+	 * 
+	 * @param string $attribute
+	 */
+	protected function unsetRelated($attribute)
+	{
+		if (!$this->hasRelation($attribute)) {
+			return;
+		}
+		
+		$this->relation($attribute)->detach();
 	}
 
 	/**
