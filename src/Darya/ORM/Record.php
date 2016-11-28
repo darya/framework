@@ -643,7 +643,7 @@ class Record extends Model
 			return;
 		}
 		
-		$relation->associate($value);
+		$relation->attach($value);
 	}
 
 	/**

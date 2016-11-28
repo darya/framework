@@ -203,7 +203,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	public function testHasAssociation() {
 		$user = User::find(1);
 		
-		$user->padawan = User::find(2);
+		$user->padawan()->associate(User::find(2));
 		
 		$this->assertEquals('Bethany', $user->padawan->firstname);
 		
@@ -241,6 +241,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	
 	public function testHasAttachment()
 	{
+		// Test attach method
 		$user = User::find(1);
 		
 		$padawan = new User([
@@ -252,7 +253,12 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertEquals('Obi-Wan', $user->padawan->firstname);
 		
-		// TODO: Test direct set ($user->padawan = $padawan)
+		// Test direct set
+		$user = User::find(2);
+		
+		$user->padawan = User::find(1);
+		
+		$this->assertEquals('Chris', $user->padawan->firstname);
 	}
 	
 	public function testHasDetachment()

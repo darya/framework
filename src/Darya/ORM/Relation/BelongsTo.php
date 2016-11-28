@@ -85,24 +85,34 @@ class BelongsTo extends Relation
 	/**
 	 * Associate the given model.
 	 * 
-	 * @param Record $instance
+	 * @param Record[]|Record $instances
 	 * @return bool
 	 */
-	public function associate(Record $instance)
+	public function associate($instances)
 	{
+		$this->verify($instances);
+		$instances = static::arrayify($instances);
+		
+		if (empty($instances)) {
+			return false;
+		}
+		
+		$instance = $instances[0];
+		
 		$instance->save();
 		$this->set(array($instance));
 		$this->parent->set($this->foreignKey, $instance->id());
 		
-		return $this->parent->save();
+		return (int) $this->parent->save();
 	}
 	
 	/**
 	 * Dissociate the related model.
 	 * 
+	 * @param Record[]|Record $instances [optional]
 	 * @return bool
 	 */
-	public function dissociate()
+	public function dissociate($instances = array())
 	{
 		$this->clear();
 		$this->parent->set($this->foreignKey, 0);

@@ -102,17 +102,26 @@ class Has extends Relation
 	 * 
 	 * Returns true if the model was successfully associated.
 	 * 
-	 * @param Record $instance
+	 * @param Record[]|Record $instances
 	 * @return int
 	 */
-	public function associate($instance)
+	public function associate($instances)
 	{
+		$this->verify($instances);
+		$instances = static::arrayify($instances);
+		
+		if (empty($instances)) {
+			return 0;
+		}
+		
+		$instance = $instances[0];
+		
 		$this->dissociate();
 		
 		$this->verify($instance);
 		$this->related = array($instance);
 		
-		return $this->save();
+		return (int) $this->save();
 	}
 	
 	/**
@@ -120,20 +129,21 @@ class Has extends Relation
 	 * 
 	 * Returns true if the model was successfully dissociated.
 	 * 
+	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate()
+	public function dissociate($instances = array())
 	{
 		$associated = $this->retrieve();
 		
 		if (!$associated) {
-			return true;
+			return 1;
 		}
 		
 		$this->clear();
 		
 		$associated->set($this->foreignKey, 0);
 		
-		return $associated->save();
+		return (int) $associated->save();
 	}
 }

@@ -352,15 +352,11 @@ abstract class Relation
 	 * If the related model does not have an ID or it is not found, it is simply
 	 * appended.
 	 * 
-	 * Retrieves related models if none have been loaded yet.
-	 * 
 	 * @param Record $instance
 	 */
 	protected function replace(Record $instance)
 	{
 		$this->verify($instance);
-		
-		//$this->retrieve();
 		
 		if (!$instance->id()) {
 			$this->related[] = $instance;
@@ -558,6 +554,8 @@ abstract class Relation
 	/**
 	 * Read, generate and set cached related models from storage.
 	 * 
+	 * This will completely replace any cached related models.
+	 * 
 	 * @param int $limit [optional]
 	 * @return Record[]
 	 */
@@ -609,6 +607,8 @@ abstract class Relation
 			$this->load(1);
 		}
 		
+		// TODO: Load and merge with cached?
+		
 		return !empty($this->related) ? $this->related[0] : null;
 	}
 	
@@ -619,9 +619,11 @@ abstract class Relation
 	 */
 	public function all()
 	{
-		if (!$this->loaded()) {
+		if (!$this->loaded() && empty($related)) {
 			$this->load();
 		}
+		
+		// TODO: Load and merge with cached?
 		
 		return $this->related;
 	}
@@ -705,6 +707,26 @@ abstract class Relation
 		
 		$this->detached = array_merge($this->detached, $instances);
 	}
+	
+	/**
+	 * Associate the given models.
+	 * 
+	 * Returns the number of models successfully associated.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @return int
+	 */
+	abstract public function associate($instances);
+	
+	/**
+	 * Dissociate the given models.
+	 * 
+	 * Returns the number of models successfully dissociated.
+	 * 
+	 * @param Record[]|Record $instances [optional]
+	 * @return int
+	 */
+	abstract public function dissociate($instances = array());
 	
 	/**
 	 * Save the relationship.
