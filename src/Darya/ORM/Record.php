@@ -201,7 +201,7 @@ class Record extends Model
 		
 		$changed = array_intersect_key($this->data, array_flip($this->changed));
 		
-		$data = $this->id() && $changed ? $changed : $this->data;
+		$data = $this->id() ? $changed : $this->data;
 		
 		foreach ($data as $attribute => $value) {
 			if (isset($types[$attribute])) {
@@ -306,7 +306,15 @@ class Record extends Model
 	{
 		$data = static::load($filter, $order, 1);
 		
-		return !empty($data[0]) ? new static($data[0]) : false;
+		if (empty($data[0])) {
+			return false;
+		}
+		
+		$instance = new static($data[0]);
+		
+		$instance->reinstate();
+		
+		return $instance;
 	}
 	
 	/**
@@ -321,7 +329,13 @@ class Record extends Model
 	{
 		$instance = static::find($filter, $order);
 		
-		return $instance === false ? new static : $instance;
+		if ($instance === false) {
+			return new static;
+		}
+		
+		$instance->reinstate();
+		
+		return $instance;
 	}
 
 	/**
@@ -463,42 +477,58 @@ class Record extends Model
 	 */
 	public function save()
 	{
-		if ($this->validate()) {
-			$storage = $this->storage();
-			$class = get_class($this);
-			
-			if (!$storage instanceof Modifiable) {
-				throw new Exception($class . ' storage is not modifiable');
-			}
-			
-			$data = $this->prepareData();
-			
-			if (!$this->id()) {
-				$id = $storage->create($this->table(), $data);
-				
-				if ($id) {
-					$this->set($this->key(), $id);
-					$this->reinstate();
-					
-					return true;
-				}
-			} else {
-				$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
-				
-				if (!$updated) {
-					$updated = $storage->create($this->table(), $data) > 0;
-				}
-				
-				if ($updated) {
-					$this->reinstate();
-					
-					return true;
-				}
-			}
-			
-			$this->errors['save'] = "Failed to save $class instance";
-			$this->errors['storage'] = $this->storage()->error();
+		// Bail if the model is not valid
+		if (!$this->validate()) {
+			return false;
 		}
+		
+		$storage = $this->storage();
+		$class = get_class($this);
+		
+		// Storage must be modifiable in order to save
+		if (!$storage instanceof Modifiable) {
+			throw new Exception($class . ' storage is not modifiable');
+		}
+		
+		$data = $this->prepareData();
+		
+		// Bail if there is no data to save
+		if (empty($data)) {
+			return true;
+		}
+		
+		if (!$this->id()) {
+			// Create a new item if there is no ID
+			$id = $storage->create($this->table(), $data);
+			
+			// If we get a new ID, it saved successfully, so let's update the
+			// model and clear its changes
+			if ($id) {
+				$this->set($this->key(), $id);
+				$this->reinstate();
+				
+				return true;
+			}
+		} else {
+			// Attempt to update an existing item if there is an ID
+			$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
+			
+			// Otherwise it probably doesn't exist, so we can attempt to create
+			// TODO: Query result error check
+			if (!$updated) {
+				$updated = $storage->create($this->table(), $data) > 0;
+			}
+			
+			// If it updated successfully we can clear model's changes
+			if ($updated) {
+				$this->reinstate();
+				
+				return true;
+			}
+		}
+		
+		$this->errors['save'] = "Failed to save $class instance";
+		$this->errors['storage'] = $this->storage()->error();
 		
 		return false;
 	}

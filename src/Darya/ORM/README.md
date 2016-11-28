@@ -29,10 +29,11 @@ $model = new Something(array(
 	'name' => 'Something',
 	'type' => 'A thing'
 ));
+```
 
 ### Interacting with model attributes
 
-```
+```php
 // Access its attributes using any convenient syntax
 $id   = $model->id;          // 72
 $name = $model['name'];      // 'Something'
@@ -88,20 +89,21 @@ Records are supercharged models with access to persistent storage through the
 record pattern, but with testability in mind.
 
 The database connection for a single record instance, or all instances of a
-specific type of record, can be swapped out for a different storage adapter,
-meaning they can easily tested with mocks.
+specific type of record, can be swapped out for a different storage adapter.
 
-```
-$storage = new Darya\Database\Storage(
-	new Darya\Database\Connection\MySql(
-		'hostname', 'username', 'password', 'database`
-	);
+```php
+use Darya\Database\Connection;
+use Darya\Database\Storage;
+use Darya\ORM\Record;
+
+$databaseStorage = new Storage(
+	new Connection\MySql('hostname', 'username', 'password', 'database')
 );
 
 $inMemoryStorage = new Darya\Storage\InMemory;
 
 // Set storage for all Records
-Record::setSharedStorage($storage);
+Record::setSharedStorage($databaseStorage);
 
 // Use in memory storage for this type of Record
 TestRecord::setSharedStorage($inMemoryStorage);

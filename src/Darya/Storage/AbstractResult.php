@@ -7,13 +7,13 @@ use IteratorAggregate;
 /**
  * Darya's abstract storage query result.
  * 
- * @property array  $data     Result data
- * @property object $query    Query that produced this result
- * @property int    $count    Result count
- * @property object $error    Result error
- * @property array  $fields   Field names for each result data row
- * @property int    $insertId Insert ID
- * @property int    $affected Rows affected
+ * @property-read array  $data     Result data
+ * @property-read object $query    Query that produced this result
+ * @property-read int    $count    Result count
+ * @property-read object $error    Result error
+ * @property-read array  $fields   Field names for each result data row
+ * @property-read int    $insertId Insert ID
+ * @property-read int    $affected Rows affected
  * 
  * @author Chris Andrew <chris@hexus.io>
  */

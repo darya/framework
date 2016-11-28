@@ -8,13 +8,13 @@ use Darya\Database\Query;
 /**
  * Darya's database result representation.
  * 
- * @property array $data       Result data
- * @property Query $query      Query that produced this result
- * @property int   $count      Result count
- * @property Error $error      Result error
- * @property array $fields     Field names for each result data row
- * @property int   $insertId   Insert ID
- * @property int   $affected   Rows affected
+ * @property-read array $data       Result data
+ * @property-read Query $query      Query that produced this result
+ * @property-read int   $count      Result count
+ * @property-read Error $error      Result error
+ * @property-read array $fields     Field names for each result data row
+ * @property-read int   $insertId   Insert ID
+ * @property-read int   $affected   Rows affected
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
