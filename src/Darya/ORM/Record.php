@@ -517,15 +517,13 @@ class Record extends Model
 	 */
 	public function delete()
 	{
-		if ($this->id()) {
-			$storage = $this->storage();
-			
-			if ($storage instanceof Modifiable) {
-				return (bool) $storage->delete($this->table(), array($this->key() => $this->id()), 1);
-			}
+		$storage = $this->storage();
+		
+		if (!$this->id() || !($storage instanceof Modifiable)) {
+			return false;
 		}
 		
-		return false;
+		return (bool) $storage->delete($this->table(), array($this->key() => $this->id()), 1);
 	}
 	
 	/**
@@ -641,7 +639,7 @@ class Record extends Model
 		
 		$relation = $this->relation($attribute);
 		
-		if ($value !== null && !$value instanceof $relation->target && !is_array($value)) {
+		if ($value !== null && !($value instanceof $relation->target) && !is_array($value)) {
 			return;
 		}
 		

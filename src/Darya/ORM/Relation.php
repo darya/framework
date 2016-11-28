@@ -360,7 +360,7 @@ abstract class Relation
 	{
 		$this->verify($instance);
 		
-		$this->retrieve();
+		//$this->retrieve();
 		
 		if (!$instance->id()) {
 			$this->related[] = $instance;
@@ -605,7 +605,7 @@ abstract class Relation
 	 */
 	public function one()
 	{
-		if (!$this->loaded()) {
+		if (!$this->loaded() && empty($this->related)) {
 			$this->load(1);
 		}
 		
