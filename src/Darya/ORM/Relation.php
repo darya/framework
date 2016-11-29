@@ -750,25 +750,34 @@ abstract class Relation
 		$related = $this->related;
 		$detached = $this->detached;
 		
-		// Bail if we have nothing to associate or dissociate
-		if (empty($related) && empty($detached)) {
-			return;
-		}
-		
 		// Filter the IDs to associate and dissociate if any have been given
 		if (!empty($ids)) {
 			$filter = function ($instance) use ($ids) {
-				return in_array($instance->id, $ids);
+				return in_array($instance->id(), $ids);
 			};
 			
 			$related = array_filter($related, $filter);
 			$detached = array_filter($detached, $filter);
 		}
 		
-		$this->associate($related);
+		// Bail if we have nothing to associate or dissociate
+		if (empty($related) && empty($detached)) {
+			return;
+		}
+		
+		// Associate and dissociate
+		$associated = $this->associate($related);
 		$this->dissociate($detached);
 		
+		// Update detached models to be persisted
 		$this->detached = array_diff($detached, $this->detached);
+		
+		// Persist relationships on all related models
+		foreach ($related as $instance) {
+			$instance->saveRelations();
+		}
+		
+		return $associated;
 	}
 	
 	/**

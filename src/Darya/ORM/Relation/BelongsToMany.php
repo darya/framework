@@ -354,6 +354,7 @@ class BelongsToMany extends Relation
 	 */
 	public function associate($instances)
 	{
+		$this->verify($instances);
 		$instances = static::arrayify($instances);
 		
 		$existing = $this->storage()->read($this->table, array(
@@ -363,8 +364,6 @@ class BelongsToMany extends Relation
 		$successful = 0;
 		
 		foreach ($instances as $instance) {
-			$this->verify($instance);
-			
 			if ($instance->save()) {
 				$successful++;
 				$this->replace($instance);

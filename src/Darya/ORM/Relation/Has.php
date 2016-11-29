@@ -79,7 +79,7 @@ class Has extends Relation
 	 * @param array $ids [optional]
 	 * @return int
 	 */
-	public function save($ids = array())
+	public function saveAssociations($ids = array())
 	{
 		$successful = 0;
 		
@@ -118,10 +118,9 @@ class Has extends Relation
 		
 		$this->dissociate();
 		
-		$this->verify($instance);
 		$this->related = array($instance);
 		
-		return (int) $this->save();
+		return (int) $this->saveAssociations();
 	}
 	
 	/**

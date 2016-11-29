@@ -303,7 +303,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 					$query->offset
 				);
 				break;
-			case Query:UPDATE:
+			case Query::UPDATE:
 				$info['affected'] = $this->update(
 					$query->resource,
 					$query->data,

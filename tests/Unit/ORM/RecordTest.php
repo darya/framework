@@ -326,6 +326,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$user = User::find(1);
 		
 		$padawan = new User([
+			'id'        => 4,
 			'firstname' => 'Obi-Wan',
 			'surname'   => 'Kenobi'
 		]);
@@ -334,7 +335,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$user->save();
 		
-		// TODO: Assert that Obi-Wan is in storage
+		$this->assertEquals('Obi-Wan', User::find(4)->firstname);
 	}
 	
 	public function testHasDotNotation() {

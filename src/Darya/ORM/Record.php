@@ -493,7 +493,9 @@ class Record extends Model
 		$data = $this->prepareData();
 		
 		// Bail if there is no data to save
-		if (empty($data)) {
+		if ($this->id() && empty($data)) {
+			// $this->saveRelations(); // Infinite loop in BelongsTo::associate()
+			
 			return true;
 		}
 		
@@ -506,6 +508,7 @@ class Record extends Model
 			if ($id) {
 				$this->set($this->key(), $id);
 				$this->reinstate();
+				$this->saveRelations();
 				
 				return true;
 			}
@@ -522,6 +525,7 @@ class Record extends Model
 			// If it updated successfully we can clear model's changes
 			if ($updated) {
 				$this->reinstate();
+				$this->saveRelations();
 				
 				return true;
 			}
@@ -702,6 +706,16 @@ class Record extends Model
 		}
 		
 		$this->relation($attribute)->detach();
+	}
+
+	/**
+	 * Save all of the model's relations.
+	 */
+	public function saveRelations()
+	{
+		foreach ($this->relations() as $relation) {
+			$relation->save();
+		}
 	}
 
 	/**

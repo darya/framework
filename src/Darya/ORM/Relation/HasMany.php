@@ -112,24 +112,16 @@ class HasMany extends Has
 	 * 
 	 * Returns the number of models successfully associated.
 	 * 
-	 * TODO: Stop this from assuming an ID on the instances. Somehow. Maybe save
-	 *       if it doesn't have one yet, or don't use IDs at the risk of saving
-	 *       more relations than necessary (all of them...).
-	 * 
 	 * @param Record[]|Record $instances
 	 * @return int
 	 */
 	public function associate($instances)
 	{
-		$ids = array();
-		
 		foreach (static::arrayify($instances) as $instance) {
 			$this->replace($instance);
-			
-			$ids[] = $instance->id();
 		}
 		
-		return $this->save($ids);
+		return $this->saveAssociations();
 	}
 	
 	/**
@@ -181,6 +173,13 @@ class HasMany extends Has
 	public function purge()
 	{
 		$this->related = array();
+		
+		// return (int) $this->storage()->query($this->target->table())
+			// ->where($this->foreignKey, 0)
+			// ->update(array(
+				// $this->foreignKey => $this->parent->get($this->localKey)
+			// ))
+			// ->cheers()->affected;
 		
 		return (int) $this->storage()->update($this->target->table(), array(
 			$this->foreignKey => 0
