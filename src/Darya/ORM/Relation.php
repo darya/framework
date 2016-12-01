@@ -684,7 +684,7 @@ abstract class Relation
 	/**
 	 * Detach the given models.
 	 * 
-	 * Detaches all related models if none are given.
+	 * Detaches all attached models if none are given.
 	 * 
 	 * @param Record[]|Record $instances [optional]
 	 */
@@ -692,7 +692,7 @@ abstract class Relation
 	{
 		$this->verify($instances);
 		
-		$instances = static::arrayify($instances);
+		$instances = static::arrayify($instances) ?: $this->related;
 		
 		$relatedIds = array();
 		$detached = array();
