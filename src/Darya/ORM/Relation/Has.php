@@ -115,17 +115,22 @@ class Has extends Relation
 	public function dissociate($instances = array())
 	{
 		$this->verify($instances);
+		
+		// Fall back to loading existing relations if none are given
 		$associated = static::arrayify($instances) ?: $this->load(1);
 		
+		// Mark these models as detached
 		$this->detach($associated);
 		
 		$successful = 0;
 		
+		// Persist the detachment of the models
 		foreach ($this->detached as $model) {
 			$model->set($this->foreignKey, 0);
 			$successful += $model->save();
 		}
 		
+		// Clear the set of models to detach
 		$this->detached = array();
 		
 		return $successful;

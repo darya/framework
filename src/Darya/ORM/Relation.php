@@ -694,24 +694,22 @@ abstract class Relation
 		
 		$instances = static::arrayify($instances) ?: $this->related;
 		
-		$relatedIds = array();
+		$relatedIds = static::attributeList($this->related, 'id');
 		$detached = array();
 		$ids = array();
 		
-		foreach ($this->related as $related) {
-			$relatedIds[] = $related->id();
-		}
-		
+		// Collect the IDs and instances of the models to be detached
 		foreach ($instances as $instance) {
-			$ids[] = $instance->id();
-			
 			if (in_array($instance->id(), $relatedIds)) {
+				$ids[] = $instance->id();
 				$detached[] = $instance;
 			}
 		}
 		
+		// Reduce related models to those that haven't been detached
 		$this->reduce(array_diff($relatedIds, $ids));
 		
+		// Merge the newly detached models in with the existing ones
 		$this->detached = array_merge($this->detached, $detached);
 	}
 	

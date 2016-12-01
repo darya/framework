@@ -498,7 +498,19 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Obi-Wan', User::find(3)->master->firstname);
 		$this->assertEquals('Obi-Wan', User::find(4)->firstname);
 		
-		// TODO: Test detachment save
+		// Test detachment save
+		$user = User::find(3);
+		
+		$user->master;
+		$user->master()->detach();
+		
+		$this->assertNull($user->master);
+		$this->assertNotNull(User::find(3)->master);
+		
+		$user->save();
+		
+		$this->assertNull($user->master);
+		$this->assertNull(User::find(3)->master);
 	}
 	
 	public function testBelongsToDotNotation() {
