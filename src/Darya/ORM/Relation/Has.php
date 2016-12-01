@@ -72,15 +72,24 @@ class Has extends Relation
 	}
 	
 	/**
-	 * Save the related models.
+	 * Associate the given model.
 	 * 
-	 * Optionally only save models with the given IDs.
+	 * Dissociates any currently associated model beforehand.
 	 * 
-	 * @param array $ids [optional]
+	 * Returns the number of successfully associated models.
+	 * 
+	 * @param Record[]|Record $instances
 	 * @return int
 	 */
-	public function saveAssociations($ids = array())
+	public function associate($instances)
 	{
+		$this->verify($instances);
+		
+		$this->dissociate();
+		$this->attach($instances);
+		
+		$ids = static::attributeList($instances, 'id');
+		
 		$successful = 0;
 		
 		foreach ($this->related as $model) {
@@ -92,35 +101,7 @@ class Has extends Relation
 			}
 		}
 		
-		return $successful;
-	}
-	
-	/**
-	 * Associate the given model.
-	 * 
-	 * Dissociates any currently associated model beforehand.
-	 * 
-	 * Returns true if the model was successfully associated.
-	 * 
-	 * @param Record[]|Record $instances
-	 * @return int
-	 */
-	public function associate($instances)
-	{
-		$this->verify($instances);
-		$instances = static::arrayify($instances);
-		
-		if (empty($instances)) {
-			return 0;
-		}
-		
-		$instance = $instances[0];
-		
-		$this->dissociate();
-		
-		$this->related = array($instance);
-		
-		return (int) $this->saveAssociations();
+		return (int) $successful;
 	}
 	
 	/**
@@ -133,16 +114,20 @@ class Has extends Relation
 	 */
 	public function dissociate($instances = array())
 	{
-		$associated = $this->retrieve();
+		$this->verify($instances);
+		$associated = static::arrayify($instances) ?: $this->load(1);
 		
-		if (!$associated) {
-			return 1;
+		$this->detach($associated);
+		
+		$successful = 0;
+		
+		foreach ($this->detached as $model) {
+			$model->set($this->foreignKey, 0);
+			$successful += $model->save();
 		}
 		
-		$this->clear();
+		$this->detached = array();
 		
-		$associated->set($this->foreignKey, 0);
-		
-		return (int) $associated->save();
+		return $successful;
 	}
 }

@@ -570,7 +570,7 @@ abstract class Relation
 	}
 	
 	/**
-	 * Determine whether cached related models have been loaded.
+	 * Determine whether cached related models have been loaded from storage.
 	 * 
 	 * @return bool
 	 */
@@ -619,7 +619,7 @@ abstract class Relation
 	 */
 	public function all()
 	{
-		if (!$this->loaded() && empty($related)) {
+		if (!$this->loaded() && empty($this->related)) {
 			$this->load();
 		}
 		
@@ -710,7 +710,7 @@ abstract class Relation
 			}
 		}
 		
-		$this->reduce(array_diff($ids, $relatedIds));
+		$this->reduce(array_diff($relatedIds, $ids));
 		
 		$this->detached = array_merge($this->detached, $detached);
 	}
@@ -743,7 +743,10 @@ abstract class Relation
 	 * Optionally accepts a set of IDs to save by. Saves all related models
 	 * otherwise.
 	 * 
+	 * Returns the number of associated models.
+	 * 
 	 * @param int[] $ids
+	 * @return int
 	 */
 	public function save(array $ids = array())
 	{
@@ -765,12 +768,15 @@ abstract class Relation
 			return;
 		}
 		
-		// Associate and dissociate
+		// Dissociate, then associate
+		if  (!empty($detached)) {
+			$this->dissociate($detached);
+		}
+		
 		$associated = $this->associate($related);
-		$this->dissociate($detached);
 		
 		// Update detached models to be persisted
-		$this->detached = array_diff($detached, $this->detached);
+		$this->detached = array();
 		
 		// Persist relationships on all related models
 		foreach ($related as $instance) {

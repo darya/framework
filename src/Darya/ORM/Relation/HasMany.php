@@ -98,6 +98,38 @@ class HasMany extends Has
 	}
 	
 	/**
+	 * Associate the given model.
+	 * 
+	 * Dissociates any currently associated model beforehand.
+	 * 
+	 * Returns the number of successfully associated models.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @return int
+	 */
+	public function associate($instances)
+	{
+		$this->verify($instances);
+		
+		$this->attach($instances);
+		
+		$ids = static::attributeList($instances, 'id');
+		
+		$successful = 0;
+		
+		foreach ($this->related as $model) {
+			$this->persist($model);
+			
+			if (!$ids || in_array($model->id(), $ids)) {
+				$model->set($this->foreignKey, $this->parent->id());
+				$successful += $model->save();
+			}
+		}
+		
+		return (int) $successful;
+	}
+	
+	/**
 	 * Retrieve the related models.
 	 * 
 	 * @return Record[]
@@ -105,60 +137,6 @@ class HasMany extends Has
 	public function retrieve()
 	{
 		return $this->all();
-	}
-	
-	/**
-	 * Associate the given models.
-	 * 
-	 * Returns the number of models successfully associated.
-	 * 
-	 * @param Record[]|Record $instances
-	 * @return int
-	 */
-	public function associate($instances)
-	{
-		foreach (static::arrayify($instances) as $instance) {
-			$this->replace($instance);
-		}
-		
-		return $this->saveAssociations();
-	}
-	
-	/**
-	 * Dissociate the given models.
-	 * 
-	 * Returns the number of models successfully dissociated.
-	 * 
-	 * TODO: Consider constraints
-	 * 
-	 * @param Record[]|Record $instances [optional]
-	 * @return int
-	 */
-	public function dissociate($instances = array())
-	{
-		$ids = array();
-		
-		$successful = 0;
-		
-		foreach (static::arrayify($instances) as $instance) {
-			$this->verify($instance);
-			$instance->set($this->foreignKey, 0);
-			
-			if ($instance->save()) {
-				$ids[] = $instance->id();
-				$successful++;
-			}
-		}
-		
-		$relatedIds = array();
-		
-		foreach ($this->related as $related) {
-			$relatedIds[] = $related->id();
-		}
-		
-		$this->reduce(array_diff($relatedIds, $ids));
-		
-		return $successful;
 	}
 	
 	/**

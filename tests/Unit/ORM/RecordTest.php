@@ -342,7 +342,10 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$user->save();
 		
+		$this->assertEquals('Obi-Wan', User::find(1)->padawan->firstname);
 		$this->assertEquals('Obi-Wan', User::find(4)->firstname);
+		
+		// TODO: Test detachment save
 	}
 	
 	public function testHasDotNotation() {
@@ -474,6 +477,28 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$user->master = null;
 		
 		$this->assertNull($user->master);
+	}
+	
+	public function testBelongsToSave()
+	{
+		$user = User::find(3);
+		
+		$master = new User([
+			'id'        => 4,
+			'firstname' => 'Obi-Wan',
+			'surname'   => 'Kenobi'
+		]);
+		
+		$user->master()->attach($master);
+		
+		$this->assertEquals('Chris', User::find(3)->master->firstname);
+		
+		$user->save();
+		
+		$this->assertEquals('Obi-Wan', User::find(3)->master->firstname);
+		$this->assertEquals('Obi-Wan', User::find(4)->firstname);
+		
+		// TODO: Test detachment save
 	}
 	
 	public function testBelongsToDotNotation() {
