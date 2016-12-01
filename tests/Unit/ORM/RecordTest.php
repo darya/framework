@@ -16,6 +16,7 @@ use Darya\Tests\Unit\ORM\Fixtures\User;
  * 
  * Please refer to ./data/cms.json for the test data used for this test case.
  * 
+ * TODO: This is testing more than just Records. Extract to per-relation tests.
  * TODO: Set up integration tests that extend this using different storage.
  */
 class RecordTest extends PHPUnit_Framework_TestCase
@@ -272,7 +273,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertEquals('Obi-Wan', $user->padawan->firstname);
 		
-		// Test direct set
+		// Test dynamic property
 		$user = User::find(2);
 		
 		$user->padawan = User::find(1);
@@ -289,7 +290,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$user->padawan()->detach();
 		
-		$this->assertNull(null, $user->padawan);
+		$this->assertNull($user->padawan);
 		
 		// Test detaching a passed existing model
 		$user = User::find(1);
@@ -305,7 +306,9 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		// Test unset()
 		$user = User::find(1);
 		
-		$user->padawan;
+		$padawan = $user->padawan;
+		
+		$this->assertNotNull($padawan);
 		
 		unset($user->padawan);
 		
@@ -314,7 +317,9 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		// Test nulling
 		$user = User::find(1);
 		
-		$user->padawan;
+		$padawan = $user->padawan;
+		
+		$this->assertNotNull($padawan);
 		
 		$user->padawan = null;
 		
@@ -332,6 +337,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		]);
 		
 		$user->padawan()->attach($padawan);
+		
+		$this->assertEquals('John', User::find(1)->padawan->firstname);
 		
 		$user->save();
 		
@@ -403,6 +410,70 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$rows = $this->storage->read('users', array('id' => 3));
 		$this->assertEquals(0, $rows[0]['manager_id']);
+	}
+	
+	public function testBelongsToAttachment()
+	{
+		// Test attach()
+		$user = User::find(3);
+		
+		$user->master()->attach(User::find(2));
+		
+		$this->assertEquals('Bethany', $user->master->firstname);
+		$this->assertEquals('Chris', User::find(3)->master->firstname);
+		
+		// Test dynamic property
+		$user = User::find(3);
+		
+		$user->master = User::find(2);
+		
+		$this->assertEquals('Bethany', $user->master->firstname);
+		$this->assertEquals('Chris', User::find(3)->master->firstname);
+	}
+	
+	public function testBelongsToDetachment()
+	{
+		// Test detaching an existing model
+		$user = User::find(3);
+		
+		$user->master;
+		
+		$user->master()->detach();
+		
+		$this->assertNull($user->master);
+		
+		// Test detaching a passed existing model
+		$user = User::find(3);
+		
+		$master = $user->master;
+		
+		$this->assertNotNull($master);
+		
+		$user->master()->detach($master);
+		
+		$this->assertNull($user->master);
+		
+		// Test unset()
+		$user = User::find(3);
+		
+		$master = $user->master;
+		
+		$this->assertNotNull($master);
+		
+		unset($user->master);
+		
+		$this->assertNull($user->master);
+		
+		// Test nulling
+		$user = User::find(3);
+		
+		$master = $user->master;
+		
+		$this->assertNotNull($master);
+		
+		$user->master = null;
+		
+		$this->assertNull($user->master);
 	}
 	
 	public function testBelongsToDotNotation() {
