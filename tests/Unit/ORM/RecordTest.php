@@ -328,6 +328,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	
 	public function testHasSave()
 	{
+		// Test attachment save
 		$user = User::find(1);
 		
 		$padawan = new User([
@@ -481,6 +482,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	
 	public function testBelongsToSave()
 	{
+		// Test attachment save
 		$user = User::find(3);
 		
 		$master = new User([
@@ -671,7 +673,52 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	
 	public function testHasManySave()
 	{
-		// TODO
+		// Test attachment save
+		$user = User::find(1);
+		
+		$user->posts()->load();
+		
+		$user->posts()->attach(new Post(array(
+			'id'      => 4,
+			'title'   => 'Test',
+			'content' => 'Test'
+		)));
+		
+		$this->assertEquals(3, $user->posts()->count());
+		$this->assertEquals(2, User::find(1)->posts()->count());
+		
+		$user->save();
+		
+		$this->assertEquals(3, $user->posts()->count());
+		$this->assertEquals(3, User::find(1)->posts()->count());
+		$this->assertEquals('Test', Post::find(4)->title);
+		
+		// Test many attachment save
+		$user->posts()->attach(array(
+			new Post(array(
+				'id'      => 5,
+				'title'   => 'Test 5',
+				'content' => 'Test 5'
+			)),
+			new Post(array(
+				'id'      => 6,
+				'title'   => 'Test 6',
+				'content' => 'Test 6'
+			))
+		));
+		
+		$this->assertEquals(5, $user->posts()->count());
+		$this->assertEquals(3, User::find(1)->posts()->count());
+		
+		$user->save();
+		
+		$this->assertEquals(5, $user->posts()->count());
+		$this->assertEquals(5, User::find(1)->posts()->count());
+		$this->assertEquals('Test 5', Post::find(5)->title);
+		$this->assertEquals('Test 6', Post::find(6)->title);
+		
+		// TODO: Test detachment save
+		
 	}
 	
 	public function testHasManyPurge() {
