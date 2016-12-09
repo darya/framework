@@ -550,7 +550,9 @@ class RecordTest extends PHPUnit_Framework_TestCase
 			'content' => 'Dis one got swagger'
 		));
 		
-		$user->posts()->associate($post);
+		$success = $user->posts()->associate($post);
+		
+		$this->assertEquals(1, $success);
 		
 		$this->assertEquals(3, $user->posts()->count());
 		
@@ -560,6 +562,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertNotEmpty($post);
 		$this->assertEquals('Swagger', $post->title);
 		$this->assertEquals('Dis one got swagger', $post->content);
+		
+		// TODO: Test associating many
 	}
 	
 	public function testHasManyDissociation() {
@@ -578,6 +582,96 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(1, $user->posts()->count());
 		
 		$this->assertEquals(2, $user->posts[0]->id());
+	}
+	
+	public function testHasManyAttachment()
+	{
+		$user = User::find(1);
+		
+		$user->posts()->load();
+		
+		$this->assertEquals(2, $user->posts()->count());
+		
+		$post = new Post(array(
+			'id'      => 4,
+			'title'   => 'CLICKBAIT!!1',
+			'content' => 'omg lol 5 things you will never believe are clickbait'
+		));
+		
+		$user->posts()->attach($post);
+		
+		$this->assertEquals(3, $user->posts()->count());
+		$this->assertEquals(2, User::find(1)->posts()->count());
+		
+		$posts = array(
+			new Post(array(
+				'id'      => 5,
+				'title'   => 'Test 5',
+				'content' => 'Test 5'
+			)),
+			new Post(array(
+				'id'      => 6,
+				'title'   => 'Rey is totally the granddaughter of Obi-Wan',
+				'content' => 'Search your feelings. YOU KNOW IT TO BE TRUE.'
+			))
+		);
+		
+		$user->posts()->attach($posts);
+		
+		$this->assertEquals(5, $user->posts()->count());
+		$this->assertEquals(2, User::find(1)->posts()->count());
+	}
+	
+	public function testHasManyDetachment()
+	{
+		// Test detaching existing models
+		$user = User::find(1);
+		
+		$posts = $user->posts;
+		
+		$this->assertNotEmpty($posts);
+		
+		$user->posts()->detach();
+		
+		$this->assertEquals(array(), $user->posts);
+		
+		// Test detaching a passed existing model
+		$user = User::find(1);
+		
+		$posts = $user->posts;
+		
+		$this->assertNotEmpty($posts);
+		
+		$user->posts()->detach($posts);
+		
+		$this->assertEquals(array(), $user->posts);
+		
+		// Test unset()
+		$user = User::find(1);
+		
+		$posts = $user->posts;
+		
+		$this->assertNotEmpty($posts);
+		
+		unset($user->posts);
+		
+		$this->assertEquals(array(), $user->posts);
+		
+		// Test nulling
+		$user = User::find(1);
+		
+		$posts = $user->posts;
+		
+		$this->assertNotEmpty($posts);
+		
+		$user->posts = null;
+		
+		$this->assertEquals(array(), $user->posts);
+	}
+	
+	public function testHasManySave()
+	{
+		// TODO
 	}
 	
 	public function testHasManyPurge() {

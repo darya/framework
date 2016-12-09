@@ -631,13 +631,14 @@ abstract class Relation
 	/**
 	 * Count the number of related model instances.
 	 * 
-	 * Counts loaded instances if they are present, queries storage otherwise.
+	 * Counts loaded or attached instances if they are present, queries storage
+	 * otherwise.
 	 * 
 	 * @return int
 	 */
 	public function count()
 	{
-		if (!$this->loaded()) {
+		if (!$this->loaded() && empty($this->related)) {
 			return $this->storage()->count($this->target->table(), $this->filter());
 		}
 		

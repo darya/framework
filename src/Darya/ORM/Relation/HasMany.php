@@ -98,9 +98,10 @@ class HasMany extends Has
 	}
 	
 	/**
-	 * Associate the given model.
+	 * Associate the given models.
 	 * 
-	 * Dissociates any currently associated model beforehand.
+	 * Loads any currently associated models before attaching and saving
+	 * the given models.
 	 * 
 	 * Returns the number of successfully associated models.
 	 * 
@@ -110,6 +111,8 @@ class HasMany extends Has
 	public function associate($instances)
 	{
 		$this->verify($instances);
+		
+		$this->load();
 		
 		$this->attach($instances);
 		
