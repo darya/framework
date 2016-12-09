@@ -717,8 +717,44 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Test 5', Post::find(5)->title);
 		$this->assertEquals('Test 6', Post::find(6)->title);
 		
-		// TODO: Test detachment save
+		// Test detachment save
+		$user->posts()->detach($user->posts[4]); // Post ID 6
 		
+		$this->assertEquals(4, $user->posts()->count());
+		$this->assertEquals(5, User::find(1)->posts()->count());
+		
+		$user->save();
+		
+		$this->assertEquals(4, $user->posts()->count());
+		$this->assertEquals(4, User::find(1)->posts()->count());
+		$this->assertNull(Post::find(6)->author);
+		
+		$user->posts()->detach(array(
+			$user->posts[0], // Post ID 1
+			$user->posts[1]  // Post ID 2
+		));
+		
+		$this->assertEquals(2, $user->posts()->count());
+		$this->assertEquals(4, User::find(1)->posts()->count());
+		
+		$user->save();
+		
+		$this->assertEquals(2, $user->posts()->count());
+		$this->assertEquals(2, User::find(1)->posts()->count());
+		$this->assertNull(Post::find(1)->author);
+		$this->assertNull(Post::find(2)->author);
+		
+		$user->posts()->detach(); // Detach remaining posts with IDs 4 and 5
+		
+		$this->assertEquals(0, $user->posts()->count());
+		$this->assertEquals(2, User::find(1)->posts()->count());
+		
+		$user->save();
+		
+		$this->assertEquals(0, $user->posts()->count());
+		$this->assertEquals(0, User::find(1)->posts()->count());
+		$this->assertNull(Post::find(4)->author);
+		$this->assertNull(Post::find(5)->author);
 	}
 	
 	public function testHasManyPurge() {
