@@ -74,6 +74,13 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		Record::setSharedStorage($mock);
 	}
 	
+	protected function assertSameValues(array $expected, array $actual)
+	{
+		sort($expected);
+		sort($actual);
+		$this->assertEquals($expected, $actual);
+	}
+	
 	public function testTable() {
 		$user = new User;
 		$this->assertEquals('users', $user->table());
@@ -622,6 +629,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertEquals(5, $user->posts()->count());
 		$this->assertEquals(2, User::find(1)->posts()->count());
+		
+		// TODO: Test dynamic property
 	}
 	
 	public function testHasManyDetachment()
@@ -814,6 +823,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	}
 	
 	public function testBelongsToManyAssociation() {
+		// Test associating an existing role
 		$user = User::find(1);
 		
 		$user->roles()->associate(Role::find(1));
@@ -822,7 +832,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(1, 3, 4);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertEmpty(array_diff($expected, $actual));
+		$this->assertSameValues($expected, $actual);
 		
 		// Test associating a new role
 		$role = new Role(array(
@@ -838,7 +848,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(1, 3, 4, 5);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertEmpty(array_diff($expected, $actual));
+		$this->assertSameValues($expected, $actual);
 		
 		// Test that the role was saved correctly
 		$role = Role::find(5);
@@ -855,7 +865,69 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(4);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertEmpty(array_diff($expected, $actual));
+		$this->assertSameValues($expected, $actual);
+	}
+	
+	public function testBelongsToManyAttachment()
+	{
+		// Test attaching an existing role
+		$user = User::find(1);
+		
+		$user->roles()->load();
+		
+		$user->roles()->attach(Role::find(1));
+		
+		$this->assertEquals(3, $user->roles()->count());
+		$this->assertEquals(2, User::find(1)->roles()->count());
+		
+		$expected = array(3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEquals($expected, $actual);
+		
+		// Test saving the new attachment
+		$user->save();
+		
+		$this->assertEquals(3, $user->roles()->count());
+		$this->assertEquals(3, User::find(1)->roles()->count());
+
+		$expected = array(1, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertSameValues($expected, $actual);
+		
+		// Test attaching two new roles
+		$roles = array(
+			new Role(array(
+				'id' => 5,
+				'name' => 'Test Role 5'
+			)),
+			new Role(array(
+				'id' => 6,
+				'name' => 'Test Role 6'
+			))
+		);
+		
+		$user->roles()->attach($roles);
+		
+		$this->assertEquals(5, $user->roles()->count());
+		$this->assertEquals(3, User::find(1)->roles()->count());
+		
+		$expected = array(1, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertSameValues($expected, $actual);
+		
+		$user->save();
+		
+		$this->assertEquals(5, $user->roles()->count());
+		$this->assertEquals(5, User::find(1)->roles()->count());
+		
+		$expected = array(1, 3, 4, 5, 6);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertSameValues($expected, $actual);
+	}
+	
+	public function testBelongsToManyDetachment()
+	{
+		// TODO
 	}
 	
 	public function testBelongsToManyPurge() {
@@ -892,7 +964,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(3);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertEmpty(array_diff($expected, $actual));
+		$this->assertSameValues($expected, $actual);
 	}
 	
 	public function testBelongsToManyPurgeWithConstraint() {
@@ -907,7 +979,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(3);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertEmpty(array_diff($expected, $actual));
+		$this->assertSameValues($expected, $actual);
 	}
 	
 	public function testBelongsToManyAssociationConstraint() {
