@@ -79,6 +79,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		sort($expected);
 		sort($actual);
 		$this->assertEquals($expected, $actual);
+		
+		// or $this->assertEmpty(array_diff($expected, $actual) + array_diff($actual, $expected));
 	}
 	
 	public function testTable() {

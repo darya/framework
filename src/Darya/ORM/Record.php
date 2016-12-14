@@ -675,7 +675,7 @@ class Record extends Model
 	}
 	
 	/**
-	 * Determine whether the given relation has any set model(s).
+	 * Determine whether the given relation has any set models.
 	 * 
 	 * @param string $attribute
 	 * @return bool
@@ -688,7 +688,7 @@ class Record extends Model
 	}
 	
 	/**
-	 * Retrieve the model(s) of the given relation.
+	 * Retrieve the models of the given relation.
 	 * 
 	 * @param string $attribute
 	 * @return array
@@ -707,7 +707,7 @@ class Record extends Model
 	}
 	
 	/**
-	 * Set the given related model(s).
+	 * Set the given related models.
 	 * 
 	 * @param string $attribute
 	 * @param mixed  $value
