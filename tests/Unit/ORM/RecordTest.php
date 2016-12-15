@@ -925,6 +925,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(1, 3, 4, 5, 6);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		$this->assertSameValues($expected, $actual);
+		
+		// TODO: Test dynamic property
 	}
 	
 	public function testBelongsToManyDetachment()
