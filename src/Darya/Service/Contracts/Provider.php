@@ -3,6 +3,11 @@ namespace Darya\Service\Contracts;
 
 use Darya\Service\Contracts\Container;
 
+/**
+ * Darya's service provider interface.
+ * 
+ * @author Chris Andrew <chris@hexus.io>
+ */
 interface Provider
 {
 	/**

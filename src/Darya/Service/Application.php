@@ -2,7 +2,7 @@
 namespace Darya\Service;
 
 use Darya\Service\Contracts\Application as ApplicationInterface;
-use Darya\Service\Contracts\Provider as Provider;
+use Darya\Service\Contracts\Provider;
 
 /**
  * Darya's application implementation.
@@ -38,7 +38,7 @@ class Application extends Container implements ApplicationInterface
 	/**
 	 * Register a service provider with the application.
 	 * 
-	 * @param \Darya\Service\Contracts\Provider $provider
+	 * @param Provider $provider
 	 */
 	public function provide(Provider $provider)
 	{

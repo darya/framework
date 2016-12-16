@@ -16,6 +16,9 @@ use Darya\Service\Contracts\Container as ContainerInterface;
  * Service containers can be used to associate interfaces with implementations.
  * They ease interchanging the components and dependencies of an application.
  * 
+ * TODO: ArrayAccess
+ * TODO: Delegate container
+ * 
  * @author Chris Andrew <chris@hexus.io>
  */
 class Container implements ContainerInterface
@@ -53,25 +56,25 @@ class Container implements ContainerInterface
 	}
 	
 	/**
-	 * Enables shorter syntax for resolving services.
+	 * Dynamically resolve a service.
 	 * 
-	 * @param string $alias
+	 * @param string $abstract
 	 * @return mixed
 	 */
-	public function __get($alias)
+	public function __get($abstract)
 	{
-		return $this->resolve($alias);
+		return $this->resolve($abstract);
 	}
 	
 	/**
-	 * Enables shorter syntax for registering a service.
+	 * Dynamically register a service.
 	 * 
-	 * @param string $alias
+	 * @param string $abstract
 	 * @param mixed  $service
 	 */
-	public function __set($alias, $service)
+	public function __set($abstract, $service)
 	{
-		$this->register(array($alias => $service));
+		$this->register(array($abstract => $service));
 	}
 	
 	/**

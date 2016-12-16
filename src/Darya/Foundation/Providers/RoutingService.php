@@ -23,14 +23,14 @@ class RoutingService implements Provider
 			'Darya\Routing\Router' => function ($container) {
 				$config = $container->config;
 				
-				$routes = $config['routes'] ?: array(
+				$routes = $config->get('routes', array(
 					'/:controller/:action/:params' => null,
 					'/:controller/:params' => null,
 					'/:action/:params' => null,
 					'/' => null
-				);
+				));
 				
-				$projectNamespace = $config['project.namespace'] ?: 'Application';
+				$projectNamespace = $config->get('project.namespace', 'Application');
 				
 				$defaultNamespace = "{$projectNamespace}\Controllers";
 				
@@ -38,7 +38,7 @@ class RoutingService implements Provider
 					'namespace' => $defaultNamespace
 				));
 				
-				$router->base($config['base_url']);
+				$router->base($config->get('base_url'));
 				
 				$router->setServiceContainer($container);
 				
