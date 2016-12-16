@@ -18,6 +18,8 @@ use Darya\Service\Contracts\Container as ContainerInterface;
  * 
  * TODO: ArrayAccess
  * TODO: Delegate container
+ * TODO: factory() method
+ * TODO: ContainerInterop: get() resolves dependencies, new raw() won't
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
