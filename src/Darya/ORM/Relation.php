@@ -352,6 +352,8 @@ abstract class Relation
 	 * If the related model does not have an ID or it is not found, it is simply
 	 * appended.
 	 * 
+	 * TODO: Remove from $this->detached if found?
+	 * 
 	 * @param Record $instance
 	 */
 	protected function replace(Record $instance)

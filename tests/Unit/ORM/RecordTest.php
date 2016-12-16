@@ -553,6 +553,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	}
 	
 	public function testHasManyAssociation() {
+		// Test associating one
 		$user = User::find(1);
 		
 		$post = new Post(array(
@@ -561,9 +562,9 @@ class RecordTest extends PHPUnit_Framework_TestCase
 			'content' => 'Dis one got swagger'
 		));
 		
-		$success = $user->posts()->associate($post);
+		$associated = $user->posts()->associate($post);
 		
-		$this->assertEquals(1, $success);
+		$this->assertEquals(1, $associated);
 		
 		$this->assertEquals(3, $user->posts()->count());
 		
@@ -574,7 +575,28 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Swagger', $post->title);
 		$this->assertEquals('Dis one got swagger', $post->content);
 		
-		// TODO: Test associating many
+		// Test associating many
+		$posts = array(
+			new Post(array(
+				'id'      => 5,
+				'title'   => 'Swagger',
+				'content' => 'Dis one also got swagger'
+			)),
+			new Post(array(
+				'id'      => 6,
+				'title'   => 'Swagger',
+				'content' => 'Dis one definitely got swagger'
+			))
+		);
+		
+		$associated = $user->posts()->associate($posts);
+		
+		$this->assertEquals(2, $associated);
+		$this->assertEquals(5, $user->posts()->count());
+		$this->assertEquals(6, count(Post::all()));
+		
+		$this->assertEquals('Dis one also got swagger', Post::find(5)->content);
+		$this->assertEquals('Dis one definitely got swagger', Post::find(6)->content);
 	}
 	
 	public function testHasManyDissociation() {
@@ -632,7 +654,26 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(5, $user->posts()->count());
 		$this->assertEquals(2, User::find(1)->posts()->count());
 		
-		// TODO: Test dynamic property
+		// Test dynamic property
+		$user->posts = array(
+			new Post(array(
+				'id'      => 7,
+				'title'   => 'Test 7',
+				'content' => 'Test 7'
+			)),
+			new Post(array(
+				'id'      => 8,
+				'title'   => 'Test 8',
+				'content' => 'Test 8'
+			)),
+			new Post(array(
+				'id'      => 9,
+				'title'   => 'Test 9',
+				'content' => 'Test 9'
+			))
+		);
+		
+		$this->assertEquals(3, $user->posts()->count());
 	}
 	
 	public function testHasManyDetachment()
@@ -926,7 +967,24 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		$this->assertSameValues($expected, $actual);
 		
-		// TODO: Test dynamic property
+		// Test dynamic property
+		$user->roles = Role::in([1, 6]);
+		
+		$this->assertEquals(2, $user->roles()->count());
+		$this->assertEquals(5, User::find(1)->roles()->count());
+		
+		$expected = array(1, 3, 4, 5, 6);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertSameValues($expected, $actual);
+		
+		$user->save();
+		
+		$this->assertEquals(2, $user->roles()->count());
+		$this->assertEquals(2, User::find(1)->roles()->count());
+		
+		$expected = array(1, 6);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertSameValues($expected, $actual);
 	}
 	
 	public function testBelongsToManyDetachment()

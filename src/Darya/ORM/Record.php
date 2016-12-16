@@ -235,6 +235,8 @@ class Record extends Model
 	 * Creates a filter for the record's key attribute if the given value is not
 	 * an array.
 	 * 
+	 * TODO: Filter by key if $filter has numeric keys
+	 * 
 	 * @param mixed $filter
 	 * @return string
 	 */
@@ -336,6 +338,17 @@ class Record extends Model
 		$instance->reinstate();
 		
 		return $instance;
+	}
+
+	/**
+	 * Load multiple record instances matching the given IDs.
+	 * 
+	 * @param array|string|int $ids
+	 * @return array
+	 */
+	public static function in($ids = array())
+	{
+		return static::all(['id' => (array) $ids]);
 	}
 
 	/**
@@ -720,8 +733,10 @@ class Record extends Model
 		
 		$relation = $this->relation($attribute);
 		
+		$relation->detach();
+		
 		if ($value === null) {
-			return $relation->detach();
+			return;
 		}
 		
 		$relation->attach($value);
