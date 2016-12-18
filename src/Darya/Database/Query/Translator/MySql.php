@@ -25,7 +25,7 @@ class MySql extends AbstractSqlTranslator
 		$split = explode('.', $identifier, 2);
 		
 		foreach ($split as $index => $value) {
-			$split[$index] = $value !== '*' ? '`' . $value . '`' : $value;
+			$split[$index] = $value !== '*' ? "`{$value}`" : $value;
 		}
 		
 		return implode('.', $split);
