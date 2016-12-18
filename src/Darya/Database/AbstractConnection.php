@@ -34,6 +34,13 @@ abstract class AbstractConnection implements Connection
 	protected $details = array();
 	
 	/**
+	 * Connection options.
+	 * 
+	 * @var array
+	 */
+	protected $options = array();
+	
+	/**
 	 * The event dispatcher.
 	 * 
 	 * @var Dispatchable
