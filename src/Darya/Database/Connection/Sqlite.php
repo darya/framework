@@ -87,6 +87,8 @@ class Sqlite extends AbstractConnection
 			$query = new Query((string) $query, $parameters);
 		}
 		
+		$this->lastResult = null;
+		
 		$this->connect();
 		
 		$statement = $this->connection->prepare($query->string);

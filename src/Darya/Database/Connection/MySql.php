@@ -279,6 +279,8 @@ class MySql extends AbstractConnection
 			$query = new Query((string) $query, $parameters);
 		}
 		
+		$this->lastResult = null;
+		
 		$this->connect();
 		
 		if (!$this->connected()) {
@@ -288,8 +290,6 @@ class MySql extends AbstractConnection
 			
 			return $this->lastResult;
 		}
-		
-		$this->lastResult = null;
 		
 		$this->event('mysql.prequery', array($query));
 		

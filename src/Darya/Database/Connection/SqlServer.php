@@ -124,6 +124,8 @@ class SqlServer extends AbstractConnection
 			$query = new Query($query, $parameters);
 		}
 		
+		$this->lastResult = null;
+		
 		$this->connect();
 		
 		if (!$this->connected()) {
@@ -133,8 +135,6 @@ class SqlServer extends AbstractConnection
 			
 			return $this->lastResult;
 		}
-		
-		$this->lastResult = null;
 		
 		$this->event('sqlserver.prequery', array($query));
 		
