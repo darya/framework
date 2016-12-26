@@ -20,10 +20,12 @@ use Darya\Storage\Query\Builder;
 class Record extends Model
 {
 	/**
+	 * Database table name.
+	 *
 	 * Overrides the name of the database table that persists the model. The
-	 * model's lowercased class name is used if this is not set.
+	 * model's lower-cased class name is used if this is not set.
 	 * 
-	 * @var string Database table name
+	 * @var string
 	 */
 	protected $table;
 	
