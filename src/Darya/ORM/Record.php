@@ -74,6 +74,7 @@ class Record extends Model
 	 * Determine whether the given attribute or relation is set on the record.
 	 * 
 	 * @param string $attribute
+	 * @return bool
 	 */
 	public function has($attribute)
 	{
@@ -112,7 +113,7 @@ class Record extends Model
 	public function set($attribute, $value = null)
 	{
 		if (is_string($attribute) && $this->hasRelation($attribute)) {
-			return $this->setRelated($attribute, $value);
+			$this->setRelated($attribute, $value);
 		}
 		
 		parent::set($attribute, $value);
@@ -145,7 +146,8 @@ class Record extends Model
 	
 	/**
 	 * Get and optionally set the model's storage instance.
-	 * 
+	 *
+	 * @param Readable $storage [optional]
 	 * @return Readable
 	 */
 	public function storage(Readable $storage = null)
@@ -372,6 +374,7 @@ class Record extends Model
 	 * @param int              $limit      [optional]
 	 * @param int              $offset     [optional]
 	 * @return array
+	 * @throws Exception
 	 */
 	public static function search($query, $attributes = array(), $filter = array(), $order = array(), $limit = null, $offset = 0)
 	{
@@ -436,6 +439,7 @@ class Record extends Model
 	 * Create a query builder for the model.
 	 * 
 	 * @return Builder
+	 * @throws Exception
 	 */
 	public static function query()
 	{
@@ -460,6 +464,7 @@ class Record extends Model
 	 * Save the record to storage.
 	 * 
 	 * @return bool
+	 * @throws Exception
 	 */
 	public function save()
 	{

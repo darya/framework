@@ -1,5 +1,6 @@
-/vendor
 /.settings
+/.idea
+/vendor
 composer.lock
 .project
 .DS_Store
