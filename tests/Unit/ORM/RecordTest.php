@@ -989,6 +989,9 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	
 	public function testBelongsToManyDetachment()
 	{
+		// Test detaching existing roles
+		$user = User::find(1);
+
 		// TODO
 	}
 	
