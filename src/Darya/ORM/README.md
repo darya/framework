@@ -102,13 +102,13 @@ $databaseStorage = new Storage(
 
 $inMemoryStorage = new Darya\Storage\InMemory;
 
-// Set storage for all Records
+// Use database storage for all Records
 Record::setSharedStorage($databaseStorage);
 
-// Use in memory storage for this type of Record
+// Use in-memory storage for this type of Record
 TestRecord::setSharedStorage($inMemoryStorage);
 
-// Use in memory storage for this instance of a User Record
+// Use in-memory storage for this instance of a User Record
 $user->storage($inMemoryStorage);
 
 // Retrieve the current storage used by the User Record
