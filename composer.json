@@ -25,6 +25,7 @@
 	"suggest": {
 		"ext-mysqli": "Required to use Darya's MySQL database connection",
 		"ext-mysqlnd": "Recommended when using Darya's MySQL database connection",
+		"ext-pdo_sqlite": "Required to use Darya's SQLite database connection",
 		"ext-Reflection": "Required to use Darya's service package",
 		"ext-session": "Required to use Darya's native PHP session handler",
 		"ext-sqlsrv": "Required to use Darya's SQL Server database connection"

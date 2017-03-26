@@ -20,10 +20,12 @@ use Darya\Storage\Query\Builder;
 class Record extends Model
 {
 	/**
+	 * Database table name.
+	 *
 	 * Overrides the name of the database table that persists the model. The
-	 * model's lowercased class name is used if this is not set.
+	 * model's lower-cased class name is used if this is not set.
 	 * 
-	 * @var string Database table name
+	 * @var string
 	 */
 	protected $table;
 	
@@ -74,6 +76,7 @@ class Record extends Model
 	 * Determine whether the given attribute or relation is set on the record.
 	 * 
 	 * @param string $attribute
+	 * @return bool
 	 */
 	public function has($attribute)
 	{
@@ -112,7 +115,9 @@ class Record extends Model
 	public function set($attribute, $value = null)
 	{
 		if (is_string($attribute) && $this->hasRelation($attribute)) {
-			return $this->setRelated($attribute, $value);
+			$this->setRelated($attribute, $value);
+
+			return;
 		}
 		
 		parent::set($attribute, $value);
@@ -159,7 +164,8 @@ class Record extends Model
 	
 	/**
 	 * Get and optionally set the model's storage instance.
-	 * 
+	 *
+	 * @param Readable $storage [optional]
 	 * @return Readable
 	 */
 	public function storage(Readable $storage = null)
@@ -399,6 +405,7 @@ class Record extends Model
 	 * @param int              $limit      [optional]
 	 * @param int              $offset     [optional]
 	 * @return array
+	 * @throws Exception
 	 */
 	public static function search($query, $attributes = array(), $filter = array(), $order = array(), $limit = null, $offset = 0)
 	{
@@ -463,6 +470,7 @@ class Record extends Model
 	 * Create a query builder for the model.
 	 * 
 	 * @return Builder
+	 * @throws Exception
 	 */
 	public static function query()
 	{
@@ -543,6 +551,7 @@ class Record extends Model
 	 * 
 	 * @param array $options [optional]
 	 * @return bool
+	 * @throws Exception
 	 */
 	public function save(array $options = array())
 	{

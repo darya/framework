@@ -24,14 +24,21 @@ abstract class AbstractConnection implements Connection
 	 * 
 	 * @var bool
 	 */
-	protected $connected;
+	protected $connected = false;
 	
 	/**
 	 * Connection details.
 	 * 
 	 * @var array
 	 */
-	protected $details;
+	protected $details = array();
+	
+	/**
+	 * Connection options.
+	 * 
+	 * @var array
+	 */
+	protected $options = array();
 	
 	/**
 	 * The event dispatcher.

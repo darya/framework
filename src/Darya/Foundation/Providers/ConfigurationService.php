@@ -32,7 +32,9 @@ class ConfigurationService implements Provider
 				));
 				
 				return $configuration;
-			}
+			},
+			'configuration' => 'Darya\Foundation\Configuration',
+			'config' => 'Darya\Foundation\Configuration'
 		));
 		
 		$configuration = $container->resolve('Darya\Foundation\Configuration');

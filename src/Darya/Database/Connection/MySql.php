@@ -275,9 +275,11 @@ class MySql extends AbstractConnection
 	 */
 	public function query($query, array $parameters = array())
 	{
-		if (!$query instanceof Query) {
+		if (!($query instanceof Query)) {
 			$query = new Query((string) $query, $parameters);
 		}
+		
+		$this->lastResult = null;
 		
 		$this->connect();
 		
@@ -288,8 +290,6 @@ class MySql extends AbstractConnection
 			
 			return $this->lastResult;
 		}
-		
-		$this->lastResult = null;
 		
 		$this->event('mysql.prequery', array($query));
 		
