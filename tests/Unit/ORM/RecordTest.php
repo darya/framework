@@ -676,8 +676,20 @@ class RecordTest extends PHPUnit_Framework_TestCase
 				'content' => 'Test 9'
 			))
 		);
-		
+
+		// It should replace any existing attached models in memory
 		$this->assertEquals(3, $user->posts()->count());
+		$this->assertEquals(2, User::find(1)->posts()->count());
+
+		$user->save();
+
+		// When saved, only these new attachments should be associated
+		$this->assertEquals(3, $user->posts()->count());
+		$this->assertEquals(3, User::find(1)->posts()->count());
+
+		$expected = array(7, 8, 9);
+		$actual = $this->storage->distinct('posts', 'id', array('author_id' => 1));
+		$this->assertEqualValues($expected, $actual);
 	}
 	
 	public function testHasManyDetachment()
