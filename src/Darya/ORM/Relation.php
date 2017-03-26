@@ -127,6 +127,9 @@ abstract class Relation
 	 * 
 	 * Returns an array with the given value as its sole element, if it is not
 	 * an array already.
+	 *
+	 * This exists because casting an object to an array results in its public
+	 * properties being set as the values.
 	 * 
 	 * @param mixed $value
 	 * @return array
@@ -146,7 +149,6 @@ abstract class Relation
 	{
 		$numeric = array();
 		$strings = array();
-		
 		
 		foreach ($array as $key => $value) {
 			if (is_numeric($key)) {
