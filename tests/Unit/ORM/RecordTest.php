@@ -73,14 +73,18 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		Record::setSharedStorage($mock);
 	}
-	
-	protected function assertSameValues(array $expected, array $actual)
+
+	/**
+	 * Assert that two arrays contain the same values.
+	 *
+	 * @param array $expected
+	 * @param array $actual
+	 */
+	protected function assertEqualValues(array $expected, array $actual)
 	{
 		sort($expected);
 		sort($actual);
 		$this->assertEquals($expected, $actual);
-		
-		// or $this->assertEmpty(array_diff($expected, $actual) + array_diff($actual, $expected));
 	}
 	
 	public function testTable() {
@@ -832,7 +836,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Second post', $user->posts[0]->title);
 	}
 	
-	public function testBelongsToMany() {
+	public function testBelongsToMany()
+	{
 		$user = User::find(1);
 		
 		$roles = $user->roles;
@@ -847,7 +852,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Bethany', $users[0]->firstname);
 	}
 	
-	public function testBelongsToManyEager() {
+	public function testBelongsToManyEager()
+	{
 		$users = User::eager('roles');
 		
 		$this->mockEagerStorage();
@@ -865,7 +871,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(1, count($users[2]->roles));
 	}
 	
-	public function testBelongsToManyAssociation() {
+	public function testBelongsToManyAssociation()
+	{
 		// Test associating an existing role
 		$user = User::find(1);
 		
@@ -874,8 +881,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$expected = array(1, 3, 4);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 		
 		// Test associating a new role
 		$role = new Role(array(
@@ -890,25 +896,61 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$expected = array(1, 3, 4, 5);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 		
 		// Test that the role was saved correctly
 		$role = Role::find(5);
 		$this->assertEquals('New role', $role->name);
+
+		// Test associating many roles
+		$user->roles()->associate(array_merge(
+			Role::all(),
+			array(
+				new Role(
+					array(
+						'id' => 6,
+						'name' => 'Swag'
+					)
+				)
+			)
+		));
+
+		$this->assertEquals(6, $user->roles()->count());
+
+		$expected = array(1, 2, 3, 4, 5, 6);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
 	}
 	
-	public function testBelongsToManyDissociation() {
+	public function testBelongsToManyDissociation()
+	{
+		// Test dissociating a single role
 		$user = User::find(1);
-		
+
 		$user->roles()->dissociate(Role::find(3));
 		$this->assertEquals(1, $user->roles()->count());
 		$this->assertEquals(4, $user->roles[0]->id());
-		
+
 		$expected = array(4);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
+
+		// Test dissociating multiple roles
+		$user->roles()->associate(Role::all());
+
+		$this->assertEquals(4, $user->roles()->count());
+
+		$expected = array(1, 2, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		$user->roles()->dissociate(array($user->roles[0], $user->roles[1])); // We expect this to dissociate 1 and 4
+
+		$this->assertEquals(2, $user->roles()->count());
+
+		$expected = array(2, 3); // We expect these to remain because they were associated last
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
 	}
 	
 	public function testBelongsToManyAttachment()
@@ -935,7 +977,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 
 		$expected = array(1, 3, 4);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 		
 		// Test attaching two new roles
 		$roles = array(
@@ -956,7 +998,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$expected = array(1, 3, 4);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 		
 		$user->save();
 		
@@ -965,7 +1007,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$expected = array(1, 3, 4, 5, 6);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 		
 		// Test dynamic property
 		$user->roles = Role::in([1, 6]);
@@ -975,7 +1017,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$expected = array(1, 3, 4, 5, 6);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 		
 		$user->save();
 		
@@ -984,18 +1026,126 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$expected = array(1, 6);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 	}
 	
 	public function testBelongsToManyDetachment()
 	{
-		// Test detaching existing roles
+		// Test detaching current roles
 		$user = User::find(1);
 
-		// TODO
+		$user->roles()->load();
+
+		$user->roles()->detach();
+
+		// Ensure that relations have only changed in memory, not in storage
+		$this->assertEquals(0, count($user->roles));
+		$this->assertEquals(0, $user->roles()->count());
+		$this->assertEquals(2, User::find(1)->roles()->count());
+
+		$expected = array(3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		// Save the changes to storage
+		$user->save();
+
+		// Ensure that the changes have propagated to storage
+		$this->assertEquals(0, count($user->roles));
+		$this->assertEquals(0, $user->roles()->count());
+		$this->assertEquals(0, User::find(1)->roles()->count());
+
+		$expected = array();
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		// Associate all roles for testing multiple detachments
+		$user->roles()->associate(Role::all());
+
+		$this->assertEquals(4, $user->roles()->count());
+		$this->assertEquals(4, User::find(1)->roles()->count());
+
+		// Test detaching an existing role
+		$user = User::find(1);
+
+		$user->roles()->load();
+
+		$user->roles()->detach($user->roles[0]);
+
+		// Ensure that relations have only changed in memory, not in storage
+		$this->assertEquals(3, count($user->roles));
+		$this->assertEquals(3, $user->roles()->count());
+		$this->assertEquals(4, User::find(1)->roles()->count());
+
+		$expected = array(1, 2, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		// Save the changes to storage
+		$user->save();
+
+		// Ensure that the changes have propagated to storage
+		$this->assertEquals(3, count($user->roles));
+		$this->assertEquals(3, $user->roles()->count());
+		$this->assertEquals(3, User::find(1)->roles()->count());
+
+		$expected = array(2, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		// Test detaching many existing roles
+		$user->roles()->detach(array(
+			$user->roles[0], $user->roles[1]
+		));
+
+		// Ensure that relations have only changed in memory, not in storage
+		$this->assertEquals(1, count($user->roles));
+		$this->assertEquals(1, $user->roles()->count());
+		$this->assertEquals(3, User::find(1)->roles()->count());
+
+		$expected = array(2, 3, 4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		// Save the changes to storage
+		$user->save();
+
+		// Ensure that the changes have propagated to storage
+		$this->assertEquals(1, count($user->roles));
+		$this->assertEquals(1, $user->roles()->count());
+		$this->assertEquals(1, User::find(1)->roles()->count());
+
+		$expected = array(4);
+		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
+		$this->assertEqualValues($expected, $actual);
+
+		// Test unset
+		unset($user->roles);
+
+		$this->assertEquals(0, count($user->roles));
+		$this->assertEquals(0, $user->roles()->count());
+		$this->assertEquals(1, User::find(1)->roles()->count());
+
+		$user->save();
+
+		$this->assertEquals(0, User::find(1)->roles()->count());
+
+		// Test nulling
+		$user->roles()->associate(Role::all());
+
+		$user->roles = null;
+
+		$this->assertEquals(0, count($user->roles));
+		$this->assertEquals(0, $user->roles()->count());
+		$this->assertEquals(4, User::find(1)->roles()->count());
+
+		$user->save();
+
+		$this->assertEquals(0, User::find(1)->roles()->count());
 	}
 	
-	public function testBelongsToManyPurge() {
+	public function testBelongsToManyPurge()
+	{
 		$user = User::find(1);
 		
 		$user->roles()->purge();
@@ -1004,7 +1154,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEmpty($this->storage->distinct('user_roles', 'role_id', array('user_id' => 1)));
 	}
 	
-	public function testBelongsToManyConstraint() {
+	public function testBelongsToManyConstraint()
+	{
 		$user = User::find(1);
 		
 		$user->roles()->constrain(array(
@@ -1015,7 +1166,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Administrator', $user->roles[0]->name);
 	}
 	
-	public function testBelongsToManyDissociationWithConstraint() {
+	public function testBelongsToManyDissociationWithConstraint()
+	{
 		$user = User::find(1);
 		
 		$roles = $user->roles;
@@ -1029,10 +1181,11 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(3);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 	}
 	
-	public function testBelongsToManyPurgeWithConstraint() {
+	public function testBelongsToManyPurgeWithConstraint()
+	{
 		$user = User::find(1);
 		
 		$user->roles()->constrain(array(
@@ -1044,10 +1197,11 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$expected = array(3);
 		$actual = $this->storage->distinct('user_roles', 'role_id', array('user_id' => 1));
 		
-		$this->assertSameValues($expected, $actual);
+		$this->assertEqualValues($expected, $actual);
 	}
 	
-	public function testBelongsToManyAssociationConstraint() {
+	public function testBelongsToManyAssociationConstraint()
+	{
 		$user = User::find(1);
 		
 		$user->roles()->constrainAssociation(array(
@@ -1058,13 +1212,15 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('Administrator', $user->roles[0]->name);
 	}
 	
-	public function testRelationAttributes() {
+	public function testRelationAttributes()
+	{
 		$user = new User;
 		
 		$this->assertEquals(array('padawan', 'manager', 'master', 'posts', 'roles'), $user->relationAttributes());
 	}
 	
-	public function testRelations() {
+	public function testRelations()
+	{
 		$user = new User;
 		
 		// Test single relation access and property
@@ -1080,7 +1236,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		}
 	}
 	
-	public function testDefaultSearchAttributes() {
+	public function testDefaultSearchAttributes()
+	{
 		$users = User::search('chris');
 		
 		$this->assertEquals(1, count($users));
@@ -1091,6 +1248,5 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(1, count($users));
 		$this->assertEquals('Bethany', $users[0]->firstname);
 	}
-	
 }
 
