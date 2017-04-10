@@ -203,7 +203,8 @@ class Container implements ContainerInterface
 	 * call using a static variable.
 	 * 
 	 * @param callable $callable
-	 * @return \Closure
+	 * @return Closure
+	 * @throws ContainerException
 	 */
 	public function share($callable)
 	{
