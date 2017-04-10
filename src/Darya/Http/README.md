@@ -3,6 +3,16 @@
 Darya provides some simple abstractions for HTTP requests and responses, as well
 as session control.
 
+- [Requests](#requests)
+  - [Creating requests](#creating-requests)
+  - [Reading request data](#accessing-request-data)
+    - [Retrieving the request URI](#retrieving-the-request-uri)
+    - [Determining the request method](#determining-the-request-method)
+    - [Retrieving parameters values and other data](#retrieving-parameter-values-and-other-data)
+    - [Testing for an ajax request](#testing-for-an-ajax-request)
+- [Responses](#responses)
+- [Sessions](#sessions)
+
 ## Requests
 
 Request objects can be created with just a URI.
@@ -41,7 +51,7 @@ This shortcut method does all of the above for you.
 $request = Request::createFromGlobals();
 ```
 
-### Accessing request data
+### Reading request data
 
 Assume the request URI `/hello?id=10` for the following examples.
 
@@ -77,11 +87,15 @@ $request->ip(); // Same as the above
 #### Testing for an ajax request
 
 ```php
-$request->header('X-Requested-With') == 'XmlHttpRequest';
+$request->header('X-Requested-With') === 'XmlHttpRequest';
 
 $request->ajax(); // Similar to above but also checks for 'ajax' get and post parameters
 ```
 
 ## Responses
+
+_To be written._
+
+## Sessions
 
 _To be written._

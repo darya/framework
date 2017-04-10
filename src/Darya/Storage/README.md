@@ -10,8 +10,6 @@ but the core concept behind the package is the extensible abstraction of
 This means it could be used for an SQL database, a NoSQL database, or even a
 file system.
 
-## Usage
-
 - [Queries](#queries)
   - [Resource](#resource)
   - [Fields](#fields)
@@ -27,7 +25,7 @@ file system.
 - [Query builder](#query-builder)
   - [Callbacks](#callbacks)
 
-### Queries
+## Queries
 
 The `Query` class provides a fluent interface for defining storage queries.
 
@@ -35,7 +33,7 @@ Instances can be used to query [`Queryable` storage](#queryable-interface), and
 such storage can even build [`Query\Builder`](#query-builder) objects for you to
 start fluently building upon.
 
-#### Resource
+### Resource
 
 A resource is some segment of a data store referred to by a `string` identifier.
 
@@ -54,7 +52,7 @@ $resource = $query->resource;
 
 In the context of an SQL database, a resource is a database table.
 
-#### Fields
+### Fields
 
 Fields are the properties of the resource the query should interact with. If no fields
 are specified, all of them will be retrieved.
@@ -75,7 +73,7 @@ $fields = $query->fields;
 
 In the context of an SQL database, fields are the columns of a database table.
 
-#### CRUD
+### CRUD
 
 CRUD is short for [create, read, update and delete](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete).
 
@@ -113,7 +111,7 @@ $data = $query->data;
 In the context of an SQL database, these methods would represent `INSERT`,
 `SELECT`, `UPDATE` and `DELETE` queries.
 
-#### Filters
+### Filters
 
 Filters are used to place restrictions on data that the `Query` will `read()`,
 `update()` or `delete()`.
@@ -171,7 +169,7 @@ AND role_id IN (1, 2, 3)
 AND (firstname LIKE '%Foo%' OR surname LIKE '%Bar%')
 ```
 
-#### Orders
+### Orders
 
 Orders are used to sort items by a given set of fields in ascending or
 descending order for `read()` queries.
@@ -196,7 +194,7 @@ $orders = $query->order;
 In the context of an SQL database, orders become an `ORDER` clause. You can use
 the `sort()` alias method in place of the `order()` method.
 
-#### Limit & offset
+### Limit & offset
 
 Limit & offset are used to constrain the number of items and skip past the a
 number of matching items that can be retrieved from `read()` queries, and in
@@ -220,7 +218,7 @@ $offset = $query->offset;
 In the context of an SQL database, limit & offset become a `LIMIT` clause. You
 can use the `skip()` alias method in place of the `offset()` method.
 
-#### Unique
+### Unique
 
 Unique queries return items that are unique across all of their fields.
 
@@ -239,7 +237,7 @@ In the context of an SQL database, the unique setting translates to using
 a `SELECT DISTINCT` statement. You can also use the `distinct()` alias method
 in place of the `unique()` method.
 
-### Results
+## Results
 
 The `Result` class provides a consistent way to represent storage query results.
 
@@ -271,7 +269,7 @@ $affected = $result->affected;
 $insertId = $result->insertId;
 ```
 
-### Queryable interface
+## Queryable interface
 
 The `Queryable` interface conveys the primary concept behind this package.
 
@@ -297,7 +295,7 @@ interface Queryable
 }
 ```
 
-#### `execute()`
+### `execute()`
 
 The `execute()` method accepts a [`Query`](#queries) and returns a corresponding
 [`Result`](#results).
@@ -305,7 +303,7 @@ The `execute()` method accepts a [`Query`](#queries) and returns a corresponding
 This formalizes the structure of what is sent to a data store and what it
 responds with.
 
-#### `query()`
+### `query()`
 
 The `query()` method accepts a resource to query and optionally the fields to
 act upon, returning a ready-to-use [query builder](#query-builder).
@@ -329,7 +327,7 @@ usage of extra features (joins, subqueries) or whether to keep it strictly CRUD
 and interoperable with any `Queryable` storage that works with the base `Query`
 class.
 
-### Query builder
+## Query builder
 
 Query builders encapsulate a fluent [`Query`](#queries) in the context of some
 [`Queryable` storage](#queryable-interface).
@@ -372,7 +370,7 @@ $deleted = $storage->query('users')->where('id <', 50)->delete()->affected;
 $result = $storage->query('users', 'firstname')->where('firstname like', 'C%')->unique();
 ```
 
-#### Callbacks
+### Callbacks
 
 You can attach a [PHP
 callables](http://php.net/manual/en/language.types.callable.php) to query

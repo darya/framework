@@ -2,12 +2,10 @@
 
 Darya's events package provides a simple implementation of the observer pattern.
 
-## Usage
-
 - [Listeners and dispatchers](#listeners-and-dispatchers)
 - [Subscribers](#subscribers)
 
-### Listeners and dispatchers
+## Listeners and dispatchers
 
 The `Dispatcher` class is Darya's implementation of the `Dispatchable`
 interface.
@@ -46,7 +44,7 @@ To detach a listener, use `unlisten()`.
 $dispatcher->unlisten('event', $listener);
 ```
 
-### Subscribers
+## Subscribers
 
 Subscribers are objects that listen to multiple events.
 

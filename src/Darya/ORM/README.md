@@ -39,11 +39,11 @@ class Something extends Model
 }
 
 // Instantiate it with some data
-$model = new Something(array(
+$model = new Something([
 	'id'   => 72,
 	'name' => 'Something',
 	'type' => 'A thing'
-));
+]);
 ```
 
 ### Interacting with model attributes
@@ -63,7 +63,7 @@ $model->set('type', 'Another thing');
 ### Iterating over a model
 
 ```php
-$attributes = array();
+$attributes = [];
 
 foreach ($model as $key => $value) {
 	$attributes[$key] = $value;
@@ -83,10 +83,10 @@ $json       = $model->toJson();
 ```php
 class Something extends Model
 {
-	protected $attributes = array(
+	protected $attributes = [
 		'count' => 'int',
 		'data'  => 'json'
-	);
+	];
 }
 
 $model = new Something;
@@ -94,12 +94,12 @@ $model = new Something;
 $model->count = '1';
 $count = $model->count; // 1
 
-$model->data = array('my' => 'data'); // Stored as '{"my":"data"}'
+$model->data = ['my' => 'data']; // Stored as '{"my":"data"}'
 ```
 
 ## Records
 
-Records are supercharged models with access to persistent storage through the
+Records are supercharged [models](#models) with access to persistent storage through the
 [`Darya\Storage`](/src/Darya/Storage) interfaces. They implement the active
 record pattern, but with testability in mind.
 
@@ -258,5 +258,5 @@ relationships.
 
 ```php
 // Load all pages and eagerly load their children, sections and tags
-$pages = Page::eager(['children', 'sections', 'tags']);
+$pages = Page::eager(['author', 'parent', 'children', 'sections']);
 ```
