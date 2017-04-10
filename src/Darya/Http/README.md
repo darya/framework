@@ -22,7 +22,7 @@ $request = Request::create('/hello');
 
 They can be populated with request data when instantiated. This data is expected
 to mirror the structure of PHP's superglobals, which means the superglobals
-themselves can be used to represent the current request.
+themselves can be used to build a representation of the current request.
 
 ```php
 $request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
@@ -82,3 +82,6 @@ $request->header('X-Requested-With') == 'XmlHttpRequest';
 $request->ajax(); // Similar to above but also checks for 'ajax' get and post parameters
 ```
 
+## Responses
+
+_To be written._

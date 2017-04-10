@@ -3,6 +3,21 @@
 Darya's ORM package provides a simple and flexible Active Record implementation,
 including a base class for domain models that makes common tasks a breeze.
 
+- [Models](#models)
+  - [Creating a model](#creating-a-model)
+  - [Interacting with model attributes](#interacting-with-model-attributes)
+  - [Iterating over a model](#iterating-over-a-model)
+  - [Serializing a model](#serializing-a-model)
+  - [Defining attribute types](#defining-attribute-types)
+- [Records](#records)
+  - [Setting up storage](#setting-up-storage)
+  - [Table names](#table-names)
+  - [Usage overview](#usage-overview)
+- [Record relationships](#record-relationships)
+  - [Defining relationships](#defining-relationships)
+  - [Loading and saving related records](#loading-and-saving-related-records)
+  - [Eager loading](#eager-loading)
+
 ## Models
 
 Darya models are self-validating objects used to represent business entities
@@ -10,7 +25,7 @@ within an application.
 
 Darya's abstract `Model` implementation implements `ArrayAccess`, `Countable`,
 `IteratorAggregate` and `Serializable`. It is essentially a flexible set of
-data intended to represent one instance of a business entity.
+data intended to represent an instance of a business entity.
 
 ### Creating a model
 
@@ -88,6 +103,8 @@ Records are supercharged models with access to persistent storage through the
 [`Darya\Storage`](/src/Darya/Storage) interfaces. They implement the active
 record pattern, but with testability in mind.
 
+### Setting up storage
+
 The database connection for a single record instance, or all instances of a
 specific type of record, can be swapped out for a different storage adapter.
 
@@ -115,6 +132,8 @@ $user->storage($inMemoryStorage);
 $userStorage = $user->storage();
 ```
 
+### Table names
+
 They use the typical convention of a singular class name mapping to a plural
 database table name.
 
@@ -127,14 +146,20 @@ class User extends Record
 }
 ```
 
-`User` would map to the **users** table. This can of course be overriden.
+`User` would map to the **users** table.
+
+This can of course be overridden, as can the default primary key of `id`.
 
 ```php
 class User extends Record
 {
+	protected $key = 'uid';
+
 	protected $table = 'people';
 }
 ```
+
+### Usage overview
 
 Records provide methods that you may be familiar with.
 
@@ -158,9 +183,13 @@ $list = User::listing('name');
 $names = User::distinct('name');
 ```
 
-### Relationships
+## Record Relationships
 
-Defining and working with relationships is a breeze.
+[Records](#records) can be used to express relationships between entities.
+
+### Defining relationships
+
+Defining relationships is a breeze.
 
 ```php
 class Page extends Record
@@ -172,16 +201,62 @@ class Page extends Record
 		'sections' => ['has_many',   'Section']
 	];
 }
+```
 
+### Loading and saving related records
+
+Loading and saving them is just as easy.
+
+```php
 $page = Page::find(1);
 
-$children = $page->children;
-
-foreach ($children as $child) {
+foreach ($page->children as $child) {
 	$child->title = "$page->title - $child->title";
 }
 
-$page->children = $children;
-
 $page->save();
+```
+
+Saving a parent record cascades the saving of its loaded related models that
+have changed since they were loaded.
+
+You can skip saving related models if need be.
+
+```php
+$page->save([
+	'skipRelations' => true
+]);
+
+Page::saveMany($pages, [
+	'skipRelations' => true
+]);
+```
+
+### Eager loading
+
+If you need to load the related records of many parent records, the eager
+loading feature will help you out.
+
+```php
+$pages = Page::eager('children');
+
+// Causes no storage queries; models are already loaded efficiently
+foreach ($pages as $page) {
+	$children = $page->children;
+	// ...
+}
+```
+
+Without eager loading (`Page::all()`), storage would be queried once for each
+parent record's children.
+
+With eager loading, all children are loaded efficiently; one query for each
+relation.
+
+An array of relations can be provided to this method to eagerly load multiple
+relationships.
+
+```php
+// Load all pages and eagerly load their children, sections and tags
+$pages = Page::eager(['children', 'sections', 'tags']);
 ```
