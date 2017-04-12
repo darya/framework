@@ -203,7 +203,7 @@ $users = User::query()
 	->cheers();
 ```
 
-## Record Relationships
+## Record relationships
 
 [Records](#records) can express relationships between themselves and others.
 
@@ -278,6 +278,6 @@ An array of relations can be provided to this method to eagerly load multiple
 relationships.
 
 ```php
-// Load all pages and eagerly load their children, sections and tags
+// Load all pages and eagerly load all of their related records
 $pages = Page::eager(['author', 'groups', 'parent', 'children', 'sections']);
 ```
