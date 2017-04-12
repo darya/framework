@@ -94,7 +94,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table, array($column), $filter, static::prepareOrder($order), $limit, $offset);
 		$query->distinct();
 		
-		return static::flatten($this->execute($query)->data, $column);
+		return static::flatten($this->run($query)->data, $column);
 	}
 	
 	/**
@@ -114,7 +114,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	{
 		$query = new StorageQuery($table, (array) $columns, $filter, static::prepareOrder($order), $limit, $offset);
 		
-		return $this->execute($query)->data;
+		return $this->run($query)->data;
 	}
 	
 	/**
@@ -133,7 +133,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	{
 		$query = new StorageQuery($table, array(), $filter, static::prepareOrder($order), $limit, $offset);
 		
-		return $this->execute($query)->data;
+		return $this->run($query)->data;
 	}
 	
 	/**
@@ -147,7 +147,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	{
 		$query = new StorageQuery($table, array(1), $filter);
 		
-		return $this->execute($query)->count;
+		return $this->run($query)->count;
 	}
 	
 	/**
@@ -164,7 +164,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table);
 		$query->create($data);
 		
-		return $this->execute($query)->insertId;
+		return $this->run($query)->insertId;
 	}
 	
 	/**
@@ -191,7 +191,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
 		$query->update($data);
 		
-		$result = $this->execute($query);
+		$result = $this->run($query);
 		
 		return $result->affected ?: !$this->error();
 	}
@@ -218,7 +218,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
 		$query->delete();
 		
-		$result = $this->execute($query);
+		$result = $this->run($query);
 		
 		return $result->affected ?: !$this->error();
 	}
@@ -229,7 +229,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param Query $storageQuery
 	 * @return DatabaseStorageResult
 	 */
-	public function execute(StorageQuery $storageQuery)
+	public function run(StorageQuery $storageQuery)
 	{
 		$query = $this->connection->translate($storageQuery);
 		
@@ -288,7 +288,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		
 		$query = new StorageQuery($table, array(), $filter, $order, $limit, $offset);
 		
-		return $this->execute($query)->data;
+		return $this->run($query)->data;
 	}
 	
 	/**

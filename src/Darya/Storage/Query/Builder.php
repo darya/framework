@@ -114,7 +114,7 @@ class Builder
 	 */
 	public function execute()
 	{
-		$result = $this->storage->execute($this->query);
+		$result = $this->storage->run($this->query);
 		
 		if (!is_callable($this->callback)) {
 			return $result;

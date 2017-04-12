@@ -4,12 +4,21 @@ Darya's storage package provides tools and interfaces for interacting with
 queryable storage in a consistent and convenient way.
 
 Some of the examples below explain features in the context of an SQL database,
-but the core concept behind the package is the extensible abstraction of
+but the core concept behind the package is the extensible,
+database agnostic abstraction of
 [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete).
 
 This means it could be used for an SQL database, a NoSQL database, or even a
 file system.
 
+- [Examples](#examples)
+  - [Create](#create)
+  - [Read](#read)
+  - [Update](#update)
+  - [Delete](#delete)
+- [Queryable interface](#queryable-interface)
+  - [`execute()`](#execute)
+  - [`query()`](#query)
 - [Queries](#queries)
   - [Resource](#resource)
   - [Fields](#fields)
@@ -19,11 +28,122 @@ file system.
   - [Limit & offset](#limit--offset)
   - [Unique](#unique)
 - [Results](#results)
-- [Queryable interface](#queryable-interface)
-  - [`execute()`](#execute)
-  - [`query()`](#query)
 - [Query builder](#query-builder)
   - [Callbacks](#callbacks)
+
+## Examples
+
+These quick examples demonstrate a storage implementation in action.
+
+See the documentation sections below the examples for more detail.
+
+See the `Darya\Database` package for documentation about joins and subqueries.
+
+### Create
+
+```php
+$result = $storage->query('users')
+	->create([
+		'id'        => 1,
+		'firstname' => 'Obi-Wan',
+		'surname'   => 'Kenobi
+	])
+	->run();
+```
+
+### Read
+
+```php
+$result = $storage->query('users', ['id', 'firstname', 'surname'])
+	->where('firstname like', 'Obi-Wan')
+	->where('manager_id >', 0),
+	->order('surname')
+	->limit(5, 10)
+	->run();
+```
+
+### Update
+
+```php
+$result = $storage->query('users')
+	->update([
+		'firstname' => 'Qui-Gon',
+		'surname'   => 'Jinn'
+	])
+	->where('surname', 'Kenobi')
+	->run();
+```
+
+### Delete
+
+```php
+$result = $storage->query('users')
+	->delete()
+	->where('type like', 'force user')
+	->where('id >', 5)
+	->run();
+```
+
+## Queryable interface
+
+The `Queryable` interface conveys the primary concept behind this package.
+
+```php
+use Darya\Storage\Query;
+use Darya\Storage\Result;
+
+interface Queryable
+{
+	/**
+	 * Execute the given query.
+	 * 
+	 * @param Query $query
+	 * @return Result
+	 */
+	public function execute(Query $query);
+	
+	/**
+	 * Open a query on the given resource.
+	 * 
+	 * @param string       $resource
+	 * @param array|string $fields   [optional]
+	 * @return Query\Builder
+	 */
+	public function query($resource, $fields = array());
+}
+```
+
+### `execute()`
+
+The `execute()` method accepts a [`Query`](#queries) and returns a corresponding
+[`Result`](#results).
+
+This formalizes the structure of what is sent to a data store and what it
+responds with.
+
+### `query()`
+
+The `query()` method accepts a resource to query and optionally the fields to
+act upon, returning a ready-to-use [query builder](#query-builder).
+
+While it might *only* seem like a convenience method at first by saving you
+from instantiating your own [`Query`](#queries) and
+[`Query\Builder`](#query-builder) objects, it more importantly allows
+implementors to easily provide their own query builders that can make use of an
+extended `Query` class.
+
+This is how the `Darya\Database\Storage` class works; by returning
+`Query\Builder` that uses an extension of the base `Query` class, which provides
+support for joins and subqueries.
+
+On top of this, its `execute()` method can accept either a base `Query` or its
+extended `Database\Storage\Query`.
+
+This allows for flexibility without sacrificing the structured approach, and
+leaves it to the developer to choose between exposing their application to the
+usage of extra features (joins, subqueries) or whether to keep it strictly CRUD
+and interoperable with any `Queryable` storage that works with the base `Query`
+class.
 
 ## Queries
 
@@ -268,64 +388,6 @@ $fields   = $result->fields;
 $affected = $result->affected;
 $insertId = $result->insertId;
 ```
-
-## Queryable interface
-
-The `Queryable` interface conveys the primary concept behind this package.
-
-```php
-interface Queryable
-{
-	/**
-	 * Execute the given query.
-	 * 
-	 * @param Query $query
-	 * @return \Darya\Storage\Result
-	 */
-	public function execute(Query $query);
-	
-	/**
-	 * Open a query on the given resource.
-	 * 
-	 * @param string       $resource
-	 * @param array|string $fields   [optional]
-	 * @return \Darya\Storage\Query\Builder
-	 */
-	public function query($resource, $fields = array());
-}
-```
-
-### `execute()`
-
-The `execute()` method accepts a [`Query`](#queries) and returns a corresponding
-[`Result`](#results).
-
-This formalizes the structure of what is sent to a data store and what it
-responds with.
-
-### `query()`
-
-The `query()` method accepts a resource to query and optionally the fields to
-act upon, returning a ready-to-use [query builder](#query-builder).
-
-While it might *only* seem like a convenience method at first by saving you
-from instantiating your own [`Query`](#queries) and
-[`Query\Builder`](#query-builder) objects, it more importantly allows
-implementors to easily provide their own query builders that can make use of an
-extended `Query` class.
-
-This is how the `Darya\Database\Storage` class works; by returning
-`Query\Builder` that uses an extension of the base `Query` class, which provides
-support for joins and subqueries.
-
-On top of this, its `execute()` method can accept either a base `Query` or its
-extended `Database\Storage\Query`.
-
-This allows for flexibility without sacrificing the structured approach, and
-leaves it to the developer to choose between exposing their application to the
-usage of extra features (joins, subqueries) or whether to keep it strictly CRUD
-and interoperable with any `Queryable` storage that works with the base `Query`
-class.
 
 ## Query builder
 

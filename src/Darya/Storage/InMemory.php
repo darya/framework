@@ -284,7 +284,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param Query $query
 	 * @return Result
 	 */
-	public function execute(Query $query)
+	public function run(Query $query)
 	{
 		$data = array();
 		$info = array();
