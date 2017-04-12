@@ -12,7 +12,9 @@ including a base class for domain models that makes common tasks a breeze.
 - [Records](#records)
   - [Setting up storage](#setting-up-storage)
   - [Table names](#table-names)
-  - [Usage examples](#usage-examples)
+  - [Loading and saving](#loading-and-saving)
+  - [Listing values](#listing-values)
+  - [Query builder](#query-builder)
 - [Record relationships](#record-relationships)
   - [Defining relationships](#defining-relationships)
   - [Loading and saving related records](#loading-and-saving-related-records)
@@ -159,7 +161,7 @@ class User extends Record
 }
 ```
 
-### Usage examples
+### Loading and saving
 
 Records provide methods that you may be familiar with.
 
@@ -176,7 +178,9 @@ $users = User::all();
 User::saveMany($users);
 ```
 
-And some you may not have seen before.
+### Listing values
+
+They also provide methods you may not have seen before.
 
 ```php
 // List all of the values of a given attribute
@@ -186,7 +190,9 @@ $list = User::listing('name');
 $names = User::distinct('name');
 ```
 
-Powerful query building enables retrieving specific models.
+### Query builder
+
+Powerful query building enables simple retrieval of specific models.
 
 ```php
 $users = User::query()
@@ -199,7 +205,7 @@ $users = User::query()
 
 ## Record Relationships
 
-[Records](#records) can be used to express relationships between entities.
+[Records](#records) can express relationships between themselves and others.
 
 ### Defining relationships
 
@@ -209,10 +215,11 @@ Defining relationships is a breeze.
 class Page extends Record
 {
 	protected $relations = [
-		'author'   => ['belongs_to', 'User', 'author_id'],
-		'parent'   => ['belongs_to', 'Page', 'parent_id'],
-		'children' => ['has_many',   'Page', 'parent_id'],
-		'sections' => ['has_many',   'Section']
+		'author'   => ['belongs_to',      'User',   'author_id'],
+		'groups'   => ['belongs_to_many', 'Group'],
+		'parent'   => ['belongs_to',      'Page',   'parent_id'],
+		'children' => ['has_many',        'Page',   'parent_id'],
+		'sections' => ['has_many',        'Section']
 	];
 }
 ```
@@ -272,5 +279,5 @@ relationships.
 
 ```php
 // Load all pages and eagerly load their children, sections and tags
-$pages = Page::eager(['author', 'parent', 'children', 'sections']);
+$pages = Page::eager(['author', 'groups', 'parent', 'children', 'sections']);
 ```

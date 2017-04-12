@@ -1,7 +1,7 @@
 # `Darya\Storage`
 
 Darya's storage package provides tools and interfaces for interacting with
-queryable storage in a consistent and convenient way.
+queryable data stores in a consistent, convenient way.
 
 Some of the examples below explain features in the context of an SQL database,
 but the core concept behind the package is the extensible,

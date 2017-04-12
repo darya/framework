@@ -6,9 +6,10 @@ use Darya\Storage\Error;
 use Darya\Storage\Query;
 use Darya\Storage\Result;
 
-class ResultTest extends PHPUnit_Framework_TestCase {
-	
-	public function testSimpleResult() {
+class ResultTest extends PHPUnit_Framework_TestCase
+{
+	public function testSimpleResult()
+	{
 		$query = new Query('users');
 		$result = new Result($query);
 		
@@ -20,7 +21,8 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame(array(), $result->fields);
 	}
 	
-	public function testGetResultInfo() {
+	public function testGetResultInfo()
+	{
 		$query = new Query('users');
 		
 		$result = new Result($query, array(), array(
@@ -38,7 +40,8 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(3, $info['insert_id']);
 	}
 	
-	public function testSelectResultInfo() {
+	public function testSelectResultInfo()
+	{
 		$query = new Query('users');
 		$data = array(
 			array('id' => 1, 'name' => 'Chris')
@@ -59,7 +62,8 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame($info['fields'], $result->fields);
 	}
 	
-	public function testInsertResultInfo() {
+	public function testInsertResultInfo()
+	{
 		$query = new Query('users');
 		$data = array(
 			array('name' => 'Chris')
@@ -77,7 +81,8 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(1, $result->insertId);
 	}
 	
-	public function testResultError() {
+	public function testResultError()
+	{
 		$query = new Query('users');
 		$error = new Error(1, 'Some error');
 		
@@ -86,7 +91,8 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame($error, $result->error);
 	}
 	
-	public function testResultIterator() {
+	public function testResultIterator()
+	{
 		$query = new Query('users');
 		
 		$result = new Result($query, array(
@@ -104,5 +110,4 @@ class ResultTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($expected, $actual);
 	}
-	
 }
