@@ -1,8 +1,6 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database;
-use Darya\Database\Connection;
 use Darya\Database\Storage\Query as DatabaseStorageQuery;
 use Darya\Database\Storage\Result as DatabaseStorageResult;
 use Darya\Storage\Aggregational;
@@ -16,7 +14,7 @@ use Darya\Storage\Query\Builder as QueryBuilder;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Remove listing and add $columns parameter to read(). Suck it up.
+ * TODO: Remove listing and add $columns parameter to read().
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -226,7 +224,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Execute the given storage query.
 	 * 
-	 * @param Query $storageQuery
+	 * @param StorageQuery $storageQuery
 	 * @return DatabaseStorageResult
 	 */
 	public function run(StorageQuery $storageQuery)
@@ -245,7 +243,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * @param string       $resource
 	 * @param array|string $columns  [optional]
-	 * @return Builder
+	 * @return QueryBuilder
 	 */
 	public function query($resource, $columns = array())
 	{
@@ -257,8 +255,6 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Search for rows in the given table with fields that match the given query
 	 * and criteria.
-	 * 
-	 * TODO: Use storage queries.
 	 * 
 	 * @param string       $table
 	 * @param string       $query
@@ -292,7 +288,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	}
 	
 	/**
-	 * Retrieve the error that occured with the last operation.
+	 * Retrieve the error that occurred with the last operation.
 	 * 
 	 * Returns false if there was no error.
 	 * 
