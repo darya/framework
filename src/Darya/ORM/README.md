@@ -5,9 +5,9 @@ including a base class for domain models that makes common tasks a breeze.
 
 - [Models](#models)
   - [Creating a model](#creating-a-model)
-  - [Interacting with model attributes](#interacting-with-model-attributes)
-  - [Iterating over a model](#iterating-over-a-model)
-  - [Serializing a model](#serializing-a-model)
+  - [Attributes](#attributes)
+  - [Iterating over attributes](#iterating-over-attributes)
+  - [Serializing](#serializing)
   - [Defining attribute types](#defining-attribute-types)
 - [Records](#records)
   - [Setting up storage](#setting-up-storage)
@@ -48,7 +48,7 @@ $model = new Something([
 ]);
 ```
 
-### Interacting with model attributes
+### Attributes
 
 ```php
 // Access its attributes using any convenient syntax
@@ -56,13 +56,13 @@ $id   = $model->id;          // 72
 $name = $model['name'];      // 'Something'
 $type = $model->get('type'); // 'A thing'
 
-// Set attributes in the same way
+// Change attributes in the same way
 $model->id     = 73;
 $model['name'] = 'Something else';
 $model->set('type', 'Another thing');
 ```
 
-### Iterating over a model
+### Iterating over attributes
 
 ```php
 $attributes = [];
@@ -72,7 +72,7 @@ foreach ($model as $key => $value) {
 }
 ```
 
-### Serializing a model
+### Serializing
 
 ```php
 $serialized = serialize($model);
@@ -166,6 +166,12 @@ class User extends Record
 Records provide methods that you may be familiar with.
 
 ```php
+// Create and save a single user
+$user = new User(
+	'name' => 'Obi-Wan'
+);
+$user->save();
+
 // Change a single user
 $user = User::find(1);
 $user->name = 'Chris';
@@ -174,7 +180,7 @@ $user->save();
 // Load all users
 $users = User::all();
 
-// Save the users
+// Save many users
 User::saveMany($users);
 ```
 
