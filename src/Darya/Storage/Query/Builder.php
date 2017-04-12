@@ -111,6 +111,18 @@ class Builder
 	/**
 	 * Run the query through the storage interface.
 	 *
+	 * Always returns a Result object, ignoring the callback.
+	 *
+	 * @return Result
+	 */
+	public function raw()
+	{
+		return $this->storage->run($this->query);
+	}
+	
+	/**
+	 * Run the query through the storage interface.
+	 *
 	 * Returns the result of the callback, if one is set.
 	 *
 	 * @return mixed

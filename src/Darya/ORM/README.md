@@ -12,7 +12,7 @@ including a base class for domain models that makes common tasks a breeze.
 - [Records](#records)
   - [Setting up storage](#setting-up-storage)
   - [Table names](#table-names)
-  - [Usage overview](#usage-overview)
+  - [Usage examples](#usage-examples)
 - [Record relationships](#record-relationships)
   - [Defining relationships](#defining-relationships)
   - [Loading and saving related records](#loading-and-saving-related-records)
@@ -159,7 +159,7 @@ class User extends Record
 }
 ```
 
-### Usage overview
+### Usage examples
 
 Records provide methods that you may be familiar with.
 
@@ -171,16 +171,30 @@ $user->save();
 
 // Load all users
 $users = User::all();
+
+// Save the users
+User::saveMany($users);
 ```
 
 And some you may not have seen before.
 
 ```php
-// Load all of the values of a given attribute
+// List all of the values of a given attribute
 $list = User::listing('name');
 
-// Load all of the distinct values of a given attribute
+// List all of the distinct values of a given attribute
 $names = User::distinct('name');
+```
+
+Powerful query building enables retrieving specific models.
+
+```php
+$users = User::query()
+	->where('name like', 'Chris')
+	->where('parent_id', 72)
+	->order('surname')
+	->limit(5, 10)
+	->cheers();
 ```
 
 ## Record Relationships
