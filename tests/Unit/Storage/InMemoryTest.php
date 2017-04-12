@@ -193,18 +193,18 @@ class InMemoryTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	public function testDeleteLimit() {
-		/*$storage = $this->storage();
+		$storage = $this->storage();
+		
+		$storage->delete('roles', array('id >' => 0), 1);
 		
 		$expected = array(
 			array('id' => 2, 'name' => 'Moderator'),
 			array('id' => 3, 'name' => 'Administrator')
 		);
 		
-		$storage->delete('roles', array(), 1);
+		$actual = $storage->read('roles');
 		
-		$roles = $storage->read('roles');
-		
-		$this->assertEquals($expected, $roles);*/
+		$this->assertEquals($expected, $actual);
 	}
 	
 	public function testEqualsFilter() {

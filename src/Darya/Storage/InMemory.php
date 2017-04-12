@@ -181,7 +181,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	public function update($resource, $data, array $filter = array(), $limit = 0)
 	{
 		if (empty($this->data[$resource])) {
-			return;
+			return 0;
 		}
 		
 		$affected = 0;
@@ -215,10 +215,16 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	public function delete($resource, array $filter = array(), $limit = null)
 	{
 		if (empty($this->data[$resource])) {
-			return;
+			return 0;
 		}
 		
-		$this->data[$resource] = $this->filterer->reject($this->data[$resource], $filter);
+		$remaining = $this->filterer->reject($this->data[$resource], $filter, $limit);
+		
+		$deleted = count($this->data[$resource]) - count($remaining);
+		
+		$this->data[$resource] = $remaining;
+		
+		return $deleted;
 	}
 	
 	/**

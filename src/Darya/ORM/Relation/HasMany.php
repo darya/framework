@@ -156,10 +156,11 @@ class HasMany extends Has
 	{
 		$this->related = array();
 		
-		return (int) $this->storage()->update($this->target->table(), array(
-			$this->foreignKey => 0
-		), array(
-			$this->foreignKey => $this->parent->get($this->localKey)
-		));
+		return (int) $this->storage()->query($this->target->table())
+			->where($this->foreignKey, $this->parent->get($this->localKey))
+			->update(array(
+				$this->foreignKey => 0
+			))
+			->cheers()->affected;
 	}
 }
