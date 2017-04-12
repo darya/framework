@@ -148,19 +148,13 @@ class HasMany extends Has
 	 * Returns the number of models successfully dissociated.
 	 * 
 	 * TODO: Consider constraints
+	 * TODO: Use query()
 	 * 
 	 * @return int
 	 */
 	public function purge()
 	{
 		$this->related = array();
-		
-		// return (int) $this->storage()->query($this->target->table())
-			// ->where($this->foreignKey, 0)
-			// ->update(array(
-				// $this->foreignKey => $this->parent->get($this->localKey)
-			// ))
-			// ->cheers()->affected;
 		
 		return (int) $this->storage()->update($this->target->table(), array(
 			$this->foreignKey => 0
