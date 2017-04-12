@@ -4,9 +4,11 @@ namespace Darya\Tests\Unit\Storage;
 use PHPUnit_Framework_TestCase;
 use Darya\Storage\Sorter;
 
-class SorterTest extends PHPUnit_Framework_TestCase {
+class SorterTest extends PHPUnit_Framework_TestCase
+{
 	
-	public function testSort() {
+	public function testSort()
+	{
 		$sorter = new Sorter;
 		
 		$data = array(
@@ -64,5 +66,4 @@ class SorterTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assertEquals($expected, $sorted);
 	}
-	
 }

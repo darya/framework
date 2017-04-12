@@ -6,6 +6,19 @@ It can also be used to invoke functions or class methods derived from the parame
 
 This is a detailed set of examples of the different ways the router can be used.
 
+- [Front controller](#front-controller)
+- [Router](#router)
+  - [Defining and matching routes](#defining-and-matching-rules)
+  - [Route matching](#route-matching)
+  - [Setting a base URL](#setting-a-base-url)
+  - [Routing to functions](#routing-to-functions)
+  - [Dynamic route parameters](#dynamic-route-parameters)
+  - [Optional parameters](#optional-parameters)
+  - [Responding automatically](#responding-automatically)
+  - [Error handling](#error-handling)
+  - [Routing to class methods](#routing-to-class-methods)
+  - [Dynamic actions](#dynamic-actions)
+
 ## Front controller
 
 First, you'll want to set up a PHP script as a [front controller](http://en.wikipedia.org/wiki/Front_Controller_pattern). If you're using Apache as your web server you could achieve this with a `.htaccess` file at the root of your public directory. 
@@ -41,16 +54,16 @@ The anonymous function becomes the route's `action` parameter.
 ```php
 use Darya\Routing\Router;
 
-$router = new Router(array(
-	'/' => function() {
+$router = new Router([
+	'/' => function () {
 		return 'Hello world!';
 	}
-));
+]);
 
 /**
  * @var Darya\Routing\Route
  */
-$route = $router->match('/'); // $route->action == function() {return 'Hello world!';}
+$route = $router->match('/'); // $route->action === function () { return 'Hello world!'; }
 ```
 
 ### Route matching
@@ -62,10 +75,10 @@ require_once "vendor/darya/framework/autoloader.php";
 
 use Darya\Routing\Router;
 
-$router = new Router(array(
-	'/' => array('message' => 'Hello world!'),
-	'/test' => array('message' => 'Test!')
-));
+$router = new Router([
+	'/'     => ['message' => 'Hello world!'],
+	'/test' => ['message' => 'Test!']
+]);
 
 /**
  * @var Darya\Routing\Route
@@ -90,10 +103,10 @@ If your application is not in your web server's root web directory, but instead 
 This is simply a case of using the router's `setBaseUrl` method.
 
 ```php
-$router = new Router(array(
-	'/' => array('message' => 'Hello world!'),
-	'/test' => array('message' => 'Test!')
-));
+$router = new Router([
+	'/'     => ['message' => 'Hello world!'],
+	'/test' => ['message' => 'Test!']
+]);
 
 $router->setBaseUrl('/darya');
 
@@ -116,11 +129,11 @@ The `dispatch` method simply matches the given request URL to a route and execut
 When no route is matched by the given request, the `dispatch` method returns `null`.
 
 ```php
-$router = new Router(array(
-	'/' => function(){
+$router = new Router([
+	'/' => function () {
 		return 'Hello world!';
 	}
-));
+]);
 
 echo $router->dispatch($_SERVER['REQUEST_URI']);
 ```
@@ -132,10 +145,10 @@ Darya's router is capable of matching parts of request URLs and setting them as 
 You can specify properties in the route's path by prepending a string with the `:` character. The following example will print anything after the last `/` of the request URL.
 
 ```php
-$router = new Router(array(
-	'/'         => array('message' => 'Hello world!'),
-	'/:message' => array('message' => 'default')
-));
+$router = new Router([
+	'/'         => ['message' => 'Hello world!'],
+	'/:message' => ['message' => 'default']
+]);
 
 echo $router->match('/test')->message; // Displays 'test'
 echo $router->match('/darya')->message; // Displays 'darya'
@@ -146,14 +159,14 @@ passed in order as arguments to the function. It doesn't matter whether the
 parameter names match the argument names.
 
 ```php
-$router = new Router(array(
-	'/' => function() {
+$router = new Router([
+	'/' => function () {
 		return 'Hello world!';
 	},
-	'/:message' => function($message) {
+	'/:message' => function ($message) {
 		return "Hello $message!";
 	}
-));
+]);
 
 echo $router->dispatch($_SERVER['REQUEST_URI']);
 ```
@@ -168,11 +181,11 @@ make the function argument optional so that no error if there is no default
 value for the parameter.
 
 ```php
-$router = new Router(array(
-	'/:message?' => function($message = null) {
+$router = new Router([
+	'/:message?' => function ($message = null) {
 		return $message ? 'Message: ' . $message : 'No message!';
 	}
-));
+]);
 ```
 
 ### Responding automatically
@@ -182,14 +195,14 @@ To avoid having to `echo` the result of your `dispatch` call you can use the
 functions return.
 
 ```php
-$router = new Router(array(
-	'/about/:what' => function($what) {
+$router = new Router([
+	'/about/:what' => function ($what) {
 		return "About $what!";
 	},
-	'/' => function(){
+	'/' => function (){
 		return 'Hello world!';
 	}
-));
+]);
 
 $router->respond('/about/me'); // 'About me!'
 ```
@@ -201,7 +214,7 @@ will return null after attempting to call an error handler. You can assign any
 callable as the router's error handler.
 
 ```php
-$router->setErrorHandler(function($request){
+$router->setErrorHandler(function ($request) {
 	return 'No route was matched!';
 });
 ```
@@ -219,9 +232,9 @@ class MyClass
 	}
 }
 
-$router = new Router(array(
-	'/:message' => array(new MyClass(), 'myMethod')
-));
+$router = new Router([
+	'/:message' => [new MyClass(), 'myMethod']
+]);
 ```
 
 If you assign a string to the route, it is interpreted as a class name and set
@@ -238,9 +251,9 @@ class MyClass
 	}
 }
 
-$router = new Router(array(
+$router = new Router([
 	'/:message' => 'MyClass'
-));
+]);
 ```
 
 Bear in mind that the class will not be instantiated if you assign routes this
@@ -264,9 +277,9 @@ class MyClass
 	}
 }
 
-$router = new Router(array(
+$router = new Router([
 	'/:action?' => 'MyClass'
-));
+]);
 
 $router->respond('/'); // Displays 'Index!'
 $router->respond('/test'); // Displays 'Test action!';

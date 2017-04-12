@@ -26,7 +26,7 @@ class Result extends StorageResult
 	 * 
 	 * @param StorageQuery   $query
 	 * @param DatabaseResult $result
-	 * @return StorageResult
+	 * @return static
 	 */
 	public static function createWithDatabaseResult(StorageQuery $query, DatabaseResult $result)
 	{

@@ -1,8 +1,6 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database;
-use Darya\Database\Connection;
 use Darya\Database\Storage\Query as DatabaseStorageQuery;
 use Darya\Database\Storage\Result as DatabaseStorageResult;
 use Darya\Storage\Aggregational;
@@ -16,7 +14,7 @@ use Darya\Storage\Query\Builder as QueryBuilder;
 /**
  * Darya's database storage implementation.
  * 
- * TODO: Remove listing and add $columns parameter to read(). Suck it up.
+ * TODO: Remove listing and add $columns parameter to read().
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -94,7 +92,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table, array($column), $filter, static::prepareOrder($order), $limit, $offset);
 		$query->distinct();
 		
-		return static::flatten($this->execute($query)->data, $column);
+		return static::flatten($this->run($query)->data, $column);
 	}
 	
 	/**
@@ -114,7 +112,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	{
 		$query = new StorageQuery($table, (array) $columns, $filter, static::prepareOrder($order), $limit, $offset);
 		
-		return $this->execute($query)->data;
+		return $this->run($query)->data;
 	}
 	
 	/**
@@ -133,7 +131,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	{
 		$query = new StorageQuery($table, array(), $filter, static::prepareOrder($order), $limit, $offset);
 		
-		return $this->execute($query)->data;
+		return $this->run($query)->data;
 	}
 	
 	/**
@@ -147,7 +145,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	{
 		$query = new StorageQuery($table, array(1), $filter);
 		
-		return $this->execute($query)->count;
+		return $this->run($query)->count;
 	}
 	
 	/**
@@ -164,7 +162,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table);
 		$query->create($data);
 		
-		return $this->execute($query)->insertId;
+		return $this->run($query)->insertId;
 	}
 	
 	/**
@@ -191,7 +189,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
 		$query->update($data);
 		
-		$result = $this->execute($query);
+		$result = $this->run($query);
 		
 		return $result->affected ?: !$this->error();
 	}
@@ -218,7 +216,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
 		$query->delete();
 		
-		$result = $this->execute($query);
+		$result = $this->run($query);
 		
 		return $result->affected ?: !$this->error();
 	}
@@ -226,10 +224,10 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Execute the given storage query.
 	 * 
-	 * @param Query $storageQuery
+	 * @param StorageQuery $storageQuery
 	 * @return DatabaseStorageResult
 	 */
-	public function execute(StorageQuery $storageQuery)
+	public function run(StorageQuery $storageQuery)
 	{
 		$query = $this->connection->translate($storageQuery);
 		
@@ -245,7 +243,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * 
 	 * @param string       $resource
 	 * @param array|string $columns  [optional]
-	 * @return Builder
+	 * @return QueryBuilder
 	 */
 	public function query($resource, $columns = array())
 	{
@@ -257,8 +255,6 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Search for rows in the given table with fields that match the given query
 	 * and criteria.
-	 * 
-	 * TODO: Use storage queries.
 	 * 
 	 * @param string       $table
 	 * @param string       $query
@@ -288,11 +284,11 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 		
 		$query = new StorageQuery($table, array(), $filter, $order, $limit, $offset);
 		
-		return $this->execute($query)->data;
+		return $this->run($query)->data;
 	}
 	
 	/**
-	 * Retrieve the error that occured with the last operation.
+	 * Retrieve the error that occurred with the last operation.
 	 * 
 	 * Returns false if there was no error.
 	 * 

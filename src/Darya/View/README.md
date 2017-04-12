@@ -15,7 +15,7 @@ templating engine.
 Adapters are planned for some popular templating engines including Blade, Twig
 and Mustache.
 
-## views/index.php
+### views/index.php
 
 ```php
 <p>Hello <?=$thing?>, this is a <?=$test?>.</p>
@@ -25,12 +25,12 @@ and Mustache.
 <?php endforeach; ?>
 ```
 
-## index.php
+### index.php
 
 ```php
-use Darya\View\Php;
+use Darya\View;
 
-$view = new Php('views/index.php');
+$view = new View\Php('views/index.php');
 
 $view->assign(array(
 	'thing' => 'world',
@@ -41,7 +41,7 @@ $view->assign(array(
 echo $view->render();
 ```
 
-## Output
+### Output
 
 ```html
 <p>Hello world, this is a test.</p>

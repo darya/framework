@@ -4,8 +4,6 @@ Darya's database package provides tools and abstractions for interacting with
 different relational databases in a consistent way, despite differences in SQL
 dialects.
 
-## Usage
-
 - [Connections](#connections)
   - [Queries](#queries)
   - [Results](#results)
@@ -16,7 +14,7 @@ dialects.
   - [Where-condition subquery](#where-condition-subquery)
   - [Insert select](#insert-select)
 
-### Connections
+## Connections
 
 Create database connections using a factory.
 
@@ -115,7 +113,7 @@ if ($result->error) {
 }
 ```
 
-### Storage
+## Storage
 
 The database storage namespace provides a fluent interface for interacting with
 a connection.
@@ -155,11 +153,11 @@ if ($result->error) {
 }
 ```
 
-### Joins & Subqueries
+## Joins & Subqueries
 
 Database storage queries offer extra query builder functionality.
 
-#### Simple joins
+### Simple joins
 
 ```php
 $result = $storage->query('users', 'users.*')
@@ -171,7 +169,7 @@ $storage->query('users')->leftJoin('comments')->read();
 $storage->query('users')->rightJoin('comments')->read();
 ```
 
-#### Complex join
+### Complex join
 
 ```php
 $result = $storage->query('users', array(
@@ -187,7 +185,7 @@ $result = $storage->query('users', array(
 	->read();
 ```
 
-#### Where-condition subquery
+### Where-condition subquery
 
 ```php
 $result = $storage->query('users')->where('id not in', $storage->query(
@@ -195,7 +193,7 @@ $result = $storage->query('users')->where('id not in', $storage->query(
 ))->read();
 ```
 
-#### Insert select
+### Insert select
 
 Insert into a table using the result of another query.
 

@@ -72,15 +72,24 @@ class Has extends Relation
 	}
 	
 	/**
-	 * Save the related models.
+	 * Associate the given model.
 	 * 
-	 * Optionally only save models with the given IDs.
+	 * Dissociates any currently associated model beforehand.
 	 * 
-	 * @param array $ids [optional]
+	 * Returns the number of successfully associated models.
+	 * 
+	 * @param Record[]|Record $instances
 	 * @return int
 	 */
-	public function save($ids = array())
+	public function associate($instances)
 	{
+		$this->verify($instances);
+		
+		$this->dissociate();
+		$this->attach($instances);
+		
+		$ids = static::attributeList($instances, 'id');
+		
 		$successful = 0;
 		
 		foreach ($this->related as $model) {
@@ -92,27 +101,7 @@ class Has extends Relation
 			}
 		}
 		
-		return $successful;
-	}
-	
-	/**
-	 * Associate the given model.
-	 * 
-	 * Dissociates any currently associated model beforehand.
-	 * 
-	 * Returns true if the model was successfully associated.
-	 * 
-	 * @param Record $instance
-	 * @return int
-	 */
-	public function associate($instance)
-	{
-		$this->dissociate();
-		
-		$this->verify($instance);
-		$this->related = array($instance);
-		
-		return $this->save();
+		return (int) $successful;
 	}
 	
 	/**
@@ -120,20 +109,30 @@ class Has extends Relation
 	 * 
 	 * Returns true if the model was successfully dissociated.
 	 * 
+	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate()
+	public function dissociate($instances = array())
 	{
-		$associated = $this->retrieve();
+		$this->verify($instances);
 		
-		if (!$associated) {
-			return true;
+		// Fall back to loading existing relations if none are given
+		$associated = static::arrayify($instances) ?: $this->load(1);
+		
+		// Mark these models as detached
+		$this->detach($associated);
+		
+		$successful = 0;
+		
+		// Persist the detachment of the models
+		foreach ($this->detached as $model) {
+			$model->set($this->foreignKey, 0);
+			$successful += $model->save();
 		}
 		
-		$this->clear();
+		// Clear the set of models to detach
+		$this->detached = array();
 		
-		$associated->set($this->foreignKey, 0);
-		
-		return $associated->save();
+		return $successful;
 	}
 }

@@ -354,21 +354,25 @@ class BelongsToMany extends Relation
 	 */
 	public function associate($instances)
 	{
-		$instances = static::arrayify($instances);
+		$this->verify($instances);
 		
-		$existing = $this->storage()->read($this->table, array(
+		$this->load();
+		
+		$this->attach($instances);
+		
+		$existing = $this->storage()->distinct($this->table, $this->foreignKey, array(
 			$this->localKey => $this->parent->id()
 		));
 		
 		$successful = 0;
 		
-		foreach ($instances as $instance) {
-			$this->verify($instance);
-			
+		foreach ($this->related as $instance) {
 			if ($instance->save()) {
 				$successful++;
 				$this->replace($instance);
 				
+				// Create the association in the relation table if it doesn't
+				// yet exist
 				if (!in_array($instance->id(), $existing)) {
 					$this->storage()->create($this->table, array(
 						$this->localKey   => $this->parent->id(),
@@ -389,7 +393,7 @@ class BelongsToMany extends Relation
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
 	 */
-	public function dissociate($instances)
+	public function dissociate($instances = array())
 	{
 		$instances = static::arrayify($instances);
 		
@@ -453,16 +457,16 @@ class BelongsToMany extends Relation
 	 */
 	public function count()
 	{
-		if ($this->loaded()) {
-			return parent::count();
+		if (!$this->loaded() && empty($this->related)) {
+			if (empty($this->filter())) {
+				return $this->storage()->count($this->table, $this->associationFilter());
+			}
+			
+			$filter = $this->filter($this->relatedIds());
+			
+			return $this->storage()->count($this->target->table(), $filter);
 		}
 		
-		if (empty($this->filter())) {
-			return $this->storage()->count($this->table, $this->associationFilter());
-		}
-		
-		$filter = $this->filter($this->relatedIds());
-		
-		return $this->storage()->count($this->target->table(), $filter);
+		return parent::count();
 	}
 }

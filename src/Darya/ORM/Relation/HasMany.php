@@ -98,6 +98,41 @@ class HasMany extends Has
 	}
 	
 	/**
+	 * Associate the given models.
+	 * 
+	 * Loads any currently associated models before attaching and saving
+	 * the given models.
+	 * 
+	 * Returns the number of successfully associated models.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @return int
+	 */
+	public function associate($instances)
+	{
+		$this->verify($instances);
+		
+		$this->load();
+		
+		$this->attach($instances);
+		
+		$ids = static::attributeList($instances, 'id');
+		
+		$successful = 0;
+		
+		foreach ($this->related as $model) {
+			$this->persist($model);
+			
+			if (!$ids || in_array($model->id(), $ids)) {
+				$model->set($this->foreignKey, $this->parent->id());
+				$successful += $model->save();
+			}
+		}
+		
+		return (int) $successful;
+	}
+	
+	/**
 	 * Retrieve the related models.
 	 * 
 	 * @return Record[]
@@ -105,68 +140,6 @@ class HasMany extends Has
 	public function retrieve()
 	{
 		return $this->all();
-	}
-	
-	/**
-	 * Associate the given models.
-	 * 
-	 * Returns the number of models successfully associated.
-	 * 
-	 * TODO: Stop this from assuming an ID on the instances. Somehow. Maybe save
-	 *       if it doesn't have one yet, or don't use IDs at the risk of saving
-	 *       more relations than necessary (all of them...).
-	 * 
-	 * @param Record[]|Record $instances
-	 * @return int
-	 */
-	public function associate($instances)
-	{
-		$ids = array();
-		
-		foreach (static::arrayify($instances) as $instance) {
-			$this->replace($instance);
-			
-			$ids[] = $instance->id();
-		}
-		
-		return $this->save($ids);
-	}
-	
-	/**
-	 * Dissociate the given models.
-	 * 
-	 * Returns the number of models successfully dissociated.
-	 * 
-	 * TODO: Consider constraints
-	 * 
-	 * @param Record[]|Record $instances [optional]
-	 * @return int
-	 */
-	public function dissociate($instances = array())
-	{
-		$ids = array();
-		
-		$successful = 0;
-		
-		foreach (static::arrayify($instances) as $instance) {
-			$this->verify($instance);
-			$instance->set($this->foreignKey, 0);
-			
-			if ($instance->save()) {
-				$ids[] = $instance->id();
-				$successful++;
-			}
-		}
-		
-		$relatedIds = array();
-		
-		foreach ($this->related as $related) {
-			$relatedIds[] = $related->id();
-		}
-		
-		$this->reduce(array_diff($relatedIds, $ids));
-		
-		return $successful;
 	}
 	
 	/**
@@ -181,6 +154,13 @@ class HasMany extends Has
 	public function purge()
 	{
 		$this->related = array();
+		
+		// return (int) $this->storage()->query($this->target->table())
+			// ->where($this->foreignKey, 0)
+			// ->update(array(
+				// $this->foreignKey => $this->parent->get($this->localKey)
+			// ))
+			// ->cheers()->affected;
 		
 		return (int) $this->storage()->update($this->target->table(), array(
 			$this->foreignKey => 0

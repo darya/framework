@@ -101,6 +101,13 @@ abstract class Relation
 	protected $related = array();
 	
 	/**
+	 * Detached instances that need dissociating on save.
+	 * 
+	 * @var Record[]
+	 */
+	protected $detached = array();
+	
+	/**
 	 * Determines whether related instances have been loaded.
 	 * 
 	 * @var bool
@@ -118,8 +125,11 @@ abstract class Relation
 	 * Helper method for methods that accept single or multiple values, or for
 	 * just casting to an array without losing a plain object.
 	 * 
-	 * Returns a array with the given value as its sole element, if it is not an
-	 * array already.
+	 * Returns an array with the given value as its sole element, if it is not
+	 * an array already.
+	 *
+	 * This exists because casting an object to an array results in its public
+	 * properties being set as the values.
 	 * 
 	 * @param mixed $value
 	 * @return array
@@ -139,7 +149,6 @@ abstract class Relation
 	{
 		$numeric = array();
 		$strings = array();
-		
 		
 		foreach ($array as $key => $value) {
 			if (is_numeric($key)) {
@@ -345,15 +354,13 @@ abstract class Relation
 	 * If the related model does not have an ID or it is not found, it is simply
 	 * appended.
 	 * 
-	 * Retrieves related models if none have been loaded yet.
+	 * TODO: Remove from $this->detached if found?
 	 * 
 	 * @param Record $instance
 	 */
 	protected function replace(Record $instance)
 	{
 		$this->verify($instance);
-		
-		$this->retrieve();
 		
 		if (!$instance->id()) {
 			$this->related[] = $instance;
@@ -362,7 +369,7 @@ abstract class Relation
 		}
 		
 		foreach ($this->related as $key => $related) {
-			if ($related->id() === $instance->id()) {
+			if ($related->id() === $instance->id() || $related === $instance) {
 				$this->related[$key] = $instance;
 				
 				return;
@@ -551,6 +558,8 @@ abstract class Relation
 	/**
 	 * Read, generate and set cached related models from storage.
 	 * 
+	 * This will completely replace any cached related models.
+	 * 
 	 * @param int $limit [optional]
 	 * @return Record[]
 	 */
@@ -565,7 +574,7 @@ abstract class Relation
 	}
 	
 	/**
-	 * Determine whether cached related models have been loaded.
+	 * Determine whether cached related models have been loaded from storage.
 	 * 
 	 * @return bool
 	 */
@@ -598,9 +607,11 @@ abstract class Relation
 	 */
 	public function one()
 	{
-		if (!$this->loaded()) {
+		if (!$this->loaded() && empty($this->related)) {
 			$this->load(1);
 		}
+		
+		// TODO: Load and merge with cached?
 		
 		return !empty($this->related) ? $this->related[0] : null;
 	}
@@ -612,9 +623,11 @@ abstract class Relation
 	 */
 	public function all()
 	{
-		if (!$this->loaded()) {
+		if (!$this->loaded() && empty($this->related)) {
 			$this->load();
 		}
+		
+		// TODO: Load and merge with cached?
 		
 		return $this->related;
 	}
@@ -622,13 +635,14 @@ abstract class Relation
 	/**
 	 * Count the number of related model instances.
 	 * 
-	 * Counts loaded instances if they are present, queries storage otherwise.
+	 * Counts loaded or attached instances if they are present, queries storage
+	 * otherwise.
 	 * 
 	 * @return int
 	 */
 	public function count()
 	{
-		if (!$this->loaded()) {
+		if (!$this->loaded() && empty($this->related)) {
 			return $this->storage()->count($this->target->table(), $this->filter());
 		}
 		
@@ -637,6 +651,8 @@ abstract class Relation
 	
 	/**
 	 * Set the related models.
+	 * 
+	 * Overwrites any currently set related models.
 	 * 
 	 * @param Record[] $instances
 	 */
@@ -657,7 +673,124 @@ abstract class Relation
 	}
 	
 	/**
-	 * Read-only access for relation properties.
+	 * Attach the given models.
+	 * 
+	 * @param Record[]|Record $instances
+	 */
+	public function attach($instances)
+	{
+		$this->verify($instances);
+		
+		foreach (static::arrayify($instances) as $instance) {
+			$this->replace($instance);
+		}
+	}
+	
+	/**
+	 * Detach the given models.
+	 * 
+	 * Detaches all attached models if none are given.
+	 * 
+	 * @param Record[]|Record $instances [optional]
+	 */
+	public function detach($instances = array())
+	{
+		$this->verify($instances);
+		
+		$instances = static::arrayify($instances) ?: $this->related;
+		
+		$relatedIds = static::attributeList($this->related, 'id');
+		$detached = array();
+		$ids = array();
+		
+		// Collect the IDs and instances of the models to be detached
+		foreach ($instances as $instance) {
+			if (in_array($instance->id(), $relatedIds)) {
+				$ids[] = $instance->id();
+				$detached[] = $instance;
+			}
+		}
+		
+		// Reduce related models to those that haven't been detached
+		$this->reduce(array_diff($relatedIds, $ids));
+		
+		// Merge the newly detached models in with the existing ones
+		$this->detached = array_merge($this->detached, $detached);
+	}
+	
+	/**
+	 * Associate the given models.
+	 * 
+	 * Returns the number of models successfully associated.
+	 * 
+	 * @param Record[]|Record $instances
+	 * @return int
+	 */
+	abstract public function associate($instances);
+	
+	/**
+	 * Dissociate the given models.
+	 * 
+	 * Returns the number of models successfully dissociated.
+	 * 
+	 * @param Record[]|Record $instances [optional]
+	 * @return int
+	 */
+	abstract public function dissociate($instances = array());
+	
+	/**
+	 * Save the relationship.
+	 * 
+	 * Associates related models and dissociates detached models.
+	 * 
+	 * Optionally accepts a set of IDs to save by. Saves all related models
+	 * otherwise.
+	 * 
+	 * Returns the number of associated models.
+	 * 
+	 * @param int[] $ids
+	 * @return int
+	 */
+	public function save(array $ids = array())
+	{
+		$related = $this->related;
+		$detached = $this->detached;
+		
+		// Filter the IDs to associate and dissociate if any have been given
+		if (!empty($ids)) {
+			$filter = function ($instance) use ($ids) {
+				return in_array($instance->id(), $ids);
+			};
+			
+			$related = array_filter($related, $filter);
+			$detached = array_filter($detached, $filter);
+		}
+		
+		// Bail if we have nothing to associate or dissociate
+		if (empty($related) && empty($detached)) {
+			return;
+		}
+		
+		// Dissociate, then associate
+		if  (!empty($detached)) {
+			$this->dissociate($detached);
+		}
+		
+		$associated = $this->associate($related);
+		
+		// Update detached models to be persisted
+		$this->detached = array();
+		
+		// Persist relationships on all related models
+		foreach ($related as $instance) {
+			$instance->saveRelations();
+		}
+		
+		return $associated;
+	}
+	
+	/**
+	 * Dynamic read-only access for relation properties.
 	 * 
 	 * @param string $property
 	 * @return mixed

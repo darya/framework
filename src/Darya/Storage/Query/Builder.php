@@ -3,6 +3,7 @@ namespace Darya\Storage\Query;
 
 use Darya\Storage\Query;
 use Darya\Storage\Queryable;
+use Darya\Storage\Result;
 
 /**
  * Darya's storage query builder.
@@ -51,7 +52,7 @@ class Builder
 	);
 	
 	/**
-	 * Instantiate a new query builder for the given storage and query objects.
+	 * Instantiate a new query builder for the given query and storage.
 	 * 
 	 * @param Query     $query
 	 * @param Queryable $storage
@@ -70,14 +71,14 @@ class Builder
 	 * 
 	 * @param string $method
 	 * @param array  $arguments
-	 * @return $this|\Darya\Storage\Result
+	 * @return $this|Result
 	 */
 	public function __call($method, $arguments)
 	{
 		call_user_func_array(array($this->query, $method), $arguments);
 		
 		if (in_array($method, static::$executors)) {
-			return $this->execute();
+			return $this->run();
 		}
 		
 		return $this;
@@ -108,13 +109,27 @@ class Builder
 	}
 	
 	/**
-	 * Execute the query on the storage interface.
-	 * 
+	 * Run the query through the storage interface.
+	 *
+	 * Always returns a Result object, ignoring the callback.
+	 *
+	 * @return Result
+	 */
+	public function raw()
+	{
+		return $this->storage->run($this->query);
+	}
+	
+	/**
+	 * Run the query through the storage interface.
+	 *
+	 * Returns the result of the callback, if one is set.
+	 *
 	 * @return mixed
 	 */
-	public function execute()
+	public function run()
 	{
-		$result = $this->storage->execute($this->query);
+		$result = $this->storage->run($this->query);
 		
 		if (!is_callable($this->callback)) {
 			return $result;
@@ -124,12 +139,12 @@ class Builder
 	}
 	
 	/**
-	 * Alias for execute() method.
+	 * Alias for the run() method.
 	 * 
 	 * @return mixed
 	 */
 	public function cheers()
 	{
-		return $this->execute();
+		return $this->run();
 	}
 }

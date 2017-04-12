@@ -4,13 +4,13 @@
 			"id": 1,
 			"title": "First post",
 			"author_id": 1,
-			"content": "Yeah, swag post."
+			"content": "Yeah, swag post"
 		},
 		{
 			"id": 2,
 			"title": "Second post",
 			"author_id": 1,
-			"content": "Yeah, even more swag post."
+			"content": "Yeah, even more swag post"
 		},
 		{
 			"id": 3,

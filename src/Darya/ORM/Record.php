@@ -116,9 +116,25 @@ class Record extends Model
 	{
 		if (is_string($attribute) && $this->hasRelation($attribute)) {
 			$this->setRelated($attribute, $value);
+
+			return;
 		}
 		
 		parent::set($attribute, $value);
+	}
+	
+	/**
+	 * Unset the value for an attribute or relation on the model.
+	 * 
+	 * @param string $attribute
+	 */
+	public function remove($attribute)
+	{
+		if ($this->hasRelation($attribute)) {
+			return $this->unsetRelated($attribute);
+		}
+		
+		parent::remove($attribute);
 	}
 	
 	/**
@@ -225,6 +241,8 @@ class Record extends Model
 	 * Creates a filter for the record's key attribute if the given value is not
 	 * an array.
 	 * 
+	 * TODO: Filter by key if $filter has numeric keys
+	 * 
 	 * @param mixed $filter
 	 * @return string
 	 */
@@ -326,6 +344,17 @@ class Record extends Model
 		$instance->reinstate();
 		
 		return $instance;
+	}
+
+	/**
+	 * Load multiple record instances matching the given IDs.
+	 * 
+	 * @param array|string|int $ids
+	 * @return array
+	 */
+	public static function in($ids = array())
+	{
+		return static::all(['id' => (array) $ids]);
 	}
 
 	/**
@@ -463,12 +492,68 @@ class Record extends Model
 	}
 	
 	/**
+	 * Create the model in storage.
+	 * 
+	 * @return bool
+	 */
+	protected function saveNew()
+	{
+		$data = $this->prepareData();
+		$storage = $this->storage();
+		
+		// Create a new item
+		$id = $storage->create($this->table(), $data);
+		
+		// Bail if saving failed
+		if (!$id) {
+			return false;
+		}
+		
+		// If we didn't get a boolean back, assume this is an ID (TODO: Formalise)
+		if (!is_bool($id)) {
+			$this->set($this->key(), $id);
+		}
+		
+		$this->reinstate();
+		
+		return true;
+	}
+	
+	/**
+	 * Update the model in storage.
+	 * 
+	 * @return bool
+	 */
+	protected function saveExisting()
+	{
+		$data = $this->prepareData();
+		$storage = $this->storage();
+		
+		// We can bail if there isn't any new data to save
+		if (empty($data)) {
+			return true;
+		}
+		
+		// Attempt to update an existing item
+		$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
+		
+		// Otherwise it doesn't exist, so we can attempt to create it
+		// TODO: Query result error check
+		if (!$updated) {
+			$updated = $storage->create($this->table(), $data) > 0;
+		}
+		
+		return $updated;
+	}
+	
+	/**
 	 * Save the record to storage.
 	 * 
+	 * @param array $options [optional]
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function save()
+	public function save(array $options = array())
 	{
 		// Bail if the model is not valid
 		if (!$this->validate()) {
@@ -483,47 +568,27 @@ class Record extends Model
 			throw new Exception($class . ' storage is not modifiable');
 		}
 		
-		$data = $this->prepareData();
-		
-		// Bail if there is no data to save
-		if (empty($data)) {
-			return true;
+		// Create or update the model in storage
+		if (!$this->id()) {
+			$success = $this->saveNew();
+		} else {
+			$success = $this->saveExisting();
 		}
 		
-		if (!$this->id()) {
-			// Create a new item if there is no ID
-			$id = $storage->create($this->table(), $data);
+		if ($success) {
+			// Clear the changed attributes; we're in sync now
+			$this->reinstate();
 			
-			// If we get a new ID, it saved successfully, so let's update the
-			// model and clear its changes
-			if ($id) {
-				$this->set($this->key(), $id);
-				$this->reinstate();
-				
-				return true;
+			// Save relations if we don't want to skip
+			if (empty($options['skipRelations'])) {
+				$this->saveRelations();
 			}
 		} else {
-			// Attempt to update an existing item if there is an ID
-			$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
-			
-			// Otherwise it probably doesn't exist, so we can attempt to create
-			// TODO: Query result error check
-			if (!$updated) {
-				$updated = $storage->create($this->table(), $data) > 0;
-			}
-			
-			// If it updated successfully we can clear model's changes
-			if ($updated) {
-				$this->reinstate();
-				
-				return true;
-			}
+			$this->errors['save'] = "Failed to save $class instance";
+			$this->errors['storage'] = $this->storage()->error();
 		}
 		
-		$this->errors['save'] = "Failed to save $class instance";
-		$this->errors['storage'] = $this->storage()->error();
-		
-		return false;
+		return $success;
 	}
 	
 	/**
@@ -532,19 +597,20 @@ class Record extends Model
 	 * Returns the number of instances that saved successfully.
 	 * 
 	 * @param array $instances
+	 * @param array $options   [optional]
 	 * @return int
 	 */
-	public static function saveMany($instances)
+	public static function saveMany($instances, array $options = array())
 	{
-		$failed = 0;
+		$saved = 0;
 		
 		foreach ($instances as $instance) {
-			if (!$instance->save()) {
-				$failed++;
+			if ($instance->save($options)) {
+				$saved++;
 			}
 		}
 		
-		return count($instances) - $failed;
+		return $saved;
 	}
 	
 	/**
@@ -554,15 +620,13 @@ class Record extends Model
 	 */
 	public function delete()
 	{
-		if ($this->id()) {
-			$storage = $this->storage();
-			
-			if ($storage instanceof Modifiable) {
-				return (bool) $storage->delete($this->table(), array($this->key() => $this->id()), 1);
-			}
+		$storage = $this->storage();
+		
+		if (!$this->id() || !($storage instanceof Modifiable)) {
+			return false;
 		}
 		
-		return false;
+		return (bool) $storage->delete($this->table(), array($this->key() => $this->id()), 1);
 	}
 	
 	/**
@@ -633,7 +697,7 @@ class Record extends Model
 	}
 	
 	/**
-	 * Determine whether the given relation has any set model(s).
+	 * Determine whether the given relation has any set models.
 	 * 
 	 * @param string $attribute
 	 * @return bool
@@ -646,7 +710,7 @@ class Record extends Model
 	}
 	
 	/**
-	 * Retrieve the model(s) of the given relation.
+	 * Retrieve the models of the given relation.
 	 * 
 	 * @param string $attribute
 	 * @return array
@@ -665,7 +729,7 @@ class Record extends Model
 	}
 	
 	/**
-	 * Set the given related model(s).
+	 * Set the given related models.
 	 * 
 	 * @param string $attribute
 	 * @param mixed  $value
@@ -678,11 +742,37 @@ class Record extends Model
 		
 		$relation = $this->relation($attribute);
 		
-		if ($value !== null && !$value instanceof $relation->target && !is_array($value)) {
+		$relation->detach();
+		
+		if ($value === null) {
 			return;
 		}
 		
-		$relation->associate($value);
+		$relation->attach($value);
+	}
+
+	/**
+	 * Unset the models of the given relation.
+	 * 
+	 * @param string $attribute
+	 */
+	protected function unsetRelated($attribute)
+	{
+		if (!$this->hasRelation($attribute)) {
+			return;
+		}
+		
+		$this->relation($attribute)->detach();
+	}
+
+	/**
+	 * Save all of the model's relations.
+	 */
+	public function saveRelations()
+	{
+		foreach ($this->relations() as $relation) {
+			$relation->save();
+		}
 	}
 
 	/**
