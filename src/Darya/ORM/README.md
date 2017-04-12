@@ -238,8 +238,8 @@ foreach ($page->children as $child) {
 $page->save();
 ```
 
-Saving a parent record cascades the saving of its loaded related models that
-have changed since they were loaded.
+Saving a record will save any of its loaded related models that have had their
+attributes changed.
 
 You can skip saving related models if need be.
 
