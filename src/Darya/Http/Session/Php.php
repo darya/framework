@@ -129,7 +129,7 @@ class Php implements ArrayAccess, Session
 	 */
 	public function set($key, $value)
 	{
-		return $_SESSION[$key] = $value;
+		$_SESSION[$key] = $value;
 	}
 	
 	/**

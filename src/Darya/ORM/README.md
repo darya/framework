@@ -6,7 +6,6 @@ including a base class for domain models that makes common tasks a breeze.
 - [Models](#models)
   - [Creating a model](#creating-a-model)
   - [Attributes](#attributes)
-  - [Iterating over attributes](#iterating-over-attributes)
   - [Serializing](#serializing)
   - [Defining attribute types](#defining-attribute-types)
 - [Records](#records)
@@ -60,15 +59,10 @@ $type = $model->get('type'); // 'A thing'
 $model->id     = 73;
 $model['name'] = 'Something else';
 $model->set('type', 'Another thing');
-```
 
-### Iterating over attributes
-
-```php
-$attributes = [];
-
+// Iterate over the attributes
 foreach ($model as $key => $value) {
-	$attributes[$key] = $value;
+	// ...
 }
 ```
 
@@ -208,6 +202,9 @@ $users = User::query()
 	->limit(5, 10)
 	->cheers();
 ```
+
+See the `Darya\Storage` and `Darya\Database` packages for more detail about
+query builders.
 
 ## Record relationships
 

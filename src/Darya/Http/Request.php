@@ -430,7 +430,17 @@ class Request
 	}
 	
 	/**
-	 * Retrieve the request body content.
+	 * Retrieve the request body.
+	 *
+	 * @return string
+	 */
+	public function body()
+	{
+		return $this->content();
+	}
+	
+	/**
+	 * Retrieve the request body.
 	 * 
 	 * @return string
 	 */

@@ -8,9 +8,15 @@ as session control.
   - [Reading request data](#accessing-request-data)
     - [Retrieving the request URI](#retrieving-the-request-uri)
     - [Determining the request method](#determining-the-request-method)
+    - [Retrieving the request body](#retrieving-the-request-body)
     - [Retrieving parameters values and other data](#retrieving-parameter-values-and-other-data)
     - [Testing for an ajax request](#testing-for-an-ajax-request)
 - [Responses](#responses)
+  - [Creating responses](#creating-responses)
+  - [Headers](#setting-headers)
+  - [Content](#content)
+  - [Redirecting](#redirecting)
+  - [Sending](#sending)
 - [Sessions](#sessions)
 
 ## Requests
@@ -20,13 +26,13 @@ Request objects can be created with just a URI.
 An HTTP method can optionally be supplied (`GET`, `POST`, 'PUT, etc), with `GET`
 being the default.
 
-Request methods are treated case insensitively (and using lower case
-internally, in case you were interested (not that it's important (and this may
-well change to upper case at some point))).
+Request methods are treated case insensitively.
 
 ### Creating requests
 
 ```php
+use Darya\Http\Request;
+
 $request = Request::create('/hello');
 ```
 
@@ -69,6 +75,12 @@ $request->method('get');  // true
 $request->method('post'); // false
 ```
 
+#### Retrieving the request body
+
+```php
+$body = $request->body(); // '{"data":{"my":"payload"}}'
+```
+
 #### Retrieving parameter values and other data
 
 ```php
@@ -94,7 +106,109 @@ $request->ajax(); // Similar to above but also checks for 'ajax' get and post pa
 
 ## Responses
 
-_To be written._
+Response objects determine the response sent back to the browser of the client
+accessing your application.
+
+### Creating responses
+
+Responses can be empty.
+
+```php
+use Darya\Http\Response;
+
+$response = new Response;
+```
+
+They can be optionally instantiated with content and headers up front.
+
+```php
+$response = new Response('Hello, world!');
+```
+
+```php
+$reponse = new Response('This response has a special header.', [
+	'My-header: My header value'
+]);
+```
+
+### Headers
+
+Headers can be set one at a time or all at once.
+
+```php
+// Set a single header
+$response->header('Content-Type: application/json');
+
+// Set many headers
+$response->headers([
+	'Content-Type: application/json',
+	'My-header: My header value'
+]);
+```
+
+### Content
+
+Content can be set to a string, or anything can be cast to a string.
+
+```php
+// Set the content to be a string
+$response->content('Hello, world!');
+
+// Set the content to be an object that can be cast to a string
+$response->content($object);
+```
+
+Content can be cleared by setting it to `false`.
+
+```php
+$response->content(false);
+```
+
+Setting the content as an array automatically sets the
+`Content-Type: application/json` header. When the response is sent, the array
+will be serialized as JSON.
+
+```php
+// Sent as {"hello":"world"}
+$response->content([
+	'hello' => 'world'
+]);
+```
+
+To retrieve the serialized response content before it is sent, use the `body()`
+method.
+
+```php
+$response->content([
+	'hello' => 'world'
+]);
+
+$body = $response->body(); // '{"hello":"world"}'
+```
+
+### Redirecting
+
+Redirect clients to another URL using the `redirect()` method.
+
+```php
+$response->redirect('https://google.co.uk/');
+```
+
+This sets the `Location` header and flags the response as redirected.
+
+### Sending
+
+Send the response with the `send()` method.
+
+```php
+$response->send();
+```
+
+If you need to send the headers and body separately, use `sendHeaders()` and
+`sendContent()`. It is recommended to use only the send() method, however.
+
+`sendHeaders()` will not send headers if they have already been sent, either by
+this request or elsewhere in PHP.
 
 ## Sessions
 
