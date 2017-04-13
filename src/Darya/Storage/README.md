@@ -17,7 +17,7 @@ file system.
   - [Update](#update)
   - [Delete](#delete)
 - [Queryable interface](#queryable-interface)
-  - [`execute()`](#execute)
+  - [`run()`](#run)
   - [`query()`](#query)
 - [Queries](#queries)
   - [Resource](#resource)
@@ -95,12 +95,12 @@ use Darya\Storage\Result;
 interface Queryable
 {
 	/**
-	 * Execute the given query.
+	 * Run the given query.
 	 * 
 	 * @param Query $query
 	 * @return Result
 	 */
-	public function execute(Query $query);
+	public function run(Query $query);
 	
 	/**
 	 * Open a query on the given resource.
@@ -113,9 +113,9 @@ interface Queryable
 }
 ```
 
-### `execute()`
+### `run()`
 
-The `execute()` method accepts a [`Query`](#queries) and returns a corresponding
+The `run()` method accepts a [`Query`](#queries) and returns a corresponding
 [`Result`](#results).
 
 This formalizes the structure of what is sent to a data store and what it
@@ -136,7 +136,7 @@ This is how the `Darya\Database\Storage` class works; by returning
 `Query\Builder` that uses an extension of the base `Query` class, which provides
 support for joins and subqueries.
 
-On top of this, its `execute()` method can accept either a base `Query` or its
+On top of this, the `run()` method can accept either a base `Query` or its
 extended `Database\Storage\Query`.
 
 This allows for flexibility without sacrificing the structured approach, and
@@ -403,16 +403,16 @@ use Darya\Storage\Query;
 
 $query = new Query\Builder(new Query('users'), $storage);
 
-$result = $query->where('id >', 5)->execute();
+$result = $query->where('id >', 5)->run();
 ```
 
 Storage interfaces can open query builders on themselves for you. Just pass a
 resource to their [`query()`](#query) method.
 
-This makes it effortless to fluently build and execute a query.
+This makes it effortless to fluently build and run a query.
 
 ```php
-$result = $storage->query('users')->where('id > 5')->execute();
+$result = $storage->query('users')->where('id > 5')->run();
 
 foreach ($result as $item) {
     // ...
@@ -442,7 +442,7 @@ builders to process results before they're returned from execution.
 use Darya\Storage\Result;
 
 $query = $storage->query('users')->callback(function (Result $result) {
-    $users = array();
+    $users = [];
     
     foreach ($result as $item) {
         $users[] = new User($item);

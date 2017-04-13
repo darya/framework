@@ -203,8 +203,9 @@ $users = User::query()
 	->cheers();
 ```
 
-See the `Darya\Storage` and `Darya\Database` packages for more detail about
-query builders.
+See the [`Darya\Storage`](/src/Darya/Storage) and
+[`Darya\Database`](/src/Darya/Database) packages for more detail about query
+builders.
 
 ## Relationships
 

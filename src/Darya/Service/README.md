@@ -92,14 +92,14 @@ $container->set('App\SomeInterface', new App\SomeImplementation);
 $container->alias('some', 'App\SomeInterface');
 
 // Register multiple services and aliases
-$container->register(array(
+$container->register([
 	'App\SomeInterface'    => new App\SomeImplementation,
 	'App\AnotherInterface' => function (Container $services) {
 		return new App\AnotherImplementation($services->some);
 	},
 	'some'    => 'App\SomeInterface',
 	'another' => 'App\AnotherInterface'
-));
+]);
 ```
 
 By default, closures are treated as instance definitions instead of factories.

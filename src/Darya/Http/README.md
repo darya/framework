@@ -43,14 +43,14 @@ to mirror the structure of PHP's superglobals, which means the superglobals
 themselves can be used to build a representation of the current request.
 
 ```php
-$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], array(
+$request = Request::create($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], [
 	'get'    => $_GET,
 	'post'   => $_POST,
 	'cookie' => $_COOKIE,
 	'file'   => $_FILES,
 	'server' => $_SERVER,
 	'header' => Request::headersFromGlobals($_SERVER)
-))
+]);
 ```
 
 This shortcut method does all of the above for you.

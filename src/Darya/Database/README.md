@@ -11,6 +11,7 @@ dialects.
 - [Joins & Subqueries](#joins--subqueries)
   - [Simple joins](#simple-joins)
   - [Complex join](#complex-join)
+  - [Select clause subquery](#select-clause-subquery)
   - [Where-condition subquery](#where-condition-subquery)
   - [Insert select](#insert-select)
 
@@ -25,12 +26,12 @@ use Darya\Database\Factory;
 
 $factory = new Factory;
 
-$connection = $factory->create('mysql', array(
+$connection = $factory->create('mysql', [
 	'hostname' => 'localhost',
 	'username' => 'darya',
 	'password' => 'password',
 	'database' => 'darya'
-));
+]);
 ```
 
 Connections aren't initiated until you explicitly call either the `connect()` or
@@ -67,7 +68,7 @@ foreach ($result as $row) {
 $data = $result->data;
 
 // Optionally accepts parameters to bind
-$result = $connection->query('SELECT * FROM users WHERE id = ?', array(1));
+$result = $connection->query('SELECT * FROM users WHERE id = ?', [1]);
 ```
 
 Or use a query object.
@@ -75,7 +76,7 @@ Or use a query object.
 ```php
 use Darya\Database\Query;
 
-$query = new Query('SELECT * FROM users WHERE name LIKE ?', array('%darya%'));
+$query = new Query('SELECT * FROM users WHERE name LIKE ?', ['%darya%']);
 
 $query->string;     // The SQL query string
 $query->parameters; // The query parameters
@@ -172,11 +173,11 @@ $storage->query('users')->rightJoin('comments')->read();
 ### Complex join
 
 ```php
-$result = $storage->query('users', array(
+$result = $storage->query('users', [
 		'users.id'   => 'user_id',
 		'admin.id'   => 'admin_id',
 		'users.name' => 'name'
-	))
+	])
 	->join('admin', function ($join) {
 		$join->on('admin.user_id = users.id'); // Identifier-only condition
 		$join->where('admin.active >', 0);     // Value condition
@@ -185,11 +186,21 @@ $result = $storage->query('users', array(
 	->read();
 ```
 
+### Select clause subquery
+
+```php
+$subquery = $storage->query('sections', ['title'])
+	->where('sections.page_id = pages.id')
+	->where('sections.title like', '%awesome%');
+
+$query = $storage->query('pages', ['id', $subquery]);
+```
+
 ### Where-condition subquery
 
 ```php
 $result = $storage->query('users')->where('id not in', $storage->query(
-	'users_archive', array('id')
+	'users_archive', ['id']
 ))->read();
 ```
 
@@ -200,15 +211,15 @@ Insert into a table using the result of another query.
 ```php
 $storage->query('users_archive')->insertFrom(
 	$storage->query('users')->where('created <=', strtotime('-1 year'))
-)->execute();
+)->run();
 ```
 
 This works when providing columns too.
 
 ```php
-$storage->query('users_archive', array('id', 'name'))->insertFrom(
-	$storage->query('users', array('id', 'name'))->where(
+$storage->query('users_archive', ['id', 'name'])->insertFrom(
+	$storage->query('users', ['id', 'name'])->where(
 		'created <=', strtotime('-1 year')
 	)
-)->execute();
+)->run();
 ```
