@@ -5,7 +5,7 @@ as session control.
 
 - [Requests](#requests)
   - [Creating requests](#creating-requests)
-  - [Reading request data](#accessing-request-data)
+  - [Reading request data](#reading-request-data)
     - [Retrieving the request URI](#retrieving-the-request-uri)
     - [Determining the request method](#determining-the-request-method)
     - [Retrieving the request body](#retrieving-the-request-body)
@@ -256,7 +256,7 @@ Darya's default session implementation uses PHP's `$_SESSION` superglobal to
 utilise the currently configured session handler.
 
 In future versions, it will support explicit implementations of
-`SessionHandlerInterface`.
+[`SessionHandlerInterface`](http://php.net/manual/en/class.sessionhandlerinterface.php).
 
 ### Basic usage
 
