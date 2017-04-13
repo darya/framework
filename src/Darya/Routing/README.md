@@ -23,7 +23,7 @@ This is a detailed set of examples of the different ways the router can be used.
 
 First, you'll want to set up a PHP script as a [front controller](http://en.wikipedia.org/wiki/Front_Controller_pattern). If you're using Apache as your web server you could achieve this with a `.htaccess` file at the root of your public directory. 
 
-```
+```apache
 RewriteEngine on
 
 # Redirect requests for any non-existing files to index.php
