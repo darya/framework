@@ -13,11 +13,13 @@ as session control.
     - [Testing for an ajax request](#testing-for-an-ajax-request)
 - [Responses](#responses)
   - [Creating responses](#creating-responses)
-  - [Headers](#setting-headers)
+  - [Headers](#headers)
   - [Content](#content)
   - [Redirecting](#redirecting)
   - [Sending](#sending)
 - [Sessions](#sessions)
+  - [Basic usage](#basic-usage)
+  - [Response sessions](#response-sessions)
 
 ## Requests
 
@@ -131,6 +133,18 @@ $reponse = new Response('This response has a special header.', [
 ]);
 ```
 
+### Status codes
+
+Response status codes default to `200 OK`.
+
+You can get and set the status code using the `status()` method.
+
+```php
+$status = $response->status;
+
+$response->status(404);
+```
+
 ### Headers
 
 Headers can be set one at a time or all at once.
@@ -146,9 +160,16 @@ $response->headers([
 ]);
 ```
 
+The array of headers can be retrieved via the `headers` property.
+
+```php
+$headers = $response->headers;
+```
+
 ### Content
 
-Content can be set to a string, or anything can be cast to a string.
+Content can be set to a string, or anything that can be cast to a string. This
+include objects that implement the `__toString()` magic method.
 
 ```php
 // Set the content to be a string
@@ -175,8 +196,17 @@ $response->content([
 ]);
 ```
 
-To retrieve the serialized response content before it is sent, use the `body()`
-method.
+To retrieve the unprocessed response content, you can access the `content` property.
+
+```php
+$response->content([
+	'hello' => 'world'
+]);
+
+$content = $response->content; // ['hello' => 'world']
+```
+
+To retrieve the processed response content, use the `body()` method.
 
 ```php
 $response->content([
@@ -196,20 +226,74 @@ $response->redirect('https://google.co.uk/');
 
 This sets the `Location` header and flags the response as redirected.
 
+You can determine whether the response has been redirected using the
+`redirected` property.
+
+```php
+$willRedirectWhenSent = $response->redirected;
+```
+
 ### Sending
 
-Send the response with the `send()` method.
+Send the entire response back to the client with the `send()` method.
 
 ```php
 $response->send();
 ```
 
 If you need to send the headers and body separately, use `sendHeaders()` and
-`sendContent()`. It is recommended to use only the send() method, however.
+`sendContent()`.
 
 `sendHeaders()` will not send headers if they have already been sent, either by
 this request or elsewhere in PHP.
 
+It is recommended to use the `send()` method alone, however(), and to ensure
+that no other part of your application sends any headers or response data.
+
 ## Sessions
 
-_To be written._
+Darya's default session implementation uses PHP's `$_SESSION` superglobal to
+utilise the currently configured session handler.
+
+In future versions, it will support explicit implementations of
+`SessionHandlerInterface`.
+
+### Basic usage
+
+```php
+use Darya\Http\Session;
+
+$session = new Session;
+
+$session->started(); // false
+
+$session->start();
+
+$session->started(); // true
+
+$session->set('key', 'value');
+$session->has('key'); // true
+$session->get('key'); // 'value'
+
+// Alternative syntax
+$session->key;   // 'another value';
+$session['key']; // 'yet another value';
+
+$session->delete('key');
+$session->has('key'); // false;
+```
+
+### Response sessions
+
+Sessions can be used in conjunction with response objects. Access them through
+the `$response->session` property.
+
+```php
+$session = new Session;
+$session->key = 'value';
+$request = Request::createFromGlobals($session);
+
+$request->session->key;   // 'value'
+$request->session['key']; // 'value'
+$request->session('key'); // 'value'
+```
