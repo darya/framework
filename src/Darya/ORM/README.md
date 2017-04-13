@@ -14,7 +14,7 @@ including a base class for domain models that makes common tasks a breeze.
   - [Loading and saving](#loading-and-saving)
   - [Listing values](#listing-values)
   - [Query builder](#query-builder)
-- [Record relationships](#record-relationships)
+- [Relationships](#relationships)
   - [Defining relationships](#defining-relationships)
   - [Loading and saving related records](#loading-and-saving-related-records)
   - [Eager loading](#eager-loading)
@@ -206,7 +206,7 @@ $users = User::query()
 See the `Darya\Storage` and `Darya\Database` packages for more detail about
 query builders.
 
-## Record relationships
+## Relationships
 
 [Records](#records) can express relationships between themselves and others.
 
