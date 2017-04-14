@@ -1,7 +1,9 @@
 <?php
 namespace Darya\Database\Query\Translator;
 
+use Darya\Database;
 use Darya\Database\Query\AbstractSqlTranslator;
+use Darya\Storage;
 
 /**
  * Darya's SQL Server query translator.
@@ -12,6 +14,34 @@ use Darya\Database\Query\AbstractSqlTranslator;
  */
 class SqlServer extends AbstractSqlTranslator
 {
+	/**
+	 * Translate a query that reads records.
+	 *
+	 * @param Storage\Query $storageQuery
+	 * @return Database\Query
+	 */
+	protected function translateRead(Storage\Query $storageQuery)
+	{
+		if ($storageQuery instanceof Database\Storage\Query) {
+			return $this->translateDatabaseRead($storageQuery);
+		}
+		
+		return new Database\Query(
+			$this->prepareSelect(
+				$storageQuery->resource,
+				$this->prepareColumns($storageQuery->fields),
+				null,
+				$this->prepareWhere($storageQuery->filter),
+				$this->prepareOrderBy($storageQuery->order),
+				$this->prepareLimit($storageQuery->limit, $storageQuery->offset),
+				null,
+				null,
+				$storageQuery->distinct
+			),
+			$this->parameters($storageQuery)
+		);
+	}
+	
 	/**
 	 * Resolve the given value as an identifier.
 	 * 
@@ -48,13 +78,13 @@ class SqlServer extends AbstractSqlTranslator
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
-	 * @param string       $joins    [optional]
-	 * @param string       $where    [optional]
-	 * @param string       $order    [optional]
-	 * @param string       $limit    [optional]
+	 * @param string       $joins     [optional]
+	 * @param string       $where     [optional]
+	 * @param string       $order     [optional]
+	 * @param string       $limit     [optional]
 	 * @param string       $groupings [optional]
 	 * @param string       $having    [optional]
-	 * @param bool         $distinct [optional]
+	 * @param bool         $distinct  [optional]
 	 * @return string
 	 */
 	protected function prepareSelect(

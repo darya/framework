@@ -2,7 +2,6 @@
 namespace Darya\Database\Query;
 
 use Darya\Database;
-use Darya\Database\Query\Translator;
 use Darya\Database\Storage\Query\Join;
 use Darya\Storage;
 use InvalidArgumentException;
@@ -142,11 +141,13 @@ abstract class AbstractSqlTranslator implements Translator
 	 * Translate a database storage query that reads records.
 	 * 
 	 * @param Database\Storage\Query $storageQuery
+	 * @return Database\Query
 	 */
 	protected function translateDatabaseRead(Database\Storage\Query $storageQuery)
 	{
 		return new Database\Query(
-			$this->prepareSelect($storageQuery->resource,
+			$this->prepareSelect(
+				$storageQuery->resource,
 				$this->prepareColumns($storageQuery->fields),
 				$this->prepareJoins($storageQuery->joins),
 				$this->prepareWhere($storageQuery->filter),
@@ -169,7 +170,9 @@ abstract class AbstractSqlTranslator implements Translator
 	protected function translateUpdate(Storage\Query $storageQuery)
 	{
 		return new Database\Query(
-			$this->prepareUpdate($storageQuery->resource, $storageQuery->data,
+			$this->prepareUpdate(
+				$storageQuery->resource,
+				$storageQuery->data,
 				$this->prepareWhere($storageQuery->filter),
 				$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 			),
@@ -186,7 +189,8 @@ abstract class AbstractSqlTranslator implements Translator
 	protected function translateDelete(Storage\Query $storageQuery)
 	{
 		return new Database\Query(
-			$this->prepareDelete($storageQuery->resource,
+			$this->prepareDelete(
+				$storageQuery->resource,
 				$this->prepareWhere($storageQuery->filter),
 				$this->prepareLimit($storageQuery->limit, $storageQuery->offset)
 			),
@@ -475,6 +479,7 @@ abstract class AbstractSqlTranslator implements Translator
 		$parts = preg_split('/\s+/', $condition, 3);
 		
 		if (count($parts) < 3) {
+			// TODO: Return $this->prepareFilterCondition([0], [1])?
 			return null;
 		}
 		
