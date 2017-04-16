@@ -1,17 +1,39 @@
 <?php
 namespace Darya\Database\Query\Translator;
 
+use Darya\Database;
 use Darya\Database\Query\AbstractSqlTranslator;
+use Darya\Storage;
 
 /**
  * Darya's SQL Server query translator.
- * 
- * TODO: Offset!
- * 
+ *
+ * TODO: Bracketed identifiers; [identifier].[identifier]
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class SqlServer extends AbstractSqlTranslator
 {
+	/**
+	 * Translate a query that reads records.
+	 *
+	 * @param Storage\Query $query
+	 * @return Database\Query
+	 */
+	protected function translateRead(Storage\Query $query)
+	{
+		// Unfortunately, we have to deal with SQL Server's awkwardness if an
+		// offset is given
+		if ($query->offset > 0) {
+			return new Database\Query(
+				$this->prepareAnsiOffsetSelect($query),
+				$this->parameters($query)
+			);
+		}
+		
+		return parent::translateRead($query);
+	}
+	
 	/**
 	 * Resolve the given value as an identifier.
 	 * 
@@ -37,7 +59,6 @@ class SqlServer extends AbstractSqlTranslator
 		}
 		
 		$limit = (int) $limit;
-		$offset = (int) $offset;
 		
 		return "TOP $limit";
 	}
@@ -48,13 +69,13 @@ class SqlServer extends AbstractSqlTranslator
 	 * 
 	 * @param string       $table
 	 * @param array|string $columns
-	 * @param string       $joins    [optional]
-	 * @param string       $where    [optional]
-	 * @param string       $order    [optional]
-	 * @param string       $limit    [optional]
+	 * @param string       $joins     [optional]
+	 * @param string       $where     [optional]
+	 * @param string       $order     [optional]
+	 * @param string       $limit     [optional]
 	 * @param string       $groupings [optional]
 	 * @param string       $having    [optional]
-	 * @param bool         $distinct [optional]
+	 * @param bool         $distinct  [optional]
 	 * @return string
 	 */
 	protected function prepareSelect(
@@ -73,6 +94,77 @@ class SqlServer extends AbstractSqlTranslator
 		$distinct = $distinct ? 'DISTINCT' : '';
 		
 		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $joins, $where, $groupings, $having, $order));
+	}
+	
+	/**
+	 * Prepare the column selection for an ANSI offset select statement.
+	 *
+	 * Cheers Microsoft.
+	 *
+	 * @param string $columns
+	 * @param array|string $order
+	 * @return string
+	 */
+	protected function prepareAnsiOffsetSelectColumns($columns, $order)
+	{
+		// An order by clause is required by ANSI offset select statements; we
+		// can trick SQL Server into behaving by selecting 0 if none is given
+		$orderBy = empty($order) ? 'ORDER BY (SELECT 0)' : $this->prepareOrderBy($order);
+		
+		return implode(', ', array(
+			$columns,
+			"ROW_NUMBER() OVER ({$orderBy}) row_number"
+		));
+	}
+	
+	/**
+	 * Prepare an ANSI offset select statement.
+	 *
+	 * Cheers Microsoft.
+	 *
+	 * @param Storage\Query $query
+	 * @return string
+	 */
+	protected function prepareAnsiOffsetSelect(Storage\Query $query)
+	{
+		// Prepare RDBMS specific clauses if we need to
+		$joins = null;
+		$groupBy = null;
+		$having = null;
+		
+		if ($query instanceof Database\Storage\Query) {
+			$joins = $this->prepareJoins($query->joins);
+			$groupBy = $this->prepareGroupBy($query->groupings);
+			$having = $this->prepareHaving($query->having);
+		}
+		
+		// Build the inner query without its limit, but with the row number and
+		// order by clause included with the columns
+		$columns = $this->prepareColumns($query->fields);
+		
+		$innerSelect = $this->prepareSelect(
+			$query->resource,
+			$this->prepareAnsiOffsetSelectColumns($columns, $query->order),
+			$joins,
+			$this->prepareWhere($query->filter),
+			null,
+			null,
+			$groupBy,
+			$having,
+			$query->distinct
+		);
+		
+		// Construct the outer query that uses the row_number from the inner
+		// query to achieve the desired offset
+		return static::concatenate(array(
+			'SELECT',
+			$this->prepareLimit($query->limit),
+			$columns,
+			'FROM',
+			"($innerSelect)",
+			'query_results',
+			"WHERE row_number > $query->offset"
+		));
 	}
 	
 	/**

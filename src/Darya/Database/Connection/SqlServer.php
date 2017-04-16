@@ -74,8 +74,6 @@ class SqlServer extends AbstractConnection
 	 * Query the database for the last ID generated, if the given query is
 	 * an insert query.
 	 * 
-	 * TODO: Use SCOPE_IDENTITY() instead?
-	 * 
 	 * @param string $query
 	 * @return int
 	 */
@@ -85,7 +83,7 @@ class SqlServer extends AbstractConnection
 			return null;
 		}
 		
-		$result = sqlsrv_query($this->connection, "SELECT @@IDENTITY id");
+		$result = sqlsrv_query($this->connection, "SELECT CAST(COALESCE(SCOPE_IDENTITY(), @@IDENTITY) as INT) id");
 		list($id) = sqlsrv_fetch_array($result, SQLSRV_FETCH_NUMERIC);
 		
 		return $id;
@@ -112,7 +110,8 @@ class SqlServer extends AbstractConnection
 	/**
 	 * Query the database.
 	 * 
-	 * TODO: Also simplify this.
+	 * TODO: Simplify.
+	 * TODO: Strip out row_number if present.
 	 * 
 	 * @param Query|string $query
 	 * @param array        $parameters [optional]
