@@ -53,7 +53,7 @@ class SqlServerTest extends PHPUnit_Framework_TestCase
 		
 		$result = $translator->translate($query);
 		
-		$this->assertEquals("SELECT TOP 5 * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY id ASC) row_number FROM users WHERE age >= ? AND name LIKE ?) query_results WHERE row_number >= 10", $result->string);
+		$this->assertEquals("SELECT TOP 5 * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY id ASC) row_number FROM users WHERE age >= ? AND name LIKE ?) query_results WHERE row_number > 10", $result->string);
 		$this->assertEquals(array(23, '%test%'), $result->parameters);
 		
 		$query = new Query('users');
@@ -63,7 +63,7 @@ class SqlServerTest extends PHPUnit_Framework_TestCase
 		
 		$result = $translator->translate($query);
 		
-		$this->assertEquals("SELECT TOP 5 * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT 0)) row_number FROM users WHERE age >= ? AND name LIKE ?) query_results WHERE row_number >= 10", $result->string);
+		$this->assertEquals("SELECT TOP 5 * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT 0)) row_number FROM users WHERE age >= ? AND name LIKE ?) query_results WHERE row_number > 10", $result->string);
 		$this->assertEquals(array(25, '%test%'), $result->parameters);
 	}
 	

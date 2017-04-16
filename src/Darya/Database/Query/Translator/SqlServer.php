@@ -7,7 +7,9 @@ use Darya\Storage;
 
 /**
  * Darya's SQL Server query translator.
- * 
+ *
+ * TODO: Bracketed identifiers; [identifier].[identifier]
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class SqlServer extends AbstractSqlTranslator
