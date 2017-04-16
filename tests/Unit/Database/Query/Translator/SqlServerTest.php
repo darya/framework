@@ -53,8 +53,18 @@ class SqlServerTest extends PHPUnit_Framework_TestCase
 		
 		$result = $translator->translate($query);
 		
-		$this->assertEquals("SELECT TOP 5 * FROM (SELECT ROW_NUMBER() as row_number, * FROM users WHERE age >= ? AND name LIKE ? ORDER BY id ASC) query_results WHERE row_number >= 10", $result->string);
+		$this->assertEquals("SELECT TOP 5 * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY id ASC) row_number FROM users WHERE age >= ? AND name LIKE ?) query_results WHERE row_number >= 10", $result->string);
 		$this->assertEquals(array(23, '%test%'), $result->parameters);
+		
+		$query = new Query('users');
+		$query->where('age >=', 25)
+			->where('name like', '%test%')
+			->limit(5, 10);
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals("SELECT TOP 5 * FROM (SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT 0)) row_number FROM users WHERE age >= ? AND name LIKE ?) query_results WHERE row_number >= 10", $result->string);
+		$this->assertEquals(array(25, '%test%'), $result->parameters);
 	}
 	
 	public function testInsert()

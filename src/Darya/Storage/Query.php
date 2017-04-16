@@ -359,6 +359,7 @@ class Query
 	 * 
 	 * @param string $field
 	 * @param string $order [optional]
+	 * @return $this
 	 */
 	public function sort($field, $order = 'asc')
 	{
@@ -391,7 +392,7 @@ class Query
 	 * Set an offset on the query.
 	 * 
 	 * @param int $offset
-	 * @return this
+	 * @return $this
 	 */
 	public function offset($offset)
 	{
@@ -417,11 +418,14 @@ class Query
 	 * Dynamically retrieve a property.
 	 * 
 	 * @param string $property
+	 * @return mixed
 	 */
 	public function __get($property)
 	{
 		if (property_exists($this, $property)) {
 			return $this->$property;
 		}
+		
+		return null;
 	}
 }
