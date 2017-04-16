@@ -106,7 +106,7 @@ class SqlServer extends AbstractSqlTranslator
 	protected function prepareAnsiOffsetSelectColumns($columns, $order)
 	{
 		// An order by clause is required by ANSI offset select statements; we
-		// can trick SQL Server into behaving by selecting 0 if none was given
+		// can trick SQL Server into behaving by selecting 0 if none is given
 		$orderBy = empty($order) ? 'ORDER BY (SELECT 0)' : $this->prepareOrderBy($order);
 		
 		return implode(', ', array(
@@ -152,19 +152,16 @@ class SqlServer extends AbstractSqlTranslator
 			$query->distinct
 		);
 		
-		// Wrap it in some quotes for the outer select
-		$innerSelect = "($innerSelect)";
-		
-		// Concatenate the outer query that uses the row_number from the inner
+		// Construct the outer query that uses the row_number from the inner
 		// query to achieve the desired offset
 		return static::concatenate(array(
 			'SELECT',
 			$this->prepareLimit($query->limit),
 			$columns,
 			'FROM',
-			$innerSelect,
+			"($innerSelect)",
 			'query_results',
-			"WHERE row_number >= $query->offset"
+			"WHERE row_number > $query->offset"
 		));
 	}
 	
