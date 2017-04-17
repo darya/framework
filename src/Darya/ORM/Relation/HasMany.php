@@ -148,7 +148,6 @@ class HasMany extends Has
 	 * Returns the number of models successfully dissociated.
 	 * 
 	 * TODO: Consider constraints
-	 * TODO: Use query()
 	 * 
 	 * @return int
 	 */

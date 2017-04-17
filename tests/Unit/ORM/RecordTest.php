@@ -441,10 +441,23 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		// Test dynamic property
 		$user = User::find(3);
 		
-		$user->master = User::find(2);
+		$user->master = User::find(3);
 		
-		$this->assertEquals('Bethany', $user->master->firstname);
+		$this->assertEquals('John', $user->master->firstname);
 		$this->assertEquals('Chris', User::find(3)->master->firstname);
+		
+		// Test attaching a new model
+		$user = User::find(3);
+		
+		$master = new User([
+			'id'        => 4,
+			'firstname' => 'Obi-Wan',
+			'surname'   => 'Kenobi'
+		]);
+		
+		$user->master = $master;
+		
+		$this->assertEquals('Obi-Wan', $user->master->firstname);
 	}
 	
 	public function testBelongsToDetachment()
@@ -525,6 +538,38 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertNull($user->master);
 		$this->assertNull(User::find(3)->master);
+		
+		// Test retrieving a new attachment after dissociation
+		$user = User::find(3);
+		
+		$user->master = User::find(4);
+		
+		$this->assertEquals('Obi-Wan', $user->master->firstname);
+		
+		// Test setting the foreign key and saving with a different model attached
+		$user = User::find(3);
+		
+		$user->master_id = 1;
+		
+		$user->master = User::find(4);
+		
+		$user->save();
+		
+		$this->assertEquals(4, $user->master->id);
+		$this->assertEquals(4, $user->master_id);
+		
+		// Test unsetting the model and updating the foreign key
+		$user = User::find(3);
+		
+		$this->assertEquals(4, $user->master->id);
+		
+		$user->master = null;
+		$user->master_id = 1;
+		
+		$user->save();
+		
+		// TODO: Fix this. Or change what to expect?
+		$this->assertEquals(1, $user->master->id);
 	}
 	
 	public function testBelongsToDotNotation() {

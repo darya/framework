@@ -6,7 +6,9 @@ use Darya\ORM\Relation;
 
 /**
  * Darya's belongs-to entity relation.
- * 
+ *
+ * TODO: Override attach and detach, setting the foreign key on the parent model.
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class BelongsTo extends Relation
@@ -77,9 +79,7 @@ class BelongsTo extends Relation
 	 */
 	public function retrieve()
 	{
-		if ($this->parent->get($this->foreignKey)) {
-			return $this->one();
-		}
+		return $this->one();
 	}
 	
 	/**
@@ -94,7 +94,7 @@ class BelongsTo extends Relation
 		$instances = static::arrayify($instances);
 		
 		if (empty($instances)) {
-			return false;
+			return 0;
 		}
 		
 		$instance = $instances[0];

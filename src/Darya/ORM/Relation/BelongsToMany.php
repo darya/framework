@@ -239,6 +239,7 @@ class BelongsToMany extends Relation
 	 * and loads IDs from the target table accordingly.
 	 * 
 	 * @param int $limit
+	 * @return int[]
 	 */
 	protected function relatedIds($limit = 0)
 	{

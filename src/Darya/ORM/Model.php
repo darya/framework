@@ -3,8 +3,8 @@ namespace Darya\ORM;
 
 use ArrayAccess;
 use ArrayIterator;
-use Countable;
 use IteratorAggregate;
+use JsonSerializable;
 use Serializable;
 use Darya\ORM\Model\Accessor;
 use Darya\ORM\Model\Mutator;
@@ -15,7 +15,7 @@ use Darya\ORM\Model\Transformer;
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Model implements ArrayAccess, IteratorAggregate, Serializable
+abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable, Serializable
 {
 	/**
 	 * Attribute names as keys and types as values.
@@ -39,7 +39,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, Serializable
 	protected $valid = false;
 	
 	/**
-	 * Errors that occured with validation.
+	 * Errors that occurred with validation.
 	 * 
 	 * @var array
 	 */
