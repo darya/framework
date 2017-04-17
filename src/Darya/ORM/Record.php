@@ -93,7 +93,6 @@ class Record extends Model
 		
 		if ($this->hasRelation($attribute)) {
 			$related = $this->related($attribute);
-			
 			if ($related instanceof Record && $subattribute !== null) {
 				return $related->get($subattribute);
 			}
@@ -194,8 +193,9 @@ class Record extends Model
 	}
 	
 	/**
-	 * Prepare the record's data for storage. This is here until repositories
-	 * are implemented.
+	 * Prepare the record's data for storage.
+	 *
+	 * This is here until repositories are implemented.
 	 * 
 	 * @return array
 	 */
@@ -722,7 +722,7 @@ class Record extends Model
 		$attribute = $this->prepareAttribute($attribute);
 		
 		$relation = $this->relation($attribute);
-		
+
 		return $relation->retrieve();
 	}
 	

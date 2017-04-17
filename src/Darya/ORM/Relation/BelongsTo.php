@@ -98,7 +98,7 @@ class BelongsTo extends Relation
 		}
 		
 		$instance = $instances[0];
-		
+
 		$instance->save();
 		$this->set(array($instance));
 		$this->parent->set($this->foreignKey, $instance->id());
@@ -118,9 +118,13 @@ class BelongsTo extends Relation
 	{
 		$this->clear();
 		$this->parent->set($this->foreignKey, 0);
-		
-		return (int) $this->parent->save(array(
+
+		$saved = (int) $this->parent->save(array(
 			'skipRelations' => true
 		));
+
+		$this->loaded = false;
+
+		return $saved;
 	}
 }

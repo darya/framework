@@ -4,9 +4,6 @@ namespace Darya\Tests\Unit\ORM\Fixtures;
 use Darya\ORM\Record;
 use Darya\ORM\Relation;
 
-use Darya\Tests\Unit\ORM\Fixtures\Post;
-use Darya\Tests\Unit\ORM\Fixtures\Role;
-
 /**
  * @method Relation\Has           padawan()
  * @method Relation\BelongsTo     manager()

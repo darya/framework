@@ -1,10 +1,14 @@
 <?php
 namespace Darya\ORM;
 
-use Exception;
-use ReflectionClass;
 use Darya\ORM\Record;
 use Darya\Storage\Readable;
+use Darya\Storage\Modifiable;
+use Darya\Storage\Queryable;
+use Darya\Storage\Query\Builder;
+use Exception;
+use InvalidArgumentException;
+use ReflectionClass;
 
 /**
  * Darya's abstract entity relation.
@@ -13,15 +17,15 @@ use Darya\Storage\Readable;
  * TODO: Filter, order, limit, offset for load() and retrieve().
  * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
  * 
- * @property-read string   $name
- * @property-read Record   $parent
- * @property-read Record   $target
- * @property-read string   $foreignKey
- * @property-read string   $localKey
- * @property-read array    $constraint
- * @property-read Record[] $related
- * @property-read bool     $loaded
- * @property-read Readable $storage
+ * @property-read string    $name
+ * @property-read Record    $parent
+ * @property-read Record    $target
+ * @property-read string    $foreignKey
+ * @property-read string    $localKey
+ * @property-read array     $constraint
+ * @property-read Record[]  $related
+ * @property-read bool      $loaded
+ * @property-read Queryable $storage
  * 
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -117,7 +121,7 @@ abstract class Relation
 	/**
 	 * The storage interface.
 	 * 
-	 * @var Readable
+	 * @var Queryable
 	 */
 	protected $storage;
 	
@@ -193,7 +197,10 @@ abstract class Relation
 		$reflection = new ReflectionClass($class);
 		
 		list($arguments, $named) = static::separateKeys($arguments);
-		
+
+		/**
+		 * @var Relation $instance
+		 */
 		$instance = $reflection->newInstanceArgs($arguments);
 		
 		foreach ($named as $method => $argument) {
@@ -213,11 +220,12 @@ abstract class Relation
 	 * @param string $target     Related class that extends \Darya\ORM\Record
 	 * @param string $foreignKey [optional] Custom foreign key
 	 * @param array  $constraint [optional] Constraint filter for related models
+	 * @throws InvalidArgumentException
 	 */
 	public function __construct(Record $parent, $target, $foreignKey = null, array $constraint = array())
 	{
 		if (!is_subclass_of($target, 'Darya\ORM\Record')) {
-			throw new Exception('Target class not does not extend Darya\ORM\Record');
+			throw new InvalidArgumentException('Target class not does not extend Darya\ORM\Record');
 		}
 		
 		$this->parent = $parent;
@@ -444,9 +452,10 @@ abstract class Relation
 	 * 
 	 * Falls back to target model storage, then parent model storage.
 	 * 
-	 * @param Readable $storage
+	 * @param Queryable $storage
+	 * @return Queryable
 	 */
-	public function storage(Readable $storage = null)
+	public function storage(Queryable $storage = null)
 	{
 		$this->storage = $storage ?: $this->storage;
 		
@@ -554,6 +563,26 @@ abstract class Relation
 	public function read($limit = 0)
 	{
 		return $this->storage()->read($this->target->table(), $this->filter(), $this->order(), $limit);
+	}
+
+	/**
+	 * Query related model data from storage.
+	 *
+	 * @return Builder
+	 */
+	public function query()
+	{
+		$class = get_class($this->target);
+
+		$builder = $this->storage()->query($this->target->table())
+			->filters($this->filter())
+			->orders($this->order());
+
+		$builder->callback(function ($result) use ($class) {
+			return $class::hydrate($result->data);
+		});
+
+		return $builder;
 	}
 	
 	/**
@@ -769,14 +798,14 @@ abstract class Relation
 		
 		// Bail if we have nothing to associate or dissociate
 		if (empty($related) && empty($detached)) {
-			return;
+			return 0;
 		}
 		
 		// Dissociate, then associate
 		if  (!empty($detached)) {
 			$this->dissociate($detached);
 		}
-		
+
 		$associated = $this->associate($related);
 		
 		// Update detached models to be persisted

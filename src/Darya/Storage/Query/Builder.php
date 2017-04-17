@@ -12,6 +12,7 @@ use Darya\Storage\Result;
  * queryable storage interface once the query has been built.
  * 
  * TODO: Implement event dispatcher awareness.
+ * TODO: Method annotations for Storage\Query methods.
  * 
  * @property-read Query     $query
  * @property-read Queryable $storage

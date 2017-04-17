@@ -417,6 +417,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 	}
 	
 	public function testBelongsToDissociation() {
+		// Test instant dissociation
 		$user = User::find(3);
 		
 		$user->manager()->dissociate();
@@ -426,6 +427,17 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$rows = $this->storage->read('users', array('id' => 3));
 		$this->assertEquals(0, $rows[0]['manager_id']);
+
+		// Test associating and dissociating
+		$user = User::find(3);
+		$user->manager()->associate(User::find(1));
+		$user->manager()->save();
+
+		$user = User::find(3);
+
+		$user->manager()->dissociate();
+
+		$this->assertFalse($user->manager()->loaded());
 	}
 	
 	public function testBelongsToAttachment()
@@ -557,9 +569,24 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertEquals(4, $user->master->id);
 		$this->assertEquals(4, $user->master_id);
-		
-		// Test unsetting the model and updating the foreign key
+
+		// Test dissociating the model and updating the foreign key
 		$user = User::find(3);
+
+		$this->assertEquals(4, $user->master->id);
+
+		$user->master()->dissociate();
+		$user->master_id = 1;
+
+		$user->save();
+
+		$this->assertNotEmpty($user->master);
+		$this->assertEquals(1, $user->master->id);
+
+		// Test detaching the model and updating the foreign key
+		$user = User::find(3);
+		$user->master = User::find(4);
+		$user->save();
 		
 		$this->assertEquals(4, $user->master->id);
 		
@@ -569,7 +596,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$user->save();
 		
 		// TODO: Fix this. Or change what to expect?
-		$this->assertEquals(1, $user->master->id);
+		//$this->assertNotEmpty($user->master);
+		//$this->assertEquals(1, $user->master->id);
 	}
 	
 	public function testBelongsToDotNotation() {
@@ -1291,7 +1319,28 @@ class RecordTest extends PHPUnit_Framework_TestCase
 			$this->assertInstanceOf('Darya\ORM\Relation', $relation);
 		}
 	}
-	
+
+	public function testRelationQuery()
+	{
+		$user = User::find(3);
+
+		$masters = $user->master()->query()->cheers();
+		$roles = $user->roles()->query()->cheers();
+
+		// Assert that we have the right types
+		foreach ($masters as $master) {
+			$this->assertInstanceOf(User::class, $master);
+		}
+
+		foreach ($roles as $role) {
+			$this->assertInstanceOf(Role::class, $role);
+		}
+
+		// Assert that we have the right count of each relation
+		$this->assertEquals(count([$user->master]), count($masters));
+		$this->assertEquals(count($user->roles), count($roles));
+	}
+
 	public function testDefaultSearchAttributes()
 	{
 		$users = User::search('chris');
