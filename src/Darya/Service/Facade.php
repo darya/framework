@@ -35,7 +35,10 @@ abstract class Facade
 	 * 
 	 * @return string
 	 */
-	abstract public static function getServiceName();
+	public static function getServiceName()
+	{
+		return 'Darya\Service\Contracts\Container';
+	}
 	
 	/**
 	 * Magic method that redirects static calls to the facade's related service.
