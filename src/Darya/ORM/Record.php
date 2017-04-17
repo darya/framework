@@ -2,8 +2,6 @@
 namespace Darya\ORM;
 
 use Exception;
-use Darya\ORM\Model;
-use Darya\ORM\Relation;
 use Darya\Storage\Query;
 use Darya\Storage\Readable;
 use Darya\Storage\Queryable;

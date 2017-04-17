@@ -1,7 +1,6 @@
 <?php
 namespace Darya\ORM\Relation;
 
-use Exception;
 use Darya\ORM\Record;
 use Darya\ORM\Relation;
 

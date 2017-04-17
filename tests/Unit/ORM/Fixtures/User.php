@@ -2,11 +2,18 @@
 namespace Darya\Tests\Unit\ORM\Fixtures;
 
 use Darya\ORM\Record;
+use Darya\ORM\Relation;
 
 use Darya\Tests\Unit\ORM\Fixtures\Post;
 use Darya\Tests\Unit\ORM\Fixtures\Role;
-use Darya\Tests\Unit\ORM\Fixtures\User;
 
+/**
+ * @method Relation\Has           padawan()
+ * @method Relation\BelongsTo     manager()
+ * @method Relation\BelongsTo     master()
+ * @method Relation\HasMany       posts()
+ * @method Relation\BelongsToMany roles()
+ */
 class User extends Record
 {
 	protected $relations = array(

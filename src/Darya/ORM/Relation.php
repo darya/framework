@@ -526,6 +526,7 @@ abstract class Relation
 	 * Set the sorting order for this relation.
 	 * 
 	 * @param array|string $order
+	 * @return array|string
 	 */
 	public function sort($order)
 	{

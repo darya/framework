@@ -27,13 +27,13 @@ class BelongsToMany extends Relation
 	/**
 	 * Instantiate a new many-to-many relation.
 	 * 
-	 * @param Relation $parent
-	 * @param string   $target
-	 * @param string   $foreignKey            [optional]
-	 * @param string   $localKey              [optional]
-	 * @param string   $table                 [optional]
-	 * @param array    $constraint            [optional]
-	 * @param array    $associationConstraint [optional]
+	 * @param Record $parent
+	 * @param string $target
+	 * @param string $foreignKey            [optional]
+	 * @param string $localKey              [optional]
+	 * @param string $table                 [optional]
+	 * @param array  $constraint            [optional]
+	 * @param array  $associationConstraint [optional]
 	 */
 	public function __construct(
 			Record $parent,

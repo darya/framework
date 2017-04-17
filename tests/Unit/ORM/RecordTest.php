@@ -181,7 +181,6 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('User', $user->surname);
 		
 		// Test saving with no changed attributes, ensure no storage call
-		
 		$mock = $this->getMockBuilder($this->storageClass())
 			->setMethods(array('create', 'update'))
 			->getMock();
