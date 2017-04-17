@@ -789,9 +789,14 @@ class Record extends Model
 	 * @param string $method
 	 * @param array  $arguments
 	 * @return Relation
+	 * @throws Exception
 	 */
 	public function __call($method, $arguments)
 	{
-		return $this->relation($method);
+		if ($this->hasRelation($method)) {
+			return $this->relation($method);
+		}
+		
+		throw new Exception('Call to undefined method ' . get_class($this) . '::' . $method . '()');
 	}
 }
