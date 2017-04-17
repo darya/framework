@@ -209,11 +209,11 @@ class BelongsToMany extends Relation
 	public function filter(array $related = array())
 	{
 		$filter = array();
-		
-		if (!empty($related)) {
-			$filter[$this->target->key()] = $related;
-		}
-		
+
+		// First filter by the currently related IDs if none are given
+		$filter[$this->target->key()] = empty($related) ? $this->relatedIds() : $related;
+
+		// Also filter by constraints
 		$filter = array_merge($filter, $this->constraint());
 		
 		return $filter;
@@ -243,14 +243,23 @@ class BelongsToMany extends Relation
 	 */
 	protected function relatedIds($limit = 0)
 	{
+		// Read the associations from the relation table
 		$associations = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
-		
-		if (empty($this->filter())) {
-			return static::attributeList($associations, $this->foreignKey);
+		$associatedIds = static::attributeList($associations, $this->foreignKey);
+
+		// If there's no constraint for the target table then we're done
+		if (empty($this->constraint())) {
+			return $associatedIds;
 		}
-		
-		$filter = $this->filter(static::attributeList($associations, $this->foreignKey));
-		
+
+		// Create the filter for the target table
+		$filter = array();
+
+		$filter[$this->target->key()] = $associatedIds;
+
+		$filter = array_merge($filter, $this->constraint());
+
+		// Load the matching related IDs from the target table
 		$related = $this->storage()->listing($this->target->table(), $this->target->key(), $filter, null, $limit);
 		
 		return static::attributeList($related, $this->target->key());

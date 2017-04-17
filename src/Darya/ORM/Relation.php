@@ -16,6 +16,7 @@ use ReflectionClass;
  * TODO: errors() method.
  * TODO: Filter, order, limit, offset for load() and retrieve().
  * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
+ * TODO: Separate filters for reading and updating/deleting (readFilter(), modifyFilter()) mainly for BelongsToMany
  * 
  * @property-read string    $name
  * @property-read Record    $parent

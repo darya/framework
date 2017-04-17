@@ -1322,12 +1322,19 @@ class RecordTest extends PHPUnit_Framework_TestCase
 
 	public function testRelationQuery()
 	{
-		$user = User::find(3);
+		$chris = User::find(1);
+		$john = User::find(3);
 
-		$masters = $user->master()->query()->cheers();
-		$roles = $user->roles()->query()->cheers();
+		$padawans = $chris->padawan()->query()->cheers();
+		$posts = $chris->posts()->query()->cheers();
+		$masters = $john->master()->query()->cheers();
+		$roles = $john->roles()->query()->cheers();
 
 		// Assert that we have the right types
+		foreach ($padawans as $padawan) {
+			$this->assertInstanceOf(User::class, $padawan);
+		}
+
 		foreach ($masters as $master) {
 			$this->assertInstanceOf(User::class, $master);
 		}
@@ -1337,8 +1344,10 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		}
 
 		// Assert that we have the right count of each relation
-		$this->assertEquals(count([$user->master]), count($masters));
-		$this->assertEquals(count($user->roles), count($roles));
+		$this->assertEquals(1, count($padawans));
+		$this->assertEquals(count($chris->posts), count($posts));
+		$this->assertEquals(1, count($masters));
+		$this->assertEquals(count($john->roles), count($roles));
 	}
 
 	public function testDefaultSearchAttributes()
