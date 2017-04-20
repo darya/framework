@@ -196,7 +196,7 @@ Powerful query building enables simple retrieval of specific models.
 
 ```php
 $users = User::query()
-	->where('name like', 'Chris')
+	->where('name like', '%Chris%')
 	->where('parent_id', 72)
 	->order('surname')
 	->limit(5, 10)
