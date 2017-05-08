@@ -119,6 +119,33 @@ class MySqlTest extends PHPUnit_Framework_TestCase {
 		);
 	}
 	
+	public function testSelectWhereInNull() {
+		$translator = $this->translator();
+		
+		$query = (new Query('users'))
+			->where('id', array(null, null));
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals(
+			"SELECT * FROM `users` WHERE `id` IN (NULL, NULL)",
+			$result->string
+		);
+		
+		$this->assertEquals(array(), $result->parameters);
+		
+		$query->where('id', array(null, 5, null, 6));
+		
+		$result = $translator->translate($query);
+		
+		$this->assertEquals(
+			"SELECT * FROM `users` WHERE `id` IN (NULL, ?, NULL, ?)",
+			$result->string
+		);
+		
+		$this->assertEquals(array(5, 6), $result->parameters);
+	}
+	
 	public function testSelectWithJoins() {
 		$translator = $this->translator();
 		

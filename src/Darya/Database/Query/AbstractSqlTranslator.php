@@ -887,7 +887,7 @@ abstract class AbstractSqlTranslator implements Translator
 					$parameters = array_merge($parameters, $this->filterParameters($value));
 				} else {
 					foreach ($value as $in) {
-						if ($this->resolvesPlaceholder($value)) {
+						if ($this->resolvesPlaceholder($in)) {
 							$parameters[] = $in;
 						}
 					}
