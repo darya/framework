@@ -832,6 +832,7 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(3, $user->posts()->count());
 		$this->assertEquals(3, User::find(1)->posts()->count());
 		$this->assertEquals('Test', Post::find(4)->title);
+		$this->assertEquals(1, Post::find(4)->author_id);
 		
 		// Test many attachment save
 		$user->posts()->attach(array(
@@ -856,6 +857,8 @@ class RecordTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(5, User::find(1)->posts()->count());
 		$this->assertEquals('Test 5', Post::find(5)->title);
 		$this->assertEquals('Test 6', Post::find(6)->title);
+		$this->assertEquals(1, Post::find(5)->author_id);
+		$this->assertEquals(1, Post::find(6)->author_id);
 		
 		// Test detachment save
 		$user->posts()->detach($user->posts[4]); // Post ID 6
