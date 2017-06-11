@@ -121,12 +121,14 @@ class HasMany extends Has
 		$successful = 0;
 		
 		foreach ($this->related as $model) {
-			$this->persist($model);
-			
-			if (!$ids || in_array($model->id(), $ids)) {
+			if (!$ids || !$model->id() || in_array($model->id(), $ids)) {
 				$model->set($this->foreignKey, $this->parent->id());
 				$successful += $model->save();
+
+				continue;
 			}
+
+			$this->persist($model);
 		}
 		
 		return (int) $successful;

@@ -39,7 +39,7 @@ class Router implements ContainerAware
 	/**
 	 * Collection of routes to match requests against.
 	 * 
-	 * @var array
+	 * @var Route[]
 	 */
 	protected $routes = array();
 	
