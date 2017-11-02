@@ -13,14 +13,16 @@ use Darya\Tests\Unit\Service\Fixtures\SomethingElse;
 
 class ContainerTest extends PHPUnit_Framework_TestCase {
 	
-	protected function assertSomething($something) {
+	protected function assertSomething($something)
+	{
 		$this->assertInstanceOf(Something::class, $something);
 		$this->assertInstanceOf(AnotherThing::class, $something->another);
 		$this->assertInstanceOf(SomethingElse::class, $something->else);
 		$this->assertInstanceOf(SomethingElse::class, $something->another->else);
 	}
 	
-	public function testCreate() {
+	public function testCreate()
+	{
 		$container = new Container;
 		
 		$something = $container->create(Something::class);
@@ -28,7 +30,8 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$this->assertSomething($something);
 	}
 	
-	public function testCall() {
+	public function testCall()
+	{
 		$container = new Container;
 		
 		$closure = function (Something $something) {
@@ -53,7 +56,8 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('default', $value);
 	}
 	
-	public function testCallArgs() {
+	public function testCallArgs()
+	{
 		$container = new Container;
 		
 		$closure = function ($one, $two = 'two', $three = 'three') {
@@ -79,7 +83,8 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(array(3, 2, 1), $result);
 	}
 	
-	public function testRecursiveServices() {
+	public function testRecursiveServices()
+	{
 		$container = new Container(array(
 			SomeInterface::class  => Something::class,
 			OtherInterface::class => SomeInterface::class,
@@ -101,7 +106,8 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		
 	}
 	
-	public function testExplicitRecursiveAliases() {
+	public function testExplicitRecursiveAliases()
+	{
 		$container = new Container(array(
 			Something::class      => Something::class,
 			SomeInterface::class  => Something::class,
@@ -111,6 +117,31 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		$container->alias('some', SomeInterface::class);
 		$container->alias('other', OtherInterface::class);
 		
+		$this->assertInstanceOf(SomeInterface::class, $container->some);
+		$this->assertInstanceOf(OtherInterface::class, $container->other);
+		
+		$this->assertSomething($container->some);
+		$this->assertSomething($container->other);
+	}
+	
+	public function testDelegateContainer()
+	{
+		$container = new Container([
+			SomeInterface::class => Something::class
+		]);
+		
+		$container->alias('some', SomeInterface::class);
+		
+		// Delegate a second container
+		$delegate = new Container([
+			OtherInterface::class => Something::class
+		]);
+		
+		$delegate->alias('other', OtherInterface::class);
+		
+		$container->delegate($delegate);
+		
+		// Resolve both dependencies from the parent container
 		$this->assertInstanceOf(SomeInterface::class, $container->some);
 		$this->assertInstanceOf(OtherInterface::class, $container->other);
 		

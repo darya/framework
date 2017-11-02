@@ -6,7 +6,6 @@ use ReflectionClass;
 use ReflectionMethod;
 use ReflectionFunction;
 use ReflectionParameter;
-use Darya\Service\ContainerException;
 use Darya\Service\Contracts\ContainerAware;
 use Darya\Service\Contracts\Container as ContainerInterface;
 
@@ -38,6 +37,13 @@ class Container implements ContainerInterface
 	 * @var array
 	 */
 	protected $aliases = array();
+	
+	/**
+	 * A delegate container to resolve services from.
+	 *
+	 * @var ContainerInterface
+	 */
+	protected $delegate;
 	
 	/**
 	 * Instantiate a service container.
@@ -112,6 +118,10 @@ class Container implements ContainerInterface
 		
 		if (isset($this->services[$abstract])) {
 			return $this->services[$abstract];
+		}
+		
+		if (isset($this->delegate)) {
+			return $this->delegate->get($abstract);
 		}
 		
 		return null;
@@ -280,6 +290,17 @@ class Container implements ContainerInterface
 		}
 		
 		return $instance;
+	}
+	
+	/**
+	 * Delegate a container to resolve services from when this container is
+	 * unable to.
+	 *
+	 * @param ContainerInterface $container
+	 */
+	public function delegate(ContainerInterface $container)
+	{
+		$this->delegate = $container;
 	}
 	
 	/**

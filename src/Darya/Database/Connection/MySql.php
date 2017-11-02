@@ -13,7 +13,7 @@ use Darya\Database\Query\Translator;
 
 /**
  * Darya's MySQL database interface. Uses mysqli.
- * 
+ *  
  * @author Chris Andrew <chris@hexus.io>
  */
 class MySql extends AbstractConnection
