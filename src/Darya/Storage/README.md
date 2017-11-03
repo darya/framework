@@ -435,7 +435,7 @@ $result = $storage->query('users', 'firstname')->where('firstname like', 'C%')->
 ### Callbacks
 
 You can attach a [PHP
-callables](http://php.net/manual/en/language.types.callable.php) to query
+callable](http://php.net/manual/en/language.types.callable.php) to query
 builders to process results before they're returned from execution.
 
 ```php
@@ -455,5 +455,5 @@ $query = $storage->query('users')->callback(function (Result $result) {
 $users = $query->where('surname', 'Foo')->read();
 ```
 
-This functionality is used by the ORM package to convert query results into to
-the desired model objects.
+This functionality is used by the [ORM](/src/Darya/ORM) package to convert
+query results into the desired model objects.
