@@ -144,8 +144,15 @@ class ContainerTest extends PHPUnit_Framework_TestCase {
 		// Resolve both dependencies from the parent container
 		$this->assertInstanceOf(SomeInterface::class, $container->some);
 		$this->assertInstanceOf(OtherInterface::class, $container->other);
+		$this->assertInstanceOf(SomeInterface::class, $container->resolve(SomeInterface::class));
+		$this->assertInstanceOf(OtherInterface::class, $container->resolve(OtherInterface::class));
 		
 		$this->assertSomething($container->some);
 		$this->assertSomething($container->other);
+		$this->assertSomething($container->resolve(SomeInterface::class));
+		$this->assertSomething($container->resolve(OtherInterface::class));
+
+		$this->assertNull($delegate->some);
+		$this->assertNull($delegate->resolve(SomeInterface::class));
 	}
 }
