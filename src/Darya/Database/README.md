@@ -19,7 +19,7 @@ dialects.
 
 Create database connections using a factory.
 
-Supported databases are currently just `'mysql'` and `'mssql'`/`'sqlserver'`.
+Supported databases are currently `'mysql'`, `'sqlite'` and `'mssql'`/`'sqlserver'`.
 
 ```php
 use Darya\Database\Factory;
