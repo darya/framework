@@ -60,7 +60,7 @@ class MySql extends AbstractConnection
 		
 		if (is_object($result) && $result instanceof mysqli_result) {
 			return array(
-				$result->fetch_all(MYSQL_ASSOC),
+				$result->fetch_all(MYSQLI_ASSOC),
 				$result->fetch_fields(),
 				$result->num_rows
 			);
