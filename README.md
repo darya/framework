@@ -10,6 +10,7 @@ Its components include:
 
 - [ORM](/src/Darya/ORM)
 - [CRUD storage abstractions](/src/Darya/Storage)
+- [Database abstractions](/src/Darya/Database)
 - [Service container](/src/Darya/Service)
 - [HTTP abstractions](/src/Darya/Http)
 - [Router](/src/Darya/Routing)
