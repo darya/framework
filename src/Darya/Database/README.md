@@ -43,7 +43,7 @@ $connection->connect();
 
 If you prefer, you can just instantiate a connection yourself.
 
-```
+```php
 use Darya\Database\Connection\MySql;
 use Darya\Database\Connection\SqlServer;
 
