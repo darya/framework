@@ -3,10 +3,10 @@ namespace Darya\Storage;
 
 /**
  * Darya's storage error representation.
- * 
- * @property int    $number
- * @property string $message
- * 
+ *
+ * @property-read int    $number
+ * @property-read string $message
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class Error
@@ -15,15 +15,15 @@ class Error
 	 * @var int
 	 */
 	protected $number;
-	
+
 	/**
 	 * @var string
 	 */
 	protected $message;
-	
+
 	/**
 	 * Instantiate a new storage error object.
-	 * 
+	 *
 	 * @param int    $number
 	 * @param string $message
 	 */
@@ -32,10 +32,10 @@ class Error
 		$this->number = (int) $number;
 		$this->message = (string) $message;
 	}
-	
+
 	/**
 	 * Dynamically retrieve the given property.
-	 * 
+	 *
 	 * @param string $property
 	 * @return mixed
 	 */

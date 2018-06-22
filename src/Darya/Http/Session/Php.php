@@ -6,14 +6,14 @@ use Darya\Http\Session;
 
 /**
  * Darya's PHP session implementation.
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class Php implements ArrayAccess, Session
 {
 	/**
 	 * Magic method that determines whether a session key is set.
-	 * 
+	 *
 	 * @param string $property
 	 * @return bool
 	 */
@@ -21,10 +21,10 @@ class Php implements ArrayAccess, Session
 	{
 		return $this->has($property);
 	}
-	
+
 	/**
 	 * Magic method that retrieves a session value.
-	 * 
+	 *
 	 * @param string $property
 	 * @return bool
 	 */
@@ -32,10 +32,10 @@ class Php implements ArrayAccess, Session
 	{
 		return $this->get($property);
 	}
-	
+
 	/**
 	 * Magic method that sets a session value.
-	 * 
+	 *
 	 * @param string $property
 	 * @param mixed  $value
 	 */
@@ -43,7 +43,7 @@ class Php implements ArrayAccess, Session
 	{
 		$this->set($property, $value);
 	}
-	
+
 	/**
 	 * @param  mixed $offset
 	 * @return bool
@@ -52,7 +52,7 @@ class Php implements ArrayAccess, Session
 	{
 		return $this->has($offset);
 	}
-	
+
 	/**
 	 * @param  mixed $offset
 	 * @return bool
@@ -61,7 +61,7 @@ class Php implements ArrayAccess, Session
 	{
 		return $this->get($offset);
 	}
-	
+
 	/**
 	 * @param mixed $offset
 	 * @param mixed $value
@@ -70,7 +70,7 @@ class Php implements ArrayAccess, Session
 	{
 		$this->set($offset, $value);
 	}
-	
+
 	/**
 	 * @param mixed $offset
 	 */
@@ -78,17 +78,17 @@ class Php implements ArrayAccess, Session
 	{
 		$this->delete($offset);
 	}
-	
+
 	/**
 	 * Start a new session or resume an existing one.
-	 * 
+	 *
 	 * @return bool
 	 */
 	public function start()
 	{
 		return session_start();
 	}
-	
+
 	/**
 	 * Determine whether a session is active.
 	 *
@@ -98,10 +98,10 @@ class Php implements ArrayAccess, Session
 	{
 		return session_id() != '';
 	}
-	
+
 	/**
 	 * Determine whether a session variable is set.
-	 * 
+	 *
 	 * @param string $key
 	 * @return bool
 	 */
@@ -109,10 +109,10 @@ class Php implements ArrayAccess, Session
 	{
 		return isset($_SESSION[$key]);
 	}
-	
+
 	/**
 	 * Retrieve a session variable.
-	 * 
+	 *
 	 * @param string $key
 	 * @return mixed
 	 */
@@ -120,10 +120,10 @@ class Php implements ArrayAccess, Session
 	{
 		return isset($_SESSION[$key]) ? $_SESSION[$key] : null;
 	}
-	
+
 	/**
 	 * Set a session variable.
-	 * 
+	 *
 	 * @param string $key
 	 * @param mixed  $value
 	 */
@@ -131,10 +131,10 @@ class Php implements ArrayAccess, Session
 	{
 		$_SESSION[$key] = $value;
 	}
-	
+
 	/**
 	 * Delete a session variable.
-	 * 
+	 *
 	 * @param string $key
 	 * @return mixed Value of the deleted variable
 	 */
@@ -142,12 +142,12 @@ class Php implements ArrayAccess, Session
 	{
 		if (isset($_SESSION[$key])) {
 			$deleted = $_SESSION[$key];
-			
+
 			unset($_SESSION[$key]);
-			
+
 			return $deleted;
 		}
-		
+
 		return null;
 	}
 }

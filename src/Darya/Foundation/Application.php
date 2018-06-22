@@ -9,25 +9,25 @@ class Application extends BaseApplication
 	 * @var string
 	 */
 	protected $basePath;
-	
+
 	/**
 	 * Instantiate a new Darya application.
-	 * 
+	 *
 	 * @param string $basePath [optional]
 	 * @param array  $services [optional]
 	 */
 	public function __construct($basePath = null, array $services = array())
 	{
 		$this->set('Darya\Foundation\Application', $this);
-		
+
 		$this->basePath($basePath);
-		
+
 		parent::__construct($services);
 	}
-	
+
 	/**
 	 * Retrieve and optionally set the base path of the application.
-	 * 
+	 *
 	 * @param string $basePath [optional]
 	 * @return string
 	 */
@@ -37,7 +37,7 @@ class Application extends BaseApplication
 			$this->basePath = $basePath;
 			$this->set('path', $this->basePath);
 		}
-		
+
 		return $this->basePath;
 	}
 }

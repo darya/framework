@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database\Connection;
+use Darya\Database\Connection\Sqlite;
 use UnexpectedValueException;
 
 /**
@@ -93,14 +93,14 @@ class Factory
 		$class = $this->resolveClass($name);
 		$options = $this->prepareOptions($options);
 
-		if (!class_exists($class) || !is_subclass_of($class, 'Darya\Database\Connection')) {
+		if (!class_exists($class) || !is_subclass_of($class, Connection::class)) {
 			throw new UnexpectedValueException(
 				"Couldn't resolve a valid database connection instance for type '$name'"
 			);
 		}
 
 		// TODO: Clean this up
-		if ($class === 'Darya\Database\Connection\Sqlite') {
+		if ($class === Sqlite::class) {
 			return new $class($options['database'], $options['options']);
 		}
 

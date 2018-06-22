@@ -9,16 +9,16 @@ use Darya\Service\Contracts\Provider;
 
 /**
  * A service provider that provides HTTP request and response objects.
- * 
+ *
  * Also provides the default PHP session.
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class HttpService implements Provider
 {
 	/**
 	 * Register a global HTTP request, response and session with the container.
-	 * 
+	 *
 	 * @param Container $container
 	 */
 	public function register(Container $container)

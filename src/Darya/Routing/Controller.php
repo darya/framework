@@ -8,44 +8,44 @@ use Darya\Service\Contracts\ContainerAware;
 
 /**
  * Darya's base controller.
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class Controller implements ContainerAware
 {
 	/**
 	 * The current request.
-	 * 
+	 *
 	 * TODO: This should be per-action, not per-controller.
-	 * 
+	 *
 	 * @var Request
 	 */
 	public $request;
-	
+
 	/**
 	 * The response object.
-	 * 
+	 *
 	 * @var Response
 	 */
 	public $response;
-	
+
 	/**
 	 * The service container.
-	 * 
+	 *
 	 * @var Container
 	 */
 	public $services;
-	
+
 	/**
 	 * The view to respond with.
-	 * 
+	 *
 	 * @var \Darya\View\View
 	 */
 	public $template;
-	
+
 	/**
 	 * Instantiate a controller.
-	 * 
+	 *
 	 * @param Request  $request
 	 * @param Response $response
 	 */
@@ -54,12 +54,12 @@ abstract class Controller implements ContainerAware
 		$this->request = $request;
 		$this->response = $response;
 	}
-	
+
 	/**
 	 * Get the URL of the controller's current request.
-	 * 
+	 *
 	 * Optionally accepts an array of route parameters to override.
-	 * 
+	 *
 	 * @param array $parameters [optional]
 	 * @return string
 	 */
@@ -67,18 +67,18 @@ abstract class Controller implements ContainerAware
 	{
 		return $this->request->route->url($parameters);
 	}
-	
+
 	/**
 	 * Set the controller's service container.
-	 * 
+	 *
 	 * Instantiates an empty view if the container has a view resolver.
-	 * 
+	 *
 	 * @param Container $services
 	 */
 	public function setServiceContainer(Container $services)
 	{
 		$this->services = $services;
-		
+
 		if ($this->services->has('Darya\View\Resolver')) {
 			$this->template = $this->services->resolve('Darya\View\Resolver')->create();
 		}

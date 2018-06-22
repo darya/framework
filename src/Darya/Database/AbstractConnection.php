@@ -1,7 +1,6 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Database\Connection;
 use Darya\Events\Dispatchable;
 use Darya\Storage\Query as StorageQuery;
 

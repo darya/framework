@@ -1,49 +1,39 @@
 <?php
 namespace Darya\Storage;
 
-use Darya\Storage\Aggregational;
-use Darya\Storage\Filterer;
-use Darya\Storage\Readable;
-use Darya\Storage\Modifiable;
-use Darya\Storage\Query;
-use Darya\Storage\Queryable;
-use Darya\Storage\Result;
-use Darya\Storage\Searchable;
-use Darya\Storage\Sorter;
-
 /**
  * Darya's in-memory storage interface.
- * 
+ *
  * Useful for unit testing!
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class InMemory implements Readable, Modifiable, Searchable, Aggregational, Queryable
 {
 	/**
 	 * The in-memory data.
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $data;
-	
+
 	/**
 	 * Filters results in-memory.
-	 * 
+	 *
 	 * @var Filterer
 	 */
 	protected $filterer;
-	
+
 	/**
 	 * Sorts results in-memory.
-	 * 
+	 *
 	 * @var Sorter
 	 */
 	protected $sorter;
-	
+
 	/**
 	 * Create a new in-memory storage interface with the given data.
-	 * 
+	 *
 	 * @param array $data [optional]
 	 */
 	public function __construct(array $data = array())
@@ -52,10 +42,10 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		$this->filterer = new Filterer;
 		$this->sorter = new Sorter;
 	}
-	
+
 	/**
 	 * Limit the given data to the given length and offset.
-	 * 
+	 *
 	 * @param array $data
 	 * @param int   $limit  [optional]
 	 * @param int   $offset [optional]
@@ -65,12 +55,12 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	{
 		return array_slice($data, $offset, $limit ?: null);
 	}
-	
+
 	/**
 	 * Retrieve resource data using the given criteria.
-	 * 
+	 *
 	 * Returns an array of associative arrays.
-	 * 
+	 *
 	 * @param string       $resource
 	 * @param array        $filter   [optional]
 	 * @param array|string $order    [optional]
@@ -83,21 +73,21 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		if (empty($this->data[$resource])) {
 			return array();
 		}
-		
+
 		$data = $this->filterer->filter($this->data[$resource], $filter);
-		
+
 		$data = $this->sorter->sort($data, $order);
-		
+
 		$data = static::limit($data, $limit, $offset);
-		
+
 		return $data;
 	}
-	
+
 	/**
 	 * Retrieve specific fields of a resource.
-	 * 
+	 *
 	 * Returns an array of associative arrays.
-	 * 
+	 *
 	 * @param string       $resource
 	 * @param array|string $fields
 	 * @param array        $filter   [optional]
@@ -109,35 +99,35 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
 	{
 		$data = $this->read($resource, $filter, $order, $limit, $offset);
-		
+
 		if (empty($fields) || $fields === '*') {
 			return $data;
 		}
-		
+
 		$fields = (array) $fields;
-		
+
 		$result = array();
-		
+
 		foreach ($data as $row) {
 			$new = array();
-			
+
 			foreach ($row as $field => $value) {
 				if (in_array($field, $fields)) {
 					$new[$field] = $value;
 				}
 			}
-			
+
 			if (!empty($new)) {
 				$result[] = $new;
 			}
 		}
-		
+
 		return $result;
 	}
-	
+
 	/**
 	 * Count the given resource with an optional filter.
-	 * 
+	 *
 	 * @param string $resource
 	 * @param array  $filter   [optional]
 	 * @return int
@@ -147,13 +137,13 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		if (empty($this->data[$resource])) {
 			return 0;
 		}
-		
+
 		return count($this->filterer->filter($this->data[$resource], $filter));
 	}
-	
+
 	/**
 	 * Create resource instances in the data store.
-	 * 
+	 *
 	 * @param string $resource
 	 * @param array  $data
 	 * @return bool
@@ -163,15 +153,15 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		if (!isset($this->data[$resource])) {
 			$this->data[$resource] = array();
 		}
-		
+
 		$this->data[$resource][] = $data;
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Update resource instances in the data store.
-	 * 
+	 *
 	 * @param string $resource
 	 * @param array  $data
 	 * @param array  $filter   [optional]
@@ -183,9 +173,9 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		if (empty($this->data[$resource])) {
 			return 0;
 		}
-		
+
 		$affected = 0;
-		
+
 		$this->data[$resource] = $this->filterer->map(
 			$this->data[$resource],
 			$filter,
@@ -193,20 +183,20 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 				foreach ($data as $key => $value) {
 					$row[$key] = $value;
 				}
-				
+
 				$affected++;
-				
+
 				return $row;
 			},
 			$limit
 		);
-		
+
 		return $affected;
 	}
-	
+
 	/**
 	 * Delete resource instances from the data store.
-	 * 
+	 *
 	 * @param string $resource
 	 * @param array  $filter   [optional]
 	 * @param int    $limit    [optional]
@@ -217,20 +207,20 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		if (empty($this->data[$resource])) {
 			return 0;
 		}
-		
+
 		$remaining = $this->filterer->reject($this->data[$resource], $filter, $limit);
-		
+
 		$deleted = count($this->data[$resource]) - count($remaining);
-		
+
 		$this->data[$resource] = $remaining;
-		
+
 		return $deleted;
 	}
-	
+
 	/**
 	 * Search for resource data with fields that match the given query and
 	 * criteria.
-	 * 
+	 *
 	 * @param string       $resource
 	 * @param string       $query
 	 * @param array|string $fields
@@ -245,24 +235,24 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 		if (empty($query) || empty($resource)) {
 			return $this->read($resource, $filter, $order, $limit, $offset);
 		}
-		
+
 		$fields = (array) $fields;
 		$search = array('or' => array());
-		
+
 		foreach ($fields as $field) {
 			$search['or']["$field like"] = "%$query%";
 		}
-		
+
 		$filter = array_merge($filter, $search);
-		
+
 		return $this->read($resource, $filter, $order, $limit, $offset);
 	}
-	
+
 	/**
 	 * Retrieve the distinct values of the given resource's field.
-	 * 
+	 *
 	 * Returns a flat array of values.
-	 * 
+	 *
 	 * @param string $resource
 	 * @param string $field
 	 * @param array  $filter   [optional]
@@ -274,19 +264,19 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	public function distinct($resource, $field, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
 	{
 		$list = array();
-		
+
 		$listing = $this->listing($resource, $field, $filter, $order, $limit, $offset);
-		
+
 		foreach ($listing as $item) {
 			$list[] = $item[$field];
 		}
-		
+
 		return array_unique($list);
 	}
-	
+
 	/**
 	 * Execute the given query.
-	 * 
+	 *
 	 * @param Query $query
 	 * @return Result
 	 */
@@ -294,7 +284,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	{
 		$data = array();
 		$info = array();
-		
+
 		switch ($query->type) {
 			case Query::CREATE:
 				$this->create($query->resource, $query->data);
@@ -325,13 +315,13 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 				);
 				break;
 		}
-		
+
 		return new Result($query, $data, $info);
 	}
-	
+
 	/**
 	 * Open a query on the given resource.
-	 * 
+	 *
 	 * @param string       $resource
 	 * @param array|string $fields   [optional]
 	 * @return Query\Builder
@@ -340,12 +330,12 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	{
 		return new Query\Builder(new Query($resource, (array) $fields), $this);
 	}
-	
+
 	/**
 	 * Retrieve the error that occured with the last operation.
-	 * 
+	 *
 	 * Returns false if there was no error.
-	 * 
+	 *
 	 * @return string|bool
 	 */
 	public function error()

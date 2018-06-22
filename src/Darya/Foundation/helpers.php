@@ -1,7 +1,7 @@
 <?php
 /**
  * Helper functions for the Darya framework.
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 

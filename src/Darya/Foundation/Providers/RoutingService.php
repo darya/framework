@@ -1,6 +1,7 @@
 <?php
 namespace Darya\Foundation\Providers;
 
+use Darya\Events\Dispatchable;
 use Darya\Foundation\Configuration;
 use Darya\Routing\Router;
 use Darya\Service\Contracts\Container;
@@ -21,11 +22,11 @@ class RoutingService implements Provider
 	public function register(Container $container)
 	{
 		$container->register(array(
-			'Darya\Routing\Router' => function (Container $container) {
+			Router::class => function (Container $container) {
 				/**
 				 * @var Configuration $config
 				 */
-				$config = $container->config;
+				$config = $container->resolve(Configuration::class);
 
 				$routes = $config->get('routes', array(
 					'/:controller/:action/:params' => null,
@@ -35,7 +36,6 @@ class RoutingService implements Provider
 				));
 
 				$projectNamespace = $config->get('project.namespace', 'Application');
-
 				$defaultNamespace = "{$projectNamespace}\Controllers";
 
 				$router = new Router($routes, array(
@@ -43,10 +43,8 @@ class RoutingService implements Provider
 				));
 
 				$router->base($config->get('base_url'));
-
 				$router->setServiceContainer($container);
-
-				$router->setEventDispatcher($container->resolve('Darya\Events\Dispatchable'));
+				$router->setEventDispatcher($container->resolve(Dispatchable::class));
 
 				return $router;
 			}

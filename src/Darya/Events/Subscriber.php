@@ -3,14 +3,14 @@ namespace Darya\Events;
 
 /**
  * Event subscriber interface for Darya's event system.
- * 
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 interface Subscriber
 {
 	/**
 	 * Retrieve the subscriptions.
-	 * 
+	 *
 	 * Example:
 	 *   return array(
 	 *     'event.name'  => array($this, 'listener'),
@@ -18,7 +18,7 @@ interface Subscriber
 	 *       return $argument;
 	 *     }
 	 *   );
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getEventSubscriptions();

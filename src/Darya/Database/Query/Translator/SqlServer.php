@@ -30,13 +30,13 @@ class SqlServer extends AbstractSqlTranslator
 				$this->parameters($query)
 			);
 		}
-		
+
 		return parent::translateRead($query);
 	}
-	
+
 	/**
 	 * Resolve the given value as an identifier.
-	 * 
+	 *
 	 * @param mixed $identifier
 	 * @return mixed
 	 */
@@ -44,10 +44,10 @@ class SqlServer extends AbstractSqlTranslator
 	{
 		return $identifier;
 	}
-	
+
 	/**
 	 * Prepare a LIMIT clause using the given limit and offset.
-	 * 
+	 *
 	 * @param int $limit  [optional]
 	 * @param int $offset [optional]
 	 * @return string
@@ -57,16 +57,16 @@ class SqlServer extends AbstractSqlTranslator
 		if (!static::limitIsUseful($limit, $offset)) {
 			return null;
 		}
-		
+
 		$limit = (int) $limit;
-		
+
 		return "TOP $limit";
 	}
-	
+
 	/**
 	 * Prepare a SELECT statement using the given columns, table, clauses and
 	 * options.
-	 * 
+	 *
 	 * @param string       $table
 	 * @param array|string $columns
 	 * @param string       $joins     [optional]
@@ -90,12 +90,12 @@ class SqlServer extends AbstractSqlTranslator
 		$distinct = false
 	) {
 		$table = $this->identifier($table);
-		
+
 		$distinct = $distinct ? 'DISTINCT' : '';
-		
+
 		return static::concatenate(array('SELECT', $distinct, $limit, $columns, 'FROM', $table, $joins, $where, $groupings, $having, $order));
 	}
-	
+
 	/**
 	 * Prepare the column selection for an ANSI offset select statement.
 	 *
@@ -110,13 +110,13 @@ class SqlServer extends AbstractSqlTranslator
 		// An order by clause is required by ANSI offset select statements; we
 		// can trick SQL Server into behaving by selecting 0 if none is given
 		$orderBy = empty($order) ? 'ORDER BY (SELECT 0)' : $this->prepareOrderBy($order);
-		
+
 		return implode(', ', array(
 			$columns,
 			"ROW_NUMBER() OVER ({$orderBy}) row_number"
 		));
 	}
-	
+
 	/**
 	 * Prepare an ANSI offset select statement.
 	 *
@@ -131,17 +131,17 @@ class SqlServer extends AbstractSqlTranslator
 		$joins = null;
 		$groupBy = null;
 		$having = null;
-		
+
 		if ($query instanceof Database\Storage\Query) {
 			$joins = $this->prepareJoins($query->joins);
 			$groupBy = $this->prepareGroupBy($query->groupings);
 			$having = $this->prepareHaving($query->having);
 		}
-		
+
 		// Build the inner query without its limit, but with the row number and
 		// order by clause included with the columns
 		$columns = $this->prepareColumns($query->fields);
-		
+
 		$innerSelect = $this->prepareSelect(
 			$query->resource,
 			$this->prepareAnsiOffsetSelectColumns($columns, $query->order),
@@ -153,7 +153,7 @@ class SqlServer extends AbstractSqlTranslator
 			$having,
 			$query->distinct
 		);
-		
+
 		// Construct the outer query that uses the row_number from the inner
 		// query to achieve the desired offset
 		return static::concatenate(array(
@@ -166,10 +166,10 @@ class SqlServer extends AbstractSqlTranslator
 			"WHERE row_number > $query->offset"
 		));
 	}
-	
+
 	/**
 	 * Prepare an UPDATE statement with the given table, data and clauses.
-	 * 
+	 *
 	 * @param string $table
 	 * @param array  $data
 	 * @param string $where [optional]
@@ -179,21 +179,21 @@ class SqlServer extends AbstractSqlTranslator
 	protected function prepareUpdate($table, $data, $where = null, $limit = null)
 	{
 		$table = $this->identifier($table);
-		
+
 		foreach ($data as $key => $value) {
 			$column = $this->identifier($key);
 			$value = $this->value($value);
 			$data[$key] = "$column = $value";
 		}
-		
+
 		$values = implode(', ', $data);
-		
+
 		return static::concatenate(array('UPDATE', $limit, $table, 'SET', $values, $where));
 	}
-	
+
 	/**
 	 * Prepare a DELETE statement with the given table and clauses.
-	 * 
+	 *
 	 * @param string $table
 	 * @param string $where [optional]
 	 * @param string $limit [optional]
@@ -202,11 +202,11 @@ class SqlServer extends AbstractSqlTranslator
 	protected function prepareDelete($table, $where = null, $limit = null)
 	{
 		$table = $this->identifier($table);
-		
+
 		if ($table == '*' || !$table || !$where) {
 			return null;
 		}
-		
+
 		return static::concatenate(array('DELETE', $limit, 'FROM', $table, $where));
 	}
 }
