@@ -29,11 +29,11 @@
 - Fixed an issue when associating has-many relations with empty ID values
 
 ### Storage
-- Renamed `Queryable::execute()` and `Query\Builder::execute()` methods to `run()`
+- Renamed `Queryable::execute()` and `Query\Builder::execute()` methods to `run()` (#51)
 - Improved in-memory storage when updating and deleting
 - Added @mixin Query annotation for `Storage\Query\Builder` (#53)
 
-## Service
+### Service
 - Fixed strict standards issue with `Facade`
 - Implemented delegate service containers
 
