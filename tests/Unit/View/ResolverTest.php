@@ -6,23 +6,29 @@ use PHPUnit_Framework_TestCase;
 
 class ResolverTest extends PHPUnit_Framework_TestCase
 {
-	protected function phpResolver()
+	protected function resolver($engine = View\Php::class)
 	{
-		return new View\Resolver(View\Php::class, __DIR__ . '/Fixtures/views', ['php']);
+		return new View\Resolver($engine, __DIR__ . '/Fixtures/views', ['php']);
 	}
 
-	public function testResolve()
+	/**
+	 * Test resolving view paths.
+	 */
+	public function testResolveViewPath()
 	{
-		$viewResolver = $this->phpResolver();
+		$viewResolver = $this->resolver();
 
 		$path = $viewResolver->resolve('hello');
 
 		$this->assertSame(__DIR__ . '/Fixtures/views/hello.php', $path);
 	}
 
-	public function testCreate()
+	/**
+	 * Test creating new views.
+	 */
+	public function testCreateView()
 	{
-		$viewResolver = $this->phpResolver();
+		$viewResolver = $this->resolver();
 
 		$view = $viewResolver->create('hello', ['hello' => 'hello there']);
 
