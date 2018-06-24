@@ -1,4 +1,4 @@
-# Darya Framework Changelog
+# Darya Framework Change Log
 
 ## v0.5.1 - Unreleased
 
