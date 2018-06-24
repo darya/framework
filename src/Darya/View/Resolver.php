@@ -1,14 +1,14 @@
 <?php
 namespace Darya\View;
 
+use InvalidArgumentException;
+
 /**
  * Finds and instantiates views of the given implementation using the given base
  * paths and file extensions.
  *
- * Optionally shares variables and configurations with all templates that are
- * resolved.
- *
- * TODO: $vars -> $variables
+ * Optionally shares arguments and configuration variables with all templates
+ * that are resolved.
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -43,14 +43,14 @@ class Resolver
 	protected $directories = array('views');
 
 	/**
-	 * Variables to assign to all views that are resolved.
+	 * Arguments to assign to all views that are resolved.
 	 *
 	 * @var array
 	 */
 	protected $shared = array();
 
 	/**
-	 * Config variables to set for all views that are resolved.
+	 * Configuration variables to set for all views that are resolved.
 	 *
 	 * @var array
 	 */
@@ -59,8 +59,8 @@ class Resolver
 	/**
 	 * Normalise the given path.
 	 *
-	 * @param string $path
-	 * @return path
+	 * @param string $path The path to normalise
+	 * @return string The normalised path
 	 */
 	public static function normalise($path)
 	{
@@ -70,9 +70,9 @@ class Resolver
 	/**
 	 * Create a new view resolver.
 	 *
-	 * @param string       $engine     View implementor to resolve
-	 * @param string|array $basePath   [optional] Single path or set of paths
-	 * @param string|array $extensions [optional] Template file extensions
+	 * @param string       $engine     View implementor class to resolve
+	 * @param string|array $basePath   [optional] Single path or set of paths to search within
+	 * @param string|array $extensions [optional] Template file extensions to search for
 	 */
 	public function __construct($engine, $basePath = null, $extensions = array())
 	{
@@ -88,14 +88,14 @@ class Resolver
 	}
 
 	/**
-	 * Set the engine (View implementor) to resolve.
+	 * Set the engine (View implementor class) to resolve.
 	 *
 	 * @param string $engine
 	 */
 	public function setEngine($engine)
 	{
 		if (!class_exists($engine) || !is_subclass_of($engine, 'Darya\View\View')) {
-			throw new \Exception("View engine $engine does not exist or does not extend Darya\View\View");
+			throw new InvalidArgumentException("View engine $engine does not exist or does not extend Darya\View\View");
 		}
 
 		$this->engine = $engine;
@@ -147,17 +147,17 @@ class Resolver
 	}
 
 	/**
-	 * Set variables to assign to all resolved views.
+	 * Set arguments to assign to all resolved views.
 	 *
-	 * @param array $vars
+	 * @param array $arguments
 	 */
-	public function share(array $vars = array())
+	public function share(array $arguments = array())
 	{
-		$this->shared = array_merge($this->shared, $vars);
+		$this->shared = array_merge($this->shared, $arguments);
 	}
 
 	/**
-	 * Set config variables to set for all resolved views.
+	 * Set configuration variables to set for all resolved views.
 	 *
 	 * @param array $config
 	 */
@@ -195,7 +195,7 @@ class Resolver
 	/**
 	 * Find a template file using the given path.
 	 *
-	 * @param string $path
+	 * @param string $path The template path to find
 	 * @return string
 	 */
 	public function resolve($path)
@@ -218,7 +218,7 @@ class Resolver
 	/**
 	 * Determine whether a template exists at the given path.
 	 *
-	 * @param string $path
+	 * @param string $path The template path to check
 	 * @return bool
 	 */
 	public function exists($path)
@@ -228,18 +228,22 @@ class Resolver
 
 	/**
 	 * Resolve a view instance with a template at the given path, as well as
-	 * shared variables and config.
+	 * shared arguments and config.
 	 *
-	 * @param string $path [optional] Template path
-	 * @param array  $vars [optional] Variables to assign to the View
+	 * @param string $path      [optional] Template path
+	 * @param array  $arguments [optional] Arguments to assign to the View
 	 * @return View
 	 */
-	public function create($path = null, $vars = array())
+	public function create($path = null, $arguments = array())
 	{
 		$file = $this->resolve($path);
 
 		$engine = $this->engine;
-		$engine = new $engine($file, array_merge($this->shared, $vars), $this->config);
+
+		/**
+		 * @var View $view
+		 */
+		$engine = new $engine($file, array_merge($this->shared, $arguments), $this->config);
 		$engine->setResolver($this);
 
 		return $engine;

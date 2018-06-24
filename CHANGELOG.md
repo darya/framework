@@ -1,5 +1,13 @@
 # Darya Framework Changelog
 
+## v0.5.1 - Unreleased
+
+### General
+- Added composer.lock
+
+### View
+- Cleaned up code style and documentation
+
 ## v0.5.0 - Jun 24, 2018
 
 ### General

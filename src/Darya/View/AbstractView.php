@@ -110,7 +110,7 @@ abstract class AbstractView implements View
 	}
 
 	/**
-	 * Instantiate a new View object.
+	 * Create a new View.
 	 *
 	 * @param string $file      [optional] Path to the template file to use
 	 * @param array  $arguments [optional] Arguments to assign to the template

@@ -1,8 +1,9 @@
 # `Darya\View`
 
-Views are used to separate an application's logic from its presentation. It's
-good practice to treat them only as a means of displaying the data they are
-given.
+Views are used to separate an application's logic from its presentation.
+
+It's best practice to treat them only as a means of displaying the data they are
+given without modifying it or executing any logic.
 
 ## PHP view
 
