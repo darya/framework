@@ -20,14 +20,14 @@ abstract class AbstractView implements View
 	 *
 	 * @var array
 	 */
-	protected static $extensions = array();
+	protected static $extensions = [];
 
 	/**
 	 * Variables to assign to all templates.
 	 *
 	 * @var array
 	 */
-	protected static $shared = array();
+	protected static $shared = [];
 
 	/**
 	 * Shared resolver for selecting template files.
@@ -48,7 +48,7 @@ abstract class AbstractView implements View
 	 *
 	 * @var array
 	 */
-	protected $config = array();
+	protected $config = [];
 
 	/**
 	 * Path to the directory containing the view template.
@@ -69,7 +69,7 @@ abstract class AbstractView implements View
 	 *
 	 * @var array
 	 */
-	protected $vars = array();
+	protected $arguments = [];
 
 	/**
 	 * Set a shared base path for selecting template files.
@@ -112,13 +112,13 @@ abstract class AbstractView implements View
 	/**
 	 * Instantiate a new View object.
 	 *
-	 * @param string $file   [optional] Path to the template file to use
-	 * @param array  $vars   [optional] Variables to assign to the template
-	 * @param array  $config [optional] Configuration variables for the view
+	 * @param string $file      [optional] Path to the template file to use
+	 * @param array  $arguments [optional] Arguments to assign to the template
+	 * @param array  $config    [optional] Configuration variables for the view
 	 */
-	public function __construct($file = null, $vars = array(), $config = array())
+	public function __construct($file = null, $arguments = [], $config = [])
 	{
-		$this->select($file, $vars, $config);
+		$this->select($file, $arguments, $config);
 	}
 
 	/**
@@ -142,20 +142,20 @@ abstract class AbstractView implements View
 	}
 
 	/**
-	 * Select a template, optionally assigning variables and config values.
+	 * Select a template and optionally assign arguments and configuration variables.
 	 *
-	 * @param string $file 	 The template file to be used
-	 * @param array  $vars 	 [optional] Variables to assign to the template immediately
-	 * @param array  $config [optional] Config variables for the view
+	 * @param string $file      The template file to be used
+	 * @param array  $arguments [optional] Arguments to assign to the template immediately
+	 * @param array  $config    [optional] Config arguments for the view
 	 */
-	public function select($file, array $vars = array(), array $config = array())
+	public function select($file, array $arguments = [], array $config = [])
 	{
 		if (!empty($config)) {
 			$this->config($config);
 		}
 
-		if (!empty($vars)) {
-			$this->assign($vars);
+		if (!empty($arguments)) {
+			$this->assign($arguments);
 		}
 
 		if ($file) {
@@ -211,11 +211,11 @@ abstract class AbstractView implements View
 	 */
 	public function file($path)
 	{
-		$paths = array();
+		$paths = [];
 
 		$paths[] = $this->resolve($path);
 
-		$extensions = array_merge(static::$extensions, array(''));
+		$extensions = array_merge(static::$extensions, ['']);
 
 		foreach ($extensions as $extension) {
 			if (static::$basePath) {
@@ -255,7 +255,7 @@ abstract class AbstractView implements View
 	 * @param array $config [optional]
 	 * @return array
 	 */
-	public function config(array $config = array())
+	public function config(array $config = [])
 	{
 		$this->config = array_merge($this->config, $config);
 
@@ -263,41 +263,41 @@ abstract class AbstractView implements View
 	}
 
 	/**
-	 * Assign an array of key/value pairs to the template.
+	 * Assign an array of arguments to the template.
 	 *
-	 * @param array $vars
+	 * @param array $arguments
 	 */
-	public function assign(array $vars = array())
+	public function assign(array $arguments = [])
 	{
-		$this->vars = array_merge($this->vars, $vars);
+		$this->arguments = array_merge($this->arguments, $arguments);
 	}
 
 	/**
-	 * Get all variables or a particular variable assigned to the template.
+	 * Get all arguments or a particular argument assigned to the template.
 	 *
-	 * @param string $key [optional] Key of a variable to return
-	 * @return mixed The value of variable $key if set, all variables otherwise
+	 * @param string $key [optional] The key of the argument to return
+	 * @return mixed The value of the $key argument if set, all arguments otherwise
 	 */
 	public function assigned($key = null)
 	{
-		return !is_null($key) && isset($this->vars[$key]) ? $this->vars[$key] : $this->vars;
+		return !is_null($key) && isset($this->arguments[$key]) ? $this->arguments[$key] : $this->arguments;
 	}
 
 	/**
-	 * Assign an array of key/value pairs to all templates.
+	 * Assign an array of arguments to all templates.
 	 *
-	 * @param array $vars
+	 * @param array $arguments
 	 */
-	public static function share(array $vars)
+	public static function share(array $arguments)
 	{
-		static::$shared = array_merge(static::$shared, $vars);
+		static::$shared = array_merge(static::$shared, $arguments);
 	}
 
 	/**
-	 * Get all variables or a particular variable shared with all templates.
+	 * Get all arguments or a particular argument shared with all templates.
 	 *
-	 * @param string $key Key of a variable to return
-	 * @return mixed The value of variable $key if set, all variables otherwise
+	 * @param string $key The key of the argument to return
+	 * @return mixed The value of the $key argument if set, all arguments otherwise
 	 */
 	public static function shared($key = null)
 	{

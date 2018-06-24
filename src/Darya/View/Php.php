@@ -16,7 +16,7 @@ class Php extends AbstractView
 	public function render()
 	{
 		chdir($this->directory);
-		extract($this->vars);
+		extract($this->arguments);
 
 		$error_reporting = error_reporting();
 		error_reporting(error_reporting() & ~E_NOTICE & ~E_WARNING);
