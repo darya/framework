@@ -1,6 +1,6 @@
 # Darya Framework Changelog
 
-## v0.5.0 - Unreleased
+## v0.5.0 - Jun 24, 2018
 
 ### General
 - Improved readme files for each component

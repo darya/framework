@@ -20,7 +20,7 @@ Its components include:
 The framework is currently under development and the API is liable to change
 until v1.0.0.
 
-Eventually, each package will be split into its own repository.
+Each component will eventually be split into its own repository.
 
 ## Installation
 
