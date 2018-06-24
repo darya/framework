@@ -27,6 +27,6 @@ class ResolverTest extends PHPUnit_Framework_TestCase
 		$view = $viewResolver->create('hello', ['hello' => 'hello there']);
 
 		$this->assertInstanceOf(View\Php::class, $view);
-		$this->assertSame('hello there', (string) $view);
+		$this->assertSame('hello there', $view->render());
 	}
 }

@@ -15,8 +15,7 @@ class PhpTest extends PHPUnit_Framework_TestCase
 	{
 		$view = new Php(__DIR__ . '/Fixtures/views/hello.php', ['hello' => 'hello there']);
 
-		$result = $view->render();
-
-		$this->assertSame('hello there', $result);
+		$this->assertSame('hello there', $view->render());
+		$this->assertSame('hello there', (string) $view);
 	}
 }

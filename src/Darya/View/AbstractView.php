@@ -4,6 +4,8 @@ namespace Darya\View;
 /**
  * Darya's abstract view implementation.
  *
+ * TODO: Remove resolvers and all static members.
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 abstract class AbstractView implements View
@@ -199,7 +201,7 @@ abstract class AbstractView implements View
 			return static::$sharedResolver->resolve($path);
 		}
 
-		return null;
+		return $path;
 	}
 
 	/**
@@ -211,6 +213,12 @@ abstract class AbstractView implements View
 	 */
 	public function file($path)
 	{
+		// First attempt the given path
+		if ($this->attempt($path)) {
+			return true;
+		}
+
+		// Otherwise, resolve the path and attempt it with the set extensions
 		$paths = [];
 
 		$paths[] = $this->resolve($path);
