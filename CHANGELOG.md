@@ -1,5 +1,43 @@
 # Darya Framework Changelog
 
+## v0.5.0 - Unreleased
+
+### General
+- Improved readme files for each component
+- Cleaned up trailing whitespace and unused imports
+
+### Database
+- Implemented SQLite adapter
+- Implemented SQL Server ANSI offset (#49)
+- Fixed a bug when using `null` in array filter values
+- Fixed use of deprecated `MYSQL_ASSOC` constant
+- Implemented SQLite support for `Database\Factory`
+
+### ORM
+- Ensured that records loaded through find() and findOrNew() are reinstated (no
+  changed attributes)
+- Updated `Record::save()` to skip saving if no data has changed
+- Implemented `Record::attach()` and `Record::detach()`, which are now used for
+  magic setters on relation attributes, instead of saving (associating) them
+  immediately (#46)
+- Improved belongs-to consistency issues
+- Added `JsonSerializable` interface to `Model`
+- Updated `Record::call()` to be more strict; avoids unexpected behavior such
+  as any method call on a `Record` being valid
+- Implemented `Relation::query()` support - allows opening relation queries
+  from a relation object
+- Fixed an issue when associating has-many relations with empty ID values
+
+### Storage
+- Renamed `Queryable::execute()` and `Query\Builder::execute()` methods to `run()`
+- Improved in-memory storage when updating and deleting
+- Added @mixin Query annotation for `Storage\Query\Builder` (#53)
+
+## Service
+- Fixed strict standards issue with `Facade`
+- Implemented delegate service containers
+
+
 ## v0.5.0-beta3 - Nov 19, 2016
 
 ### General
