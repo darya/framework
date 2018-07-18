@@ -95,7 +95,7 @@ class Resolver
 	public function setEngine($engine)
 	{
 		if (!class_exists($engine) || !is_subclass_of($engine, 'Darya\View\View')) {
-			throw new InvalidArgumentException("View engine $engine does not exist or does not extend Darya\View\View");
+			throw new InvalidArgumentException("View engine $engine does not exist or does not implement Darya\View\View");
 		}
 
 		$this->engine = $engine;

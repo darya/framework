@@ -16,7 +16,7 @@ class Application extends BaseApplication
 	 * @param string $basePath [optional]
 	 * @param array  $services [optional]
 	 */
-	public function __construct($basePath = null, array $services = array())
+	public function __construct($basePath = null, array $services = [])
 	{
 		$this->set('Darya\Foundation\Application', $this);
 

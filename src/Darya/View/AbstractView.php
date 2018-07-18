@@ -250,7 +250,7 @@ abstract class AbstractView implements View
 	 */
 	protected function directory($directory = null)
 	{
-		$this->directory = $directory != '.' ? $directory : '';
+		$this->directory = $directory !== '.' ? $directory : '';
 
 		return $this->directory;
 	}
