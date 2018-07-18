@@ -533,7 +533,7 @@ class Record extends Model
 		}
 
 		// Attempt to update an existing item
-		$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
+		$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()));
 
 		// Otherwise it either doesn't exist or wasn't changed
 		if (!$updated) {
