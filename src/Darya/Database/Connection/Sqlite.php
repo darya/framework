@@ -30,12 +30,12 @@ class Sqlite extends AbstractConnection
 	 * @param string $path    [optional] The path to the SQLite database file
 	 * @param array  $options [optional] Options for the SQLite PDO connection
 	 */
-	public function __construct($path = null, array $options = array())
+	public function __construct($path = null, array $options = [])
 	{
 		$this->details['path'] = $path ?: ':memory:';
-		$this->options = array_merge(array(
+		$this->options = array_merge([
 			'persistent' => false
-		), $options);
+		], $options);
 	}
 
 	/**
@@ -49,9 +49,9 @@ class Sqlite extends AbstractConnection
 
 		$path = $this->details['path'];
 
-		$this->connection = new PDO("sqlite:{$path}", null, null, array(
+		$this->connection = new PDO("sqlite:{$path}", null, null, [
 			PDO::ATTR_PERSISTENT => $this->options['persistent']
-		));
+		]);
 
 		if ($this->connection->errorCode()) {
 			return false;
@@ -89,34 +89,51 @@ class Sqlite extends AbstractConnection
 	 * @param array        $parameters [optional]
 	 * @return Result
 	 */
-	public function query($query, array $parameters = array())
+	public function query($query, array $parameters = [])
 	{
 		if (!($query instanceof Query)) {
 			$query = new Query((string) $query, $parameters);
 		}
 
+		// Reset the last result and ensure that we're connected
 		$this->lastResult = null;
 
 		$this->connect();
 
+		// Prepare the statement
 		$statement = $this->connection->prepare($query->string);
 
 		$error = $this->error();
 
 		if ($error) {
-			$this->lastResult = new Result($query, array(), array(), $error);
+			$this->lastResult = new Result($query, [], [], $error);
 
 			return $this->lastResult;
 		}
 
+		// Execute the statement
 		$statement->execute($query->parameters);
 
+		$error = $this->error();
+
+		if ($error) {
+			$this->lastResult = new Result($query, [], [], $error);
+
+			return $this->lastResult;
+		}
+
+		// Fetch any data
 		$data = $statement->fetchAll(PDO::FETCH_ASSOC);
+		$count = $statement->rowCount();
 
-		$info = array(
-			'count' => $statement->rowCount(),
-		);
+		$info = [
+			'count' => $count,
+			//'fields' => $statement->getColumnMeta(), // TODO: Field data
+			'affected' => $count,
+			'insert_id' => $this->connection->lastInsertId()
+		];
 
+		// Build the result
 		$this->lastResult = new Result($query, $data, $info);
 
 		return $this->lastResult;
@@ -128,7 +145,7 @@ class Sqlite extends AbstractConnection
 	 *
 	 * Returns null if there is no error.
 	 *
-	 * @return Error
+	 * @return Error|null
 	 */
 	public function error()
 	{
@@ -150,7 +167,7 @@ class Sqlite extends AbstractConnection
 	 *
 	 * Returns null if there is no error.
 	 *
-	 * @return Error
+	 * @return Error|null
 	 */
 	protected function connectionError()
 	{

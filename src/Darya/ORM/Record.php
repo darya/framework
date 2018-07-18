@@ -535,9 +535,16 @@ class Record extends Model
 		// Attempt to update an existing item
 		$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()), 1);
 
-		// Otherwise it doesn't exist, so we can attempt to create it
-		// TODO: Query result error check
+		// Otherwise it either doesn't exist or wasn't changed
 		if (!$updated) {
+			// So we check whether it exists
+			$exists = $storage->read($this->table(), array($this->key() => $this->id()));
+
+			if ($exists) {
+				return true;
+			}
+
+			// And if it doesn't, we can create it
 			$updated = $storage->create($this->table(), $data) > 0;
 		}
 
