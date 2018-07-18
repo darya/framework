@@ -111,6 +111,13 @@ class Sqlite extends AbstractConnection
 
 		$statement->execute($query->parameters);
 
+		if ($statement->errorCode()) {
+			$error = new Error($statement->errorCode(), $statement->errorInfo()[2]);
+			$this->lastResult = new Result($query, array(), array(), $error);
+
+			return $this->lastResult;
+		}
+
 		$data = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 		$info = array(
