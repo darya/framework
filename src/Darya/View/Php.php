@@ -9,6 +9,13 @@ namespace Darya\View;
 class Php extends AbstractView
 {
 	/**
+	 * Set of template file extensions compatible with this view.
+	 *
+	 * @var array
+	 */
+	protected static $extensions = ['.php'];
+
+	/**
 	 * Render the template.
 	 *
 	 * @return string
