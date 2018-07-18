@@ -89,41 +89,50 @@ class Sqlite extends AbstractConnection
 	 * @param array        $parameters [optional]
 	 * @return Result
 	 */
-	public function query($query, array $parameters = array())
+	public function query($query, array $parameters = [])
 	{
 		if (!($query instanceof Query)) {
 			$query = new Query((string) $query, $parameters);
 		}
 
+		// Reset the last result and ensure that we're connected
 		$this->lastResult = null;
 
 		$this->connect();
 
+		// Prepare the statement
 		$statement = $this->connection->prepare($query->string);
 
 		$error = $this->error();
 
 		if ($error) {
-			$this->lastResult = new Result($query, array(), array(), $error);
+			$this->lastResult = new Result($query, [], [], $error);
 
 			return $this->lastResult;
 		}
 
+		// Execute the statement
 		$statement->execute($query->parameters);
 
-		if ($statement->errorCode()) {
-			$error = new Error($statement->errorCode(), $statement->errorInfo()[2]);
-			$this->lastResult = new Result($query, array(), array(), $error);
+		$error = $this->error();
+
+		if ($error) {
+			$this->lastResult = new Result($query, [], [], $error);
 
 			return $this->lastResult;
 		}
 
+		// Fetch any data
 		$data = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-		$info = array(
+		$info = [
 			'count' => $statement->rowCount(),
-		);
+			//'fields' => $statement->getColumnMeta(), // TODO: Field data
+			'affected' => $statement->rowCount(),
+			'insert_id' => $this->connection->lastInsertId()
+		];
 
+		// Build the result
 		$this->lastResult = new Result($query, $data, $info);
 
 		return $this->lastResult;
@@ -135,7 +144,7 @@ class Sqlite extends AbstractConnection
 	 *
 	 * Returns null if there is no error.
 	 *
-	 * @return Error
+	 * @return Error|null
 	 */
 	public function error()
 	{
@@ -157,7 +166,7 @@ class Sqlite extends AbstractConnection
 	 *
 	 * Returns null if there is no error.
 	 *
-	 * @return Error
+	 * @return Error|null
 	 */
 	protected function connectionError()
 	{
