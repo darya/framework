@@ -108,6 +108,8 @@ class Sqlite extends AbstractConnection
 		if ($error) {
 			$this->lastResult = new Result($query, [], [], $error);
 
+			$this->event('sqlite.query', array($this->lastResult));
+
 			return $this->lastResult;
 		}
 
@@ -118,6 +120,8 @@ class Sqlite extends AbstractConnection
 
 		if ($error) {
 			$this->lastResult = new Result($query, [], [], $error);
+
+			$this->event('sqlite.query', array($this->lastResult));
 
 			return $this->lastResult;
 		}
@@ -135,6 +139,8 @@ class Sqlite extends AbstractConnection
 
 		// Build the result
 		$this->lastResult = new Result($query, $data, $info);
+
+		$this->event('sqlite.query', array($this->lastResult));
 
 		return $this->lastResult;
 	}

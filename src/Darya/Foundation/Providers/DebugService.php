@@ -57,7 +57,9 @@ class DebugService implements Provider
 			}
 		};
 
+		// TODO: Consolidate to one event
 		$events->listen('mysql.query', $listener);
 		$events->listen('mssql.query', $listener);
+		$events->listen('sqlite.query', $listener);
 	}
 }
