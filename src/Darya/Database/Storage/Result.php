@@ -9,6 +9,8 @@ use Darya\Storage\Result as StorageResult;
 /**
  * Storage result specific to working with database storage.
  *
+ * TODO: Decorator instead?
+ *
  * @property-read DatabaseQuery $databaseQuery Database query produced by the storage query that produced this result
  *
  * @author Chris Andrew <chris@hexus.io>

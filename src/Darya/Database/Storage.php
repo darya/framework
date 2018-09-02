@@ -168,22 +168,20 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	/**
 	 * Update rows that match the given criteria using the given data.
 	 *
-	 * Returns the number of rows affected by the update operation. If no rows
-	 * are affected, returns true if there were no errors, false otherwise.
+	 * Returns the number of rows affected by the update operation.
 	 *
-	 * Refuses to perform the query if the given filter evaluates to an
-	 * empty where clause.
+	 * If empty data is provided, the query is not run and the call returns 0.
 	 *
 	 * @param string $table
 	 * @param array  $data
 	 * @param array  $filter [optional]
 	 * @param int    $limit  [optional]
-	 * @return int|bool
+	 * @return int
 	 */
 	public function update($table, $data, array $filter = array(), $limit = null)
 	{
 		if (!$data) {
-			return true;
+			return 0;
 		}
 
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
@@ -191,7 +189,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 
 		$result = $this->run($query);
 
-		return $result->affected ?: !$this->error();
+		return $result->affected;
 	}
 
 	/**
@@ -205,12 +203,12 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 	 * @param string $table
 	 * @param array  $filter [optional]
 	 * @param int    $limit  [optional]
-	 * @return int|bool
+	 * @return int
 	 */
 	public function delete($table, array $filter = array(), $limit = null)
 	{
 		if ($table == '*' || empty($table) || empty($filter)) {
-			return null;
+			return 0;
 		}
 
 		$query = new StorageQuery($table, array(), $filter, array(), $limit);
@@ -218,7 +216,7 @@ class Storage implements Aggregational, Readable, Modifiable, Queryable, Searcha
 
 		$result = $this->run($query);
 
-		return $result->affected ?: !$this->error();
+		return $result->affected;
 	}
 
 	/**

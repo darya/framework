@@ -142,11 +142,13 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	}
 
 	/**
-	 * Create resource instances in the data store.
+	 * Create resource items in the data store.
+	 *
+	 * Returns 0, as this data store does not support auto-incrementing fields.
 	 *
 	 * @param string $resource
 	 * @param array  $data
-	 * @return bool
+	 * @return int
 	 */
 	public function create($resource, $data)
 	{
@@ -156,17 +158,19 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 
 		$this->data[$resource][] = $data;
 
-		return true;
+		return 0; // TODO: Update unit tests
 	}
 
 	/**
-	 * Update resource instances in the data store.
+	 * Update resource items in the data store.
+	 *
+	 * Returns the number of updated items.
 	 *
 	 * @param string $resource
 	 * @param array  $data
 	 * @param array  $filter   [optional]
 	 * @param int    $limit    [optional]
-	 * @return int|bool
+	 * @return int
 	 */
 	public function update($resource, $data, array $filter = array(), $limit = 0)
 	{
@@ -195,12 +199,14 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	}
 
 	/**
-	 * Delete resource instances from the data store.
+	 * Delete resource items from the data store.
+	 *
+	 * Returns the number of deleted items.
 	 *
 	 * @param string $resource
 	 * @param array  $filter   [optional]
 	 * @param int    $limit    [optional]
-	 * @return int|bool
+	 * @return int
 	 */
 	public function delete($resource, array $filter = array(), $limit = null)
 	{

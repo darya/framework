@@ -536,7 +536,7 @@ class Record extends Model
 		$updated = $storage->update($this->table(), $data, array($this->key() => $this->id()));
 
 		// Otherwise it either doesn't exist or wasn't changed
-		if (!$updated) {
+		if ($updated !== 1) {
 			// So we check whether it exists
 			$exists = $storage->read($this->table(), array($this->key() => $this->id()));
 
