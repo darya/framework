@@ -155,6 +155,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	{
 		$attribute = strtolower($attribute);
 
+		// TODO: Remove this assumption here and elsewhere in the codebase
 		if ($attribute === 'id') {
 			return $this->key();
 		}
@@ -207,7 +208,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	/**
 	 * Retrieve the name of the attribute that uniquely identifies this model.
 	 *
-	 * Defaults to 'id' if the `key` property is unset.
+	 * Defaults to `'id'` if the `key` property is unset.
 	 *
 	 * @return string
 	 */
@@ -356,6 +357,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	 */
 	public function get($attribute)
 	{
+		// TODO: Remove this assumption here and elsewhere in the codebase (relations)
 		if ($attribute === 'id') {
 			return $this->id();
 		}
@@ -431,7 +433,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 		$time = $time ?: time();
 		$this->set('modified', $time);
 
-		if (!$this->id()) {
+		if (!$this->has('created')) {
 			$this->set('created', $time);
 		}
 	}
@@ -478,7 +480,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	}
 
 	/**
-	 * Determine whether an attribute is set on the model. Shortcut for `set()`.
+	 * Determine whether an attribute is set on the model. Shortcut for `has()`.
 	 *
 	 * @param string $property
 	 * @return bool
@@ -489,7 +491,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	}
 
 	/**
-	 * Retrieve an attribute from the model. Shortcut for `get()` and `id()`.
+	 * Retrieve an attribute from the model. Shortcut for `get()`.
 	 *
 	 * @param string $property
 	 * @return mixed

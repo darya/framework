@@ -727,7 +727,7 @@ abstract class Relation
 
 		$instances = static::arrayify($instances) ?: $this->related;
 
-		$relatedIds = static::attributeList($this->related, 'id');
+		$relatedIds = static::attributeList($this->related, $this->target->key());
 		$detached = array();
 		$ids = array();
 

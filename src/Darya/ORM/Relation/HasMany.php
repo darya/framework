@@ -21,7 +21,7 @@ class HasMany extends Has
 	public function eagerLoad(array $instances)
 	{
 		$this->verifyParents($instances);
-		$ids = static::attributeList($instances, 'id');
+		$ids = static::attributeList($instances, $this->parent->key());
 
 		$filter = array_merge($this->filter(), array(
 			$this->foreignKey => array_unique($ids)
@@ -115,7 +115,7 @@ class HasMany extends Has
 
 		$this->attach($instances);
 
-		$ids = static::attributeList($instances, 'id');
+		$ids = static::attributeList($instances, $this->target->key());
 
 		$successful = 0;
 

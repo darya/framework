@@ -352,7 +352,11 @@ class Record extends Model
 	 */
 	public static function in($ids = array())
 	{
-		return static::all(['id' => (array) $ids]);
+		$instance = new static;
+
+		$key = $instance->key();
+
+		return static::all([$key => (array) $ids]);
 	}
 
 	/**
