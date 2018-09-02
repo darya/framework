@@ -15,8 +15,10 @@ use Darya\ORM\Model\Transformer;
  *
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable, Serializable
+abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable, Serializable, Mappable
 {
+	use MappableTrait;
+
 	/**
 	 * Attribute names as keys and types as values.
 	 *
@@ -167,7 +169,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	 */
 	public function attributes()
 	{
-		return array_keys($this->attributes) ?: array_keys($this->data ?: array());
+		return array_keys($this->attributes) ?: array_keys($this->data ?: []);
 	}
 
 	/**

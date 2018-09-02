@@ -339,7 +339,17 @@ class Container implements ContainerInterface
 	{
 		$resolved = [];
 
-		foreach ($parameters as $parameter) {
+		foreach ($parameters as $index => $parameter) {
+			if (isset($arguments[$index])) {
+				$resolved[$parameter->name] = $arguments[$index];
+				continue;
+			}
+
+			if (isset($arguments[$parameter->name])) {
+				$resolved[$parameter->name] = $arguments[$parameter->name];
+				continue;
+			}
+
 			$argument = $this->resolveParameter($parameter);
 			$resolved[$parameter->name] = $argument;
 		}

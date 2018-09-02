@@ -266,15 +266,15 @@ class Router implements ContainerAware
 	 * Instantiates the given class if it isn't already an object. Uses the
 	 * service container if available.
 	 *
-	 * @param mixed $class
-	 * @param array $arguments [optional]
+	 * @param mixed $class     The class to instantiate.
+	 * @param array $arguments [optional] The arguments to instantiate the class with.
 	 * @return object
 	 */
-	protected function create($class, $arguments)
+	protected function create($class, array $arguments = [])
 	{
 		if (!is_object($class) && class_exists($class)) {
 			if ($this->services) {
-				$class = $this->services->create($class, $arguments);
+				$class = $this->services->resolve($class, $arguments);
 			} else {
 				$reflection = new ReflectionClass($class);
 				$class = $reflection->newInstanceArgs($arguments);
