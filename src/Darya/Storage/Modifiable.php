@@ -12,11 +12,11 @@ interface Modifiable
 	 * Create resource items in the data store.
 	 *
 	 * Returns the ID of the created item if the data store supports
-	 * auto-incrementing fields.
+	 * auto-incrementing fields. Returns a success boolean otherwise.
 	 *
 	 * @param string $resource
 	 * @param array  $data
-	 * @return int
+	 * @return int|bool
 	 */
 	public function create($resource, $data);
 

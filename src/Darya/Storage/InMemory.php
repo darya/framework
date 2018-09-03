@@ -144,11 +144,11 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	/**
 	 * Create resource items in the data store.
 	 *
-	 * Returns 0, as this data store does not support auto-incrementing fields.
+	 * Returns true, as this data store does not support auto-incrementing fields.
 	 *
 	 * @param string $resource
 	 * @param array  $data
-	 * @return int
+	 * @return int|bool
 	 */
 	public function create($resource, $data)
 	{
@@ -158,7 +158,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 
 		$this->data[$resource][] = $data;
 
-		return 0; // TODO: Update unit tests
+		return true;
 	}
 
 	/**
