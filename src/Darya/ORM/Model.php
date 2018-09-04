@@ -153,14 +153,7 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	 */
 	protected function prepareAttribute($attribute)
 	{
-		$attribute = strtolower($attribute);
-
-		// TODO: Remove this assumption here and elsewhere in the codebase
-		if ($attribute === 'id') {
-			return $this->key();
-		}
-
-		return $attribute;
+		return strtolower($attribute);
 	}
 
 	/**
@@ -357,11 +350,6 @@ abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable
 	 */
 	public function get($attribute)
 	{
-		// TODO: Remove this assumption here and elsewhere in the codebase (relations)
-		if ($attribute === 'id') {
-			return $this->id();
-		}
-
 		return $this->access($attribute);
 	}
 

@@ -3,7 +3,7 @@
 	"description": "Web application framework",
 	"type": "library",
 	"keywords": [
-		"darya", "framework", "library", "mvc", "orm", "active record"
+		"darya", "framework", "library", "mvc", "orm"
 	],
 	"license": "MIT",
 	"authors": [
@@ -15,7 +15,7 @@
 		}
 	],
 	"require": {
-		"php": ">=5.5",
+		"php": ">=7.1",
 		"ext-date": "*",
 		"ext-json": "*"
 	},

@@ -42,7 +42,7 @@ class EntityMap
 	 *
 	 * @var array
 	 */
-	protected $mapping;
+	protected $mapping = [];
 
 	/**
 	 * Create a new entity map.
