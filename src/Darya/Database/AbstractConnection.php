@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Database;
 
-use Darya\Events\Contracts\Dispatcher;
+use Darya\Events\Dispatchable;
 use Darya\Storage\Query as StorageQuery;
 
 /**
@@ -42,7 +42,7 @@ abstract class AbstractConnection implements Connection
 	/**
 	 * The event dispatcher.
 	 *
-	 * @var Dispatcher
+	 * @var Dispatchable
 	 */
 	protected $eventDispatcher;
 
@@ -86,9 +86,9 @@ abstract class AbstractConnection implements Connection
 	/**
 	 * Set an event dispatcher for the connection to use.
 	 *
-	 * @param Dispatcher $dispatcher
+	 * @param Dispatchable $dispatcher
 	 */
-	public function setEventDispatcher(Dispatcher $dispatcher)
+	public function setEventDispatcher(Dispatchable $dispatcher)
 	{
 		$this->eventDispatcher = $dispatcher;
 	}
