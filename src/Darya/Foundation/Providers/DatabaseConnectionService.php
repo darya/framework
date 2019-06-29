@@ -38,7 +38,7 @@ class DatabaseConnectionService implements Provider
 				));
 
 				if (method_exists($connection, 'setEventDispatcher')) {
-					$connection->setEventDispatcher($container->resolve(Dispatchable::class));
+					$connection->setEventDispatcher($container->get(Dispatchable::class));
 				}
 
 				return $connection;

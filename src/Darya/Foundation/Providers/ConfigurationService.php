@@ -3,6 +3,7 @@ namespace Darya\Foundation\Providers;
 
 use Darya\Foundation\Application;
 use Darya\Foundation\Configuration;
+use Darya\Service\Exceptions\ContainerException;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 
@@ -18,6 +19,7 @@ class ConfigurationService implements Provider
 	 * providers, with the container.
 	 *
 	 * @param Container $container
+	 * @throws ContainerException
 	 */
 	public function register(Container $container)
 	{
@@ -38,7 +40,7 @@ class ConfigurationService implements Provider
 			'config' => 'Darya\Foundation\Configuration'
 		));
 
-		$configuration = $container->resolve('Darya\Foundation\Configuration');
+		$configuration = $container->get(Configuration::class);
 
 		// Register the configured service aliases
 		foreach ($configuration['aliases'] as $alias => $service) {

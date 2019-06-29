@@ -274,7 +274,7 @@ class Router implements ContainerAware
 	{
 		if (!is_object($class) && class_exists($class)) {
 			if ($this->services) {
-				$class = $this->services->resolve($class, $arguments);
+				$class = $this->services->get($class, $arguments);
 			} else {
 				$reflection = new ReflectionClass($class);
 				$class = $reflection->newInstanceArgs($arguments);

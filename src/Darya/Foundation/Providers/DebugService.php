@@ -27,7 +27,7 @@ class DebugService implements Provider
 			class_alias('ChromePhp', 'Chrome');
 		}
 
-		$configuration = $container->resolve('Darya\Foundation\Configuration');
+		$configuration = $container->get(Configuration::class);
 
 		if (!$configuration->get('debug')) {
 			return;

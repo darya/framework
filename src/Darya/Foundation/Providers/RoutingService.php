@@ -26,7 +26,7 @@ class RoutingService implements Provider
 				/**
 				 * @var Configuration $config
 				 */
-				$config = $container->resolve(Configuration::class);
+				$config = $container->get(Configuration::class);
 
 				$routes = $config->get('routes', array(
 					'/:controller/:action/:params' => null,
@@ -44,7 +44,7 @@ class RoutingService implements Provider
 
 				$router->base($config->get('base_url'));
 				$router->setServiceContainer($container);
-				$router->setEventDispatcher($container->resolve(Dispatchable::class));
+				$router->setEventDispatcher($container->get(Dispatchable::class));
 
 				return $router;
 			}

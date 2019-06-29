@@ -5,6 +5,7 @@ use Darya\Http\Request;
 use Darya\Http\Response;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\ContainerAware;
+use Darya\View\Resolver;
 
 /**
  * Darya's base controller.
@@ -79,8 +80,8 @@ abstract class Controller implements ContainerAware
 	{
 		$this->services = $services;
 
-		if ($this->services->has('Darya\View\Resolver')) {
-			$this->template = $this->services->resolve('Darya\View\Resolver')->create();
+		if ($this->services->has(Resolver::class)) {
+			$this->template = $this->services->get(Resolver::class)->create();
 		}
 	}
 }

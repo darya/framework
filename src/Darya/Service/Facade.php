@@ -55,7 +55,7 @@ abstract class Facade
 			throw new RuntimeException('Tried to use a facade without setting a service container');
 		}
 
-		$instance = static::$serviceContainer->resolve($service);
+		$instance = static::$serviceContainer->get($service);
 
 		if (!is_object($instance)) {
 			throw new RuntimeException('Facade resolved non-object from the service container');

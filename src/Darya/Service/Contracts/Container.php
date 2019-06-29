@@ -1,85 +1,83 @@
 <?php
 namespace Darya\Service\Contracts;
 
+use Closure;
+use Darya\Service\Exceptions\ContainerException;
+use Psr\Container\ContainerInterface;
+
 /**
  * Darya's service container interface.
  *
- * TODO: Conform to container-interop.
- *
  * @author Chris Andrew <chris@hexus.io>
  */
-interface Container
+interface Container extends ContainerInterface
 {
 	/**
 	 * Determine whether the container has a service registered for the given
-	 * interface or alias.
+	 * abstract or alias.
 	 *
-	 * @param string $abstract
+	 * @param string $abstract The abstract service name
 	 * @return bool
 	 */
 	public function has($abstract);
 
 	/**
-	 * Get the service associated with the given interface or alias.
+	 * Get the service associated with the given abstract or alias.
 	 *
-	 * This method does not resolve dependencies using registered services.
+	 * This method recursively resolves aliases but does not resolve service
+	 * dependencies.
 	 *
-	 * Returns null if not found.
+	 * Returns null if nothing is found.
 	 *
-	 * @param string $abstract
-	 * @return mixed
+	 * @param string $abstract The abstract service name
+	 * @return mixed The raw service
 	 */
-	public function get($abstract);
+	public function raw($abstract);
 
 	/**
-	 * Register an interface and its associated implementation.
+	 * Resolve a service and its dependencies.
 	 *
-	 * @param string $abstract
-	 * @param mixed  $concrete
+	 * This method recursively resolves services and aliases.
+	 *
+	 * @param string $abstract  Abstract service name or alias
+	 * @param array  $arguments [optional] Arguments to resolve the service with
+	 * @throws ContainerException Error resolving the service
+	 * @return mixed The resolved service
+	 */
+	public function get($abstract, array $arguments = []);
+
+	/**
+	 * Register a service and its associated implementation.
+	 *
+	 * @param string $abstract The abstract service name
+	 * @param mixed  $concrete The concrete service
 	 */
 	public function set($abstract, $concrete);
 
 	/**
-	 * Retrieve all registered services.
+	 * Register an alias for the given abstract.
 	 *
-	 * @return array
-	 */
-	public function all();
-
-	/**
-	 * Register an alias for the given interface.
-	 *
-	 * @param string $alias
-	 * @param string $abstract
+	 * @param string $alias    The alias
+	 * @param string $abstract The abstract service name
 	 */
 	public function alias($alias, $abstract);
 
 	/**
-	 * Register interfaces and their concrete implementations, or aliases and
-	 * their corresponding interfaces.
+	 * Register services and aliases.
 	 *
-	 * This method only registers aliases if their interface is already
+	 * This method registers aliases if their abstract is already
 	 * registered with the container.
 	 *
-	 * @param array $services interfaces => concretes or aliases => interfaces
+	 * @param array $services [abstract => concrete] and/or [alias => abstract]
 	 */
-	public function register(array $services = array());
-
-	/**
-	 * Resolve a service and its dependencies by interface or alias.
-	 *
-	 * @param string $abstract  Interface or alias
-	 * @param array  $arguments [optional]
-	 * @return mixed
-	 */
-	public function resolve($abstract, array $arguments = array());
+	public function register(array $services);
 
 	/**
 	 * Wrap a callable in a closure that returns the same instance on every
 	 * call using a static variable.
 	 *
-	 * @param callable $callable
-	 * @return \Closure
+	 * @param callable $callable The callable to wrap
+	 * @return Closure
 	 */
 	public function share($callable);
 
@@ -87,9 +85,10 @@ interface Container
 	 * Call a callable and attempt to resolve its parameters using services
 	 * registered with the container.
 	 *
-	 * @param callable $callable
-	 * @param array    $arguments [optional]
-	 * @return mixed
+	 * @param callable $callable  The callable to invoke
+	 * @param array    $arguments [optional] The arguments to invoke the callable with
+	 * @return mixed The return value of the callable's invocation
+	 * @throws ContainerException
 	 */
 	public function call($callable, array $arguments = array());
 
@@ -97,9 +96,10 @@ interface Container
 	 * Instantiate the given class and attempt to resolve its constructor's
 	 * parameters using services registered with the container.
 	 *
-	 * @param string $class
-	 * @param array  $arguments [optional]
-	 * @return object
+	 * @param string $class     The class to instantiate
+	 * @param array  $arguments [optional] The arguments to instantiate the class with
+	 * @return object The instantiated class
+	 * @throws ContainerException
 	 */
 	public function create($class, array $arguments = array());
 }

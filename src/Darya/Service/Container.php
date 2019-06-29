@@ -1,7 +1,10 @@
 <?php
+
 namespace Darya\Service;
 
 use Closure;
+use Darya\Service\Exceptions\ContainerException;
+use Darya\Service\Exceptions\NotFoundException;
 use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
@@ -19,8 +22,6 @@ use Darya\Service\Contracts\Container as ContainerInterface;
  *
  * TODO: ArrayAccess
  * TODO: factory() method
- * TODO: ContainerInterop: get() resolves dependencies, new raw() won't
- * TODO: Rename parameter resolution methods to parameter argument resolution methods for 0.6.0
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -70,11 +71,11 @@ class Container implements ContainerInterface
 	 *
 	 * @param string $abstract The abstract service name
 	 * @return mixed The resolved service
-	 * @throws ReflectionException
+	 * @throws ContainerException
 	 */
 	public function __get($abstract)
 	{
-		return $this->resolve($abstract);
+		return $this->get($abstract);
 	}
 
 	/**
@@ -88,35 +89,17 @@ class Container implements ContainerInterface
 		$this->register([$abstract => $service]);
 	}
 
-	/**
-	 * Determine whether the container has a service registered for the given
-	 * abstract or alias.
-	 *
-	 * @param string $abstract The abstract service name
-	 * @return bool
-	 */
 	public function has($abstract)
 	{
 		return isset($this->aliases[$abstract]) || isset($this->services[$abstract]);
 	}
 
-	/**
-	 * Get the service associated with the given abstract or alias.
-	 *
-	 * This method recursively resolves aliases but does not resolve service
-	 * dependencies.
-	 *
-	 * Returns null if nothing is found.
-	 *
-	 * @param string $abstract The abstract service name
-	 * @return mixed The raw service
-	 */
-	public function get($abstract)
+	public function raw($abstract)
 	{
 		if (isset($this->aliases[$abstract])) {
 			$abstract = $this->aliases[$abstract];
 
-			return $this->get($abstract);
+			return $this->raw($abstract);
 		}
 
 		if (isset($this->services[$abstract])) {
@@ -124,53 +107,52 @@ class Container implements ContainerInterface
 		}
 
 		if (isset($this->delegate)) {
-			return $this->delegate->get($abstract);
+			return $this->delegate->raw($abstract);
 		}
 
-		return null;
+		throw new NotFoundException("Service '$abstract' not found");
 	}
 
-	/**
-	 * Register a service and its associated implementation.
-	 *
-	 * @param string $abstract The abstract service name
-	 * @param mixed  $concrete The concrete service
-	 */
+	public function get($abstract, array $arguments = [])
+	{
+		$concrete = $this->raw($abstract);
+
+		try {
+			if ($concrete instanceof Closure || is_callable($concrete)) {
+				return $this->call($concrete, $arguments ?: [$this]);
+			}
+
+			if (is_string($concrete)) {
+				if ($abstract !== $concrete && $this->has($concrete)) {
+					return $this->get($concrete, $arguments);
+				}
+
+				if (class_exists($concrete)) {
+					return $this->create($concrete, $arguments);
+				}
+			}
+		} catch (ContainerException $exception) {
+			throw new ContainerException(
+				"Error resolving service '$abstract'",
+				$exception->getCode(),
+				$exception
+			);
+		}
+
+		return $concrete;
+	}
+
 	public function set($abstract, $concrete)
 	{
 		$this->services[$abstract] = is_callable($concrete) ? $this->share($concrete) : $concrete;
 	}
 
-	/**
-	 * Retrieve all registered services.
-	 *
-	 * @return array All registered services
-	 */
-	public function all()
-	{
-		return $this->services;
-	}
-
-	/**
-	 * Register an alias for the given abstract.
-	 *
-	 * @param string $alias    The alias
-	 * @param string $abstract The abstract service name
-	 */
 	public function alias($alias, $abstract)
 	{
 		$this->aliases[$alias] = $abstract;
 	}
 
-	/**
-	 * Register services and aliases.
-	 *
-	 * This method registers aliases if their abstract is already
-	 * registered with the container.
-	 *
-	 * @param array $services abstract => concrete and/or alias => abstract
-	 */
-	public function register(array $services = [])
+	public function register(array $services)
 	{
 		foreach ($services as $key => $value) {
 			if (is_string($value) && isset($this->services[$value])) {
@@ -181,44 +163,6 @@ class Container implements ContainerInterface
 		}
 	}
 
-	/**
-	 * Resolve a service and its dependencies.
-	 *
-	 * This method recursively resolves services and aliases.
-	 *
-	 * @param string $abstract  Abstract service name or alias
-	 * @param array  $arguments [optional] Arguments to resolve the service with
-	 * @return mixed The resolved service
-	 * @throws ReflectionException
-	 */
-	public function resolve($abstract, array $arguments = [])
-	{
-		$concrete = $this->get($abstract);
-
-		if ($concrete instanceof Closure || is_callable($concrete)) {
-			return $this->call($concrete, $arguments ?: [$this]);
-		}
-
-		if (is_string($concrete)) {
-			if ($abstract !== $concrete && $this->has($concrete)) {
-				return $this->resolve($concrete, $arguments);
-			}
-
-			if (class_exists($concrete)) {
-				return $this->create($concrete, $arguments);
-			}
-		}
-
-		return $concrete;
-	}
-
-	/**
-	 * Wraps a callable in a closure that returns the same instance on every
-	 * call using a static variable.
-	 *
-	 * @param callable $callable The callable to wrap
-	 * @return Closure
-	 */
 	public function share($callable)
 	{
 		if (!is_callable($callable)) {
@@ -238,55 +182,53 @@ class Container implements ContainerInterface
 		};
 	}
 
-	/**
-	 * Call a callable and attempt to resolve its parameters using services
-	 * registered with the container.
-	 *
-	 * @param callable $callable  The callable to invoke
-	 * @param array    $arguments [optional] The arguments to invoke the callable with
-	 * @return mixed The return value of the callable's invocation
-	 * @throws ReflectionException
-	 */
 	public function call($callable, array $arguments = [])
 	{
 		if (!is_callable($callable)) {
-			return null;
+			throw new ContainerException("Callable given is not callable");
 		}
 
 		$method = is_array($callable) && count($callable) > 1 && method_exists($callable[0], $callable[1]);
 
-		if ($method) {
-			$reflection = new ReflectionMethod($callable[0], $callable[1]);
-		} else {
-			$reflection = new ReflectionFunction($callable);
-		}
+		try {
+			if ($method) {
+				$reflection = new ReflectionMethod($callable[0], $callable[1]);
+			} else {
+				$reflection = new ReflectionFunction($callable);
+			}
 
-		$parameters = $reflection->getParameters();
-		$arguments = $this->resolveParameters($parameters, $arguments);
+			$parameters = $reflection->getParameters();
+			$arguments  = $this->resolveParameterArguments($parameters, $arguments);
+		} catch (ReflectionException $exception) {
+			throw new ContainerException(
+				"Error calling callable",
+				$exception->getCode(),
+				$exception
+			);
+		}
 
 		return $method ? $reflection->invokeArgs($callable[0], $arguments) : $reflection->invokeArgs($arguments);
 	}
 
-	/**
-	 * Instantiate the given class and attempt to resolve its constructor's
-	 * parameters using services registered with the container.
-	 *
-	 * @param string $class     The class to instantiate
-	 * @param array  $arguments [optional] The arguments to instantiate the class with
-	 * @return object The instantiated class
-	 * @throws ReflectionException
-	 */
 	public function create($class, array $arguments = [])
 	{
-		$reflection = new ReflectionClass($class);
-		$constructor = $reflection->getConstructor();
+		try {
+			$reflection  = new ReflectionClass($class);
+			$constructor = $reflection->getConstructor();
 
-		if (!$constructor) {
-			return $reflection->newInstance();
+			if (!$constructor) {
+				return $reflection->newInstance();
+			}
+
+			$parameters = $constructor->getParameters();
+			$arguments  = $this->resolveParameterArguments($parameters, $arguments);
+		} catch (ReflectionException $exception) {
+			throw new ContainerException(
+				"Error creating instance of '$class'",
+				$exception->getCode(),
+				$exception
+			);
 		}
-
-		$parameters = $constructor->getParameters();
-		$arguments = $this->resolveParameters($parameters, $arguments);
 
 		$instance = $reflection->newInstanceArgs($arguments);
 
@@ -309,7 +251,7 @@ class Container implements ContainerInterface
 	}
 
 	/**
-	 * Merge resolved parameters with the given arguments.
+	 * Merge resolved parameters arguments with the given arguments.
 	 *
 	 * TODO: Make this smarter.
 	 *
@@ -317,14 +259,16 @@ class Container implements ContainerInterface
 	 * @param array $arguments The given arguments
 	 * @return array The merged arguments
 	 */
-	protected function mergeResolvedParameters(array $resolved, array $arguments = [])
+	protected function mergeResolvedParameterArguments(array $resolved, array $arguments = [])
 	{
-		if (!array_filter(array_keys($arguments), 'is_numeric')) {
+		if (empty(array_filter(array_keys($arguments), 'is_numeric'))) {
+			// We can perform a simple array merge if there are no numeric keys
 			return array_merge($resolved, $arguments);
-		} else {
-			// Some alternate merge involving numeric indexes, maybe?
-			return $arguments ?: $resolved;
 		}
+
+		// Otherwise, we use the given arguments, falling back to resolved arguments
+		// TODO: Some alternate merge involving numeric indexes, maybe?
+		return $arguments ?: $resolved;
 	}
 
 	/**
@@ -333,9 +277,9 @@ class Container implements ContainerInterface
 	 * @param ReflectionParameter[] $parameters The parameters to resolve arguments for
 	 * @param array                 $arguments  [optional] The given arguments
 	 * @return array The resolved arguments keyed by parameter name
-	 * @throws ReflectionException
+	 * @throws ContainerException
 	 */
-	protected function resolveParameters($parameters, array $arguments = [])
+	protected function resolveParameterArguments(array $parameters, array $arguments = [])
 	{
 		$resolved = [];
 
@@ -350,11 +294,11 @@ class Container implements ContainerInterface
 				continue;
 			}
 
-			$argument = $this->resolveParameter($parameter);
+			$argument                   = $this->resolveParameterArgument($parameter);
 			$resolved[$parameter->name] = $argument;
 		}
 
-		$resolved = $this->mergeResolvedParameters($resolved, $arguments);
+		$resolved = $this->mergeResolvedParameterArguments($resolved, $arguments);
 
 		return $resolved;
 	}
@@ -364,15 +308,15 @@ class Container implements ContainerInterface
 	 *
 	 * @param ReflectionParameter|null $parameter The parameter to resolve an argument for
 	 * @return mixed The resolved argument for the parameter
-	 * @throws ReflectionException
+	 * @throws ContainerException
 	 */
-	protected function resolveParameter(ReflectionParameter $parameter)
+	protected function resolveParameterArgument(ReflectionParameter $parameter)
 	{
 		$type = $this->resolveParameterType($parameter);
 
 		if ($type !== null) {
 			if ($this->has($type)) {
-				return $this->resolve($type);
+				return $this->get($type);
 			}
 
 			if (class_exists($type)) {
@@ -381,10 +325,15 @@ class Container implements ContainerInterface
 		}
 
 		if ($parameter->isDefaultValueAvailable()) {
-			return $parameter->getDefaultValue();
+			try {
+				return $parameter->getDefaultValue();
+			} catch (ReflectionException $exception) {
+				// We want to continue to the exception below
+				// when a default value cannot be resolved
+			}
 		}
 
-		return null;
+		throw new ContainerException("Unresolvable parameter '\${$parameter->name}'");
 	}
 
 	/**

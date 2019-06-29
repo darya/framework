@@ -2,6 +2,7 @@
 namespace Darya\Foundation\Providers;
 
 use Darya\Foundation\Autoloader;
+use Darya\Foundation\Configuration;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 
@@ -19,7 +20,7 @@ class ClassLoaderService implements Provider
 	 */
 	public function register(Container $container)
 	{
-		$configuration = $container->resolve('Darya\Foundation\Configuration');
+		$configuration = $container->get(Configuration::class);
 
 		$basePath = $container->get('path');
 		$namespace = $configuration->get('project.namespace', 'Application');
@@ -32,7 +33,7 @@ class ClassLoaderService implements Provider
 		$autoloader->register();
 
 		$container->register(array(
-			'Darya\Common\Autoloader' => $autoloader
+			Autoloader::class => $autoloader
 		));
 	}
 }
