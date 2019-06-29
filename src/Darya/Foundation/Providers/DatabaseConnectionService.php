@@ -4,7 +4,7 @@ namespace Darya\Foundation\Providers;
 
 use Darya\Database\Connection;
 use Darya\Database\Factory;
-use Darya\Events\Contracts\Dispatcher;
+use Darya\Events\Dispatchable;
 use Darya\Foundation\Configuration;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
@@ -29,7 +29,7 @@ class DatabaseConnectionService implements Provider
 				/**
 				 * @var Configuration $config
 				 */
-				$config = $container[Configuration::class];
+				$config = $container->get(Configuration::class);
 
 				$factory = new Factory;
 
@@ -43,7 +43,7 @@ class DatabaseConnectionService implements Provider
 				]);
 
 				if (method_exists($connection, 'setEventDispatcher')) {
-					$connection->setEventDispatcher($container->get(Dispatcher::class));
+					$connection->setEventDispatcher($container->get(Dispatchable::class));
 				}
 
 				return $connection;

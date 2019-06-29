@@ -1,8 +1,9 @@
 <?php
 namespace Darya\Routing;
 
+use Darya\Events\Dispatchable;
+use Darya\Events\Subscribable;
 use ReflectionClass;
-use Darya\Events\Contracts\Dispatcher;
 use Darya\Events\Subscriber;
 use Darya\Http\Request;
 use Darya\Http\Response;
@@ -63,7 +64,7 @@ class Router implements ContainerAware
 	/**
 	 * The event dispatcher to use for routing events.
 	 *
-	 * @var Dispatcher
+	 * @var Dispatchable
 	 */
 	protected $eventDispatcher;
 
@@ -175,20 +176,20 @@ class Router implements ContainerAware
 	 * @param array $routes   Routes to match
 	 * @param array $defaults Default router properties
 	 */
-	public function __construct(array $routes = array(), array $defaults = array())
+	public function __construct(array $routes = [], array $defaults = [])
 	{
 		$this->add($routes);
 		$this->defaults($defaults);
-		$this->filter(array($this, 'resolve'));
-		$this->filter(array($this, 'dispatchable'));
+		$this->filter([$this, 'resolve']);
+		$this->filter([$this, 'dispatchable']);
 	}
 
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 *
-	 * @param Dispatcher $dispatcher
+	 * @param Dispatchable $dispatcher
 	 */
-	public function setEventDispatcher(Dispatcher $dispatcher)
+	public function setEventDispatcher(Dispatchable $dispatcher)
 	{
 		$this->eventDispatcher = $dispatcher;
 	}
@@ -311,7 +312,10 @@ class Router implements ContainerAware
 	 */
 	protected function subscribe($subscriber)
 	{
-		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
+		if ($this->eventDispatcher &&
+			$this->eventDispatcher instanceof Subscribable &&
+			$subscriber instanceof Subscriber
+		) {
 			$this->eventDispatcher->subscribe($subscriber);
 			return true;
 		}
@@ -330,7 +334,10 @@ class Router implements ContainerAware
 	 */
 	protected function unsubscribe($subscriber)
 	{
-		if ($this->eventDispatcher && $subscriber instanceof Subscriber) {
+		if ($this->eventDispatcher &&
+			$this->eventDispatcher instanceof Subscribable &&
+			$subscriber instanceof Subscriber
+		) {
 			$this->eventDispatcher->unsubscribe($subscriber);
 			return true;
 		}
@@ -347,10 +354,10 @@ class Router implements ContainerAware
 	 *
 	 * An example using both:
 	 * ```
-	 *     $router->add(array(
+	 *     $router->add([
 	 *         '/route-path' => 'Namespace\Controller',
 	 *         'route-name'  => new Route('/route-path', 'Namespace\Controller')
-	 *     ));
+	 *     ]);
 	 * ```
 	 *
 	 * @param string|array          $routes   Route definitions or a route path

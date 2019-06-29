@@ -1,8 +1,11 @@
 <?php
-namespace Darya\Events\Contracts;
+namespace Darya\Events;
 
-use Darya\Events\Dispatchable;
-
+/**
+ * Implemented by classes that can make use of an event dispatcher.
+ *
+ * @author Chris Andrew <chris@hexus.io>
+ */
 interface DispatcherAware
 {
 	/**
