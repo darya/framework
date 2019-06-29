@@ -9,7 +9,8 @@ use InvalidArgumentException;
  *
  * Describes an entity's mapping to a storage interface.
  *
- * TODO: Mapping strategies
+ * TODO: Mapping strategy, with a sensible default
+ * TODO: Could a factory go here too?
  *
  * @author Chris Andrew <chris@hexus.io>
  */
