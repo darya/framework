@@ -24,8 +24,8 @@ class DatabaseStorageService implements Provider
 	public function register(Container $container)
 	{
 		$container->register(array(
-			'Darya\Database\Storage' => function ($container) {
-				return new Storage($container->resolve('Darya\Database\Connection'));
+			'Darya\Database\Storage' => function (Container $container) {
+				return new Storage($container->get('Darya\Database\Connection'));
 			},
 			'Darya\Storage\Readable'      => 'Darya\Database\Storage',
 			'Darya\Storage\Modifiable'    => 'Darya\Database\Storage',
