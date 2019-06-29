@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Storage\Query;
 
 use Darya\Storage\Query;
@@ -48,9 +49,9 @@ class Builder
 	 *
 	 * @var array
 	 */
-	protected static $executors = array(
+	protected static $executors = [
 		'all', 'read', 'select', 'unique', 'distinct', 'delete'
-	);
+	];
 
 	/**
 	 * Instantiate a new query builder for the given query and storage.
@@ -60,7 +61,7 @@ class Builder
 	 */
 	public function __construct(Query $query, Queryable $storage)
 	{
-		$this->query = $query;
+		$this->query   = $query;
 		$this->storage = $storage;
 	}
 
@@ -76,7 +77,7 @@ class Builder
 	 */
 	public function __call($method, $arguments)
 	{
-		call_user_func_array(array($this->query, $method), $arguments);
+		call_user_func_array([$this->query, $method], $arguments);
 
 		if (in_array($method, static::$executors)) {
 			return $this->run();
@@ -97,8 +98,7 @@ class Builder
 	}
 
 	/**
-	 * Set a callback to run on results before returning them from execute
-	 * methods.
+	 * Set a callback to run on results before returning them.
 	 *
 	 * Callbacks should accept one parameter: the query result.
 	 *
@@ -116,7 +116,7 @@ class Builder
 	 *
 	 * @return Result
 	 */
-	public function raw()
+	public function execute()
 	{
 		return $this->storage->run($this->query);
 	}
@@ -124,9 +124,9 @@ class Builder
 	/**
 	 * Run the query through the storage interface.
 	 *
-	 * Returns the result of the callback, if one is set.
+	 * Returns the return value of the callback, if one is set.
 	 *
-	 * @return mixed
+	 * @return Result|mixed The `Result` of the query, or the return of the callback if one is set.
 	 */
 	public function run()
 	{

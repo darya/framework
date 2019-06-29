@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Storage;
 
 /**
@@ -21,9 +22,32 @@ namespace Darya\Storage;
  */
 class Query
 {
+	/**
+	 * The create query type.
+	 *
+	 * @var string
+	 */
 	const CREATE = 'create';
-	const READ   = 'read';
+
+	/**
+	 * The read query type.
+	 *
+	 * @var string
+	 */
+	const READ = 'read';
+
+	/**
+	 * The update query type.
+	 *
+	 * @var string
+	 */
 	const UPDATE = 'update';
+
+	/**
+	 * The delete query type.
+	 *
+	 * @var string
+	 */
 	const DELETE = 'delete';
 
 	/**
@@ -61,21 +85,21 @@ class Query
 	 *
 	 * @var array
 	 */
-	protected $data = array();
+	protected $data = [];
 
 	/**
 	 * Filters to apply to the query.
 	 *
 	 * @var array
 	 */
-	protected $filter = array();
+	protected $filter = [];
 
 	/**
 	 * Fields to sort resource data by.
 	 *
 	 * @var array
 	 */
-	protected $order = array();
+	protected $order = [];
 
 	/**
 	 * Limits the number of rows to retrieve.
@@ -94,32 +118,32 @@ class Query
 	/**
 	 * Instantiate a new storage query.
 	 *
-	 * @param string       $resource
-	 * @param array|string $fields   [optional]
-	 * @param array        $filter   [optional]
-	 * @param array        $order    [optional]
-	 * @param int          $limit    [optional]
-	 * @param int          $offset   [optional]
+	 * @param string       $resource The resource to query.
+	 * @param array|string $fields   [optional] The resource fields to retrieve.
+	 * @param array        $filter   [optional] Filters to apply to the query.
+	 * @param array        $order    [optional] Fields to sort resource data by.
+	 * @param int          $limit    [optional] Limits the number of rows to retrieve.
+	 * @param int          $offset   [optional] Offsets the rows to retrieve.
 	 */
-	public function __construct($resource, $fields = array(), array $filter = array(), array $order = array(), $limit = 0, $offset = 0)
+	public function __construct($resource, $fields = [], array $filter = [], array $order = [], $limit = 0, $offset = 0)
 	{
-		$this->type   = static::READ;
+		$this->type = static::READ;
 
 		$this->resource = $resource;
-		$this->fields = (array) $fields;
-		$this->filter = $filter;
-		$this->order  = $order;
-		$this->limit  = (int) $limit;
-		$this->offset = (int) $offset;
+		$this->fields   = (array) $fields;
+		$this->filter   = $filter;
+		$this->order    = $order;
+		$this->limit    = (int) $limit;
+		$this->offset   = (int) $offset;
 	}
 
 	/**
 	 * Change the type of this query to the given type with optional data.
 	 *
-	 * @param mixed $type
-	 * @param array $data [optional]
+	 * @param mixed $type The type of query to change to.
+	 * @param array $data [optional] The data to set.
 	 */
-	protected function modify($type, array $data = array())
+	protected function modify($type, array $data = [])
 	{
 		$this->type = $type;
 		$this->data = $data;
@@ -182,7 +206,7 @@ class Query
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function fields($fields = array())
+	public function fields($fields = [])
 	{
 		$this->fields = (array) $fields;
 
@@ -210,7 +234,7 @@ class Query
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function read($fields = array())
+	public function read($fields = [])
 	{
 		$this->type = static::READ;
 
@@ -265,7 +289,7 @@ class Query
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function select($fields = array())
+	public function select($fields = [])
 	{
 		$this->read($fields);
 
@@ -281,7 +305,7 @@ class Query
 	 */
 	public function filter($field, $value = null)
 	{
-		$this->filter = array_merge($this->filter, array($field => $value));
+		$this->filter = array_merge($this->filter, [$field => $value]);
 
 		return $this;
 	}
@@ -292,7 +316,7 @@ class Query
 	 * @param array $filters
 	 * @return $this
 	 */
-	public function filters(array $filters = array())
+	public function filters(array $filters = [])
 	{
 		$this->filter = array_merge($this->filter, $filters);
 
@@ -324,7 +348,7 @@ class Query
 	 */
 	public function order($field, $order = 'asc')
 	{
-		$this->order = array_merge($this->order, array($field => $order));
+		$this->order = array_merge($this->order, [$field => $order]);
 
 		return $this;
 	}
@@ -337,9 +361,9 @@ class Query
 	 * @param array $orders
 	 * @return $this
 	 */
-	public function orders(array $orders = array())
+	public function orders(array $orders = [])
 	{
-		$prepared = array();
+		$prepared = [];
 
 		foreach ($orders as $field => $order) {
 			if (is_numeric($field)) {

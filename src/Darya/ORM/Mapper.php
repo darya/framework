@@ -1,18 +1,20 @@
 <?php
+
 namespace Darya\ORM;
 
 use Darya\Storage\Query;
 use Darya\Storage\Queryable;
 use Darya\Storage\Result;
 use ReflectionClass;
+use ReflectionException;
 
 /**
  * Darya's entity mapper.
  *
- * Maps an entity to a queryable storage.
+ * Maps a single type of entity to a queryable storage interface.
  *
- * TODO: newInstanceWithInjection() method and a $container property with setter method
- * TODO: Entity factory for instantiation; could allow dynamically defined entities
+ * TODO: Entity factory for instantiation; this could allow dynamically defined entities
+ * TODO: Entity caching
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -41,7 +43,30 @@ class Mapper
 	public function __construct(EntityMap $entityMap, Queryable $storage)
 	{
 		$this->entityMap = $entityMap;
-		$this->storage = $storage;
+		$this->storage   = $storage;
+	}
+
+	/**
+	 * Create a new instance of the mapper's entity.
+	 *
+	 * TODO: Use a hydration library, or have EntityMap decide how to hydrate.
+	 *       Entities themselves shouldn't need to implement an interface.
+	 *
+	 * @param array $entityData The data to set on the created entity instance.
+	 * @return Mappable
+	 * @throws ReflectionException
+	 */
+	public function newInstance(array $entityData = []): Mappable
+	{
+		$reflection = new ReflectionClass($this->entityMap->getClass());
+
+		/**
+		 * @var Mappable $instance
+		 */
+		$instance = $reflection->newInstance();
+		$instance->setAttributeData($entityData);
+
+		return $instance;
 	}
 
 	/**
@@ -54,9 +79,9 @@ class Mapper
 	{
 		$entities = $this->query()
 			->where($this->entityMap->getStorageKey(), $id)
-			->cheers();
+			->run();
 
-		if (!count($entites)) {
+		if (!count($entities)) {
 			return null;
 		}
 
@@ -70,7 +95,7 @@ class Mapper
 	 */
 	public function all(): array
 	{
-		return $this->query()->cheers();
+		return $this->query()->run();
 	}
 
 	/**
@@ -85,9 +110,9 @@ class Mapper
 		$query->callback(function (Result $result) {
 			$entities = [];
 
-			foreach ($result as $row) {
-				// TODO: Implement attribute to field mapping
-				$entities[] = $this->newInstance($row);
+			foreach ($result as $storageData) {
+				$entityData = $this->mapToEntityData($storageData);
+				$entities[] = $this->newInstance($entityData);
 			}
 
 			return $entities;
@@ -97,21 +122,95 @@ class Mapper
 	}
 
 	/**
-	 * Create a new instance of the mapper's entity.
+	 * Store an entity to its mapped storage.
 	 *
-	 * @param array $data The attribute data to set on the created entity instance.
-	 * @return Mappable
+	 * Creates or updates the entity in storage depending on whether it exists.
+	 *
+	 * If storage returns a key after a create query, it will be set on the entity.
+	 *
+	 * @param Mappable $entity
+	 * @return Mappable The mapped entity
 	 */
-	public function newInstance(array $data = []): Mappable
+	public function store(Mappable $entity): Mappable
 	{
-		$reflection = new ReflectionClass($this->entityMap->getClass());
+		$resource    = $this->entityMap->getResource();
+		$storageKey  = $this->entityMap->getStorageKey();
+		$storageData = $this->mapToStorageData($entity->getAttributeData());
 
-		/**
-		 * @var Mappable $instance
-		 */
-		$instance = $reflection->newInstance();
-		$instance->setAttributeData($data);
+		// Determine whether the entity exists in storage
+		$id     = $storageData[$storageKey] ?? null;
+		$exists = false;
 
-		return $instance;
+		if ($id !== null) {
+			$query  = $this->storage->query($resource);
+			$result = $query->where($storageKey, $id)->run();
+			$exists = $result->count > 0;
+		}
+
+		// Update or create in storage accordingly
+		$query = $this->storage->query($resource);
+
+		if ($exists) {
+			$query->update($storageData)->where($storageKey, $id)->run();
+
+			return $entity;
+		}
+
+		$result = $query->create($storageData)->run();
+
+		// Set the insert ID as the entity's key, if one is returned
+		if ($result->insertId) {
+			$key = $this->entityMap->getKey();
+
+			$attributes       = $entity->getAttributeData();
+			$attributes[$key] = $result->insertId;
+			$entity->setAttributeData($attributes);
+		}
+
+		return $entity;
+	}
+
+	/**
+	 * Map the given storage data to entity data.
+	 *
+	 * TODO: Extract to strategy interface, and actually mutate an entity (rename to mapToEntity($entity, $data))
+	 *
+	 * @param array $storageData The storage data to map to entity data
+	 * @return array The resulting entity data
+	 */
+	protected function mapToEntityData(array $storageData): array
+	{
+		$entityData = [];
+		$mapping    = $this->entityMap->getMapping();
+
+		foreach ($mapping as $entityKey => $storageKey) {
+			if (array_key_exists($storageKey, $storageData)) {
+				$entityData[$entityKey] = $storageData[$storageKey];
+			}
+		}
+
+		return $entityData;
+	}
+
+	/**
+	 * Map the given storage data to storage data.
+	 *
+	 * TODO: Extract to strategy interface, and actually read from an entity (rename to readFromEntity($entity, $data))
+	 *
+	 * @param array $entityData The entity data to map to storage data
+	 * @return array The resulting storage data
+	 */
+	protected function mapToStorageData(array $entityData): array
+	{
+		$storageData = [];
+		$mapping     = $this->entityMap->getMapping();
+
+		foreach ($mapping as $entityKey => $storageKey) {
+			if (array_key_exists($entityKey, $entityData)) {
+				$storageData[$entityKey] = $entityData[$storageKey];
+			}
+		}
+
+		return $storageData;
 	}
 }

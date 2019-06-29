@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\ORM;
 
 use InvalidArgumentException;
@@ -8,7 +9,7 @@ use InvalidArgumentException;
  *
  * Describes an entity's mapping to a storage interface.
  *
- * Used by a mapper to
+ * TODO: Mapping strategies
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -31,13 +32,6 @@ class EntityMap
 	protected $resource;
 
 	/**
-	 * The entity's primary key attribute.
-	 *
-	 * @var string
-	 */
-	protected $key = 'id';
-
-	/**
 	 * The mapping of entity attributes to storage fields.
 	 *
 	 * @var array
@@ -45,25 +39,38 @@ class EntityMap
 	protected $mapping = [];
 
 	/**
+	 * The entity's primary key attribute.
+	 *
+	 * TODO: Composite keys
+	 *
+	 * @var string
+	 */
+	protected $key = 'id';
+
+	/**
 	 * Create a new entity map.
 	 *
-	 * @param string $class    The entity class to map to, implementing the Darya\ORM\Mappable interface.
-	 * @param string $resource The name of the resource the entity maps to in storage.
-	 * @param array  $mapping  [optional] The mapping of entity attributes to storage fields.
+	 * @param string   $class    The entity class to map to, implementing the Darya\ORM\Mappable interface.
+	 * @param string   $resource The name of the resource the entity maps to in storage.
+	 * @param string[] $mapping  [optional] The mapping of entity attributes to storage fields.
+	 * @param string   $key      [optional] The entity's primary key attribute.
 	 */
-	public function __construct(string $class, string $resource, array $mapping = [])
+	public function __construct(string $class, string $resource, array $mapping = [], ?string $key = null)
 	{
 		if (!is_subclass_of($class, Mappable::class)) {
 			throw new InvalidArgumentException("EntityMap class '$class' must implement " . Mappable::class);
 		}
 
-		$this->class = $class;
+		$this->class    = $class;
 		$this->resource = $resource;
-		$this->mapping = $mapping;
+		$this->mapping  = $mapping;
+		$this->key      = $key;
 	}
 
 	/**
 	 * Get the mapped entity class.
+	 *
+	 * @return string
 	 */
 	public function getClass(): string
 	{
@@ -110,10 +117,12 @@ class EntityMap
 	/**
 	 * Get the mapping of entity attributes to storage fields.
 	 *
-	 * Returns an array with entity attributes as keys and corresponding
-	 * storage fields as values.
+	 * Returns an array with entity attributes for keys and corresponding
+	 * storage fields for values.
+	 *
+	 * @return string[]
 	 */
-	public function getMapping()
+	public function getMapping(): array
 	{
 		return $this->mapping;
 	}
