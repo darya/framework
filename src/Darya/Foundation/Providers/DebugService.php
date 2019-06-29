@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Chrome;
@@ -50,10 +51,10 @@ class DebugService implements Provider
 		}
 
 		$listener = function ($result) {
-			Chrome::log(array($result->query->string, json_encode($result->query->parameters)));
+			Chrome::log([$result->query->string, json_encode($result->query->parameters)]);
 
 			if ($result->error) {
-				Chrome::error(array($result->error->number, $result->error->message));
+				Chrome::error([$result->error->number, $result->error->message]);
 			}
 		};
 

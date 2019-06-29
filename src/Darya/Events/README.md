@@ -65,7 +65,7 @@ class EventSubscriber implements Subscriber
 	public function getEventSubscriptions()
 	{
 		return array(
-			'event.name'  => array($this, 'listener'),
+			'event.name'  => [$this, 'listener'],
 			'other.event' => function ($argument) {
 				return $argument . ' is awesome';
 			}

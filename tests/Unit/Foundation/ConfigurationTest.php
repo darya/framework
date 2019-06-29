@@ -11,7 +11,7 @@ class ConfigurationTest extends PHPUnit_Framework_TestCase {
 			'aliases' => array(
 				'config'   => 'Darya\Foundation\Configuration',
 				'database' => 'Darya\Database\Connection',
-				'event'    => 'Darya\Events\Dispatchable',
+				'event'    => 'Darya\Events\Contracts\Dispatcher',
 				'request'  => 'Darya\Http\Request',
 				'response' => 'Darya\Http\Response',
 				'router'   => 'Darya\Routing\Router',

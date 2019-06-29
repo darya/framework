@@ -1,7 +1,7 @@
 <?php
 namespace Darya\Foundation\Providers;
 
-use Darya\Events\Dispatchable;
+use Darya\Events\Contracts\Dispatcher;
 use Darya\Foundation\Configuration;
 use Darya\Routing\Router;
 use Darya\Service\Contracts\Container;
@@ -44,7 +44,7 @@ class RoutingService implements Provider
 
 				$router->base($config->get('base_url'));
 				$router->setServiceContainer($container);
-				$router->setEventDispatcher($container->get(Dispatchable::class));
+				$router->setEventDispatcher($container->get(Dispatcher::class));
 
 				return $router;
 			}

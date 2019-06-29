@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Events\Dispatchable;
@@ -20,9 +21,9 @@ class EventService implements Provider
 	 */
 	public function register(Container $container)
 	{
-		$container->register(array(
+		$container->register([
 			Dispatcher::class   => new Dispatcher,
 			Dispatchable::class => Dispatcher::class
-		));
+		]);
 	}
 }

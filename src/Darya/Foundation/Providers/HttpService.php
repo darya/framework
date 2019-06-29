@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Http\Request;
@@ -23,12 +24,12 @@ class HttpService implements Provider
 	 */
 	public function register(Container $container)
 	{
-		$container->register(array(
-			'Darya\Http\Request' => function (Container $container) {
+		$container->register([
+			Request::class  => function (Container $container) {
 				return Request::createFromGlobals($container->get('Darya\Http\Session'));
 			},
-			'Darya\Http\Response' => new Response,
-			'Darya\Http\Session' => new Session\Php
-		));
+			Response::class => new Response,
+			Session::class  => new Session\Php
+		]);
 	}
 }

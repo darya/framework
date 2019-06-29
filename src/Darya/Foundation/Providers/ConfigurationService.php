@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Foundation\Application;
@@ -24,21 +25,21 @@ class ConfigurationService implements Provider
 	public function register(Container $container)
 	{
 		// Register the configuration service and its aliases
-		$container->register(array(
+		$container->register([
 			Configuration::class => function (Application $application) {
 				$basePath = $application->basePath();
 
 				// Load the application's configuration
-				$configuration = new Configuration\Php(array(
+				$configuration = new Configuration\Php([
 					"$basePath/config/config.default.php",
 					"$basePath/config/config.php"
-				));
+				]);
 
 				return $configuration;
 			},
-			'configuration' => 'Darya\Foundation\Configuration',
-			'config' => 'Darya\Foundation\Configuration'
-		));
+			'configuration'      => Configuration::class,
+			'config'             => Configuration::class
+		]);
 
 		$configuration = $container->get(Configuration::class);
 
@@ -50,7 +51,7 @@ class ConfigurationService implements Provider
 		// Register the configured service providers
 		if ($container instanceof Application) {
 			foreach ($configuration['services'] as $service) {
-				if (class_exists($service) && is_subclass_of($service, 'Darya\Service\Contracts\Provider')) {
+				if (class_exists($service) && is_subclass_of($service, Provider::class)) {
 					/**
 					 * @var Provider $provider
 					 */

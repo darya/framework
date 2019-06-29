@@ -1,9 +1,11 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Database\Connection;
 use Darya\Database\Factory;
-use Darya\Events\Dispatchable;
+use Darya\Events\Contracts\Dispatcher;
+use Darya\Foundation\Configuration;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 
@@ -22,30 +24,32 @@ class DatabaseConnectionService implements Provider
 	 */
 	public function register(Container $container)
 	{
-		$container->register(array(
+		$container->register([
 			Connection::class => function (Container $container) {
-				$config = $container->config;
+				/**
+				 * @var Configuration $config
+				 */
+				$config = $container[Configuration::class];
 
 				$factory = new Factory;
 
-				$connection = $factory->create($config['database.type'], array(
-					'hostname' => $config['database.hostname'],
-					'username' => $config['database.username'],
-					'password' => $config['database.password'],
-					'database' => $config['database.database'],
-					'port'     => $config['database.port'],
-					'options'  => $config['database.options']
-				));
+				$connection = $factory->create($config['database.type'], [
+					'hostname' => $config->get('database.hostname'),
+					'username' => $config->get('database.username'),
+					'password' => $config->get('database.password'),
+					'database' => $config->get('database.database'),
+					'port'     => $config->get('database.port'),
+					'options'  => $config->get('database.options')
+				]);
 
 				if (method_exists($connection, 'setEventDispatcher')) {
-					$connection->setEventDispatcher($container->get(Dispatchable::class));
+					$connection->setEventDispatcher($container->get(Dispatcher::class));
 				}
 
 				return $connection;
 			}
-		));
+		]);
 	}
-
 	/**
 	 * Prepares database factory options with some default values.
 	 */

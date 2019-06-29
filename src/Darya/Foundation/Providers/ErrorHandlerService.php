@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Http\Request;
@@ -44,11 +45,11 @@ class ErrorHandlerService implements Provider
 		$response->content("$status error.");
 
 		if ($this->view->exists("errors/$status")) {
-			$response->content($this->view->create("errors/$status", array(
+			$response->content($this->view->create("errors/$status", [
 				'http_host'   => $request->host(),
 				'request_uri' => $request->path(),
 				'signature'   => $request->server('server_signature')
-			)));
+			]));
 		}
 
 		return $response;
@@ -71,6 +72,6 @@ class ErrorHandlerService implements Provider
 	 */
 	public function boot(Router $router)
 	{
-		$router->setErrorHandler(array($this, 'handle'));
+		$router->setErrorHandler([$this, 'handle']);
 	}
 }

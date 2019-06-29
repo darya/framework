@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Foundation\Autoloader;
@@ -22,18 +23,18 @@ class ClassLoaderService implements Provider
 	{
 		$configuration = $container->get(Configuration::class);
 
-		$basePath = $container->get('path');
+		$basePath  = $container->get('path');
 		$namespace = $configuration->get('project.namespace', 'Application');
 
 		// Map the configured namespace to the application directory
-		$autoloader = new Autoloader($basePath, array(
+		$autoloader = new Autoloader($basePath, [
 			$namespace => 'application'
-		));
+		]);
 
 		$autoloader->register();
 
-		$container->register(array(
+		$container->register([
 			Autoloader::class => $autoloader
-		));
+		]);
 	}
 }

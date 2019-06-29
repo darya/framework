@@ -2,7 +2,7 @@
 namespace Darya\Routing;
 
 use ReflectionClass;
-use Darya\Events\Dispatchable;
+use Darya\Events\Contracts\Dispatcher;
 use Darya\Events\Subscriber;
 use Darya\Http\Request;
 use Darya\Http\Response;
@@ -63,7 +63,7 @@ class Router implements ContainerAware
 	/**
 	 * The event dispatcher to use for routing events.
 	 *
-	 * @var Dispatchable
+	 * @var Dispatcher
 	 */
 	protected $eventDispatcher;
 
@@ -186,9 +186,9 @@ class Router implements ContainerAware
 	/**
 	 * Set the optional event dispatcher for emitting routing events.
 	 *
-	 * @param Dispatchable $dispatcher
+	 * @param Dispatcher $dispatcher
 	 */
-	public function setEventDispatcher(Dispatchable $dispatcher)
+	public function setEventDispatcher(Dispatcher $dispatcher)
 	{
 		$this->eventDispatcher = $dispatcher;
 	}

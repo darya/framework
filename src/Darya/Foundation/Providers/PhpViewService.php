@@ -1,6 +1,8 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
+use Darya\Foundation\Configuration;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 use Darya\View;
@@ -20,23 +22,23 @@ class PhpViewService implements Provider
 	 */
 	public function register(Container $container)
 	{
-		$container->register(array(
+		$container->register([
 			View\Resolver::class => function (Container $container) {
-				$basePath = $container->get('path');
+				$basePath     = $container->get('path');
 				$realBasePath = realpath("{$basePath}/views/php");
 
 				$viewResolver = new View\Resolver(Php::class, $realBasePath, '.php');
 
-				$viewResolver->shareConfig(array(
+				$viewResolver->shareConfig([
 					'base' => $realBasePath
-				));
+				]);
 
-				$viewResolver->share(array(
-					'config' => $container->get(Config::class)
-				));
+				$viewResolver->share([
+					'config' => $container->get(Configuration::class)
+				]);
 
 				return $viewResolver;
 			}
-		));
+		]);
 	}
 }

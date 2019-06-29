@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Foundation\Providers;
 
 use Darya\Database\Storage;
@@ -23,8 +24,8 @@ class DatabaseStorageService implements Provider
 	 */
 	public function register(Container $container)
 	{
-		$container->register(array(
-			'Darya\Database\Storage' => function (Container $container) {
+		$container->register([
+			'Darya\Database\Storage'      => function (Container $container) {
 				return new Storage($container->get('Darya\Database\Connection'));
 			},
 			'Darya\Storage\Readable'      => 'Darya\Database\Storage',
@@ -32,7 +33,7 @@ class DatabaseStorageService implements Provider
 			'Darya\Storage\Searchable'    => 'Darya\Database\Storage',
 			'Darya\Storage\Queryable'     => 'Darya\Database\Storage',
 			'Darya\Storage\Aggregational' => 'Darya\Database\Storage'
-		));
+		]);
 	}
 
 	/**

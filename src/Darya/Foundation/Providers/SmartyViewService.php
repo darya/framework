@@ -4,6 +4,7 @@ namespace Darya\Foundation\Providers;
 use Darya\Service\Contracts\Container;
 use Darya\Service\Contracts\Provider;
 use Darya\Smarty\ViewResolver;
+use Darya\View;
 
 /**
  * A service provider that provides a Smarty view resolver.
@@ -38,7 +39,7 @@ class SmartyViewService implements Provider
 
 				return $viewResolver;
 			},
-			'Darya\View\Resolver' => 'Darya\Smarty\ViewResolver'
+			View\Resolver::class => 'Darya\Smarty\ViewResolver'
 		));
 	}
 }
