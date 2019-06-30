@@ -26,7 +26,7 @@ class HttpService implements Provider
 	{
 		$container->register([
 			Request::class  => function (Container $container) {
-				return Request::createFromGlobals($container->get('Darya\Http\Session'));
+				return Request::createFromGlobals($container->get(Session::class));
 			},
 			Response::class => new Response,
 			Session::class  => new Session\Php
