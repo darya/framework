@@ -4,6 +4,7 @@ namespace Darya\ORM;
 /**
  * An interface for the ORM's mappable objects.
  *
+ * @deprecated
  * @author Chris Andrew <chris@hexus.io>
  */
 interface Mappable

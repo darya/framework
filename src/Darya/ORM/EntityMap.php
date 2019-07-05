@@ -2,15 +2,18 @@
 
 namespace Darya\ORM;
 
+use Darya\ORM\Strategy\PropertyStrategy;
 use InvalidArgumentException;
 
 /**
  * Darya's abstract entity map.
  *
- * Describes an entity's mapping to a storage interface.
+ * Describes an entity's mapping to a storage resource.
  *
- * TODO: Mapping strategy, with a sensible default
- * TODO: Could a factory go here too?
+ * TODO: EntityMapFactory for easy (read: dynamic) instantiation with sensible defaults
+ *
+ * TODO: Could an entity factory go here too?
+ *       This would give the entity map control over how entities are instantiated.
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -40,36 +43,37 @@ class EntityMap
 	protected $mapping = [];
 
 	/**
+	 * @var Strategy
+	 */
+	protected $strategy;
+
+	/**
 	 * The entity's primary key attribute.
 	 *
 	 * TODO: Composite keys
 	 *
 	 * @var string
 	 */
-	protected $key = 'id';
+	protected $key;
 
 	/**
 	 * Create a new entity map.
 	 *
-	 * @param string   $class    The entity class to map to, implementing the Darya\ORM\Mappable interface.
+	 * @param string   $class    The entity class to map to.
 	 * @param string   $resource The name of the resource the entity maps to in storage.
-	 * @param string[] $mapping  [optional] The mapping of entity attributes to storage fields.
-	 * @param string   $key      [optional] The entity's primary key attribute.
+	 * @param Strategy $strategy The mapping strategy to use.
+	 * @param string   $key      [optional] The entity's primary key attribute. Defaults to `'id'`.
 	 */
-	public function __construct(string $class, string $resource, array $mapping = [], ?string $key = null)
+	public function __construct(string $class, string $resource, Strategy $strategy, string $key = 'id')
 	{
-		if (!is_subclass_of($class, Mappable::class)) {
-			throw new InvalidArgumentException("EntityMap class '$class' must implement " . Mappable::class);
-		}
-
 		$this->class    = $class;
 		$this->resource = $resource;
-		$this->mapping  = $mapping;
-		$this->key      = $key;
+		$this->strategy = $strategy;
+		$this->key      = $key ?? $this->key;
 	}
 
 	/**
-	 * Get the mapped entity class.
+	 * Get the mapped entity class name.
 	 *
 	 * @return string
 	 */
@@ -89,7 +93,30 @@ class EntityMap
 	}
 
 	/**
-	 * Get the primary key attribute name of the entity.
+	 * Get the mapping of entity attributes to storage fields.
+	 *
+	 * Returns an array with entity attributes for keys and corresponding
+	 * storage fields for values.
+	 *
+	 * @return string[]
+	 */
+	public function getMapping(): array
+	{
+		return $this->mapping;
+	}
+
+	/**
+	 * Get the mapping strategy.
+	 *
+	 * @return Strategy
+	 */
+	public function getStrategy(): Strategy
+	{
+		return $this->strategy;
+	}
+
+	/**
+	 * Get the entity's primary key attribute name.
 	 *
 	 * @return string
 	 */
@@ -105,26 +132,6 @@ class EntityMap
 	 */
 	public function getStorageKey(): string
 	{
-		// Check to see if the key attribute is mapped to a storage field
-		$mapping = $this->getMapping();
-
-		if (isset($mapping[$this->getKey()])) {
-			return $this->mapping[$this->getKey()];
-		}
-
-		return $this->getKey();
-	}
-
-	/**
-	 * Get the mapping of entity attributes to storage fields.
-	 *
-	 * Returns an array with entity attributes for keys and corresponding
-	 * storage fields for values.
-	 *
-	 * @return string[]
-	 */
-	public function getMapping(): array
-	{
-		return $this->mapping;
+		return $this->getStrategy()->getStorageField($this->getKey());
 	}
 }

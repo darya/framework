@@ -49,33 +49,25 @@ class Mapper
 	/**
 	 * Create a new instance of the mapper's entity.
 	 *
-	 * TODO: Use a hydration library, or have EntityMap decide how to hydrate.
-	 *       Entities themselves shouldn't need to implement an interface.
+	 * TODO: Factory work should happen here
 	 *
-	 * @param array $entityData The data to set on the created entity instance.
-	 * @return Mappable
+	 * @return object
 	 * @throws ReflectionException
 	 */
-	public function newInstance(array $entityData = []): Mappable
+	public function newInstance()
 	{
 		$reflection = new ReflectionClass($this->entityMap->getClass());
 
-		/**
-		 * @var Mappable $instance
-		 */
-		$instance = $reflection->newInstance();
-		$instance->setAttributeData($entityData);
-
-		return $instance;
+		return $reflection->newInstance();
 	}
 
 	/**
 	 * Find a single entity with the given ID.
 	 *
 	 * @param mixed $id The ID of the entity to find.
-	 * @return Mappable
+	 * @return object
 	 */
-	public function find($id): ?Mappable
+	public function find($id)
 	{
 		$entities = $this->query()
 			->where($this->entityMap->getStorageKey(), $id)
@@ -91,7 +83,7 @@ class Mapper
 	/**
 	 * Find all entities.
 	 *
-	 * @return Mappable[]
+	 * @return object[]
 	 */
 	public function all(): array
 	{
@@ -111,8 +103,9 @@ class Mapper
 			$entities = [];
 
 			foreach ($result as $storageData) {
-				$entityData = $this->mapToEntityData($storageData);
-				$entities[] = $this->newInstance($entityData);
+				$entity = $this->mapToEntity($this->newInstance(), $storageData);
+
+				$entities[] = $entity;
 			}
 
 			return $entities;
@@ -128,14 +121,14 @@ class Mapper
 	 *
 	 * If storage returns a key after a create query, it will be set on the entity.
 	 *
-	 * @param Mappable $entity
-	 * @return Mappable The mapped entity
+	 * @param object $entity
+	 * @return object The mapped entity
 	 */
-	public function store(Mappable $entity): Mappable
+	public function store($entity)
 	{
 		$resource    = $this->entityMap->getResource();
 		$storageKey  = $this->entityMap->getStorageKey();
-		$storageData = $this->mapToStorageData($entity->getAttributeData());
+		$storageData = $this->mapToStorageData($entity);
 
 		// Determine whether the entity exists in storage
 		$id     = $storageData[$storageKey] ?? null;
@@ -171,46 +164,25 @@ class Mapper
 	}
 
 	/**
-	 * Map the given storage data to entity data.
+	 * Map storage data to the given entity.
 	 *
-	 * TODO: Extract to strategy interface, and actually mutate an entity (rename to mapToEntity($entity, $data))
-	 *
-	 * @param array $storageData The storage data to map to entity data
-	 * @return array The resulting entity data
+	 * @param object $entity The entity to map to.
+	 * @param array $storageData The storage data to map from.
+	 * @return object The resulting entity.
 	 */
-	protected function mapToEntityData(array $storageData): array
+	protected function mapToEntity($entity, array $storageData): array
 	{
-		$entityData = [];
-		$mapping    = $this->entityMap->getMapping();
-
-		foreach ($mapping as $entityKey => $storageKey) {
-			if (array_key_exists($storageKey, $storageData)) {
-				$entityData[$entityKey] = $storageData[$storageKey];
-			}
-		}
-
-		return $entityData;
+		return $this->entityMap->getStrategy()->mapToEntity($entity, $storageData);
 	}
 
 	/**
 	 * Map the given storage data to storage data.
 	 *
-	 * TODO: Extract to strategy interface, and actually read from an entity (rename to readFromEntity($entity, $data))
-	 *
-	 * @param array $entityData The entity data to map to storage data
-	 * @return array The resulting storage data
+	 * @param object $entity The entity to map from.
+	 * @return array The resulting storage data.
 	 */
-	protected function mapToStorageData(array $entityData): array
+	protected function mapToStorageData($entity): array
 	{
-		$storageData = [];
-		$mapping     = $this->entityMap->getMapping();
-
-		foreach ($mapping as $entityKey => $storageKey) {
-			if (array_key_exists($entityKey, $entityData)) {
-				$storageData[$entityKey] = $entityData[$storageKey];
-			}
-		}
-
-		return $storageData;
+		return $this->entityMap->getStrategy()->mapToStorage($entity);
 	}
 }

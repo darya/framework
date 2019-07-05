@@ -3,6 +3,9 @@ namespace Darya\ORM;
 
 /**
  * A trait that implements the Mappable interface.
+ *
+ * @deprecated
+ * @author Chris Andrew <chris@hexus.io>
  */
 trait MappableTrait
 {
