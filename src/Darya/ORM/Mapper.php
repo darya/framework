@@ -170,7 +170,7 @@ class Mapper
 	 * @param array $storageData The storage data to map from.
 	 * @return object The resulting entity.
 	 */
-	protected function mapToEntity($entity, array $storageData): array
+	protected function mapToEntity($entity, array $storageData)
 	{
 		return $this->entityMap->getStrategy()->mapToEntity($entity, $storageData);
 	}
