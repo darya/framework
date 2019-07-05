@@ -56,7 +56,7 @@ class Mapper
 	 */
 	public function newInstance()
 	{
-		$reflection = new ReflectionClass($this->entityMap->getClass());
+		$reflection = new ReflectionClass($this->getEntityMap()->getClass());
 
 		return $reflection->newInstance();
 	}
@@ -69,8 +69,10 @@ class Mapper
 	 */
 	public function find($id)
 	{
+		$storageKey = $this->getEntityMap()->getStorageKey();
+
 		$entities = $this->query()
-			->where($this->entityMap->getStorageKey(), $id)
+			->where($storageKey, $id)
 			->run();
 
 		if (!count($entities)) {
@@ -126,8 +128,9 @@ class Mapper
 	 */
 	public function store($entity)
 	{
-		$resource    = $this->entityMap->getResource();
-		$storageKey  = $this->entityMap->getStorageKey();
+		$entityMap   = $this->getEntityMap();
+		$resource    = $entityMap->getResource();
+		$storageKey  = $entityMap->getStorageKey();
 		$storageData = $this->mapToStorageData($entity);
 
 		// Determine whether the entity exists in storage
@@ -153,7 +156,7 @@ class Mapper
 
 		// Set the insert ID as the entity's key, if one is returned
 		if ($result->insertId) {
-			$key = $this->entityMap->getKey();
+			$key = $entityMap->getKey();
 
 			$attributes       = $entity->getAttributeData();
 			$attributes[$key] = $result->insertId;
@@ -164,15 +167,25 @@ class Mapper
 	}
 
 	/**
+	 * Get the entity map.
+	 *
+	 * @return EntityMap
+	 */
+	public function getEntityMap(): EntityMap
+	{
+		return $this->entityMap;
+	}
+
+	/**
 	 * Map storage data to the given entity.
 	 *
-	 * @param object $entity The entity to map to.
-	 * @param array $storageData The storage data to map from.
+	 * @param object $entity      The entity to map to.
+	 * @param array  $storageData The storage data to map from.
 	 * @return object The resulting entity.
 	 */
 	protected function mapToEntity($entity, array $storageData)
 	{
-		return $this->entityMap->getStrategy()->mapToEntity($entity, $storageData);
+		return $this->getEntityMap()->getStrategy()->mapToEntity($entity, $storageData);
 	}
 
 	/**
@@ -183,6 +196,6 @@ class Mapper
 	 */
 	protected function mapToStorageData($entity): array
 	{
-		return $this->entityMap->getStrategy()->mapToStorage($entity);
+		return $this->getEntityMap()->getStrategy()->mapToStorage($entity);
 	}
 }
