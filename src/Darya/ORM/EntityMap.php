@@ -2,9 +2,6 @@
 
 namespace Darya\ORM;
 
-use Darya\ORM\Strategy\PropertyStrategy;
-use InvalidArgumentException;
-
 /**
  * Darya's abstract entity map.
  *

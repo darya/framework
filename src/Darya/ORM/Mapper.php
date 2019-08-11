@@ -62,10 +62,37 @@ class Mapper
 	}
 
 	/**
+	 * Check whether a single entity exists with the given ID.
+	 *
+	 * @param mixed $id The ID of the entity to check.
+	 * @return bool
+	 */
+	public function exists($id)
+	{
+		$entityMap  = $this->getEntityMap();
+		$resource   = $entityMap->getResource();
+		$storageKey = $entityMap->getStorageKey();
+
+		$exists = false;
+
+		if ($id !== null) {
+			$result = $this->storage->query($resource)
+				->where($storageKey, $id)
+				->run();
+
+			$exists = $result->count > 0;
+		}
+
+		return $exists;
+	}
+
+	/**
 	 * Find a single entity with the given ID.
 	 *
+	 * Returns null if the entity is not found.
+	 *
 	 * @param mixed $id The ID of the entity to find.
-	 * @return object
+	 * @return object|null
 	 */
 	public function find($id)
 	{
@@ -135,14 +162,7 @@ class Mapper
 
 		// Determine whether the entity exists in storage
 		$id     = $storageData[$storageKey] ?? null;
-		$exists = false;
-
-		if ($id !== null) {
-			$result = $this->storage->query($resource)
-				->where($storageKey, $id)
-				->run();
-			$exists = $result->count > 0;
-		}
+		$exists = $this->exists($id);
 
 		// Update or create in storage accordingly
 		$query = $this->storage->query($resource);
@@ -178,7 +198,7 @@ class Mapper
 	}
 
 	/**
-	 * Map storage data to the given entity.
+	 * Map from storage data to an entity.
 	 *
 	 * @param object $entity      The entity to map to.
 	 * @param array  $storageData The storage data to map from.
@@ -193,7 +213,7 @@ class Mapper
 	}
 
 	/**
-	 * Map the given storage data to storage data.
+	 * Map from an entity to storage data.
 	 *
 	 * @param object $entity The entity to map from.
 	 * @return array The resulting storage data.
