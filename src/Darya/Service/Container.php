@@ -284,6 +284,7 @@ class Container implements ContainerInterface
 		$resolved = [];
 
 		foreach ($parameters as $index => $parameter) {
+			// TODO: Consider nullable parameters (array_keys_exists() vs isset())
 			if (isset($arguments[$index])) {
 				$resolved[$parameter->name] = $arguments[$index];
 				continue;
@@ -333,6 +334,7 @@ class Container implements ContainerInterface
 			}
 		}
 
+		// TODO: Include reflection exception as previous exception?
 		throw new ContainerException("Unresolvable parameter '\${$parameter->name}'");
 	}
 

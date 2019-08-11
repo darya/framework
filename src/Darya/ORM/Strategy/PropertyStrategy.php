@@ -13,48 +13,22 @@ use Darya\ORM\Strategy;
  */
 class PropertyStrategy implements Strategy
 {
-	/**
-	 * Entity properties mapped to storage fields.
-	 *
-	 * @var array
-	 */
-	protected $mapping;
-
-	/**
-	 * Create a new property mapping strategy.
-	 *
-	 * @param array $mapping Entity properties mapped to storage fields.
-	 */
-	public function __construct(array $mapping)
+	public function mapFromStorage($entity, array $mapping, array $storageData)
 	{
-		$this->mapping = $mapping;
-	}
-
-	public function getStorageField(string $property): string
-	{
-		if (array_key_exists($property, $this->mapping)) {
-			return $this->mapping[$property];
-		}
-
-		return $property;
-	}
-
-	public function mapToEntity($entity, array $data)
-	{
-		foreach ($this->mapping as $entityKey => $storageKey) {
-			if (array_key_exists($storageKey, $data)) {
-				$entity->{$entityKey} = $data[$storageKey];
+		foreach ($mapping as $entityKey => $storageKey) {
+			if (array_key_exists($storageKey, $storageData)) {
+				$entity->{$entityKey} = $storageData[$storageKey];
 			}
 		}
 
 		return $entity;
 	}
 
-	public function mapToStorage($entity): array
+	public function mapToStorage($entity, array $mapping): array
 	{
 		$data = [];
 
-		foreach ($this->mapping as $entityKey => $storageKey) {
+		foreach ($mapping as $entityKey => $storageKey) {
 			$data[$storageKey] = $entity->{$entityKey};
 		}
 

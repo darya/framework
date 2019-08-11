@@ -20,9 +20,7 @@ use InvalidArgumentException;
 class EntityMap
 {
 	/**
-	 * The entity class to map to.
-	 *
-	 * Must implement the Darya\ORM\Mappable interface.
+	 * The class name of the entity to map.
 	 *
 	 * @var string
 	 */
@@ -36,13 +34,15 @@ class EntityMap
 	protected $resource;
 
 	/**
-	 * The mapping of entity attributes to storage fields.
+	 * The mapping of entity properties to storage fields.
 	 *
 	 * @var array
 	 */
 	protected $mapping = [];
 
 	/**
+	 * The mapping strategy to use.
+	 *
 	 * @var Strategy
 	 */
 	protected $strategy;
@@ -59,15 +59,17 @@ class EntityMap
 	/**
 	 * Create a new entity map.
 	 *
-	 * @param string   $class    The entity class to map to.
+	 * @param string   $class    The class name of the entity to map.
 	 * @param string   $resource The name of the resource the entity maps to in storage.
+	 * @param array    $mapping  The mapping of entity attributes to storage fields.
 	 * @param Strategy $strategy The mapping strategy to use.
 	 * @param string   $key      [optional] The entity's primary key attribute. Defaults to `'id'`.
 	 */
-	public function __construct(string $class, string $resource, Strategy $strategy, string $key = 'id')
+	public function __construct(string $class, string $resource, array $mapping, Strategy $strategy, string $key = 'id')
 	{
 		$this->class    = $class;
 		$this->resource = $resource;
+		$this->mapping  = $mapping;
 		$this->strategy = $strategy;
 		$this->key      = $key ?? $this->key;
 	}
@@ -132,6 +134,21 @@ class EntityMap
 	 */
 	public function getStorageKey(): string
 	{
-		return $this->getStrategy()->getStorageField($this->getKey());
+		return $this->getStorageField($this->getKey());
+	}
+
+	/**
+	 * Get the storage field name of the given entity property.
+	 *
+	 * @param string $property
+	 * @return string
+	 */
+	public function getStorageField(string $property): string
+	{
+		if (array_key_exists($property, $this->mapping)) {
+			return $this->mapping[$property];
+		}
+
+		return $property;
 	}
 }

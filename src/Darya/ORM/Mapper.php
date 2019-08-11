@@ -105,7 +105,7 @@ class Mapper
 			$entities = [];
 
 			foreach ($result as $storageData) {
-				$entity = $this->mapToEntity($this->newInstance(), $storageData);
+				$entity = $this->mapFromStorage($this->newInstance(), $storageData);
 
 				$entities[] = $entity;
 			}
@@ -131,15 +131,16 @@ class Mapper
 		$entityMap   = $this->getEntityMap();
 		$resource    = $entityMap->getResource();
 		$storageKey  = $entityMap->getStorageKey();
-		$storageData = $this->mapToStorageData($entity);
+		$storageData = $this->mapToStorage($entity);
 
 		// Determine whether the entity exists in storage
 		$id     = $storageData[$storageKey] ?? null;
 		$exists = false;
 
 		if ($id !== null) {
-			$query  = $this->storage->query($resource);
-			$result = $query->where($storageKey, $id)->run();
+			$result = $this->storage->query($resource)
+				->where($storageKey, $id)
+				->run();
 			$exists = $result->count > 0;
 		}
 
@@ -183,9 +184,12 @@ class Mapper
 	 * @param array  $storageData The storage data to map from.
 	 * @return object The resulting entity.
 	 */
-	protected function mapToEntity($entity, array $storageData)
+	protected function mapFromStorage($entity, array $storageData)
 	{
-		return $this->getEntityMap()->getStrategy()->mapToEntity($entity, $storageData);
+		$entityMap = $this->getEntityMap();
+		$mapping   = $entityMap->getMapping();
+
+		return $entityMap->getStrategy()->mapFromStorage($entity, $mapping, $storageData);
 	}
 
 	/**
@@ -194,8 +198,11 @@ class Mapper
 	 * @param object $entity The entity to map from.
 	 * @return array The resulting storage data.
 	 */
-	protected function mapToStorageData($entity): array
+	protected function mapToStorage($entity): array
 	{
-		return $this->getEntityMap()->getStrategy()->mapToStorage($entity);
+		$entityMap = $this->getEntityMap();
+		$mapping   = $entityMap->getMapping();
+
+		return $entityMap->getStrategy()->mapToStorage($entity, $mapping);
 	}
 }
