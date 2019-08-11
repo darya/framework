@@ -67,7 +67,7 @@ class Mapper
 	 * @param mixed $id The ID of the entity to check.
 	 * @return bool
 	 */
-	public function exists($id)
+	public function has($id)
 	{
 		$entityMap  = $this->getEntityMap();
 		$resource   = $entityMap->getResource();
@@ -162,7 +162,7 @@ class Mapper
 
 		// Determine whether the entity exists in storage
 		$id     = $storageData[$storageKey] ?? null;
-		$exists = $this->exists($id);
+		$exists = $this->has($id);
 
 		// Update or create in storage accordingly
 		$query = $this->storage->query($resource);
