@@ -12,6 +12,8 @@ namespace Darya\ORM;
  * TODO: Could an entity factory go here too?
  *       This would give the entity map control over how entities are instantiated.
  *
+ * TODO: Should the storage interface be kept here?
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class EntityMap
@@ -49,7 +51,7 @@ class EntityMap
 	 *
 	 * TODO: Composite keys
 	 *
-	 * @var string
+	 * @var string|string[]
 	 */
 	protected $key;
 
@@ -68,7 +70,20 @@ class EntityMap
 		$this->resource = $resource;
 		$this->mapping  = $mapping;
 		$this->strategy = $strategy;
-		$this->key      = $key ?? $this->key;
+		$this->key      = $key;
+	}
+
+	/**
+	 * Get the name of the entity.
+	 *
+	 * TODO: Name property, separate from class?
+	 *       A generic entity class could be used for many entities.
+	 *
+	 * @return string
+	 */
+	public function getName(): string
+	{
+		return $this->getClass();
 	}
 
 	/**

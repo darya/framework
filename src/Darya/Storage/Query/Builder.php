@@ -13,6 +13,7 @@ use Darya\Storage\Result;
  * queryable storage interface once the query has been built.
  *
  * TODO: Implement event dispatcher awareness.
+ * TODO: Pre-query callback, rename callback to resultCallback.
  *
  * @mixin Query
  * @property-read Query     $query
@@ -140,8 +141,9 @@ class Builder
 	}
 
 	/**
-	 * Alias for the run() method.
+	 * Alias for the `run()` method.
 	 *
+	 * @see Builder::run()
 	 * @return mixed
 	 */
 	public function cheers()

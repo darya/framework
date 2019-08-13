@@ -2,6 +2,7 @@
 
 namespace Darya\ORM;
 
+use Darya\ORM\Exception\EntityNotFoundException;
 use Darya\Storage\Query;
 use Darya\Storage\Queryable;
 use Darya\Storage\Result;
@@ -15,6 +16,7 @@ use ReflectionException;
  *
  * TODO: Entity factory for instantiation; this could allow dynamically defined entities
  * TODO: Entity caching
+ * TODO: Map to array, for light data mapping that avoids instantiation
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -107,6 +109,39 @@ class Mapper
 		}
 
 		return $entities[0];
+	}
+
+	/**
+	 * Find a single entity with the given ID or error if it is not found.
+	 *
+	 * Throws an EntityNotFoundException if the entity is not found.
+	 *
+	 * @param mixed $id The ID of the entity to find.
+	 * @return object
+	 * @throws EntityNotFoundException
+	 */
+	public function findOrFail($id)
+	{
+		$entity = $this->find($id);
+
+		if ($entity !== null) {
+			return $entity;
+		}
+
+		$name = $this->getEntityMap()->getName();
+
+		throw (new EntityNotFoundException())->setEntityName($name);
+	}
+
+	/**
+	 * Find a single entity with the given ID or create a new one if it not found.
+	 *
+	 * @param mixed $id The ID of the entity to find.
+	 * @return object
+	 */
+	public function findOrNew($id)
+	{
+		return $this->find($id) ?: $this->newInstance();
 	}
 
 	/**

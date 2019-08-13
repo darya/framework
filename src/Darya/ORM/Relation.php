@@ -6,6 +6,7 @@ use Darya\Storage\Query\Builder;
 use Exception;
 use InvalidArgumentException;
 use ReflectionClass;
+use ReflectionException;
 
 /**
  * Darya's abstract entity relation.
@@ -184,11 +185,12 @@ abstract class Relation
 	 * Applies numerically-keyed arguments to the constructor and string-keyed
 	 * arguments to methods with the same name.
 	 *
-	 * @param string $type
-	 * @param array  $arguments
+	 * @param string $type      The type of relation to create.
+	 * @param array  $arguments [optional] Arguments for the relation constructor.
 	 * @return Relation
+	 * @throws ReflectionException
 	 */
-	public static function factory($type = self::HAS, array $arguments)
+	public static function factory($type = self::HAS, array $arguments = [])
 	{
 		$class = static::resolveClass($type);
 
@@ -268,9 +270,9 @@ abstract class Relation
 	 */
 	protected function defaultConstraint()
 	{
-		return array(
+		return [
 			$this->foreignKey => $this->parent->id()
-		);
+		];
 	}
 
 	/**
@@ -293,7 +295,7 @@ abstract class Relation
 	 */
 	protected static function attributeList($instances, $attribute, $index = null)
 	{
-		$values = array();
+		$values = [];
 
 		foreach (static::arrayify($instances) as $instance) {
 			if (isset($instance[$attribute])) {
