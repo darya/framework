@@ -17,6 +17,7 @@ use ReflectionException;
  * TODO: Entity factory for instantiation; this could allow dynamically defined entities
  * TODO: Entity caching
  * TODO: Map to array, for light data mapping that avoids instantiation
+ * TODO: Consider other types of storage, e.g. a cache, which may only find by ID
  *
  * @author Chris Andrew <chris@hexus.io>
  */
