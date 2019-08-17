@@ -13,7 +13,7 @@ use ReflectionException;
  *
  * TODO: errors() method.
  * TODO: Filter, order, limit, offset for load() and retrieve().
- * TODO: Shouldn't delimitClass() and prepareForeignKey() be static?
+ * TODO: Move arrayify(), delimitClass() and prepareForeignKey() to Darya\ORM\Functions namespace as functions
  * TODO: Separate filters for reading and updating/deleting (readFilter(), modifyFilter()) mainly for BelongsToMany
  *
  * @property-read string    $name

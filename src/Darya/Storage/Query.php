@@ -2,6 +2,8 @@
 
 namespace Darya\Storage;
 
+use InvalidArgumentException;
+
 /**
  * Darya's storage query class.
  *
@@ -51,7 +53,7 @@ class Query
 	const DELETE = 'delete';
 
 	/**
-	 * Determines whether to return unique resource data.
+	 * Whether the query results should be unique.
 	 *
 	 * TODO: Rename to $unique.
 	 *
@@ -162,7 +164,7 @@ class Query
 	}
 
 	/**
-	 * Set the query to result in unique data.
+	 * Make the query results unique.
 	 *
 	 * @return $this
 	 */
@@ -177,6 +179,7 @@ class Query
 	 * Alias for unique().
 	 *
 	 * @return $this
+	 * @see Query::unique()
 	 */
 	public function distinct()
 	{
@@ -191,11 +194,23 @@ class Query
 	 * @param string $resource
 	 * @return $this
 	 */
-	public function resource($resource)
+	public function resource(string $resource): Query
 	{
 		$this->resource = $resource;
 
 		return $this;
+	}
+
+	/**
+	 * Alias for resource().
+	 *
+	 * @param string $resource
+	 * @return $this
+	 * @see Query::resource()
+	 */
+	public function from(string $resource): Query
+	{
+		return $this->resource($resource);
 	}
 
 	/**
@@ -219,7 +234,7 @@ class Query
 	 * @param array $data
 	 * @return $this
 	 */
-	public function create(array $data)
+	public function create(array $data): Query
 	{
 		$this->modify(static::CREATE, $data);
 
@@ -234,7 +249,7 @@ class Query
 	 * @param array|string $fields [optional]
 	 * @return $this
 	 */
-	public function read($fields = [])
+	public function read($fields = []): Query
 	{
 		$this->type = static::READ;
 
@@ -251,7 +266,7 @@ class Query
 	 * @param array $data
 	 * @return $this
 	 */
-	public function update(array $data)
+	public function update(array $data): Query
 	{
 		$this->modify(static::UPDATE, $data);
 
@@ -263,7 +278,7 @@ class Query
 	 *
 	 * @return $this
 	 */
-	public function delete()
+	public function delete(): Query
 	{
 		$this->type = static::DELETE;
 
@@ -275,8 +290,9 @@ class Query
 	 *
 	 * @param array $data
 	 * @return $this
+	 * @see Query::create()
 	 */
-	public function insert(array $data)
+	public function insert(array $data): Query
 	{
 		$this->create($data);
 
@@ -288,8 +304,9 @@ class Query
 	 *
 	 * @param array|string $fields [optional]
 	 * @return $this
+	 * @see Query::read()
 	 */
-	public function select($fields = [])
+	public function select($fields = []): Query
 	{
 		$this->read($fields);
 
@@ -303,7 +320,7 @@ class Query
 	 * @param mixed  $value [optional]
 	 * @return $this
 	 */
-	public function filter($field, $value = null)
+	public function filter($field, $value = null): Query
 	{
 		$this->filter = array_merge($this->filter, [$field => $value]);
 
@@ -316,7 +333,7 @@ class Query
 	 * @param array $filters
 	 * @return $this
 	 */
-	public function filters(array $filters = [])
+	public function filters(array $filters = []): Query
 	{
 		$this->filter = array_merge($this->filter, $filters);
 
@@ -330,7 +347,7 @@ class Query
 	 * @param mixed  $value [optional]
 	 * @return $this
 	 */
-	public function where($field, $value = null)
+	public function where($field, $value = null): Query
 	{
 		$this->filter($field, $value);
 
@@ -346,7 +363,7 @@ class Query
 	 * @param string $order [optional]
 	 * @return $this
 	 */
-	public function order($field, $order = 'asc')
+	public function order($field, $order = 'asc'): Query
 	{
 		$this->order = array_merge($this->order, [$field => $order]);
 
@@ -361,7 +378,7 @@ class Query
 	 * @param array $orders
 	 * @return $this
 	 */
-	public function orders(array $orders = [])
+	public function orders(array $orders = []): Query
 	{
 		$prepared = [];
 
@@ -385,7 +402,7 @@ class Query
 	 * @param string $order [optional]
 	 * @return $this
 	 */
-	public function sort($field, $order = 'asc')
+	public function sort($field, $order = 'asc'): Query
 	{
 		$this->order($field, $order);
 
@@ -401,7 +418,7 @@ class Query
 	 * @param int $offset [optional]
 	 * @return $this
 	 */
-	public function limit($limit, $offset = 0)
+	public function limit($limit, $offset = 0): Query
 	{
 		$this->limit = $limit;
 
@@ -418,7 +435,7 @@ class Query
 	 * @param int $offset
 	 * @return $this
 	 */
-	public function offset($offset)
+	public function offset($offset): Query
 	{
 		$this->offset = (int) $offset;
 
@@ -431,7 +448,7 @@ class Query
 	 * @param int $offset
 	 * @return $this
 	 */
-	public function skip($offset)
+	public function skip($offset): Query
 	{
 		$this->offset($offset);
 
@@ -444,12 +461,14 @@ class Query
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property)
+	public function __get(string $property)
 	{
 		if (property_exists($this, $property)) {
 			return $this->$property;
 		}
 
-		return null;
+		$class = static::class;
+
+		throw new InvalidArgumentException("Property '$property' does not exist on class $class");
 	}
 }

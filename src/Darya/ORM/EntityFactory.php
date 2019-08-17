@@ -16,5 +16,5 @@ interface EntityFactory
 	 * @param array $attributes [optional] The attributes to create the entity with.
 	 * @return mixed
 	 */
-	public function createEntity(array $attributes = []);
+	public function create(array $attributes = []);
 }

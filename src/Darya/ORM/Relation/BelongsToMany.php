@@ -1,8 +1,10 @@
 <?php
+
 namespace Darya\ORM\Relation;
 
 use Darya\ORM\Record;
 use Darya\ORM\Relation;
+use Exception;
 
 /**
  * Darya's many-to-many entity relation.
@@ -17,7 +19,7 @@ class BelongsToMany extends Relation
 	/**
 	 * @var array
 	 */
-	protected $associationConstraint = array();
+	protected $associationConstraint = [];
 
 	/**
 	 * @var string Table name for "many-to-many" relations
@@ -36,14 +38,14 @@ class BelongsToMany extends Relation
 	 * @param array  $associationConstraint [optional]
 	 */
 	public function __construct(
-			Record $parent,
-			$target,
-			$foreignKey = null,
-			$localKey = null,
-			$table = null,
-			array $constraint = array(),
-			array $associationConstraint = array())
-	{
+		Record $parent,
+		$target,
+		$foreignKey = null,
+		$localKey = null,
+		$table = null,
+		array $constraint = [],
+		array $associationConstraint = []
+	) {
 		$this->localKey = $localKey;
 		parent::__construct($parent, $target, $foreignKey);
 
@@ -66,8 +68,8 @@ class BelongsToMany extends Relation
 	 */
 	protected static function insertIds($old, $new)
 	{
-		$oldIds = array();
-		$newIds = array();
+		$oldIds = [];
+		$newIds = [];
 
 		foreach ($old as $instance) {
 			$oldIds[] = $instance->id();
@@ -94,11 +96,11 @@ class BelongsToMany extends Relation
 	 */
 	protected function bundleRelations(array $relations)
 	{
-		$bundle = array();
+		$bundle = [];
 
 		foreach ($relations as $relation) {
 			if (!isset($bundle[$relation[$this->localKey]])) {
-				$bundle[$relation[$this->localKey]] = array();
+				$bundle[$relation[$this->localKey]] = [];
 			}
 
 			$bundle[$relation[$this->localKey]][] = $relation[$this->foreignKey];
@@ -115,7 +117,7 @@ class BelongsToMany extends Relation
 	 */
 	protected static function listById($instances)
 	{
-		$list = array();
+		$list = [];
 
 		foreach ((array) $instances as $instance) {
 			$list[$instance->id()] = $instance;
@@ -152,7 +154,7 @@ class BelongsToMany extends Relation
 		$parent = $this->delimitClass(get_class($this->parent));
 		$target = $this->delimitClass(get_class($this->target));
 
-		$names = array($parent, $target);
+		$names = [$parent, $target];
 		sort($names);
 
 		$this->table = implode('_', $names) . 's';
@@ -165,7 +167,7 @@ class BelongsToMany extends Relation
 	 */
 	protected function defaultAssociationConstraint()
 	{
-		return array($this->localKey => $this->parent->id());
+		return [$this->localKey => $this->parent->id()];
 	}
 
 	/**
@@ -206,9 +208,9 @@ class BelongsToMany extends Relation
 	 * @param array $related
 	 * @return array
 	 */
-	public function filter(array $related = array())
+	public function filter(array $related = [])
 	{
-		$filter = array();
+		$filter = [];
 
 		// First filter by the currently related IDs if none are given
 		$filter[$this->target->key()] = empty($related) ? $this->relatedIds() : $related;
@@ -244,7 +246,7 @@ class BelongsToMany extends Relation
 	protected function relatedIds($limit = 0)
 	{
 		// Read the associations from the relation table
-		$associations = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
+		$associations  = $this->storage()->read($this->table, $this->associationFilter(), null, $limit);
 		$associatedIds = static::attributeList($associations, $this->foreignKey);
 
 		// If there's no constraint for the target table then we're done
@@ -253,7 +255,7 @@ class BelongsToMany extends Relation
 		}
 
 		// Create the filter for the target table
-		$filter = array();
+		$filter = [];
 
 		$filter[$this->target->key()] = $associatedIds;
 
@@ -275,9 +277,9 @@ class BelongsToMany extends Relation
 	{
 		return $this->storage()->read(
 			$this->target->table(),
-			array(
+			[
 				$this->target->key() => $this->relatedIds($limit)
-			),
+			],
 			$this->order()
 		);
 	}
@@ -289,6 +291,7 @@ class BelongsToMany extends Relation
 	 *
 	 * @param array $instances
 	 * @return array
+	 * @throws Exception
 	 */
 	public function eager(array $instances)
 	{
@@ -298,9 +301,9 @@ class BelongsToMany extends Relation
 		$ids = static::attributeList($instances, $this->parent->key());
 
 		// Build the filter for the association table
-		$filter = array_merge($this->associationFilter(), array(
+		$filter = array_merge($this->associationFilter(), [
 			$this->localKey => $ids
-		));
+		]);
 
 		// Read the relations from the table
 		$relations = $this->storage()->read($this->table, $filter);
@@ -319,7 +322,7 @@ class BelongsToMany extends Relation
 		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 
 		// Instances of relations from the data
-		$class = get_class($this->target);
+		$class     = get_class($this->target);
 		$generated = $class::generate($data);
 
 		// Set IDs as the keys of the relation instances
@@ -327,7 +330,7 @@ class BelongsToMany extends Relation
 
 		// Attach the related instances using the relation adjacency list
 		foreach ($instances as $instance) {
-			$instanceRelations = array();
+			$instanceRelations = [];
 
 			// TODO: Find a way to drop these issets
 			if (isset($relationBundle[$instance->id()])) {
@@ -361,6 +364,7 @@ class BelongsToMany extends Relation
 	 *
 	 * @param Record[]|Record $instances
 	 * @return int
+	 * @throws Exception
 	 */
 	public function associate($instances)
 	{
@@ -370,9 +374,9 @@ class BelongsToMany extends Relation
 
 		$this->attach($instances);
 
-		$existing = $this->storage()->distinct($this->table, $this->foreignKey, array(
+		$existing = $this->storage()->distinct($this->table, $this->foreignKey, [
 			$this->localKey => $this->parent->id()
-		));
+		]);
 
 		$successful = 0;
 
@@ -384,10 +388,10 @@ class BelongsToMany extends Relation
 				// Create the association in the relation table if it doesn't
 				// yet exist
 				if (!in_array($instance->id(), $existing)) {
-					$this->storage()->create($this->table, array(
+					$this->storage()->create($this->table, [
 						$this->localKey   => $this->parent->id(),
 						$this->foreignKey => $instance->id()
-					));
+					]);
 				}
 			};
 		}
@@ -402,12 +406,13 @@ class BelongsToMany extends Relation
 	 *
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
+	 * @throws Exception
 	 */
-	public function dissociate($instances = array())
+	public function dissociate($instances = [])
 	{
 		$instances = static::arrayify($instances);
 
-		$ids = array();
+		$ids = [];
 
 		$this->verify($instances);
 
@@ -419,7 +424,7 @@ class BelongsToMany extends Relation
 
 		$successful = $this->storage()->delete($this->table, array_merge(
 			$this->associationFilter(),
-			array($this->foreignKey => $ids)
+			[$this->foreignKey => $ids]
 		));
 
 		$this->reduce($ids);
@@ -438,9 +443,9 @@ class BelongsToMany extends Relation
 	{
 		$this->clear(); // Force a reload because diffing would be a pain
 
-		return (int) $this->storage()->delete($this->table, array(
+		return (int) $this->storage()->delete($this->table, [
 			$this->foreignKey => $this->relatedIds()
-		));
+		]);
 	}
 
 	/**
@@ -450,6 +455,7 @@ class BelongsToMany extends Relation
 	 *
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
+	 * @throws Exception
 	 */
 	public function sync($instances)
 	{

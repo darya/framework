@@ -15,10 +15,8 @@ use Darya\ORM\Model\Transformer;
  *
  * @author Chris Andrew <chris@hexus.io>
  */
-abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable, Serializable, Mappable
+abstract class Model implements ArrayAccess, IteratorAggregate, JsonSerializable, Serializable
 {
-	use MappableTrait;
-
 	/**
 	 * Attribute names as keys and types as values.
 	 *

@@ -1,8 +1,10 @@
 <?php
+
 namespace Darya\ORM\Relation;
 
 use Darya\ORM\Record;
 use Darya\ORM\Relation;
+use Exception;
 
 /**
  * Darya's belongs-to entity relation.
@@ -32,7 +34,7 @@ class BelongsTo extends Relation
 	 */
 	protected function defaultConstraint()
 	{
-		return array($this->localKey => $this->parent->get($this->foreignKey));
+		return [$this->localKey => $this->parent->get($this->foreignKey)];
 	}
 
 	/**
@@ -42,30 +44,31 @@ class BelongsTo extends Relation
 	 *
 	 * @param array $instances
 	 * @return array
+	 * @throws Exception
 	 */
 	public function eager(array $instances)
 	{
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, $this->foreignKey);
 
-		$filter = array_merge($this->filter(), array(
+		$filter = array_merge($this->filter(), [
 			$this->localKey => array_unique($ids)
-		));
+		]);
 
 		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 
-		$class = get_class($this->target);
+		$class     = get_class($this->target);
 		$generated = $class::generate($data);
 
-		$related = array();
+		$related = [];
 
 		foreach ($generated as $model) {
 			$related[$model->id()] = $model;
 		}
 
 		foreach ($instances as $instance) {
-			$key = $instance->get($this->foreignKey);
-			$value = isset($related[$key]) ? array($related[$key]) : array();
+			$key   = $instance->get($this->foreignKey);
+			$value = isset($related[$key]) ? [$related[$key]] : [];
 			$instance->relation($this->name)->set($value);
 		}
 
@@ -87,6 +90,7 @@ class BelongsTo extends Relation
 	 *
 	 * @param Record[]|Record $instances
 	 * @return int
+	 * @throws Exception
 	 */
 	public function associate($instances)
 	{
@@ -100,12 +104,12 @@ class BelongsTo extends Relation
 		$instance = $instances[0];
 
 		$instance->save();
-		$this->set(array($instance));
+		$this->set([$instance]);
 		$this->parent->set($this->foreignKey, $instance->id());
 
-		return (int) $this->parent->save(array(
+		return (int) $this->parent->save([
 			'skipRelations' => true
-		));
+		]);
 	}
 
 	/**
@@ -113,15 +117,16 @@ class BelongsTo extends Relation
 	 *
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
+	 * @throws Exception
 	 */
-	public function dissociate($instances = array())
+	public function dissociate($instances = [])
 	{
 		$this->clear();
 		$this->parent->set($this->foreignKey, 0);
 
-		$saved = (int) $this->parent->save(array(
+		$saved = (int) $this->parent->save([
 			'skipRelations' => true
-		));
+		]);
 
 		$this->loaded = false;
 

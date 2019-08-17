@@ -2,6 +2,8 @@
 
 namespace Darya\ORM;
 
+use InvalidArgumentException;
+
 /**
  * Darya's abstract entity map.
  *
@@ -18,6 +20,13 @@ namespace Darya\ORM;
  */
 class EntityMap
 {
+	/**
+	 * The name of the entity.
+	 *
+	 * @var string
+	 */
+	protected $name;
+
 	/**
 	 * The class name of the entity to map.
 	 *
@@ -47,9 +56,7 @@ class EntityMap
 	protected $strategy;
 
 	/**
-	 * The entity's primary key attribute.
-	 *
-	 * TODO: Composite keys
+	 * The entity's primary key attribute(s).
 	 *
 	 * @var string|string[]
 	 */
@@ -58,13 +65,13 @@ class EntityMap
 	/**
 	 * Create a new entity map.
 	 *
-	 * @param string   $class    The class name of the entity to map.
-	 * @param string   $resource The name of the resource the entity maps to in storage.
-	 * @param array    $mapping  The mapping of entity attributes to storage fields.
-	 * @param Strategy $strategy The mapping strategy to use.
-	 * @param string   $key      [optional] The entity's primary key attribute. Defaults to `'id'`.
+	 * @param string          $class    The class name of the entity to map.
+	 * @param string          $resource The name of the resource the entity maps to in storage.
+	 * @param array           $mapping  The mapping of entity attributes to storage fields.
+	 * @param Strategy        $strategy The mapping strategy to use.
+	 * @param string|string[] $key      [optional] The entity's primary key attribute(s). Defaults to `'id'`.
 	 */
-	public function __construct(string $class, string $resource, array $mapping, Strategy $strategy, string $key = 'id')
+	public function __construct(string $class, string $resource, array $mapping, Strategy $strategy, $key = 'id')
 	{
 		$this->class    = $class;
 		$this->resource = $resource;
@@ -76,14 +83,21 @@ class EntityMap
 	/**
 	 * Get the name of the entity.
 	 *
-	 * TODO: Name property, separate from class?
-	 *       A generic entity class could be used for many entities.
-	 *
 	 * @return string
 	 */
 	public function getName(): string
 	{
-		return $this->getClass();
+		return $this->name ?: $this->getClass();
+	}
+
+	/**
+	 * Set the name of the entity.
+	 *
+	 * @param string $name
+	 */
+	public function setName(string $name)
+	{
+		$this->name = $name;
 	}
 
 	/**
@@ -130,13 +144,27 @@ class EntityMap
 	}
 
 	/**
-	 * Get the entity's primary key attribute name.
+	 * Get the entity's primary key attribute(s).
 	 *
-	 * @return string
+	 * @return string|string[]
 	 */
-	public function getKey(): string
+	public function getKey()
 	{
 		return $this->key;
+	}
+
+	/**
+	 * Set the entity's primary key attribute(s).
+	 *
+	 * @param string|string[]
+	 */
+	protected function setKey($key)
+	{
+		if (!is_string($key) && !is_array($key)) {
+			throw new InvalidArgumentException("Entity key must be a string, or an array of strings");
+		}
+
+		$this->key = $key;
 	}
 
 	/**

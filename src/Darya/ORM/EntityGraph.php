@@ -2,6 +2,8 @@
 
 namespace Darya\ORM;
 
+use RuntimeException;
+
 /**
  * Darya's entity graph.
  *
@@ -25,7 +27,7 @@ class EntityGraph
 	 *
 	 * Keyed by entity name.
 	 *
-	 * @var EntityMap[]
+	 * @var EntityMap[][]
 	 */
 	protected $maps = [];
 
@@ -34,7 +36,7 @@ class EntityGraph
 	 *
 	 * Keyed by entity name.
 	 *
-	 * @var Relation[]
+	 * @var Relationship[][]
 	 */
 	protected $relationships = [];
 
@@ -51,7 +53,95 @@ class EntityGraph
 	}
 
 	/**
-	 * Add a new entity to the graph.
+	 * Get a relationship of an entity.
+	 *
+	 * @param string $entityName       The entity name.
+	 * @param string $relationshipName The relationship name.
+	 * @return Relationship
+	 * @throws RuntimeException
+	 */
+	public function getRelationship($entityName, $relationshipName): Relationship
+	{
+		if (!isset($this->entities[$entityName])) {
+			throw new RuntimeException("Entity '$entityName' not found");
+		}
+
+		if (!isset($this->relationships[$entityName][$relationshipName])) {
+			throw new RuntimeException("Relationship '$relationshipName' not found for entity '$entityName'");
+		}
+
+		return $this->relationships[$entityName][$relationshipName];
+	}
+
+	/**
+	 * Get the relationships of an entity.
+	 *
+	 * @param string $entityName The entity name.
+	 * @return Relationship[]
+	 */
+	public function getRelationships($entityName)
+	{
+		if (!isset($this->relationships[$entityName])) {
+			throw new RuntimeException("Entity '$entityName' not found");
+		}
+
+		return $this->relationships[$entityName];
+	}
+
+	/**
+	 * Add an entity map to the graph.
+	 *
+	 * @param EntityMap $map
+	 */
+	public function addMap(EntityMap $map)
+	{
+		$entityName = $map->getName();
+
+		$this->addEntity($entityName);
+
+		$this->maps[$entityName][] = $map;
+	}
+
+	/**
+	 * Add many entity maps to the graph.
+	 *
+	 * @param EntityMap[] $maps
+	 */
+	public function addMaps(array $maps)
+	{
+		foreach ($maps as $map) {
+			$this->addMap($map);
+		}
+	}
+
+	/**
+	 * Add a relationship to the graph.
+	 *
+	 * @param Relationship $relationship
+	 */
+	public function addRelationship(Relationship $relationship)
+	{
+		$entityName = $relationship->getParentMap()->getName();
+
+		$this->addEntity($entityName);
+
+		$this->relationships[$entityName][$relationship->getName()] = $relationship;
+	}
+
+	/**
+	 * Add many relationships to the graph.
+	 *
+	 * @param Relationship[] $relationships
+	 */
+	public function addRelationships(array $relationships)
+	{
+		foreach ($relationships as $relationship) {
+			$this->addRelationship($relationship);
+		}
+	}
+
+	/**
+	 * Add an entity to the graph.
 	 *
 	 * @param string $name Entity name.
 	 */
@@ -71,57 +161,14 @@ class EntityGraph
 	}
 
 	/**
+	 * Add many entities to the graph.
+	 *
 	 * @param string[] $entities
 	 */
-	public function addEntities(array $entities)
+	protected function addEntities(array $entities)
 	{
 		foreach ($entities as $name) {
 			$this->addEntity($name);
-		}
-	}
-
-	/**
-	 * @param EntityMap $map
-	 */
-	public function addMap(EntityMap $map)
-	{
-		$entityName = $map->getName();
-
-		$this->addEntity($entityName);
-
-		$this->maps[$entityName][] = $map;
-	}
-
-	/**
-	 * @param EntityMap[] $maps
-	 */
-	public function addMaps(array $maps)
-	{
-		foreach ($maps as $map) {
-			$this->addMap($map);
-		}
-	}
-
-	/**
-	 * @param Relation $relationship
-	 */
-	public function addRelationship(Relation $relationship)
-	{
-		// TODO: Class name should be explicitly provided by the relationship class
-		$entityName = $relationship->name() ?: get_class($relationship->parent);
-
-		$this->addEntity($entityName);
-
-		$this->relationships[$entityName][] = $relationship;
-	}
-
-	/**
-	 * @param Relation[] $relationships
-	 */
-	public function addRelationships(array $relationships)
-	{
-		foreach ($relationships as $relationship) {
-			$this->addRelationship($relationship);
 		}
 	}
 }

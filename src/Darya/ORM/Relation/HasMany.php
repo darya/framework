@@ -1,7 +1,9 @@
 <?php
+
 namespace Darya\ORM\Relation;
 
 use Darya\ORM\Record;
+use Exception;
 
 /**
  * Darya's has-many entity relation.
@@ -17,15 +19,16 @@ class HasMany extends Has
 	 *
 	 * @param array $instances
 	 * @return array
+	 * @throws Exception
 	 */
 	public function eagerLoad(array $instances)
 	{
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, $this->parent->key());
 
-		$filter = array_merge($this->filter(), array(
+		$filter = array_merge($this->filter(), [
 			$this->foreignKey => array_unique($ids)
-		));
+		]);
 
 		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 
@@ -39,6 +42,7 @@ class HasMany extends Has
 	 *
 	 * @param array $instances
 	 * @return array
+	 * @throws Exception
 	 */
 	public function eager(array $instances)
 	{
@@ -60,6 +64,7 @@ class HasMany extends Has
 	 *
 	 * @param array $instances
 	 * @return array
+	 * @throws Exception
 	 */
 	protected function eagerSelf(array $instances)
 	{
@@ -71,7 +76,7 @@ class HasMany extends Has
 			$parents = $related;
 		}
 
-		$this->match($parents, array());
+		$this->match($parents, []);
 
 		return $instances;
 	}
@@ -88,8 +93,8 @@ class HasMany extends Has
 		$list = $this->adjacencyList($related);
 
 		foreach ($instances as $instance) {
-			$key = $instance->id();
-			$value = isset($list[$key]) ? $list[$key] : array();
+			$key   = $instance->id();
+			$value = isset($list[$key]) ? $list[$key] : [];
 			$instance->relation($this->name)->set($value);
 		}
 
@@ -106,6 +111,7 @@ class HasMany extends Has
 	 *
 	 * @param Record[]|Record $instances
 	 * @return int
+	 * @throws Exception
 	 */
 	public function associate($instances)
 	{
@@ -154,13 +160,13 @@ class HasMany extends Has
 	 */
 	public function purge()
 	{
-		$this->related = array();
+		$this->related = [];
 
 		return (int) $this->storage()->query($this->target->table())
 			->where($this->foreignKey, $this->parent->get($this->localKey))
-			->update(array(
+			->update([
 				$this->foreignKey => 0
-			))
+			])
 			->cheers()->affected;
 	}
 }

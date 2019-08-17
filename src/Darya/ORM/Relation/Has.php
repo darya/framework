@@ -1,8 +1,10 @@
 <?php
+
 namespace Darya\ORM\Relation;
 
 use Darya\ORM\Record;
 use Darya\ORM\Relation;
+use Exception;
 
 /**
  * Darya's has-one entity relation.
@@ -30,30 +32,31 @@ class Has extends Relation
 	 *
 	 * @param array $instances
 	 * @return array
+	 * @throws Exception
 	 */
 	public function eager(array $instances)
 	{
 		$this->verifyParents($instances);
 		$ids = static::attributeList($instances, $this->parent->key());
 
-		$filter = array_merge($this->filter(), array(
+		$filter = array_merge($this->filter(), [
 			$this->foreignKey => array_unique($ids)
-		));
+		]);
 
 		$data = $this->storage()->read($this->target->table(), $filter, $this->order());
 
-		$class = get_class($this->target);
+		$class     = get_class($this->target);
 		$generated = $class::generate($data);
 
-		$related = array();
+		$related = [];
 
 		foreach ($generated as $model) {
 			$related[$model->get($this->foreignKey)] = $model;
 		}
 
 		foreach ($instances as $instance) {
-			$key = $instance->id();
-			$value = isset($related[$key]) ? $related[$key] : array();
+			$key   = $instance->id();
+			$value = isset($related[$key]) ? $related[$key] : [];
 			$instance->relation($this->name)->set($value);
 		}
 
@@ -79,6 +82,7 @@ class Has extends Relation
 	 *
 	 * @param Record[]|Record $instances
 	 * @return int
+	 * @throws Exception
 	 */
 	public function associate($instances)
 	{
@@ -110,8 +114,9 @@ class Has extends Relation
 	 *
 	 * @param Record[]|Record $instances [optional]
 	 * @return int
+	 * @throws Exception
 	 */
-	public function dissociate($instances = array())
+	public function dissociate($instances = [])
 	{
 		$this->verify($instances);
 
@@ -130,7 +135,7 @@ class Has extends Relation
 		}
 
 		// Clear the set of models to detach
-		$this->detached = array();
+		$this->detached = [];
 
 		return $successful;
 	}
