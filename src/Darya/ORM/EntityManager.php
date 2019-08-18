@@ -38,6 +38,18 @@ class EntityManager
 	}
 
 	/**
+	 * Find many entities with the given IDs.
+	 *
+	 * @param string  $entity
+	 * @param mixed[] $id
+	 * @return object|null
+	 */
+	public function findMany(string $entity, array $id)
+	{
+		return $this->graph->getMapper($entity)->findMany($id);
+	}
+
+	/**
 	 * Open an ORM query builder.
 	 *
 	 * @param string $entity
@@ -64,15 +76,16 @@ class EntityManager
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
 		$idQuery = clone $query;
-		$idQuery->fields([$storageKey]);
+		$idQuery->fields($storageKey);
 		$ids = $storage->run($idQuery);
 
 		// TODO: Check related entity existence ($query->has) to filter down IDs
 
-		// TODO: Load root entities by ID
+		// Load root entities by ID
+		$entities = $storage->run($query->where($storageKey, $ids));
 
-		// TODO: Load related entities and map to the root entities ($query->with)
+		// TODO: Load related entities and map them to the root entities ($query->with)
 
-		//return $entities;
+		return $entities;
 	}
 }
