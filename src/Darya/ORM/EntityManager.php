@@ -59,14 +59,20 @@ class EntityManager
 	public function run(Query $query)
 	{
 		// Load root entity IDs
-		$rootMapper = $this->graph->getMapper($query->entity);
-		$rootStorage = $rootMapper->getStorage();
-		$rootEntityIds = $rootStorage->run($query->storageQuery->fields([$rootMapper->getEntityMap()->getStorageKey()]));
+		$mapper = $this->graph->getMapper($query->entity);
+		$storage = $mapper->getStorage();
+		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
-		// TODO: Check related entity existence ($query->has)
+		$idQuery = clone $query;
+		$idQuery->fields([$storageKey]);
+		$ids = $storage->run($idQuery);
+
+		// TODO: Check related entity existence ($query->has) to filter down IDs
+
+		// TODO: Load root entities by ID
 
 		// TODO: Load related entities and map to the root entities ($query->with)
 
-		//return $rootEntities;
+		//return $entities;
 	}
 }
