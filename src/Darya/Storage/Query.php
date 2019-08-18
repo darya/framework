@@ -189,7 +189,7 @@ class Query
 	}
 
 	/**
-	 * Change the resource to be queried.
+	 * Set the resource to query.
 	 *
 	 * @param string $resource
 	 * @return $this

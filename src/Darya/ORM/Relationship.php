@@ -21,21 +21,31 @@ use Darya\Storage\Query;
 abstract class Relationship extends Query
 {
 	/**
+	 * The relationship name.
+	 *
+	 * This should match the corresponding attribute on the parent entity.
+	 *
 	 * @var string
 	 */
 	protected $name;
 
 	/**
+	 * The parent entity map.
+	 *
 	 * @var EntityMap
 	 */
 	protected $parentMap;
 
 	/**
+	 * The related entity map.
+	 *
 	 * @var EntityMap
 	 */
 	protected $relatedMap;
 
 	/**
+	 * The foreign key.
+	 *
 	 * @var string
 	 */
 	protected $foreignKey;

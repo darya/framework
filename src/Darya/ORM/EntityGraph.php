@@ -7,7 +7,7 @@ use RuntimeException;
 /**
  * Darya's entity graph.
  *
- * Maintains relationships between different entity types.
+ * Maintains relationships between mapped entity types.
  *
  * TODO: Use an actual graph implementation with Nodes containing entity name, maps and relationships?
  *
@@ -23,13 +23,13 @@ class EntityGraph
 	protected $entities = [];
 
 	/**
-	 * Entity maps.
+	 * Entity mappers.
 	 *
 	 * Keyed by entity name.
 	 *
-	 * @var EntityMap[][]
+	 * @var Mapper[]
 	 */
-	protected $maps = [];
+	protected $mappers = [];
 
 	/**
 	 * Entity relationships.
@@ -43,13 +43,51 @@ class EntityGraph
 	/**
 	 * Create a new entity graph.
 	 *
-	 * @param EntityMap[] $entityMaps    Entity maps.
+	 * @param Mapper[] $mappers    Entity mappers.
 	 * @param Relation[]  $relationships Entity relationships.
 	 */
-	public function __construct(array $entityMaps = [], array $relationships = [])
+	public function __construct(array $mappers = [], array $relationships = [])
 	{
-		$this->addMaps($entityMaps);
+		$this->addMappers($mappers);
 		$this->addRelationships($relationships);
+	}
+
+	/**
+	 * Check whether the graph has an entity.
+	 *
+	 * @param string $entityName
+	 * @return bool
+	 */
+	public function hasEntity(string $entityName): bool
+	{
+		return in_array($entityName, $this->entities);
+	}
+
+	/**
+	 * Check whether the graph has a relationship.
+	 *
+	 * @param string $entityName
+	 * @param string $relationshipName
+	 * @return bool
+	 */
+	public function hasRelationship(string $entityName, string $relationshipName): bool
+	{
+		return isset($this->relationships[$entityName][$relationshipName]);
+	}
+
+	/**
+	 * Get the mapper of an entity.
+	 *
+	 * @param string $entityName
+	 * @return Mapper
+	 */
+	public function getMapper(string $entityName): Mapper
+	{
+		if (!$this->hasEntity($entityName)) {
+			throw new RuntimeException("Entity '$entityName' not found");
+		}
+
+		return $this->mappers[$entityName];
 	}
 
 	/**
@@ -60,13 +98,13 @@ class EntityGraph
 	 * @return Relationship
 	 * @throws RuntimeException
 	 */
-	public function getRelationship($entityName, $relationshipName): Relationship
+	public function getRelationship(string $entityName, string $relationshipName): Relationship
 	{
-		if (!isset($this->entities[$entityName])) {
+		if (!$this->hasEntity($entityName)) {
 			throw new RuntimeException("Entity '$entityName' not found");
 		}
 
-		if (!isset($this->relationships[$entityName][$relationshipName])) {
+		if (!$this->hasRelationship($entityName, $relationshipName)) {
 			throw new RuntimeException("Relationship '$relationshipName' not found for entity '$entityName'");
 		}
 
@@ -74,10 +112,11 @@ class EntityGraph
 	}
 
 	/**
-	 * Get the relationships of an entity.
+	 * Get all the relationships of an entity.
 	 *
 	 * @param string $entityName The entity name.
 	 * @return Relationship[]
+	 * @throws RuntimeException
 	 */
 	public function getRelationships($entityName)
 	{
@@ -89,28 +128,28 @@ class EntityGraph
 	}
 
 	/**
-	 * Add an entity map to the graph.
+	 * Add an entity and its mapper to the graph.
 	 *
-	 * @param EntityMap $map
+	 * @param Mapper $mapper
 	 */
-	public function addMap(EntityMap $map)
+	public function addMapper(Mapper $mapper)
 	{
-		$entityName = $map->getName();
+		$entityName = $mapper->getEntityMap()->getName();
 
 		$this->addEntity($entityName);
 
-		$this->maps[$entityName][] = $map;
+		$this->mappers[$entityName] = $mapper;
 	}
 
 	/**
-	 * Add many entity maps to the graph.
+	 * Add many entities and their mappers to the graph.
 	 *
-	 * @param EntityMap[] $maps
+	 * @param EntityMap[] $mappers
 	 */
-	public function addMaps(array $maps)
+	public function addMappers(array $mappers)
 	{
-		foreach ($maps as $map) {
-			$this->addMap($map);
+		foreach ($mappers as $map) {
+			$this->addMapper($map);
 		}
 	}
 
@@ -151,8 +190,8 @@ class EntityGraph
 			$this->entities[] = $name;
 		}
 
-		if (!isset($this->maps[$name])) {
-			$this->maps[$name] = [];
+		if (!isset($this->mappers[$name])) {
+			$this->mappers[$name] = [];
 		}
 
 		if (!isset($this->relationships[$name])) {

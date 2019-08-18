@@ -50,21 +50,6 @@ class Mapper
 	}
 
 	/**
-	 * Create a new instance of the mapper's entity.
-	 *
-	 * TODO: Factory work should happen here
-	 *
-	 * @return object
-	 * @throws ReflectionException
-	 */
-	public function newInstance()
-	{
-		$reflection = new ReflectionClass($this->getEntityMap()->getClass());
-
-		return $reflection->newInstance();
-	}
-
-	/**
 	 * Check whether a single entity exists with the given ID.
 	 *
 	 * @param mixed $id The ID of the entity to check.
@@ -72,19 +57,21 @@ class Mapper
 	 */
 	public function has($id)
 	{
+		if ($id === null) {
+			return false;
+		}
+
 		$entityMap  = $this->getEntityMap();
 		$resource   = $entityMap->getResource();
 		$storageKey = $entityMap->getStorageKey();
 
-		$exists = false;
+		$result = $this->storage->query($resource)
+			->fields([$storageKey])
+			->where($storageKey, $id)
+			->limit(1)
+			->run();
 
-		if ($id !== null) {
-			$result = $this->storage->query($resource)
-				->where($storageKey, $id)
-				->run();
-
-			$exists = $result->count > 0;
-		}
+		$exists = $result->count > 0;
 
 		return $exists;
 	}
@@ -139,10 +126,26 @@ class Mapper
 	 *
 	 * @param mixed $id The ID of the entity to find.
 	 * @return object
+	 * @throws ReflectionException
 	 */
 	public function findOrNew($id)
 	{
 		return $this->find($id) ?: $this->newInstance();
+	}
+
+	/**
+	 * Find the entities with the given IDs.
+	 *
+	 * @param mixed[] $ids The IDs of the entities to find.
+	 * @return object[]
+	 */
+	public function findMany(array $ids)
+	{
+		$storageKey = $this->getEntityMap()->getStorageKey();
+
+		return $this->query()
+			->where($storageKey, $ids)
+			->run();
 	}
 
 	/**
@@ -224,6 +227,21 @@ class Mapper
 	}
 
 	/**
+	 * Create a new instance of the mapper's entity.
+	 *
+	 * TODO: Factory work should happen here
+	 *
+	 * @return object
+	 * @throws ReflectionException
+	 */
+	public function newInstance()
+	{
+		$reflection = new ReflectionClass($this->getEntityMap()->getClass());
+
+		return $reflection->newInstance();
+	}
+
+	/**
 	 * Get the entity map.
 	 *
 	 * @return EntityMap
@@ -231,6 +249,16 @@ class Mapper
 	public function getEntityMap(): EntityMap
 	{
 		return $this->entityMap;
+	}
+
+	/**
+	 * Get the storage to map to.
+	 *
+	 * @return Queryable
+	 */
+	public function getStorage(): Queryable
+	{
+		return $this->storage;
 	}
 
 	/**
