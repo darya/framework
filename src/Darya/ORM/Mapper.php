@@ -16,8 +16,9 @@ use ReflectionException;
  *
  * TODO: Entity factory for instantiation; this could allow dynamically defined entities
  * TODO: Entity caching
- * TODO: Map to array, for light data mapping that avoids instantiation
+ * TODO: Map to array, for lighter data mapping that avoids any instantiation
  * TODO: Consider other types of storage, e.g. a cache, which may only find by ID
+ * TODO: Composite key support
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -171,6 +172,7 @@ class Mapper
 			$entities = [];
 
 			foreach ($result as $storageData) {
+				// TODO: Instance could be read from a cache here
 				$entity = $this->mapFromStorage($this->newInstance(), $storageData);
 
 				$entities[] = $entity;
@@ -207,7 +209,9 @@ class Mapper
 		$query = $this->storage->query($resource);
 
 		if ($exists) {
-			$query->update($storageData)->where($storageKey, $id)->run();
+			$query->update($storageData)
+				->where($storageKey, $id)
+				->run();
 
 			return $entity;
 		}
@@ -216,14 +220,29 @@ class Mapper
 
 		// Set the insert ID as the entity's key, if one is returned
 		if ($result->insertId) {
-			$key = $entityMap->getKey();
-
-			$attributes       = $entity->getAttributeData();
-			$attributes[$key] = $result->insertId;
-			$entity->setAttributeData($attributes);
+			$storageData = $this->mapToStorage($entity);
+			$storageData[$storageKey] = $result->insertId;
+			$entity = $this->mapFromStorage($entity, $storageData);
 		}
 
 		return $entity;
+	}
+
+	/**
+	 * Delete an entity from its mapped storage.
+	 *
+	 * @param object $entity
+	 */
+	public function delete($entity)
+	{
+		$entityMap   = $this->getEntityMap();
+		$resource    = $entityMap->getResource();
+		$storageKey  = $entityMap->getStorageKey();
+		$storageData = $this->mapToStorage($entity);
+
+		$this->storage->query($resource)
+			->where($storageKey, $storageData[$storageKey])
+			->delete();
 	}
 
 	/**

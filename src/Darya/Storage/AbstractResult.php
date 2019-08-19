@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Storage;
 
 use ArrayIterator;
@@ -52,7 +53,7 @@ abstract class AbstractResult implements IteratorAggregate
 	 *
 	 * @var array
 	 */
-	protected $fields = array();
+	protected $fields = [];
 
 	/**
 	 * The number of rows affected by the query.
@@ -91,12 +92,12 @@ abstract class AbstractResult implements IteratorAggregate
 	 */
 	public function getInfo()
 	{
-		return array(
-			'count' => $this->count,
-			'fields' => $this->fields,
-			'affected' => $this->affected,
+		return [
+			'count'     => $this->count,
+			'fields'    => $this->fields,
+			'affected'  => $this->affected,
 			'insert_id' => $this->insertId
-		);
+		];
 	}
 
 	/**

@@ -178,17 +178,34 @@ class EntityMap
 	}
 
 	/**
-	 * Get the storage field name of the given entity property.
+	 * Get the storage field name of the given entity attribute.
 	 *
-	 * @param string $property
+	 * @param string $attribute
 	 * @return string
 	 */
-	public function getStorageField(string $property): string
+	public function getStorageField(string $attribute): string
 	{
-		if (array_key_exists($property, $this->mapping)) {
-			return $this->mapping[$property];
+		if (array_key_exists($attribute, $this->mapping)) {
+			return $this->mapping[$attribute];
 		}
 
-		return $property;
+		return $attribute;
+	}
+
+	/**
+	 * Get the storage field names of the given entity attributes.
+	 *
+	 * @param string[] $attributes
+	 * @return string[]
+	 */
+	public function getStorageFields(array $attributes): array
+	{
+		$fields = [];
+
+		foreach ($attributes as $attribute) {
+			$fields[] = $this->getStorageField($attribute);
+		}
+
+		return $fields;
 	}
 }

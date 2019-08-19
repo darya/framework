@@ -6,10 +6,10 @@ namespace Darya\Storage;
  *
  * @property array $data     Result data
  * @property Query $query    Query that produced this result
- * @property int   $count    Result count
+ * @property int   $count    Result data count
  * @property Error $error    Result error
  * @property array $fields   Field names for each result data row
- * @property int   $insertId Insert ID
+ * @property int   $insertId Resulting insert ID from the query
  * @property int   $affected Rows affected
  *
  * @author Chris Andrew <chris@hexus.io>
@@ -33,12 +33,12 @@ class Result extends AbstractResult
 	/**
 	 * Instantiate a new storage query result.
 	 *
-	 * @param Query $query
-	 * @param array $data  [optional]
-	 * @param array $info  [optional]
-	 * @param Error $error [optional]
+	 * @param Query $query Query that produced this result
+	 * @param array $data  [optional] Result data
+	 * @param array $info  [optional] Result info (Keys: 'affected', 'count', 'insert_id' and 'fields')
+	 * @param Error $error [optional] Result error
 	 */
-	public function __construct(Query $query, array $data = array(), array $info = array(), Error $error = null)
+	public function __construct(Query $query, array $data = [], array $info = [], Error $error = null)
 	{
 		$this->query = $query;
 		$this->data  = $data;
