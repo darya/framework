@@ -14,7 +14,7 @@ use InvalidArgumentException;
  * TODO: Could an entity factory go here too?
  *       This would give the entity map control over how entities are instantiated.
  *
- * TODO: Should the storage interface be kept here?
+ * TODO: Should the storage interface be kept here? Perhaps at least its "name"?
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -207,5 +207,35 @@ class EntityMap
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Get the attribute name for the given storage field.
+	 *
+	 * @param string $storageField
+	 * @return string
+	 */
+	public function getAttribute(string $storageField): string
+	{
+		return array_search($storageField, $this->getMapping()) ?: $storageField;
+	}
+
+	/**
+	 * Get the attribute names for the given storage fields.
+	 *
+	 * @param string[] $storageFields
+	 * @return string[]
+	 */
+	public function getAttributes(array $storageFields): array
+	{
+		$attributes = [];
+
+		$flippedMapping = array_flip($this->getMapping());
+
+		foreach ($storageFields as $storageField) {
+			$attributes[] = $flippedMapping[$storageField] ?? $storageField;
+		}
+
+		return $attributes;
 	}
 }
