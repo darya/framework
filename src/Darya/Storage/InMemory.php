@@ -68,7 +68,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function read($resource, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	public function read($resource, array $filter = array(), $order = null, $limit = null, $offset = 0)
 	{
 		if (empty($this->data[$resource])) {
 			return array();
@@ -96,7 +96,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int          $offset   [optional]
 	 * @return array
 	 */
-	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = 0, $offset = 0)
+	public function listing($resource, $fields, array $filter = array(), $order = array(), $limit = null, $offset = 0)
 	{
 		$data = $this->read($resource, $filter, $order, $limit, $offset);
 
@@ -172,7 +172,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 * @param int    $limit    [optional]
 	 * @return int
 	 */
-	public function update($resource, $data, array $filter = array(), $limit = 0)
+	public function update($resource, $data, array $filter = array(), $limit = null)
 	{
 		if (empty($this->data[$resource])) {
 			return 0;
@@ -288,8 +288,8 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	 */
 	public function run(Query $query)
 	{
-		$data = array();
-		$info = array();
+		$data = [];
+		$info = [];
 
 		switch ($query->type) {
 			case Query::CREATE:
@@ -338,7 +338,7 @@ class InMemory implements Readable, Modifiable, Searchable, Aggregational, Query
 	}
 
 	/**
-	 * Retrieve the error that occured with the last operation.
+	 * Retrieve the error that occurred with the last operation.
 	 *
 	 * Returns false if there was no error.
 	 *

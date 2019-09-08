@@ -287,7 +287,7 @@ class Mapper
 	 * @param array  $storageData The storage data to map from.
 	 * @return object The resulting entity.
 	 */
-	protected function mapFromStorage($entity, array $storageData)
+	public function mapFromStorage($entity, array $storageData)
 	{
 		$entityMap = $this->getEntityMap();
 		$mapping   = $entityMap->getMapping();
@@ -301,7 +301,7 @@ class Mapper
 	 * @param object $entity The entity to map from.
 	 * @return array The resulting storage data.
 	 */
-	protected function mapToStorage($entity): array
+	public function mapToStorage($entity): array
 	{
 		$entityMap = $this->getEntityMap();
 		$mapping   = $entityMap->getMapping();

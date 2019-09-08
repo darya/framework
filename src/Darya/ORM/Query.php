@@ -4,15 +4,16 @@ namespace Darya\ORM;
 
 use Darya\Storage;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Darya's ORM query.
  *
  * @mixin Storage\Query
- * @property-read string $entity
- * @property-read Storage\Query $storageQuery
- * @property-read string[] $has
- * @property-read string[] $with
+ * @property-read string              $entity
+ * @property-read Storage\Query       $storageQuery
+ * @property-read string[]|callable[] $has
+ * @property-read string[]|callable[] $with
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -52,10 +53,10 @@ class Query
 	 * @param string        $entity
 	 * @param Storage\Query $storageQuery
 	 */
-	public function __construct(string $entity, Storage\Query $storageQuery)
+	public function __construct(Storage\Query $storageQuery, string $entity)
 	{
-		$this->entity       = $entity;
 		$this->storageQuery = $storageQuery;
+		$this->entity($entity);
 	}
 
 	/**
@@ -69,7 +70,9 @@ class Query
 	 */
 	public function entity(string $entity)
 	{
-		return $this->resource($entity);
+		$this->entity = $entity;
+
+		return $this;
 	}
 
 	/**
@@ -111,5 +114,27 @@ class Query
 		}
 
 		return $this->storageQuery->$property;
+	}
+
+	/**
+	 * Dynamically invoke a method.
+	 *
+	 * @param string $method
+	 * @param array  $arguments
+	 * @return mixed
+	 */
+	public function __call(string $method, array $arguments)
+	{
+		if (!method_exists($this->storageQuery, $method)) {
+			throw new RuntimeException("Undefined method $method()");
+		}
+
+		$result = $this->storageQuery->{$method}(...$arguments);
+
+		if ($result instanceof Storage\Query) {
+			return $this;
+		}
+
+		return $result;
 	}
 }

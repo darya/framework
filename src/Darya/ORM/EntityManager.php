@@ -75,14 +75,30 @@ class EntityManager
 		$storage = $mapper->getStorage();
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
-		$idQuery = clone $query;
-		$idQuery->fields($storageKey);
-		$ids = $storage->run($idQuery);
+		$fields = $query->fields;
+		$query = clone $query;
+		$query->fields($storageKey);
+		$idsData = $storage->run($query->storageQuery)->data;
+
+		// TODO: Cleaner ID pluck with a helper function perhaps
+		$ids = [];
+
+		foreach ($idsData as $idsDatum) {
+			$ids[] = $idsDatum[$storageKey];
+		}
 
 		// TODO: Check related entity existence ($query->has) to filter down IDs
 
 		// Load root entities by ID
-		$entities = $storage->run($query->where($storageKey, $ids));
+		$query->fields($fields)->where($storageKey, $ids);
+		$entitiesResult = $storage->run($query->storageQuery);
+
+		// TODO: Cleaner multi-entity mapping
+		$entities = [];
+
+		foreach ($entitiesResult->data as $entityDatum) {
+			$entities[] = $mapper->mapFromStorage($mapper->newInstance(), $entityDatum);
+		}
 
 		// TODO: Load related entities and map them to the root entities ($query->with)
 

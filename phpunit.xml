@@ -1,5 +1,8 @@
 <phpunit bootstrap="phpunit.php">
 	<testsuites>
+		<testsuite name="Darya Framework Functional Test Suite">
+			<directory suffix="Test.php">tests/Functional</directory>
+		</testsuite>
 		<testsuite name="Darya Framework Unit Test Suite">
 			<directory suffix="Test.php">tests/Unit</directory>
 		</testsuite>
