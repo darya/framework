@@ -1,10 +1,10 @@
 <?php
 namespace Darya\Tests\Unit\Foundation;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Darya\Foundation\Configuration;
 
-class ConfigurationTest extends PHPUnit_Framework_TestCase {
+class ConfigurationTest extends TestCase {
 
 	protected function data() {
 		return array(

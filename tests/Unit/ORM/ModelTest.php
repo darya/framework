@@ -1,10 +1,10 @@
 <?php
 namespace Darya\Tests\Unit\ORM;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Darya\ORM\Model;
 
-class ModelTest extends PHPUnit_Framework_TestCase {
+class ModelTest extends TestCase {
 
 	protected function generationData() {
 		return array(

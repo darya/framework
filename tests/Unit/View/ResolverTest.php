@@ -2,9 +2,9 @@
 namespace Darya\Tests\Unit\View;
 
 use Darya\View;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ResolverTest extends PHPUnit_Framework_TestCase
+class ResolverTest extends TestCase
 {
 	protected function resolver($engine = View\Php::class)
 	{

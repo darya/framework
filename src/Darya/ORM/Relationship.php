@@ -44,7 +44,7 @@ abstract class Relationship extends Query
 	protected $relatedMap;
 
 	/**
-	 * The foreign key.
+	 * The foreign key attribute.
 	 *
 	 * @var string
 	 */

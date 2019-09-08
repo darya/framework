@@ -1,15 +1,15 @@
 <?php
 namespace Darya\Tests\Unit\Database\Query;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Darya\Database\Factory;
 
-class FactoryTest extends PHPUnit_Framework_TestCase {
-	
+class FactoryTest extends TestCase {
+
 	protected function factory() {
 		return new Factory('mysql');
 	}
-	
+
 	protected function options() {
 		return array(
 			'hostname' => 'localhost',
@@ -18,30 +18,30 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 			'database' => 'darya'
 		);
 	}
-	
+
 	public function testCreate() {
 		$factory = $this->factory();
-		
+
 		$connection = $factory->create('mysql', $this->options());
-		
+
 		$this->assertInstanceOf('Darya\Database\Connection\MySql', $connection);
-		
+
 		$connection = $factory->create('mssql', $this->options());
-		
+
 		$this->assertInstanceOf('Darya\Database\Connection\SqlServer', $connection);
-		
+
 		// Test falling back to the default
 		$connection = $factory->create(null, $this->options());
-		
+
 		$this->assertInstanceOf('Darya\Database\Connection\MySql', $connection);
 	}
-	
+
 	public function testCreateException() {
-		$this->setExpectedException('UnexpectedValueException');
-		
+		$this->expectException('UnexpectedValueException');
+
 		$factory = $this->factory();
-		
+
 		$factory->create('undefined');
 	}
-	
+
 }

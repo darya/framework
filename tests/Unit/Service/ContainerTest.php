@@ -4,7 +4,7 @@ namespace Darya\Tests\Unit\Service;
 
 use Darya\Service\Exceptions\ContainerException;
 use Darya\Service\Exceptions\NotFoundException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
 use Darya\Service\Container;
 
@@ -14,7 +14,7 @@ use Darya\Tests\Unit\Service\Fixtures\SomeInterface;
 use Darya\Tests\Unit\Service\Fixtures\Something;
 use Darya\Tests\Unit\Service\Fixtures\SomethingElse;
 
-class ContainerTest extends PHPUnit_Framework_TestCase
+class ContainerTest extends TestCase
 {
 	protected function assertSomething($something)
 	{
@@ -28,7 +28,7 @@ class ContainerTest extends PHPUnit_Framework_TestCase
 	{
 		$container = new Container;
 
-		$this->setExpectedException(NotFoundException::class);
+		$this->expectException(NotFoundException::class);
 
 		$container->get('Foo');
 	}
@@ -77,7 +77,7 @@ class ContainerTest extends PHPUnit_Framework_TestCase
 			return func_get_args();
 		};
 
-		$this->setExpectedException(ContainerException::class);
+		$this->expectException(ContainerException::class);
 		$container->call($closure);
 
 		$result = $container->call($closure, [
@@ -163,10 +163,10 @@ class ContainerTest extends PHPUnit_Framework_TestCase
 		$this->assertSomething($container->get(SomeInterface::class));
 		$this->assertSomething($container->get(OtherInterface::class));
 
-		$this->setExpectedException(NotFoundException::class);
+		$this->expectException(NotFoundException::class);
 		$delegate->some;
 
-		$this->setExpectedException(NotFoundException::class);
+		$this->expectException(NotFoundException::class);
 		$delegate->get(SomeInterface::class);
 	}
 }

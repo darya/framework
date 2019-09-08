@@ -3,3 +3,7 @@
 /phpunit.php        export-ignore
 /phpunit.xml        export-ignore
 /tests              export-ignore
+
+*.md                text eol=lf
+*.txt               text eol=lf
+*.php               text eol=lf

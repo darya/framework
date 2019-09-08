@@ -1,11 +1,11 @@
 <?php
 namespace Darya\Tests\Unit\Request;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Darya\Http\Request;
 
-class RequestTest extends PHPUnit_Framework_TestCase {
-	
+class RequestTest extends TestCase {
+
 	public function testUriPrecedence() {
 		$request = Request::create('http://swag.com/awesome/path?super=querystring&swag=swagger', 'GET', array(
 			'get' => array(
@@ -17,48 +17,48 @@ class RequestTest extends PHPUnit_Framework_TestCase {
 				'PATH_INFO' => 'some_nonsense_path'
 			)
 		));
-		
+
 		$this->assertEquals('swag.com', $request->host());
 		$this->assertEquals('/awesome/path', $request->path());
 		$this->assertEquals('/awesome/path?super=querystring&swag=swagger', $request->uri());
 		$this->assertEquals('querystring', $request->get('super'));
 		$this->assertEquals('swagger', $request->get('swag'));
 	}
-	
+
 	public function testPathConsistency() {
 		$request = Request::create('/awesome/path');
-		
+
 		$this->assertEquals('/awesome/path', $request->path());
-		
+
 		$request = Request::create('http://swag.com/awesome/path');
-		
+
 		$this->assertEquals('/awesome/path', $request->path());
-		
+
 		$request = Request::create('http://swag.com/awesome/path?test=parameter');
-		
+
 		$this->assertEquals('/awesome/path', $request->path());
-		
+
 		$request = Request::create('//swag.com/awesome/path?test=parameter');
-		
+
 		$this->assertEquals('/awesome/path', $request->path());
-		
+
 		$request = Request::create('http://swag.com/awesome/');
-		
+
 		$this->assertEquals('/awesome/', $request->path());
-		
+
 		$request = Request::create('//swag.com/awesome/?test=parameter');
-		
+
 		$this->assertEquals('/awesome/', $request->path());
-		
+
 		$request = Request::create('http://swag.com/awesome');
-		
+
 		$this->assertEquals('/awesome', $request->path());
-		
+
 		$request = Request::create('http://swag.com/awesome?test=parameter');
-		
+
 		$this->assertEquals('/awesome', $request->path());
 	}
-	
+
 	public function testCaseSensitivity() {
 		$request = Request::create('test/request', 'GET', array(
 			'get' => array(
@@ -90,32 +90,32 @@ class RequestTest extends PHPUnit_Framework_TestCase {
 				'Content-type' => 'application/json'
 			)
 		));
-		
+
 		$this->assertEquals('test', $request->get('woah'));
 		$this->assertEquals('TEST', $request->get('WOAH'));
 		$this->assertEquals('Test', $request->get('Woah'));
-		
+
 		$this->assertEquals('crap', $request->post('holy'));
 		$this->assertEquals('CRAP', $request->post('HOLY'));
 		$this->assertEquals('Crap', $request->post('Holy'));
-		
+
 		$this->assertEquals('boob', $request->cookie('clam'));
 		$this->assertEquals('BOOB', $request->cookie('CLAM'));
 		$this->assertEquals('Boob', $request->cookie('Clam'));
-		
+
 		$this->assertEquals('cats', $request->file('dogs'));
 		$this->assertEquals('CATS', $request->file('DOGS'));
 		$this->assertEquals('Cats', $request->file('Dogs'));
-		
+
 		$this->assertEquals('Blam', $request->server('blam'));
 		$this->assertEquals('Blam', $request->server('BLAM'));
 		$this->assertEquals('Blam', $request->server('Blam'));
-		
+
 		$this->assertEquals('application/json', $request->header('content-type'));
 		$this->assertEquals('application/json', $request->header('CONTENT-TYPE'));
 		$this->assertEquals('application/json', $request->header('Content-type'));
 	}
-	
+
 	public function testDefaultValues() {
 		$request = Request::create('/test', 'GET', array(
 			'get' => array(
@@ -124,7 +124,7 @@ class RequestTest extends PHPUnit_Framework_TestCase {
 				'three' => 3
 			)
 		));
-		
+
 		$this->assertEquals(1, $request->get('one', 2));
 		$this->assertEquals(1, $request->get('nothing', 1));
 		$this->assertEquals(2, $request->post('nothing', 2));
@@ -133,5 +133,5 @@ class RequestTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(5, $request->server('nothing', 5));
 		$this->assertEquals('application/json', $request->server('content-type', 'application/json'));
 	}
-	
+
 }

@@ -1,10 +1,10 @@
 <?php
 namespace Darya\Tests\Unit\View;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Darya\View\Php;
 
-class PhpTest extends PHPUnit_Framework_TestCase
+class PhpTest extends TestCase
 {
 	public function setUp()
 	{

@@ -4,12 +4,12 @@ namespace Darya\Tests\Unit\ORM;
 use Darya\ORM\EntityMap;
 use Darya\ORM\Mapper;
 use Darya\Storage\Queryable;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * TODO: Test this bad boy
  */
-class MapperTest extends PHPUnit_Framework_TestCase
+class MapperTest extends TestCase
 {
 	public function setUp()
 	{
