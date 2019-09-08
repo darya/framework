@@ -6,6 +6,8 @@ namespace Darya\ORM;
  *
  * Uses an entity graph and a set of entity mappers retrieve and persist entities.
  *
+ * TODO: This class should manage storages by name
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class EntityManager
@@ -76,7 +78,6 @@ class EntityManager
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
 		$fields = $query->fields;
-		$query = clone $query;
 		$query->fields($storageKey);
 		$idsData = $storage->run($query->storageQuery)->data;
 

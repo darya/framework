@@ -14,7 +14,7 @@ use InvalidArgumentException;
  * TODO: Could an entity factory go here too?
  *       This would give the entity map control over how entities are instantiated.
  *
- * TODO: Should the storage interface be kept here? Perhaps at least its "name"?
+ * TODO: Storage name should be kept here too, for the EntityManager to use to create Mappers
  *
  * @author Chris Andrew <chris@hexus.io>
  */

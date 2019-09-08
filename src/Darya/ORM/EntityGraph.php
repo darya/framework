@@ -10,6 +10,7 @@ use RuntimeException;
  * Maintains relationships between mapped entity types.
  *
  * TODO: Use an actual graph implementation with Nodes containing entity name, maps and relationships?
+ * TODO: This class should really store EntityMaps, not fully instantiated Mappers
  *
  * @author Chris Andrew <chris@hexus.io>
  */
