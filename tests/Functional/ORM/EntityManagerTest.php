@@ -7,7 +7,7 @@ use Darya\ORM\EntityManager;
 use Darya\ORM\EntityMap;
 use Darya\ORM\Mapper;
 use Darya\ORM\Query;
-use Darya\ORM\Strategy\PropertyStrategy;
+use Darya\ORM\EntityMap\Strategy\PropertyStrategy;
 use Darya\Storage\InMemory;
 use Darya\Tests\Unit\ORM\Fixtures\User;
 use PHPUnit\Framework\TestCase;
@@ -47,27 +47,24 @@ class EntityManagerTest extends TestCase
 		]);
 
 		$this->graph = new EntityGraph([
-			new Mapper(
-				new EntityMap(
-					User::class,
-					'users',
-					[
-						'id'         => 'id',
-						'firstname'  => 'firstname',
-						'surname'    => 'surname',
-						'padawan_id' => 'padawan_id',
-						'master_id'  => 'master_id'
-					],
-					new PropertyStrategy()
-				),
-				$this->storage
+			new EntityMap(
+				User::class,
+				'users',
+				[
+					'id'         => 'id',
+					'firstname'  => 'firstname',
+					'surname'    => 'surname',
+					'padawan_id' => 'padawan_id',
+					'master_id'  => 'master_id'
+				],
+				new PropertyStrategy()
 			)
 		]);
 	}
 
 	public function testSimpleQueryRun()
 	{
-		$orm = new EntityManager($this->graph);
+		$orm = new EntityManager($this->graph, [$this->storage]);
 
 		$query = (new Query(
 			new \Darya\Storage\Query('users'),

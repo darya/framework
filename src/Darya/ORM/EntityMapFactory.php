@@ -2,7 +2,7 @@
 
 namespace Darya\ORM;
 
-use Darya\ORM\Strategy\PropertyStrategy;
+use Darya\ORM\EntityMap\Strategy\PropertyStrategy;
 use InvalidArgumentException;
 
 /**

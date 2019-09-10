@@ -2,6 +2,7 @@
 
 namespace Darya\ORM;
 
+use Darya\ORM\EntityMap\Strategy;
 use InvalidArgumentException;
 
 /**

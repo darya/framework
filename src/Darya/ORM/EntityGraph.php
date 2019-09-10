@@ -9,8 +9,8 @@ use RuntimeException;
  *
  * Maintains relationships between mapped entity types.
  *
- * TODO: Use an actual graph implementation with Nodes containing entity name, maps and relationships?
- * TODO: This class should really store EntityMaps, not fully instantiated Mappers
+ * TODO: Should this simply be entity definitions (not entity maps) and their relationships?
+ * TODO: Use a graph implementation with entity definitions nodes and relationship edges?
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -24,13 +24,13 @@ class EntityGraph
 	protected $entities = [];
 
 	/**
-	 * Entity mappers.
+	 * Entity maps.
 	 *
 	 * Keyed by entity name.
 	 *
-	 * @var Mapper[]
+	 * @var EntityMap[]
 	 */
-	protected $mappers = [];
+	protected $entityMaps = [];
 
 	/**
 	 * Entity relationships.
@@ -44,12 +44,12 @@ class EntityGraph
 	/**
 	 * Create a new entity graph.
 	 *
-	 * @param Mapper[] $mappers    Entity mappers.
+	 * @param EntityMap[] $entityMaps    Entity maps.
 	 * @param Relation[]  $relationships Entity relationships.
 	 */
-	public function __construct(array $mappers = [], array $relationships = [])
+	public function __construct(array $entityMaps = [], array $relationships = [])
 	{
-		$this->addMappers($mappers);
+		$this->addEntityMaps($entityMaps);
 		$this->addRelationships($relationships);
 	}
 
@@ -77,18 +77,28 @@ class EntityGraph
 	}
 
 	/**
-	 * Get the mapper of an entity.
+	 * Get the map of an entity.
 	 *
 	 * @param string $entityName
-	 * @return Mapper
+	 * @return EntityMap
 	 */
-	public function getMapper(string $entityName): Mapper
+	public function getEntityMap(string $entityName): EntityMap
 	{
 		if (!$this->hasEntity($entityName)) {
 			throw new RuntimeException("Entity '$entityName' not found");
 		}
 
-		return $this->mappers[$entityName];
+		return $this->entityMaps[$entityName];
+	}
+
+	/**
+	 * Get all entity maps in the graph.
+	 *
+	 * @return EntityMap[]
+	 */
+	public function getEntityMaps(): array
+	{
+		return $this->entityMaps;
 	}
 
 	/**
@@ -129,28 +139,28 @@ class EntityGraph
 	}
 
 	/**
-	 * Add an entity and its mapper to the graph.
+	 * Add an entity and its map to the graph.
 	 *
-	 * @param Mapper $mapper
+	 * @param EntityMap $entityMap
 	 */
-	public function addMapper(Mapper $mapper)
+	public function addEntityMap(EntityMap $entityMap)
 	{
-		$entityName = $mapper->getEntityMap()->getName();
+		$entityName = $entityMap->getName();
 
 		$this->addEntity($entityName);
 
-		$this->mappers[$entityName] = $mapper;
+		$this->entityMaps[$entityName] = $entityMap;
 	}
 
 	/**
-	 * Add many entities and their mappers to the graph.
+	 * Add many entities and their maps to the graph.
 	 *
-	 * @param EntityMap[] $mappers
+	 * @param EntityMap[] $entityMaps
 	 */
-	public function addMappers(array $mappers)
+	public function addEntityMaps(array $entityMaps)
 	{
-		foreach ($mappers as $map) {
-			$this->addMapper($map);
+		foreach ($entityMaps as $map) {
+			$this->addEntityMap($map);
 		}
 	}
 
@@ -191,8 +201,8 @@ class EntityGraph
 			$this->entities[] = $name;
 		}
 
-		if (!isset($this->mappers[$name])) {
-			$this->mappers[$name] = [];
+		if (!isset($this->maps[$name])) {
+			$this->entityMaps[$name] = [];
 		}
 
 		if (!isset($this->relationships[$name])) {

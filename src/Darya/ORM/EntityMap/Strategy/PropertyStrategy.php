@@ -1,8 +1,8 @@
 <?php
 
-namespace Darya\ORM\Strategy;
+namespace Darya\ORM\EntityMap\Strategy;
 
-use Darya\ORM\Strategy;
+use Darya\ORM\EntityMap\Strategy;
 
 /**
  * Darya's property mapping strategy.

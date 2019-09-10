@@ -1,6 +1,8 @@
 <?php
 namespace Darya\ORM;
 
+use Darya\Storage\Queryable;
+
 /**
  * Darya's entity manager.
  *
@@ -13,18 +15,55 @@ namespace Darya\ORM;
 class EntityManager
 {
 	/**
+	 * The entity graph.
+	 *
 	 * @var EntityGraph
 	 */
 	protected $graph;
 
 	/**
+	 * Storages keyed by name.
+	 *
+	 * @var Queryable[]
+	 */
+	protected $storages;
+
+	/**
+	 * The default storage.
+	 *
+	 * @var Queryable
+	 */
+	protected $defaultStorage;
+
+	/**
 	 * Create a new entity manager.
 	 *
-	 * @param EntityGraph $graph
+	 * @param EntityGraph $graph    The entity graph.
+	 * @param Queryable[] $storages Storages keyed by name.
 	 */
-	public function __construct(EntityGraph $graph)
+	public function __construct(EntityGraph $graph, array $storages)
 	{
 		$this->graph = $graph;
+		$this->storages = $storages;
+
+		// TODO: $this->validateStorages($storages);
+		// TODO: $this->addStorages($storages)
+		if (!empty($storages)) {
+			$this->defaultStorage = $storages[0];
+		}
+	}
+
+	/**
+	 * Get a mapper for a given entity.
+	 *
+	 * TODO: Memoize
+	 *
+	 * @param string $entityName The entity name.
+	 * @return Mapper
+	 */
+	public function mapper(string $entityName): Mapper
+	{
+		return new Mapper($this->graph->getEntityMap($entityName), $this->defaultStorage);
 	}
 
 	/**
@@ -36,7 +75,7 @@ class EntityManager
 	 */
 	public function find(string $entity, $id)
 	{
-		return $this->graph->getMapper($entity)->find($id);
+		return $this->mapper($entity)->find($id);
 	}
 
 	/**
@@ -48,7 +87,7 @@ class EntityManager
 	 */
 	public function findMany(string $entity, array $id)
 	{
-		return $this->graph->getMapper($entity)->findMany($id);
+		return $this->mapper($entity)->findMany($id);
 	}
 
 	/**
@@ -58,8 +97,8 @@ class EntityManager
 	 */
 	public function query(string $entity)
 	{
-		$storageQuery = $this->graph->getMapper($entity)->query();
-		$query = new Query($entity, $storageQuery);
+		$storageQuery = $this->mapper($entity)->query();
+		$query = new Query($storageQuery, $entity);
 
 		// TODO: return new ORM\Query\Builder($query, $this)
 	}
@@ -73,7 +112,7 @@ class EntityManager
 	public function run(Query $query)
 	{
 		// Load root entity IDs
-		$mapper = $this->graph->getMapper($query->entity);
+		$mapper = $this->mapper($query->entity);
 		$storage = $mapper->getStorage();
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 

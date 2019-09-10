@@ -1,6 +1,6 @@
 <?php
 
-namespace Darya\ORM;
+namespace Darya\ORM\EntityMap;
 
 /**
  * Darya's mapping strategy interface.
