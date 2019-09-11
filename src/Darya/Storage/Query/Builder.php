@@ -147,8 +147,8 @@ class Builder
 	/**
 	 * Alias for the `run()` method.
 	 *
-	 * @see Builder::run()
 	 * @return mixed
+	 * @see Builder::run()
 	 */
 	public function cheers()
 	{

@@ -259,6 +259,12 @@ class Mapper
 		return $reflection->newInstance();
 	}
 
+	/**
+	 * Create new instances of the mapper's entity from the given storage data.
+	 *
+	 * @param array $storageData The storage data to create entities from.
+	 * @return array The new entities.
+	 */
 	public function newInstancesFromStorage(array $storageData)
 	{
 		$entities = [];

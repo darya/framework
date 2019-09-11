@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\ORM\Query;
 
 use Darya\ORM\EntityManager;
@@ -45,7 +46,7 @@ class Builder
 	public function __construct(Query $query, EntityManager $orm)
 	{
 		$this->query = $query;
-		$this->orm = $orm;
+		$this->orm   = $orm;
 	}
 
 	/**
@@ -129,8 +130,8 @@ class Builder
 	/**
 	 * Alias for the `run()` method.
 	 *
-	 * @see Builder::run()
 	 * @return mixed
+	 * @see Builder::run()
 	 */
 	public function cheers()
 	{

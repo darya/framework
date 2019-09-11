@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\ORM;
 
 use Darya\Storage\Queryable;
@@ -41,7 +42,7 @@ class EntityManager
 	 */
 	public function __construct(EntityGraph $graph, array $storages)
 	{
-		$this->graph = $graph;
+		$this->graph    = $graph;
 		$this->storages = $storages;
 
 		// TODO: $this->validateStorages($storages);
@@ -96,8 +97,8 @@ class EntityManager
 	 */
 	public function query(string $entity)
 	{
-		$storageQueryBuilder = $this->mapper($entity)->query();
-		$query = new Query($storageQueryBuilder->query, $entity);
+		$builder = $this->mapper($entity)->query();
+		$query   = new Query($builder->query, $entity);
 
 		return new Query\Builder($query, $this);
 	}
@@ -105,14 +106,17 @@ class EntityManager
 	/**
 	 * Run an ORM query.
 	 *
+	 * TODO: Perhaps the relationship loading complexities here should be handled in the mapper.
+	 *       This method feels like it should remain simple.
+	 *
 	 * @param Query $query
 	 * @return object[]
 	 */
 	public function run(Query $query)
 	{
 		// Load root entity IDs
-		$mapper = $this->mapper($query->entity);
-		$storage = $mapper->getStorage();
+		$mapper     = $this->mapper($query->entity);
+		$storage    = $mapper->getStorage();
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
 		$fields = $query->fields;
@@ -132,12 +136,7 @@ class EntityManager
 		$query->fields($fields)->where($storageKey, $ids);
 		$entitiesResult = $storage->run($query->storageQuery);
 
-		// TODO: Cleaner multi-entity mapping
-		$entities = [];
-
-		foreach ($entitiesResult->data as $entityDatum) {
-			$entities[] = $mapper->mapFromStorage($mapper->newInstance(), $entityDatum);
-		}
+		$entities = $mapper->newInstancesFromStorage($entitiesResult->data);
 
 		// TODO: Load related entities and map them to the root entities ($query->with)
 
