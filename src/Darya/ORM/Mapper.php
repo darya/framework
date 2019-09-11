@@ -248,16 +248,26 @@ class Mapper
 	/**
 	 * Create a new instance of the mapper's entity.
 	 *
-	 * TODO: Factory work should happen here
+	 * TODO: Factory work should happen here, via the entity map or otherwise
 	 *
 	 * @return object
-	 * @throws ReflectionException
 	 */
 	public function newInstance()
 	{
 		$reflection = new ReflectionClass($this->getEntityMap()->getClass());
 
 		return $reflection->newInstance();
+	}
+
+	public function newInstancesFromStorage(array $storageData)
+	{
+		$entities = [];
+
+		foreach ($storageData as $entityDatum) {
+			$entities[] = $this->mapFromStorage($this->newInstance(), $entityDatum);
+		}
+
+		return $entities;
 	}
 
 	/**

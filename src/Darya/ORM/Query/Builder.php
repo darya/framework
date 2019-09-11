@@ -1,24 +1,15 @@
 <?php
+namespace Darya\ORM\Query;
 
-namespace Darya\Storage\Query;
-
-use Darya\Storage\Query;
-use Darya\Storage\Queryable;
-use Darya\Storage\Result;
+use Darya\ORM\EntityManager;
+use Darya\ORM\Query;
 
 /**
- * Darya's storage query builder.
+ * Darya's ORM query builder.
  *
- * Forwards method calls to a storage query and executes it on the given
- * queryable storage interface once the query has been built.
- *
- * TODO: Implement event dispatcher awareness.
- * TODO: Pre-query callback, rename callback to resultCallback.
- *
- * @mixin Query
- * @property-read Query     $query
- * @property-read Queryable $storage
- * @property-read callable  $callback
+ * TODO: If ORM\Query extended Storage\Query and ORM\EntityManager implemented Storage\Queryable,
+ *       this class is no longer needed; a Storage\Query\Builder could be used with both Storage and EntityManager.
+ *       Right now, this would be good, because this class is almost a line-for-line duplicate of Storage\Query\Builder.
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -29,41 +20,32 @@ class Builder
 	 *
 	 * @var Query
 	 */
-	protected $query;
+	private $query;
 
 	/**
-	 * The storage interface to query.
+	 * The entity manager to query.
 	 *
-	 * @var Queryable
+	 * @var EntityManager
 	 */
-	protected $storage;
+	private $orm;
 
 	/**
-	 * A callback that processes the result of the query.
+	 * A callback that processes resulting entities of the query.
 	 *
 	 * @var callback
 	 */
 	protected $callback;
 
 	/**
-	 * Query methods that should trigger query execution.
+	 * Create a new ORM query builder.
 	 *
-	 * @var array
+	 * @param Query         $query
+	 * @param EntityManager $orm
 	 */
-	protected static $executors = [
-		'all', 'read', 'select', 'unique', 'distinct', 'delete'
-	];
-
-	/**
-	 * Instantiate a new query builder for the given query and storage.
-	 *
-	 * @param Query     $query
-	 * @param Queryable $storage
-	 */
-	public function __construct(Query $query, Queryable $storage)
+	public function __construct(Query $query, EntityManager $orm)
 	{
-		$this->query   = $query;
-		$this->storage = $storage;
+		$this->query = $query;
+		$this->orm = $orm;
 	}
 
 	/**
@@ -74,15 +56,15 @@ class Builder
 	 *
 	 * @param string $method
 	 * @param array  $arguments
-	 * @return $this|Result
+	 * @return $this|object[]
 	 */
 	public function __call($method, $arguments)
 	{
 		call_user_func_array([$this->query, $method], $arguments);
 
-		if (in_array($method, static::$executors)) {
-			return $this->run();
-		}
+//		if (in_array($method, static::$executors)) {
+//			return $this->run();
+//		}
 
 		return $this;
 	}
@@ -115,15 +97,15 @@ class Builder
 	}
 
 	/**
-	 * Run the query through the storage interface.
+	 * Run the query through the entity manager.
 	 *
-	 * Always returns a Result object, ignoring the callback.
+	 * Always returns entities directly from the manager, ignoring the callback.
 	 *
-	 * @return Result
+	 * @return object[]
 	 */
 	public function execute()
 	{
-		return $this->storage->run($this->query);
+		return $this->orm->run($this->query);
 	}
 
 	/**
@@ -131,11 +113,11 @@ class Builder
 	 *
 	 * Returns the return value of the callback, if one is set.
 	 *
-	 * @return Result|mixed The `Result` of the query, or the return of the callback if one is set.
+	 * @return object[]|mixed The resulting entities of the query, or the return of the callback if one is set.
 	 */
 	public function run()
 	{
-		$result = $this->storage->run($this->query);
+		$result = $this->orm->run($this->query);
 
 		if (!is_callable($this->callback)) {
 			return $result;

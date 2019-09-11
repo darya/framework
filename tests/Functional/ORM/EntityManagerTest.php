@@ -62,9 +62,14 @@ class EntityManagerTest extends TestCase
 		]);
 	}
 
+	public function newOrmManager(): EntityManager
+	{
+		return new EntityManager($this->graph, [$this->storage]);
+	}
+
 	public function testSimpleQueryRun()
 	{
-		$orm = new EntityManager($this->graph, [$this->storage]);
+		$orm = $this->newOrmManager();
 
 		$query = (new Query(
 			new \Darya\Storage\Query('users'),
@@ -72,6 +77,21 @@ class EntityManagerTest extends TestCase
 		))->where('id', 2);
 
 		$users = $orm->run($query);
+
+		$this->assertCount(1, $users);
+		$user = $users[0];
+		$this->assertInstanceOf(User::class, $user);
+		$this->assertEquals($user->id, 2);
+		$this->assertEquals($user->firstname, 'Obi-Wan');
+		$this->assertEquals($user->surname, 'Kenobi');
+		$this->assertEquals($user->master_id, 1);
+	}
+
+	public function testSimpleQueryBuilderRun()
+	{
+		$orm = $this->newOrmManager();
+
+		$users = $orm->query(User::class)->where('id', 2)->run();
 
 		$this->assertCount(1, $users);
 		$user = $users[0];

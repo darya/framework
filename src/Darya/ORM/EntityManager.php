@@ -8,8 +8,6 @@ use Darya\Storage\Queryable;
  *
  * Uses an entity graph and a set of entity mappers retrieve and persist entities.
  *
- * TODO: This class should manage storages by name
- *
  * @author Chris Andrew <chris@hexus.io>
  */
 class EntityManager
@@ -94,13 +92,14 @@ class EntityManager
 	 * Open an ORM query builder.
 	 *
 	 * @param string $entity
+	 * @return Query\Builder
 	 */
 	public function query(string $entity)
 	{
-		$storageQuery = $this->mapper($entity)->query();
-		$query = new Query($storageQuery, $entity);
+		$storageQueryBuilder = $this->mapper($entity)->query();
+		$query = new Query($storageQueryBuilder->query, $entity);
 
-		// TODO: return new ORM\Query\Builder($query, $this)
+		return new Query\Builder($query, $this);
 	}
 
 	/**
@@ -118,13 +117,13 @@ class EntityManager
 
 		$fields = $query->fields;
 		$query->fields($storageKey);
-		$idsData = $storage->run($query->storageQuery)->data;
+		$idEntities = $storage->run($query->storageQuery)->data;
 
 		// TODO: Cleaner ID pluck with a helper function perhaps
 		$ids = [];
 
-		foreach ($idsData as $idsDatum) {
-			$ids[] = $idsDatum[$storageKey];
+		foreach ($idEntities as $idEntity) {
+			$ids[] = $idEntity[$storageKey];
 		}
 
 		// TODO: Check related entity existence ($query->has) to filter down IDs
