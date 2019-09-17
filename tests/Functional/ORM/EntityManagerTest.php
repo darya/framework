@@ -5,6 +5,7 @@ namespace Darya\Tests\Functional\ORM;
 use Darya\ORM\EntityGraph;
 use Darya\ORM\EntityManager;
 use Darya\ORM\EntityMap;
+use Darya\ORM\EntityMapFactory;
 use Darya\ORM\Mapper;
 use Darya\ORM\Query;
 use Darya\ORM\EntityMap\Strategy\PropertyStrategy;
@@ -18,6 +19,11 @@ class EntityManagerTest extends TestCase
 	 * @var InMemory
 	 */
 	protected $storage;
+
+	/**
+	 * @var EntityMapFactory
+	 */
+	protected $factory;
 
 	/**
 	 * @var EntityGraph
@@ -46,10 +52,11 @@ class EntityManagerTest extends TestCase
 			]
 		]);
 
+		$this->factory = new EntityMapFactory();
+
 		$this->graph = new EntityGraph([
-			new EntityMap(
+			$this->factory->createForClass(
 				User::class,
-				'users',
 				[
 					'id'         => 'id',
 					'firstname'  => 'firstname',
@@ -57,7 +64,7 @@ class EntityManagerTest extends TestCase
 					'padawan_id' => 'padawan_id',
 					'master_id'  => 'master_id'
 				],
-				new PropertyStrategy()
+				'users'
 			)
 		]);
 	}
@@ -95,10 +102,10 @@ class EntityManagerTest extends TestCase
 		$this->assertCount(1, $users);
 		$user = $users[0];
 		$this->assertInstanceOf(User::class, $user);
-		$this->assertEquals($user->id, 2);
-		$this->assertEquals($user->firstname, 'Obi-Wan');
-		$this->assertEquals($user->surname, 'Kenobi');
-		$this->assertEquals($user->master_id, 1);
+		$this->assertEquals(2, $user->id);
+		$this->assertEquals('Obi-Wan', $user->firstname);
+		$this->assertEquals('Kenobi', $user->surname);
+		$this->assertEquals(1, $user->master_id, 1);
 	}
 
 	public function testFind()
@@ -108,7 +115,7 @@ class EntityManagerTest extends TestCase
 		$user = $orm->find(User::class, 1);
 
 		$this->assertInstanceOf(User::class, $user);
-		$this->assertEquals($user->id, 1);
-		$this->assertEquals($user->firstname, 'Qui-Gon');
+		$this->assertEquals(1, $user->id);
+		$this->assertEquals('Qui-Gon', $user->firstname);
 	}
 }

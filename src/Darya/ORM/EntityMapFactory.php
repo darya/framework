@@ -25,7 +25,6 @@ class EntityMapFactory
 	public function create(string $name, array $mapping, string $resource = null)
 	{
 		if ($resource === null) {
-			// TODO: Extract snake_case resource name from given name class base name
 			$resource = $name;
 		}
 
@@ -42,14 +41,14 @@ class EntityMapFactory
 	 * Create a mapping for a PHP class.
 	 *
 	 * @param string      $class
-	 * @param string|null $resource
 	 * @param array|null  $mapping
+	 * @param string|null $resource
 	 * @return EntityMap
 	 */
-	public function createForClass(string $class, string $resource = null, array $mapping = null)
+	public function createForClass(string $class, array $mapping = null, string $resource = null)
 	{
 		if (!class_exists($class)) {
-			throw new InvalidArgumentException("Entity class '$class' cannot be mapped because it does not exist");
+			throw new InvalidArgumentException("Undefined class '$class'");
 		}
 
 		if ($resource === null) {
