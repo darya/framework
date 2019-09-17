@@ -72,7 +72,6 @@ class EntityManagerTest extends TestCase
 		$orm = $this->newOrmManager();
 
 		$query = (new Query(
-			new \Darya\Storage\Query('users'),
 			User::class
 		))->where('id', 2);
 

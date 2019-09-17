@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\Storage;
 
 /**
@@ -19,9 +20,9 @@ interface Queryable
 	/**
 	 * Open a query on the given resource.
 	 *
-	 * @param string       $resource
-	 * @param array|string $fields   [optional]
+	 * @param string       $resource The resource to query.
+	 * @param array|string $fields   [optional] The fields to retrieve.
 	 * @return Query\Builder
 	 */
-	public function query($resource, $fields = array());
+	public function query($resource, $fields = []);
 }

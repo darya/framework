@@ -3,9 +3,7 @@
 namespace Darya\ORM;
 
 use Darya\ORM\Exception\EntityNotFoundException;
-use Darya\Storage\Query;
-use Darya\Storage\Queryable;
-use Darya\Storage\Result;
+use Darya\Storage;
 use ReflectionClass;
 use ReflectionException;
 
@@ -25,6 +23,11 @@ use ReflectionException;
 class Mapper
 {
 	/**
+	 * @var EntityManager
+	 */
+	private $orm;
+
+	/**
 	 * The EntityMap to map to storage.
 	 *
 	 * @var EntityMap
@@ -34,18 +37,20 @@ class Mapper
 	/**
 	 * The storage to map to.
 	 *
-	 * @var Queryable
+	 * @var Storage\Queryable
 	 */
 	protected $storage;
 
 	/**
 	 * Create a new mapper.
 	 *
-	 * @param EntityMap $entityMap The entity map to use.
-	 * @param Queryable $storage   The storage to map to.
+	 * @param EntityManager     $orm
+	 * @param EntityMap         $entityMap The entity map to use.
+	 * @param Storage\Queryable $storage   The storage to map to.
 	 */
-	public function __construct(EntityMap $entityMap, Queryable $storage)
+	public function __construct(EntityManager $orm, EntityMap $entityMap, Storage\Queryable $storage)
 	{
+		$this->orm       = $orm;
 		$this->entityMap = $entityMap;
 		$this->storage   = $storage;
 	}
@@ -127,7 +132,6 @@ class Mapper
 	 *
 	 * @param mixed $id The ID of the entity to find.
 	 * @return object
-	 * @throws ReflectionException
 	 */
 	public function findOrNew($id)
 	{
@@ -162,13 +166,21 @@ class Mapper
 	/**
 	 * Open a query to the storage that the entity is mapped to.
 	 *
+	 * TODO: Could simply return ORM\Query\Builder
+	 *
 	 * @return Query\Builder
 	 */
 	public function query(): Query\Builder
 	{
-		$query = $this->storage->query($this->entityMap->getResource());
+		$entityMap = $this->getEntityMap();
 
-		$query->callback(function (Result $result) {
+		$query = new Query\Builder(
+			new Query($entityMap->getName(), $entityMap->getResource()),
+			$this->getStorage()
+		);
+		$this->storage->query($this->entityMap->getResource())->query;
+
+		$query->callback(function (Storage\Result $result) {
 			$entities = [];
 
 			foreach ($result as $storageData) {
@@ -220,9 +232,9 @@ class Mapper
 
 		// Set the insert ID as the entity's key, if one is returned
 		if ($result->insertId) {
-			$storageData = $this->mapToStorage($entity);
+			$storageData              = $this->mapToStorage($entity);
 			$storageData[$storageKey] = $result->insertId;
-			$entity = $this->mapFromStorage($entity, $storageData);
+			$entity                   = $this->mapFromStorage($entity, $storageData);
 		}
 
 		return $entity;
@@ -265,7 +277,7 @@ class Mapper
 	 * @param array $storageData The storage data to create entities from.
 	 * @return array The new entities.
 	 */
-	public function newInstancesFromStorage(array $storageData)
+	public function newInstances(array $storageData)
 	{
 		$entities = [];
 
@@ -289,9 +301,9 @@ class Mapper
 	/**
 	 * Get the storage to map to.
 	 *
-	 * @return Queryable
+	 * @return Storage\Queryable
 	 */
-	public function getStorage(): Queryable
+	public function getStorage(): Storage\Queryable
 	{
 		return $this->storage;
 	}

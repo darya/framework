@@ -3,7 +3,6 @@
 namespace Darya\ORM;
 
 use Darya\Storage;
-use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -17,7 +16,7 @@ use RuntimeException;
  *
  * @author Chris Andrew <chris@hexus.io>
  */
-class Query
+class Query extends Storage\Query
 {
 	/**
 	 * The entity to query.
@@ -25,13 +24,6 @@ class Query
 	 * @var string
 	 */
 	protected $entity;
-
-	/**
-	 * The underlying storage query.
-	 *
-	 * @var Storage\Query
-	 */
-	protected $storageQuery;
 
 	/**
 	 * Relationships to check existence for.
@@ -48,25 +40,23 @@ class Query
 	protected $with = [];
 
 	/**
-	 * Query constructor.
+	 * Create a new ORM query.
 	 *
-	 * @param string        $entity
-	 * @param Storage\Query $storageQuery
+	 * @param string $entity   The entity to query.
+	 * @param string $resource The resource to query.
 	 */
-	public function __construct(Storage\Query $storageQuery, string $entity)
+	public function __construct(string $entity, string $resource = '')
 	{
-		$this->storageQuery = $storageQuery;
+		parent::__construct($resource);
+
 		$this->entity($entity);
 	}
 
 	/**
 	 * Set the entity to query.
 	 *
-	 * Alias for resource().
-	 *
 	 * @param string $entity
 	 * @return Query
-	 * @see \Darya\Storage\Query::resource()
 	 */
 	public function entity(string $entity)
 	{
@@ -99,42 +89,5 @@ class Query
 		$this->with = $relationships;
 
 		return $this;
-	}
-
-	/**
-	 * Dynamically retrieve a property.
-	 *
-	 * @param string $property
-	 * @return mixed
-	 */
-	public function __get(string $property)
-	{
-		if (property_exists($this, $property)) {
-			return $this->$property;
-		}
-
-		return $this->storageQuery->$property;
-	}
-
-	/**
-	 * Dynamically invoke a method.
-	 *
-	 * @param string $method
-	 * @param array  $arguments
-	 * @return mixed
-	 */
-	public function __call(string $method, array $arguments)
-	{
-		if (!method_exists($this->storageQuery, $method)) {
-			throw new RuntimeException("Undefined method $method()");
-		}
-
-		$result = $this->storageQuery->{$method}(...$arguments);
-
-		if ($result instanceof Storage\Query) {
-			return $this;
-		}
-
-		return $result;
 	}
 }

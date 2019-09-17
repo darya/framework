@@ -78,7 +78,7 @@ class Builder
 	 */
 	public function __call($method, $arguments)
 	{
-		call_user_func_array([$this->query, $method], $arguments);
+		$this->query->$method(...$arguments);
 
 		if (in_array($method, static::$executors)) {
 			return $this->run();

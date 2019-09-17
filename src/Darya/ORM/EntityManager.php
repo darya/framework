@@ -2,7 +2,7 @@
 
 namespace Darya\ORM;
 
-use Darya\Storage\Queryable;
+use Darya\Storage;
 
 /**
  * Darya's entity manager.
@@ -11,7 +11,7 @@ use Darya\Storage\Queryable;
  *
  * @author Chris Andrew <chris@hexus.io>
  */
-class EntityManager
+class EntityManager implements Storage\Queryable
 {
 	/**
 	 * The entity graph.
@@ -23,22 +23,22 @@ class EntityManager
 	/**
 	 * Storages keyed by name.
 	 *
-	 * @var Queryable[]
+	 * @var Storage\Queryable[]
 	 */
 	protected $storages;
 
 	/**
 	 * The default storage.
 	 *
-	 * @var Queryable
+	 * @var Storage\Queryable
 	 */
 	protected $defaultStorage;
 
 	/**
 	 * Create a new entity manager.
 	 *
-	 * @param EntityGraph $graph    The entity graph.
-	 * @param Queryable[] $storages Storages keyed by name.
+	 * @param EntityGraph         $graph    The entity graph.
+	 * @param Storage\Queryable[] $storages Storages keyed by name.
 	 */
 	public function __construct(EntityGraph $graph, array $storages)
 	{
@@ -57,12 +57,26 @@ class EntityManager
 	 *
 	 * TODO: Memoize
 	 *
-	 * @param string $entityName The entity name.
+	 * @param string      $entity  The entity name.
+	 * @param string|null $storage The storage to use.
 	 * @return Mapper
 	 */
-	public function mapper(string $entityName): Mapper
+	public function mapper(string $entity, string $storage = null): Mapper
 	{
-		return new Mapper($this->graph->getEntityMap($entityName), $this->defaultStorage);
+		if ($storage !== null) {
+			if (!isset($this->storages[$storage])) {
+				// TODO: MappingException
+				throw new \InvalidArgumentException("Unknown storage '$storage'");
+			}
+
+			$storage = $this->storages[$storage];
+		}
+
+		return new Mapper(
+			$this,
+			$this->graph->getEntityMap($entity),
+			$storage ?? $this->defaultStorage
+		);
 	}
 
 	/**
@@ -92,36 +106,64 @@ class EntityManager
 	/**
 	 * Open an ORM query builder.
 	 *
-	 * @param string $entity
+	 * @param string $entity The entity to query.
+	 * @param array  $fields The entity fields to retrieve.
 	 * @return Query\Builder
 	 */
-	public function query(string $entity)
+	public function query($entity, $fields = []): Query\Builder
 	{
-		$builder = $this->mapper($entity)->query();
-		$query   = new Query($builder->query, $entity);
+		$mapper  = $this->mapper($entity);
+		$builder = $mapper->query();
+		$query   = new Query($entity, $builder->query->resource);
 
 		return new Query\Builder($query, $this);
 	}
 
 	/**
-	 * Run an ORM query.
+	 * Run a query.
 	 *
-	 * TODO: Perhaps the relationship loading complexities here should be handled in the mapper.
-	 *       This method feels like it should remain simple.
-	 *
-	 * @param Query $query
+	 * @param Storage\Query $query
 	 * @return object[]
 	 */
-	public function run(Query $query)
+	public function run(Storage\Query $query)
+	{
+		if ($query instanceof Query) {
+			return $this->runOrmQuery($query);
+		}
+
+		$mapper = $this->mapper($query->resource);
+
+		$query->resource($mapper->getEntityMap()->getResource());
+
+		$result = $mapper->getStorage()->run($query);
+
+		$entities = $mapper->newInstances($result->data);
+
+		return $entities;
+	}
+
+	/**
+	 * Run an ORM query.
+	 *
+	 * TODO: Perhaps the relationship loading complexities here should be handled in the Mapper.
+	 *       This method feels like it should remain simple.
+	 *       The Mapper could retrieve related Mappers from an EntityManager instance.
+	 *
+	 * @param Query $query
+	 * @return array
+	 */
+	protected function runOrmQuery(Query $query)
 	{
 		// Load root entity IDs
 		$mapper     = $this->mapper($query->entity);
 		$storage    = $mapper->getStorage();
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
+		$query->resource($mapper->getEntityMap()->getResource());
+
 		$fields = $query->fields;
 		$query->fields($storageKey);
-		$idEntities = $storage->run($query->storageQuery)->data;
+		$idEntities = $storage->run($query)->data;
 
 		// TODO: Cleaner ID pluck with a helper function perhaps
 		$ids = [];
@@ -134,9 +176,9 @@ class EntityManager
 
 		// Load root entities by ID
 		$query->fields($fields)->where($storageKey, $ids);
-		$entitiesResult = $storage->run($query->storageQuery);
+		$entitiesResult = $storage->run($query);
 
-		$entities = $mapper->newInstancesFromStorage($entitiesResult->data);
+		$entities = $mapper->newInstances($entitiesResult->data);
 
 		// TODO: Load related entities and map them to the root entities ($query->with)
 
