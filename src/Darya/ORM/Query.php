@@ -3,12 +3,10 @@
 namespace Darya\ORM;
 
 use Darya\Storage;
-use RuntimeException;
 
 /**
  * Darya's ORM query.
  *
- * @mixin Storage\Query
  * @property-read string              $entity
  * @property-read Storage\Query       $storageQuery
  * @property-read string[]|callable[] $has
@@ -41,6 +39,8 @@ class Query extends Storage\Query
 
 	/**
 	 * Create a new ORM query.
+	 *
+	 * TODO: Should this just have a Mapper instance, or is that overkill?
 	 *
 	 * @param string $entity   The entity to query.
 	 * @param string $resource The resource to query.

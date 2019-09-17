@@ -2,6 +2,7 @@
 
 namespace Darya\ORM;
 
+use Darya\ORM\Exception\EntityNotFoundException;
 use Darya\Storage;
 
 /**
@@ -55,7 +56,7 @@ class EntityManager implements Storage\Queryable
 	/**
 	 * Get a mapper for a given entity.
 	 *
-	 * TODO: Memoize
+	 * TODO: Memoize Mappers
 	 *
 	 * @param string      $entity  The entity name.
 	 * @param string|null $storage The storage to use.
@@ -82,8 +83,8 @@ class EntityManager implements Storage\Queryable
 	/**
 	 * Find an entity with the given ID.
 	 *
-	 * @param string $entity
-	 * @param mixed  $id
+	 * @param string $entity The entity to find.
+	 * @param mixed  $id     The ID of the entity to find.
 	 * @return object|null
 	 */
 	public function find(string $entity, $id)
@@ -92,15 +93,54 @@ class EntityManager implements Storage\Queryable
 	}
 
 	/**
+	 * Find a single entity with the given ID or create a new one if it not found.
+	 *
+	 * @param string $entity The entity to find.
+	 * @param mixed  $id     The ID of the entity to find.
+	 * @return object The entity.
+	 */
+	public function findOrNew(string $entity, $id)
+	{
+		return $this->mapper($entity)->findOrNew($id);
+	}
+
+	/**
+	 * /**
+	 * Find a single entity with the given ID or error if it is not found.
+	 *
+	 * Throws an EntityNotFoundException if the entity is not found.
+	 *
+	 * @param string $entity
+	 * @param mixed  $id
+	 * @return object
+	 * @throws EntityNotFoundException
+	 */
+	public function findOrFail(string $entity, $id)
+	{
+		return $this->mapper($entity)->findOrFail($id);
+	}
+
+	/**
 	 * Find many entities with the given IDs.
 	 *
-	 * @param string  $entity
-	 * @param mixed[] $id
-	 * @return object|null
+	 * @param string  $entity The entity to find.
+	 * @param mixed[] $id     The ID of the entity to find.
+	 * @return object|null The entities.
 	 */
 	public function findMany(string $entity, array $id)
 	{
 		return $this->mapper($entity)->findMany($id);
+	}
+
+	/**
+	 * Find all entities.
+	 *
+	 * @param string $entity The entity to find.
+	 * @return object[] The entities.
+	 */
+	public function all(string $entity)
+	{
+		return $this->mapper($entity)->all();
 	}
 
 	/**
@@ -112,11 +152,7 @@ class EntityManager implements Storage\Queryable
 	 */
 	public function query($entity, $fields = []): Query\Builder
 	{
-		$mapper  = $this->mapper($entity);
-		$builder = $mapper->query();
-		$query   = new Query($entity, $builder->query->resource);
-
-		return new Query\Builder($query, $this);
+		return $this->mapper($entity)->query();
 	}
 
 	/**
@@ -127,13 +163,15 @@ class EntityManager implements Storage\Queryable
 	 */
 	public function run(Storage\Query $query)
 	{
+		$query = $this->mapQuery($query);
+
 		if ($query instanceof Query) {
 			return $this->runOrmQuery($query);
 		}
 
 		$mapper = $this->mapper($query->resource);
 
-		$query->resource($mapper->getEntityMap()->getResource());
+		//$query->resource($mapper->getEntityMap()->getResource());
 
 		$result = $mapper->getStorage()->run($query);
 
@@ -159,20 +197,12 @@ class EntityManager implements Storage\Queryable
 		$storage    = $mapper->getStorage();
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
-		$query->resource($mapper->getEntityMap()->getResource());
-
 		$fields = $query->fields;
 		$query->fields($storageKey);
-		$idEntities = $storage->run($query)->data;
-
-		// TODO: Cleaner ID pluck with a helper function perhaps
-		$ids = [];
-
-		foreach ($idEntities as $idEntity) {
-			$ids[] = $idEntity[$storageKey];
-		}
+		$ids = array_column($storage->run($query)->data, $storageKey);
 
 		// TODO: Check related entity existence ($query->has) to filter down IDs
+		//       OR use a subquery in the below query (when count() is a thing)
 
 		// Load root entities by ID
 		$query->fields($fields)->where($storageKey, $ids);
@@ -183,5 +213,23 @@ class EntityManager implements Storage\Queryable
 		// TODO: Load related entities and map them to the root entities ($query->with)
 
 		return $entities;
+	}
+
+	/**
+	 * Map query's identifiers from entity to storage.
+	 *
+	 * @param Storage\Query $query The query to map.
+	 * @return Storage\Query The mapped query.
+	 */
+	protected function mapQuery(Storage\Query $query): Storage\Query
+	{
+		$mapper = $this->mapper($query->entity);
+
+		// Ensure that the storage resource is set correctly
+		$query->resource($mapper->getEntityMap()->getResource());
+
+		// TODO: Map all other identifiers in the query; fields, filters, etc
+
+		return $query;
 	}
 }

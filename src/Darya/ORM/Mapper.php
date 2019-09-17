@@ -88,7 +88,7 @@ class Mapper
 	 * Returns null if the entity is not found.
 	 *
 	 * @param mixed $id The ID of the entity to find.
-	 * @return object|null
+	 * @return object|null The entity, or null if it is not found.
 	 */
 	public function find($id)
 	{
@@ -111,8 +111,8 @@ class Mapper
 	 * Throws an EntityNotFoundException if the entity is not found.
 	 *
 	 * @param mixed $id The ID of the entity to find.
-	 * @return object
-	 * @throws EntityNotFoundException
+	 * @return object The entity.
+	 * @throws EntityNotFoundException When the entity is not found.
 	 */
 	public function findOrFail($id)
 	{
@@ -131,7 +131,7 @@ class Mapper
 	 * Find a single entity with the given ID or create a new one if it not found.
 	 *
 	 * @param mixed $id The ID of the entity to find.
-	 * @return object
+	 * @return object The entity.
 	 */
 	public function findOrNew($id)
 	{
@@ -144,7 +144,7 @@ class Mapper
 	 * @param mixed[] $ids The IDs of the entities to find.
 	 * @return object[]
 	 */
-	public function findMany(array $ids)
+	public function findMany(array $ids): array
 	{
 		$storageKey = $this->getEntityMap()->getStorageKey();
 
@@ -166,8 +166,6 @@ class Mapper
 	/**
 	 * Open a query to the storage that the entity is mapped to.
 	 *
-	 * TODO: Could simply return ORM\Query\Builder
-	 *
 	 * @return Query\Builder
 	 */
 	public function query(): Query\Builder
@@ -178,19 +176,9 @@ class Mapper
 			new Query($entityMap->getName(), $entityMap->getResource()),
 			$this->getStorage()
 		);
-		$this->storage->query($this->entityMap->getResource())->query;
 
 		$query->callback(function (Storage\Result $result) {
-			$entities = [];
-
-			foreach ($result as $storageData) {
-				// TODO: Instance could be read from a cache here
-				$entity = $this->mapFromStorage($this->newInstance(), $storageData);
-
-				$entities[] = $entity;
-			}
-
-			return $entities;
+			return $this->newInstances($result->data);
 		});
 
 		return $query;

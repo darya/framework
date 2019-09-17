@@ -100,4 +100,15 @@ class EntityManagerTest extends TestCase
 		$this->assertEquals($user->surname, 'Kenobi');
 		$this->assertEquals($user->master_id, 1);
 	}
+
+	public function testFind()
+	{
+		$orm = $this->newOrmManager();
+
+		$user = $orm->find(User::class, 1);
+
+		$this->assertInstanceOf(User::class, $user);
+		$this->assertEquals($user->id, 1);
+		$this->assertEquals($user->firstname, 'Qui-Gon');
+	}
 }
