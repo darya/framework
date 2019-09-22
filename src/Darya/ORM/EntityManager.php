@@ -223,7 +223,7 @@ class EntityManager implements Storage\Queryable
 	 */
 	protected function mapQuery(Storage\Query $query): Storage\Query
 	{
-		$mapper = $this->mapper($query->entity);
+		$mapper = $this->mapper($query->entity ?: $query->resource);
 
 		// Ensure that the storage resource is set correctly
 		$query->resource($mapper->getEntityMap()->getResource());

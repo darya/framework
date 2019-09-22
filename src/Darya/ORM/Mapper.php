@@ -170,10 +170,8 @@ class Mapper
 	 */
 	public function query(): Query\Builder
 	{
-		$entityMap = $this->getEntityMap();
-
 		$query = new Query\Builder(
-			new Query($entityMap->getName(), $entityMap->getResource()),
+			new Query($this),
 			$this->getStorage()
 		);
 

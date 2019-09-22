@@ -8,7 +8,6 @@ use Darya\Storage;
  * Darya's ORM query.
  *
  * @property-read string              $entity
- * @property-read Storage\Query       $storageQuery
  * @property-read string[]|callable[] $has
  * @property-read string[]|callable[] $with
  *
@@ -17,11 +16,11 @@ use Darya\Storage;
 class Query extends Storage\Query
 {
 	/**
-	 * The entity to query.
+	 * The mapper used for this ORM query.
 	 *
-	 * @var string
+	 * @var Mapper
 	 */
-	protected $entity;
+	protected $mapper;
 
 	/**
 	 * Relationships to check existence for.
@@ -40,29 +39,22 @@ class Query extends Storage\Query
 	/**
 	 * Create a new ORM query.
 	 *
-	 * TODO: Should this just have a Mapper instance, or is that overkill?
-	 *
-	 * @param string $entity   The entity to query.
-	 * @param string $resource The resource to query.
+	 * @param Mapper $mapper
 	 */
-	public function __construct(string $entity, string $resource = '')
+	public function __construct(Mapper $mapper)
 	{
-		parent::__construct($resource);
+		parent::__construct($mapper->getEntityMap()->getResource());
 
-		$this->entity($entity);
+		$this->mapper = $mapper;
 	}
 
-	/**
-	 * Set the entity to query.
-	 *
-	 * @param string $entity
-	 * @return Query
-	 */
-	public function entity(string $entity)
+	public function __get(string $property)
 	{
-		$this->entity = $entity;
+		if ($property === 'entity') {
+			return $this->mapper->getEntityMap()->getName();
+		}
 
-		return $this;
+		return parent::__get($property);
 	}
 
 	/**

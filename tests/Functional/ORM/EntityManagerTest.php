@@ -69,17 +69,17 @@ class EntityManagerTest extends TestCase
 		]);
 	}
 
-	public function newOrmManager(): EntityManager
+	public function newEntityManager(): EntityManager
 	{
 		return new EntityManager($this->graph, [$this->storage]);
 	}
 
 	public function testSimpleQueryRun()
 	{
-		$orm = $this->newOrmManager();
+		$orm = $this->newEntityManager();
 
 		$query = (new Query(
-			User::class
+			$orm->mapper(User::class)
 		))->where('id', 2);
 
 		$users = $orm->run($query);
@@ -95,7 +95,7 @@ class EntityManagerTest extends TestCase
 
 	public function testSimpleQueryBuilderRun()
 	{
-		$orm = $this->newOrmManager();
+		$orm = $this->newEntityManager();
 
 		$users = $orm->query(User::class)->where('id', 2)->run();
 
@@ -110,7 +110,7 @@ class EntityManagerTest extends TestCase
 
 	public function testFind()
 	{
-		$orm = $this->newOrmManager();
+		$orm = $this->newEntityManager();
 
 		$user = $orm->find(User::class, 1);
 
