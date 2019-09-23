@@ -7,7 +7,7 @@ use Darya\Storage;
 /**
  * Darya's ORM query.
  *
- * @property-read string              $entity
+ * @property-read Mapper              $mapper
  * @property-read string[]|callable[] $has
  * @property-read string[]|callable[] $with
  *
@@ -25,14 +25,14 @@ class Query extends Storage\Query
 	/**
 	 * Relationships to check existence for.
 	 *
-	 * @var string[]
+	 * @var string[]|callable[]
 	 */
 	protected $has = [];
 
 	/**
 	 * Relationships to load entities with.
 	 *
-	 * @var string[]
+	 * @var string[]|callable[]
 	 */
 	protected $with = [];
 
@@ -46,15 +46,6 @@ class Query extends Storage\Query
 		parent::__construct($mapper->getEntityMap()->getResource());
 
 		$this->mapper = $mapper;
-	}
-
-	public function __get(string $property)
-	{
-		if ($property === 'entity') {
-			return $this->mapper->getEntityMap()->getName();
-		}
-
-		return parent::__get($property);
 	}
 
 	/**

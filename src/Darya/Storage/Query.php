@@ -469,6 +469,27 @@ class Query
 
 		$class = static::class;
 
-		throw new InvalidArgumentException("Property '$property' does not exist on class $class");
+		throw new InvalidArgumentException("Undefined property $class::$property");
+	}
+
+	/**
+	 * Copy the given query.
+	 *
+	 * @param Query $query The query to copy from.
+	 * @return $this
+	 */
+	public function copyFrom(Query $query): Query
+	{
+		$this->distinct = $query->distinct;
+		$this->resource = $query->resource;
+		$this->fields   = $query->fields;
+		$this->type     = $query->type;
+		$this->data     = $query->data;
+		$this->filter   = $query->filter;
+		$this->order    = $query->order;
+		$this->limit    = $query->limit;
+		$this->offset   = $query->offset;
+
+		return $this;
 	}
 }

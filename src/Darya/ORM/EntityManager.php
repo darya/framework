@@ -158,42 +158,19 @@ class EntityManager implements Storage\Queryable
 	/**
 	 * Run a query.
 	 *
+	 * TODO: Perhaps the relationship loading complexities here should be handled in the Mapper.
+	 *       This method feels like it should remain simple.
+	 *       The Mapper could retrieve related Mappers from an EntityManager instance.
+	 *
 	 * @param Storage\Query $query
 	 * @return object[]
 	 */
 	public function run(Storage\Query $query)
 	{
-		$query = $this->mapQuery($query);
+		$query = $this->prepareQuery($query);
 
-		if ($query instanceof Query) {
-			return $this->runOrmQuery($query);
-		}
-
-		$mapper = $this->mapper($query->resource);
-
-		//$query->resource($mapper->getEntityMap()->getResource());
-
-		$result = $mapper->getStorage()->run($query);
-
-		$entities = $mapper->newInstances($result->data);
-
-		return $entities;
-	}
-
-	/**
-	 * Run an ORM query.
-	 *
-	 * TODO: Perhaps the relationship loading complexities here should be handled in the Mapper.
-	 *       This method feels like it should remain simple.
-	 *       The Mapper could retrieve related Mappers from an EntityManager instance.
-	 *
-	 * @param Query $query
-	 * @return array
-	 */
-	protected function runOrmQuery(Query $query)
-	{
 		// Load root entity IDs
-		$mapper     = $this->mapper($query->entity);
+		$mapper     = $query->mapper;
 		$storage    = $mapper->getStorage();
 		$storageKey = $mapper->getEntityMap()->getStorageKey();
 
@@ -216,20 +193,23 @@ class EntityManager implements Storage\Queryable
 	}
 
 	/**
-	 * Map query's identifiers from entity to storage.
+	 * Prepare a query as an ORM query.
 	 *
-	 * @param Storage\Query $query The query to map.
-	 * @return Storage\Query The mapped query.
+	 * @param Storage\Query $storageQuery The query to prepare.
+	 * @return Query The prepared query.
 	 */
-	protected function mapQuery(Storage\Query $query): Storage\Query
+	protected function prepareQuery(Storage\Query $storageQuery): Query
 	{
-		$mapper = $this->mapper($query->entity ?: $query->resource);
+		if ($storageQuery instanceof Query) {
+			return $storageQuery;
+		}
 
-		// Ensure that the storage resource is set correctly
-		$query->resource($mapper->getEntityMap()->getResource());
+		$mapper = $this->mapper($storageQuery->resource);
 
-		// TODO: Map all other identifiers in the query; fields, filters, etc
+		$ormQuery = new Query($mapper);
+		$ormQuery->copyFrom($storageQuery);
+		$ormQuery->resource($mapper->getEntityMap()->getResource());
 
-		return $query;
+		return $ormQuery;
 	}
 }

@@ -322,4 +322,27 @@ class Mapper
 
 		return $entityMap->getStrategy()->mapToStorage($entity, $mapping);
 	}
+
+	/**
+	 * Map an ORM query to a storage query.
+	 *
+	 * This method does not map relationship loading in any way.
+	 *
+	 * @param Query $query The ORM query to map.
+	 * @return Storage\Query The mapped storage query.
+	 */
+	protected function mapToStorageQuery(Query $query): Storage\Query
+	{
+		$entityMap = $this->getEntityMap();
+		$resource  = $entityMap->getResource();
+
+		$storageQuery = new Storage\Query($resource);
+
+		// TODO: Map all other identifiers in the query; fields, filters, etc
+
+		$storageQuery->copyFrom($query);
+		$storageQuery->resource($resource);
+
+		return $storageQuery;
+	}
 }

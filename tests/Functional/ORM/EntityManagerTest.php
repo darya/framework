@@ -4,19 +4,16 @@ namespace Darya\Tests\Functional\ORM;
 
 use Darya\ORM\EntityGraph;
 use Darya\ORM\EntityManager;
-use Darya\ORM\EntityMap;
 use Darya\ORM\EntityMapFactory;
-use Darya\ORM\Mapper;
 use Darya\ORM\Query;
-use Darya\ORM\EntityMap\Strategy\PropertyStrategy;
-use Darya\Storage\InMemory;
+use Darya\Storage;
 use Darya\Tests\Unit\ORM\Fixtures\User;
 use PHPUnit\Framework\TestCase;
 
 class EntityManagerTest extends TestCase
 {
 	/**
-	 * @var InMemory
+	 * @var Storage\InMemory
 	 */
 	protected $storage;
 
@@ -35,7 +32,7 @@ class EntityManagerTest extends TestCase
 	 */
 	public function setUp()
 	{
-		$this->storage = new InMemory([
+		$this->storage = new Storage\InMemory([
 			'users' => [
 				[
 					'id'         => 1,
@@ -74,13 +71,14 @@ class EntityManagerTest extends TestCase
 		return new EntityManager($this->graph, [$this->storage]);
 	}
 
-	public function testSimpleQueryRun()
+	/**
+	 * Test that the manager accepts a simple storage query.
+	 */
+	public function testStorageQuery()
 	{
 		$orm = $this->newEntityManager();
 
-		$query = (new Query(
-			$orm->mapper(User::class)
-		))->where('id', 2);
+		$query = (new Storage\Query(User::class))->where('id', 2);
 
 		$users = $orm->run($query);
 
@@ -93,6 +91,9 @@ class EntityManagerTest extends TestCase
 		$this->assertEquals($user->master_id, 1);
 	}
 
+	/**
+	 * Test that simple usage of the ORM query builder works as expected.
+	 */
 	public function testSimpleQueryBuilderRun()
 	{
 		$orm = $this->newEntityManager();
@@ -108,6 +109,9 @@ class EntityManagerTest extends TestCase
 		$this->assertEquals(1, $user->master_id, 1);
 	}
 
+	/**
+	 * Test finding a single entity.
+	 */
 	public function testFind()
 	{
 		$orm = $this->newEntityManager();
