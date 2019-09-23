@@ -158,8 +158,8 @@ class EntityManager implements Storage\Queryable
 	/**
 	 * Run a query.
 	 *
-	 * TODO: Perhaps the relationship loading complexities here should be handled in the Mapper.
-	 *       This method feels like it should remain simple.
+	 * TODO: The relationship loading complexities here should be handled in the Mapper.
+	 *       This method should be simple and pass-through.
 	 *       The Mapper could retrieve related Mappers from an EntityManager instance.
 	 *
 	 * @param Storage\Query $query
@@ -168,6 +168,8 @@ class EntityManager implements Storage\Queryable
 	public function run(Storage\Query $query)
 	{
 		$query = $this->prepareQuery($query);
+
+		// TODO: Move the below into Mapper, as per docblock TODO
 
 		// Load root entity IDs
 		$mapper     = $query->mapper;
