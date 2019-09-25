@@ -196,11 +196,12 @@ class Mapper
 			// return $this->orm->query($query); // ??
 		}
 
+		// Load entities with relationship existence check
 		$result = $this->loadWhereHas($query);
-
 		$entities = $this->newInstances($result->data);
 
-		// TODO: Load related entities ($query->with) and map them to the root entities
+		// Load related entities
+		$this->loadWith($entities, $query);
 
 		return $entities;
 	}
@@ -235,9 +236,18 @@ class Mapper
 		return $storage->run($query);
 	}
 
-	protected function loadWith()
+	/**
+	 * Load entities with the given relationships loaded.
+	 *
+	 * @param object[] $entities The entity to load relationships for.
+	 * @param Query $query The query with the relationships to load.
+	 * @return object[] The entities with the given relationships loaded.
+	 */
+	protected function loadWith(array $entities, Query $query)
 	{
+		// TODO: Load related entities ($query->with) and map them to the root entities
 
+		return $entities;
 	}
 
 	/**
