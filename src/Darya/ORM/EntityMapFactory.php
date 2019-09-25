@@ -58,6 +58,7 @@ class EntityMapFactory
 
 		if (empty($mapping)) {
 			// TODO: Extract class properties using PHP's Reflection API for a one-to-one mapping
+			//       One step further would be to use Doctrine-style annotations... ooo...
 			$mapping = [];
 		}
 

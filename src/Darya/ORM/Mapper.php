@@ -6,6 +6,7 @@ use Darya\ORM\Exception\EntityNotFoundException;
 use Darya\Storage;
 use ReflectionClass;
 use ReflectionException;
+use UnexpectedValueException;
 
 /**
  * Darya's entity mapper.
@@ -183,11 +184,71 @@ class Mapper
 	}
 
 	/**
+	 * Run a query.
+	 *
+	 * @param Query $query
+	 * @return array TODO: Return a Storage\Result?
+	 */
+	public function run(Query $query)
+	{
+		if ($query->mapper !== $this) {
+			throw new UnexpectedValueException("Unexpected query mapper");
+			// return $this->orm->query($query); // ??
+		}
+
+		$result = $this->loadWhereHas($query);
+
+		$entities = $this->newInstances($result->data);
+
+		// TODO: Load related entities ($query->with) and map them to the root entities
+
+		return $entities;
+	}
+
+	/**
+	 * Load entities that match the query's relationship existence constraints.
+	 *
+	 * @param Query $query
+	 * @return Storage\Result
+	 */
+	protected function loadWhereHas(Query $query): Storage\Result
+	{
+		// Load root entity IDs
+		$resource   = $this->getEntityMap()->getResource();
+		$storage    = $this->getStorage();
+		$storageKey = $this->getEntityMap()->getStorageKey();
+
+		$data = $storage->query($resource)
+			->copyFrom($query)
+			->fields($storageKey)
+			->run()
+			->data;
+
+		$ids = array_column($data, $storageKey);
+
+		// TODO: Check related entity existence ($query->has) to filter down IDs
+		//       OR use a subquery in the below query (when count() is a thing)
+
+		// Filter down to entities matching the relationship existence check
+		$query->where($storageKey, $ids);
+
+		return $storage->run($query);
+	}
+
+	protected function loadWith()
+	{
+
+	}
+
+	/**
 	 * Store an entity to its mapped storage.
 	 *
 	 * Creates or updates the entity in storage depending on whether it exists.
 	 *
-	 * If storage returns a key after a create query, it will be set on the entity.
+	 * If storage returns a key after a create query, it will be set on the entity
+	 *
+	 * TODO: Store relationships that aren't mapped to the same storage as the root entity.
+	 * TODO: Implement storeMany(), or accept many in this $entity parameter
 	 *
 	 * @param object $entity
 	 * @return object The mapped entity

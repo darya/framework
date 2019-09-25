@@ -158,10 +158,6 @@ class EntityManager implements Storage\Queryable
 	/**
 	 * Run a query.
 	 *
-	 * TODO: The relationship loading complexities here should be handled in the Mapper.
-	 *       This method should be simple and pass-through.
-	 *       The Mapper could retrieve related Mappers from an EntityManager instance.
-	 *
 	 * @param Storage\Query $query
 	 * @return object[]
 	 */
@@ -169,38 +165,18 @@ class EntityManager implements Storage\Queryable
 	{
 		$query = $this->prepareQuery($query);
 
-		// TODO: Move the below into Mapper, as per docblock TODO
-
-		// Load root entity IDs
-		$mapper     = $query->mapper;
-		$storage    = $mapper->getStorage();
-		$storageKey = $mapper->getEntityMap()->getStorageKey();
-
-		$fields = $query->fields;
-		$query->fields($storageKey);
-		$ids = array_column($storage->run($query)->data, $storageKey);
-
-		// TODO: Check related entity existence ($query->has) to filter down IDs
-		//       OR use a subquery in the below query (when count() is a thing)
-
-		// Load root entities by ID
-		$query->fields($fields)->where($storageKey, $ids);
-		$entitiesResult = $storage->run($query);
-
-		$entities = $mapper->newInstances($entitiesResult->data);
-
-		// TODO: Load related entities and map them to the root entities ($query->with)
-
-		return $entities;
+		return $query->mapper->run($query);
 	}
 
 	/**
-	 * Prepare a query as an ORM query.
+	 * Prepare a storage query as an ORM query.
+	 *
+	 * Returns the query unmodified if it is already an ORM query.
 	 *
 	 * @param Storage\Query $storageQuery The query to prepare.
 	 * @return Query The prepared query.
 	 */
-	protected function prepareQuery(Storage\Query $storageQuery): Query
+	public function prepareQuery(Storage\Query $storageQuery): Query
 	{
 		if ($storageQuery instanceof Query) {
 			return $storageQuery;
