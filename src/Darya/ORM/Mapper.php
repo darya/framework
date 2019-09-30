@@ -215,20 +215,21 @@ class Mapper
 	protected function loadWhereHas(Query $query): Storage\Result
 	{
 		// Load root entity IDs
-		$resource   = $this->getEntityMap()->getResource();
 		$storage    = $this->getStorage();
-		$storageKey = $this->getEntityMap()->getStorageKey();
+		$entityMap  = $this->getEntityMap();
+		$resource   = $entityMap->getResource();
+		$storageKey = $entityMap->getStorageKey();
 
-		$data = $storage->query($resource)
+		$result = $storage->query($resource)
 			->copyFrom($query)
 			->fields($storageKey)
-			->run()
-			->data;
+			->run();
 
-		$ids = array_column($data, $storageKey);
+		$ids = array_column($result->data, $storageKey);
 
 		// TODO: Check related entity existence ($query->has) to filter down IDs
 		//       OR use a subquery in the below query (when count() is a thing)
+		//          and when the storage for parent and related are the same
 
 		// Filter down to entities matching the relationship existence check
 		$query->where($storageKey, $ids);

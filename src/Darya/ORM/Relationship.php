@@ -30,13 +30,6 @@ abstract class Relationship extends Query
 	protected $name;
 
 	/**
-	 * The parent entity map.
-	 *
-	 * @var EntityMap
-	 */
-	protected $parentMap;
-
-	/**
 	 * The related entity map.
 	 *
 	 * @var EntityMap
@@ -56,7 +49,7 @@ abstract class Relationship extends Query
 	 * @param string    $name       The relationship name.
 	 * @param EntityMap $parentMap  The parent entity map.
 	 * @param EntityMap $relatedMap The related entity map.
-	 * @param string    $foreignKey The foreign key.
+	 * @param string    $foreignKey The foreign key attribute.
 	 */
 	public function __construct(string $name, EntityMap $parentMap, EntityMap $relatedMap, string $foreignKey = '')
 	{
@@ -67,6 +60,22 @@ abstract class Relationship extends Query
 		$this->relatedMap = $relatedMap;
 		$this->foreignKey = $foreignKey;
 	}
+
+	/**
+	 * Build an instance of this relationship query for a given parent entity.
+	 *
+	 * @param mixed $entity The parent entity.
+	 * @return Relationship The new relationship query.
+	 */
+	abstract public function forParent($entity): Relationship;
+
+	/**
+	 * Build an eager-loading instance of this relationship query for the given parent entities.
+	 *
+	 * @param mixed $entities The parent entities.
+	 * @return Relationship The new relationship query.
+	 */
+	abstract public function eagerForParents($entities): Relationship;
 
 	/**
 	 * Get the relationship name.
@@ -106,5 +115,19 @@ abstract class Relationship extends Query
 	public function getForeignKey(): string
 	{
 		return $this->foreignKey;
+	}
+
+	/**
+	 * Get the parent entity's ID.
+	 *
+	 * @param mixed $parent
+	 * @return mixed
+	 */
+	public function getParentId($parent)
+	{
+		// TODO: EntityMap should decide how to read attributes
+		$parentKey = $this->getParentMap()->getKey();
+
+		return $parent[$parentKey];
 	}
 }

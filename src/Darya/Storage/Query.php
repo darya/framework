@@ -473,7 +473,7 @@ class Query
 	}
 
 	/**
-	 * Copy the given query.
+	 * Copy from the given query.
 	 *
 	 * @param Query $query The query to copy from.
 	 * @return $this
