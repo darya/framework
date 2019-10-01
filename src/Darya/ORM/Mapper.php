@@ -173,11 +173,11 @@ class Mapper
 	{
 		$query = new Query\Builder(
 			new Query($this),
-			$this->getStorage()
+			$this->orm
 		);
 
-		$query->callback(function (Storage\Result $result) {
-			return $this->newInstances($result->data);
+		$query->callback(function ($results) {
+			return $this->newInstances($results);
 		});
 
 		return $query;
@@ -197,7 +197,7 @@ class Mapper
 		}
 
 		// Load entities with relationship existence check
-		$result = $this->loadWhereHas($query);
+		$result   = $this->loadWhereHas($query);
 		$entities = $this->newInstances($result->data);
 
 		// Load related entities
@@ -238,15 +238,30 @@ class Mapper
 	}
 
 	/**
-	 * Load entities with the given relationships loaded.
+	 * Eagerly-load relationships for the given entities.
 	 *
-	 * @param object[] $entities The entity to load relationships for.
-	 * @param Query $query The query with the relationships to load.
+	 * @param object[] $entities The entities to load relationships for.
+	 * @param Query    $query    The query with the relationships to load.
 	 * @return object[] The entities with the given relationships loaded.
 	 */
 	protected function loadWith(array $entities, Query $query)
 	{
 		// TODO: Load related entities ($query->with) and map them to the root entities
+		$graph      = $this->orm->graph();
+		$entityName = $this->getEntityMap()->getName();
+
+		// Load related entities keyed by relationship name
+		$relationships = $graph->getRelationships($entityName, $query->with);
+
+		foreach ($relationships as $relationship) {
+			$relationship      = $relationship->eagerForParents($entities);
+			$relatedEntityName = $relationship->getRelatedMap()->getName();
+
+			$relatedMapper     = $this->orm->mapper($relatedEntityName);
+			$relationshipQuery = $this->orm->prepareQuery($relationship);
+
+			$relationship->match($entities, $relatedMapper->run($relationshipQuery));
+		}
 
 		return $entities;
 	}

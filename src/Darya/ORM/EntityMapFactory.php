@@ -22,7 +22,7 @@ class EntityMapFactory
 	 * @param string|null $resource
 	 * @return EntityMap
 	 */
-	public function create(string $name, array $mapping, string $resource = null)
+	public function create(string $name, array $mapping, string $resource = null): EntityMap
 	{
 		if ($resource === null) {
 			$resource = $name;
@@ -45,7 +45,7 @@ class EntityMapFactory
 	 * @param string|null $resource
 	 * @return EntityMap
 	 */
-	public function createForClass(string $class, array $mapping = null, string $resource = null)
+	public function createForClass(string $class, array $mapping = null, string $resource = null): EntityMap
 	{
 		if (!class_exists($class)) {
 			throw new InvalidArgumentException("Undefined class '$class'");
@@ -62,8 +62,12 @@ class EntityMapFactory
 			$mapping = [];
 		}
 
-		return new EntityMap(
+		$entityMap = new EntityMap(
 			$class, $resource, $mapping, new PropertyStrategy()
 		);
+
+		$entityMap->setName($class);
+
+		return $entityMap;
 	}
 }

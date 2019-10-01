@@ -25,14 +25,14 @@ class Query extends Storage\Query
 	/**
 	 * Relationships to check existence for.
 	 *
-	 * @var string[]|callable[]
+	 * @var callable[]|string[]
 	 */
 	protected $has = [];
 
 	/**
 	 * Relationships to load entities with.
 	 *
-	 * @var string[]|callable[]
+	 * @var callable[]|string[]
 	 */
 	protected $with = [];
 
@@ -51,12 +51,12 @@ class Query extends Storage\Query
 	/**
 	 * Set the relationships to check existence for.
 	 *
-	 * @param array $relationships
+	 * @param callable[]|string[]|string $relationships
 	 * @return $this
 	 */
-	public function has(array $relationships): Query
+	public function has($relationships): Query
 	{
-		$this->has = $relationships;
+		$this->has = (array) $relationships;
 
 		return $this;
 	}
@@ -64,13 +64,23 @@ class Query extends Storage\Query
 	/**
 	 * Set the relationships to load entities with.
 	 *
-	 * @param string[] $relationships
+	 * @param callable[]|string[]|string $relationships
 	 * @return $this
 	 */
-	public function with(array $relationships): Query
+	public function with($relationships): Query
 	{
-		$this->with = $relationships;
+		$this->with = (array) $relationships;
 
 		return $this;
+	}
+
+	/**
+	 * Run the query.
+	 *
+	 * @return object[]
+	 */
+	public function run()
+	{
+		return $this->mapper->run($this);
 	}
 }

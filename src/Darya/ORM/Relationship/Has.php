@@ -17,14 +17,14 @@ class Has extends Relationship
 		return $query;
 	}
 
-	public function eagerForParents($entities): Relationship
+	public function eagerForParents(array $entities): Relationship
 	{
 		$query = clone $this;
 
 		$foreignKey = $this->getForeignKey();
 		$ids = [];
 
-		// TODO: Extract to parent class method
+		// TODO: Extract this loop to a Relationship class method
 		foreach ($entities as $entity) {
 			$ids[] = $this->getParentId($entity);
 		}
@@ -32,5 +32,12 @@ class Has extends Relationship
 		$query->where("$foreignKey in", $ids);
 
 		return $query;
+	}
+
+	public function match(array $parentEntities, array $relatedEntities)
+	{
+		// TODO: Implement match() method.
+
+		return $parentEntities;
 	}
 }

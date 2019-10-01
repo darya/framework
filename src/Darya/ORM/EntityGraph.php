@@ -3,6 +3,7 @@
 namespace Darya\ORM;
 
 use RuntimeException;
+use UnexpectedValueException;
 
 /**
  * Darya's entity graph.
@@ -125,17 +126,26 @@ class EntityGraph
 	/**
 	 * Get all the relationships of an entity.
 	 *
-	 * @param string $entityName The entity name.
+	 * Optionally select relationships by name.
+	 *
+	 * @param string $entityName        The entity name.
+	 * @param array  $relationshipNames Optional relationship names to load.
 	 * @return Relationship[]
-	 * @throws RuntimeException
+	 * @throws UnexpectedValueException
 	 */
-	public function getRelationships($entityName)
+	public function getRelationships($entityName, array $relationshipNames = null): array
 	{
 		if (!isset($this->relationships[$entityName])) {
-			throw new RuntimeException("Entity '$entityName' not found");
+			throw new UnexpectedValueException("Entity '$entityName' not found");
 		}
 
-		return $this->relationships[$entityName];
+		$relationships = $this->relationships[$entityName];
+
+		if ($relationshipNames !== null) {
+			$relationships = array_intersect_key($relationships, array_flip($relationshipNames));
+		}
+
+		return $relationships;
 	}
 
 	/**
@@ -201,8 +211,8 @@ class EntityGraph
 			$this->entities[] = $name;
 		}
 
-		if (!isset($this->maps[$name])) {
-			$this->entityMaps[$name] = [];
+		if (!isset($this->entityMaps[$name])) {
+			$this->entityMaps[$name] = null;
 		}
 
 		if (!isset($this->relationships[$name])) {

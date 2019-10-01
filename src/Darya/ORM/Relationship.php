@@ -53,7 +53,7 @@ abstract class Relationship extends Query
 	 */
 	public function __construct(string $name, EntityMap $parentMap, EntityMap $relatedMap, string $foreignKey = '')
 	{
-		parent::__construct($relatedMap->getResource());
+		parent::__construct($relatedMap->getName());
 
 		$this->name       = $name;
 		$this->parentMap  = $parentMap;
@@ -75,7 +75,16 @@ abstract class Relationship extends Query
 	 * @param mixed $entities The parent entities.
 	 * @return Relationship The new relationship query.
 	 */
-	abstract public function eagerForParents($entities): Relationship;
+	abstract public function eagerForParents(array $entities): Relationship;
+
+	/**
+	 * Match a set of eagerly-loaded related entities to the given parent entities.
+	 *
+	 * @param mixed[] $parentEntities  The parent entities to match.
+	 * @param mixed[] $relatedEntities The related entities to match.
+	 * @return mixed[] The parent entities with their related entities matched.
+	 */
+	abstract public function match(array $parentEntities, array $relatedEntities);
 
 	/**
 	 * Get the relationship name.

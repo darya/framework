@@ -54,6 +54,16 @@ class EntityManager implements Storage\Queryable
 	}
 
 	/**
+	 * Get the entity graph.
+	 *
+	 * @return EntityGraph
+	 */
+	public function graph(): EntityGraph
+	{
+		return $this->graph;
+	}
+
+	/**
 	 * Get a mapper for a given entity.
 	 *
 	 * TODO: Memoize Mappers
@@ -67,7 +77,7 @@ class EntityManager implements Storage\Queryable
 		if ($storage !== null) {
 			if (!isset($this->storages[$storage])) {
 				// TODO: MappingException
-				throw new \InvalidArgumentException("Unknown storage '$storage'");
+				throw new \UnexpectedValueException("Unknown storage '$storage'");
 			}
 
 			$storage = $this->storages[$storage];
@@ -152,7 +162,7 @@ class EntityManager implements Storage\Queryable
 	 */
 	public function query($entity, $fields = []): Query\Builder
 	{
-		return $this->mapper($entity)->query();
+		return $this->mapper($entity)->query()->fields($fields);
 	}
 
 	/**
@@ -163,9 +173,7 @@ class EntityManager implements Storage\Queryable
 	 */
 	public function run(Storage\Query $query)
 	{
-		$query = $this->prepareQuery($query);
-
-		return $query->mapper->run($query);
+		return $this->prepareQuery($query)->run();
 	}
 
 	/**

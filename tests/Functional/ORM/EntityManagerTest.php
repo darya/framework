@@ -6,12 +6,19 @@ use Darya\ORM\EntityGraph;
 use Darya\ORM\EntityManager;
 use Darya\ORM\EntityMapFactory;
 use Darya\ORM\Query;
+use Darya\ORM\Relationship\Has;
 use Darya\Storage;
 use Darya\Tests\Unit\ORM\Fixtures\User;
 use PHPUnit\Framework\TestCase;
 
 class EntityManagerTest extends TestCase
 {
+
+	/**
+	 * @var array[]
+	 */
+	protected $storageData;
+
 	/**
 	 * @var Storage\InMemory
 	 */
@@ -32,7 +39,7 @@ class EntityManagerTest extends TestCase
 	 */
 	public function setUp()
 	{
-		$this->storage = new Storage\InMemory([
+		$this->storageData = [
 			'users' => [
 				[
 					'id'         => 1,
@@ -45,25 +52,48 @@ class EntityManagerTest extends TestCase
 					'firstname' => 'Obi-Wan',
 					'surname'   => 'Kenobi',
 					'master_id' => 1
+				],
+				[
+					'id'        => 3,
+					'firstname' => 'Anakin',
+					'surname'   => 'Skywalker',
+					'master_id' => 2
+				],
+				[
+					'id'        => 4,
+					'firstname' => 'Ahsoka',
+					'surname'   => 'Tano',
+					'master_id' => 3
 				]
 			]
-		]);
+		];
+
+		$this->storage = new Storage\InMemory($this->storageData);
 
 		$this->factory = new EntityMapFactory();
 
-		$this->graph = new EntityGraph([
-			$this->factory->createForClass(
-				User::class,
-				[
-					'id'         => 'id',
-					'firstname'  => 'firstname',
-					'surname'    => 'surname',
-					'padawan_id' => 'padawan_id',
-					'master_id'  => 'master_id'
-				],
-				'users'
-			)
-		]);
+		$userMap = $this->factory->createForClass(
+			User::class,
+			[
+				'id'         => 'id',
+				'firstname'  => 'firstname',
+				'surname'    => 'surname',
+				'padawan_id' => 'padawan_id',
+				'master_id'  => 'master_id'
+			],
+			'users'
+		);
+
+		$this->graph = new EntityGraph(
+			[
+				$userMap
+			],
+			[
+				// TODO: BelongsTo('master', $userMap, $userMap, 'padawan_id');
+				new Has('master', $userMap, $userMap, 'master_id'),
+				new Has('padawan', $userMap, $userMap, 'padawan_id')
+			]
+		);
 	}
 
 	public function newEntityManager(): EntityManager
@@ -121,5 +151,14 @@ class EntityManagerTest extends TestCase
 		$this->assertInstanceOf(User::class, $user);
 		$this->assertEquals(1, $user->id);
 		$this->assertEquals('Qui-Gon', $user->firstname);
+	}
+
+	public function testQueryWith()
+	{
+		$orm = $this->newEntityManager();
+
+		$users = $orm->query(User::class)->with('padawan')->run();
+
+		$this->assertCount(count($this->storageData['users']), $users);
 	}
 }
