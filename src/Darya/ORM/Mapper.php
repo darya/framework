@@ -176,9 +176,9 @@ class Mapper
 			$this->orm
 		);
 
-		$query->callback(function ($results) {
-			return $this->newInstances($results);
-		});
+//		$query->callback(function ($results) {
+//			return $this->newInstances($results);
+//		});
 
 		return $query;
 	}
@@ -191,10 +191,10 @@ class Mapper
 	 */
 	public function run(Query $query)
 	{
-		if ($query->mapper !== $this) {
-			throw new UnexpectedValueException("Unexpected query mapper");
-			// return $this->orm->query($query); // ??
-		}
+//		if ($query->mapper !== $this) {
+//			throw new UnexpectedValueException("Unexpected query mapper");
+//			// return $this->orm->query($query); // ??
+//		}
 
 		// Load entities with relationship existence check
 		$result   = $this->loadWhereHas($query);
