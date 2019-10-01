@@ -176,10 +176,6 @@ class Mapper
 			$this->orm
 		);
 
-//		$query->callback(function ($results) {
-//			return $this->newInstances($results);
-//		});
-
 		return $query;
 	}
 
@@ -191,10 +187,9 @@ class Mapper
 	 */
 	public function run(Query $query)
 	{
-//		if ($query->mapper !== $this) {
-//			throw new UnexpectedValueException("Unexpected query mapper");
-//			// return $this->orm->query($query); // ??
-//		}
+		if ($this->equals($query->mapper)) {
+			throw new UnexpectedValueException("Unexpected query mapper for entity '{$query->mapper->getEntityMap()->getName()}'");
+		}
 
 		// Load entities with relationship existence check
 		$result   = $this->loadWhereHas($query);
@@ -238,7 +233,7 @@ class Mapper
 	}
 
 	/**
-	 * Eagerly-load relationships for the given entities.
+	 * Eagerly-load relationships for, and match them to, the given entities.
 	 *
 	 * @param object[] $entities The entities to load relationships for.
 	 * @param Query    $query    The query with the relationships to load.
@@ -246,7 +241,6 @@ class Mapper
 	 */
 	protected function loadWith(array $entities, Query $query)
 	{
-		// TODO: Load related entities ($query->with) and map them to the root entities
 		$graph      = $this->orm->graph();
 		$entityName = $this->getEntityMap()->getName();
 
@@ -274,7 +268,7 @@ class Mapper
 	 * If storage returns a key after a create query, it will be set on the entity
 	 *
 	 * TODO: Store relationships that aren't mapped to the same storage as the root entity.
-	 * TODO: Implement storeMany(), or accept many in this $entity parameter
+	 * TODO: Implement storeMany($entities), or accept many in this $entity parameter
 	 *
 	 * @param object $entity
 	 * @return object The mapped entity
@@ -431,5 +425,20 @@ class Mapper
 		$storageQuery->resource($resource);
 
 		return $storageQuery;
+	}
+
+	/**
+	 * Compare a mapper with this mapper.
+	 *
+	 * Compares the equivalence of the entity maps and storages of the given
+	 * mapper with this mapper.
+	 *
+	 * @param Mapper $mapper
+	 * @return bool
+	 */
+	public function equals(Mapper $mapper)
+	{
+		return !($mapper->getEntityMap() === $this->getEntityMap()) ||
+		!($mapper->getStorage() === $this->getStorage() || $mapper->getStorage() === $this->orm);
 	}
 }
