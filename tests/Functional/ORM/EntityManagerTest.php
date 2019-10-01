@@ -98,7 +98,7 @@ class EntityManagerTest extends TestCase
 
 	public function newEntityManager(): EntityManager
 	{
-		return new EntityManager($this->graph, [$this->storage]);
+		return new EntityManager($this->graph, ['in-memory' => $this->storage]);
 	}
 
 	/**

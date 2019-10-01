@@ -4,11 +4,14 @@ namespace Darya\ORM;
 
 use Darya\ORM\Exception\EntityNotFoundException;
 use Darya\Storage;
+use Darya\Storage\Queryable;
+use RuntimeException;
+use UnexpectedValueException;
 
 /**
  * Darya's entity manager.
  *
- * Uses an entity graph and a set of entity mappers retrieve and persist entities.
+ * Uses an entity graph and a set of storage interfaces retrieve and persist entities.
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -29,11 +32,20 @@ class EntityManager implements Storage\Queryable
 	protected $storages;
 
 	/**
-	 * The default storage.
+	 * The default storage name.
 	 *
-	 * @var Storage\Queryable
+	 * @var string
 	 */
-	protected $defaultStorage;
+	protected $defaultStorageName;
+
+	/**
+	 * Cached entity mappers.
+	 *
+	 * Keyed by entity and storage.
+	 *
+	 * @var Mapper[]
+	 */
+	protected $mappers = [];
 
 	/**
 	 * Create a new entity manager.
@@ -43,14 +55,58 @@ class EntityManager implements Storage\Queryable
 	 */
 	public function __construct(EntityGraph $graph, array $storages)
 	{
-		$this->graph    = $graph;
-		$this->storages = $storages;
+		$this->graph = $graph;
+		$this->addStorages($storages);
+	}
 
-		// TODO: $this->validateStorages($storages);
-		// TODO: $this->addStorages($storages)
-		if (!empty($storages)) {
-			$this->defaultStorage = $storages[0];
+	/**
+	 * Add a storage.
+	 *
+	 * @param string    $name    The name of the storage.
+	 * @param Queryable $storage The storage.
+	 */
+	public function addStorage(string $name, Queryable $storage)
+	{
+		if (isset($this->storages[$name])) {
+			throw new RuntimeException("Storage '$name' is already set");
 		}
+
+		if (!isset($this->defaultStorageName)) {
+			$this->defaultStorageName = $name;
+		}
+
+		$this->storages[$name] = $storage;
+	}
+
+	/**
+	 * Add many storages.
+	 *
+	 * @param Queryable[] $storages Storages keyed by storage name.
+	 * @throws RuntimeException If a storage is already set with a given name
+	 * @throws UnexpectedValueException If a given storage is not an instance of Darya\Storage\Queryable
+	 */
+	public function addStorages(array $storages)
+	{
+		foreach ($storages as $name => $storage) {
+			$this->addStorage($name, $storage);
+		}
+	}
+
+	/**
+	 * Get the default storage.
+	 *
+	 * @return Queryable
+	 * @throws RuntimeException If no default storage is set
+	 */
+	public function getDefaultStorage(): Queryable
+	{
+		$storage = $this->storages[$this->defaultStorageName] ?? null;
+
+		if ($storage === null) {
+			throw new RuntimeException("No default storage available");
+		}
+
+		return $storage;
 	}
 
 	/**
@@ -74,19 +130,21 @@ class EntityManager implements Storage\Queryable
 	 */
 	public function mapper(string $entity, string $storage = null): Mapper
 	{
-		if ($storage !== null) {
-			if (!isset($this->storages[$storage])) {
-				// TODO: MappingException
-				throw new \UnexpectedValueException("Unknown storage '$storage'");
-			}
-
-			$storage = $this->storages[$storage];
+		if ($storage === null) {
+			$storage = $this->defaultStorageName;
 		}
+
+		if (!isset($this->storages[$storage])) {
+			// TODO: MappingException
+			throw new UnexpectedValueException("Unknown storage '$storage'");
+		}
+
+		$storage = $this->storages[$storage];
 
 		return new Mapper(
 			$this,
 			$this->graph->getEntityMap($entity),
-			$storage ?? $this->defaultStorage
+			$storage
 		);
 	}
 
