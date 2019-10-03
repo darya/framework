@@ -90,8 +90,9 @@ class EntityManagerTest extends TestCase
 			],
 			[
 				// TODO: BelongsTo('master', $userMap, $userMap, 'padawan_id');
-				new Has('master', $userMap, $userMap, 'master_id'),
-				new Has('padawan', $userMap, $userMap, 'padawan_id')
+				new Has('master', $userMap, $userMap, 'padawan_id'),
+				new Has('padawan', $userMap, $userMap, 'master_id')
+				//new BelongsTo('padawan', $userMap, $userMap, 'padawan_id')
 			]
 		);
 	}
@@ -160,5 +161,8 @@ class EntityManagerTest extends TestCase
 		$users = $orm->query(User::class)->with('padawan')->run();
 
 		$this->assertCount(count($this->storageData['users']), $users);
+
+		// TODO: Unit test the matches
+		//var_dump($users);
 	}
 }

@@ -37,6 +37,25 @@ class Has extends Relationship
 	public function match(array $parentEntities, array $relatedEntities)
 	{
 		// TODO: Implement match() method.
+		$relatedDictionary = [];
+
+		// Key parent entities by foreign key
+		$foreignKey = $this->getForeignKey();
+
+		foreach ($relatedEntities as $relatedEntity) {
+			$relatedDictionary[$relatedEntity[$foreignKey]] = $relatedEntity;
+		}
+
+		// Match related entities with parents
+		$primaryKey = $this->getParentMap()->getKey();
+
+		//var_dump($this->getName(), $relatedDictionary);die;
+
+		foreach ($parentEntities as $parentEntity) {
+			if (isset($relatedDictionary[$parentEntity[$primaryKey]])) {
+				$parentEntity[$this->getName()] = $relatedDictionary[$parentEntity[$primaryKey]];
+			}
+		}
 
 		return $parentEntities;
 	}
