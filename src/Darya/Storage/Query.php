@@ -7,18 +7,17 @@ use InvalidArgumentException;
 /**
  * Darya's storage query class.
  *
- * TODO: Maybe make a query interface?
- * TODO: Formalise filters and orders?
+ * TODO: Formalise filters and orders, maybe make a query interface?
  *
- * @property-read bool     $distinct
- * @property-read string   $resource
- * @property-read array    $fields
- * @property-read string   $type
- * @property-read array    $data
- * @property-read array    $filter
- * @property-read array    $order
- * @property-read int|null $limit
- * @property-read int      $offset
+ * @property-read string   $type     The type of the query.
+ * @property-read bool     $distinct Whether the query results should be unique.
+ * @property-read string   $resource The resource to query.
+ * @property-read array    $fields   The resource fields to retrieve.
+ * @property-read array    $data     The data to create or update the resource with.
+ * @property-read array    $filter   Filters to apply to the query.
+ * @property-read array    $order    Fields to sort the resource data by.
+ * @property-read int|null $limit    Limits the number of rows to retrieve.
+ * @property-read int      $offset   Offsets the rows to retrieve.
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -53,6 +52,13 @@ class Query
 	const DELETE = 'delete';
 
 	/**
+	 * The type of the query.
+	 *
+	 * @var string
+	 */
+	protected $type;
+
+	/**
 	 * Whether the query results should be unique.
 	 *
 	 * TODO: Rename to $unique.
@@ -74,13 +80,6 @@ class Query
 	 * @var array
 	 */
 	protected $fields;
-
-	/**
-	 * The type of the query.
-	 *
-	 * @var string
-	 */
-	protected $type;
 
 	/**
 	 * The data to create or update resource data with.
@@ -129,8 +128,7 @@ class Query
 	 */
 	public function __construct($resource, $fields = [], array $filter = [], array $order = [], $limit = 0, $offset = 0)
 	{
-		$this->type = static::READ;
-
+		$this->type     = static::READ;
 		$this->resource = $resource;
 		$this->fields   = (array) $fields;
 		$this->filter   = $filter;
