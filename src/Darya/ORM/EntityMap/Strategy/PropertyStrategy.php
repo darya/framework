@@ -13,35 +13,26 @@ use Darya\ORM\EntityMap\Strategy;
  */
 class PropertyStrategy implements Strategy
 {
-	public function readAttribute($entity, string $attribute)
+	/**
+	 * @param object   $entity
+	 * @param string[] $attributes
+	 * @return array|mixed
+	 */
+	public function readAttributes($entity, array $attributes)
 	{
-		return $entity->{$attribute};
-	}
+		$values = [];
 
-	public function writeAttribute($entity, string $attribute, $value): void
-	{
-		$entity->{$attribute} = $value;
-	}
-
-	public function mapFromStorage($entity, array $mapping, array $storageData)
-	{
-		foreach ($mapping as $entityKey => $storageKey) {
-			if (array_key_exists($storageKey, $storageData)) {
-				$entity->{$entityKey} = $storageData[$storageKey];
-			}
+		foreach ($attributes as $attribute) {
+			$values[$attribute] = $entity->{$attribute};
 		}
 
-		return $entity;
+		return $values;
 	}
 
-	public function mapToStorage($entity, array $mapping): array
+	public function writeAttributes($entity, array $attributes): void
 	{
-		$data = [];
-
-		foreach ($mapping as $entityKey => $storageKey) {
-			$data[$storageKey] = $entity->{$entityKey};
+		foreach ($attributes as $attribute => $value) {
+			$entity->{$attribute} = $value;
 		}
-
-		return $data;
 	}
 }

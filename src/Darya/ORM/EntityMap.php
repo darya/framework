@@ -78,7 +78,7 @@ class EntityMap
 		$this->resource = $resource;
 		$this->mapping  = $mapping;
 		$this->strategy = $strategy;
-		$this->key      = $key;
+		$this->setKey($key);
 	}
 
 	/**
@@ -142,6 +142,45 @@ class EntityMap
 	public function getStrategy(): Strategy
 	{
 		return $this->strategy;
+	}
+
+	/**
+	 * Map from storage data to an entity.
+	 *
+	 * @param object $entity      The entity to map to.
+	 * @param array  $storageData The storage data to map from.
+	 * @return object The mapped entity.
+	 */
+	public function mapFromStorage($entity, array $storageData)
+	{
+		$mapping = $this->getMapping();
+
+		foreach ($mapping as $entityKey => $storageKey) {
+			if (array_key_exists($storageKey, $storageData)) {
+				$this->writeAttribute($entity, $entityKey, $storageData[$storageKey]);
+			}
+		}
+
+		return $entity;
+	}
+
+	/**
+	 * Map from an entity to storage data.
+	 *
+	 * @param object $entity The entity to map from.
+	 * @return array The mapped storage data.
+	 */
+	public function mapToStorage($entity): array
+	{
+		$mapping = $this->getMapping();
+
+		$data = [];
+
+		foreach ($mapping as $entityKey => $storageKey) {
+			$data[$storageKey] = $this->readAttribute($entity, $entityKey);
+		}
+
+		return $data;
 	}
 
 	/**
@@ -243,57 +282,49 @@ class EntityMap
 	/**
 	 * Read an attribute from an entity.
 	 *
-	 * @param object $entity
-	 * @param string $attribute
-	 * @return mixed
+	 * @param object $entity    The entity to read the attribute from.
+	 * @param string $attribute The name of the attribute to read.
+	 * @return mixed The attribute's value.
 	 */
 	public function readAttribute($entity, string $attribute)
 	{
-		return $this->getStrategy()->readAttribute($entity, $attribute);
+		return $this->readAttributes($entity, [$attribute])[$attribute];
 	}
 
 	/**
 	 * Read many attributes from an entity.
 	 *
-	 * @param object $entity
-	 * @param array $attributes
-	 * @return array
+	 * @param object $entity     The entity to read the attributes from.
+	 * @param array  $attributes The names of the attributes to read.
+	 * @return array The attribute values.
 	 */
 	public function readAttributes($entity, array $attributes): array
 	{
-		$values = [];
-
-		foreach ($attributes as $attribute) {
-			$values[$attribute] = $this->readAttribute($entity, $attribute);
-		}
-
-		return $values;
+		return $this->getStrategy()->readAttributes($entity, $attributes);
 	}
 
 	/**
 	 * Write an attribute to an entity.
 	 *
-	 * @param object $entity
-	 * @param string $attribute
-	 * @param mixed $value
+	 * @param object $entity    The entity to write the attribute to.
+	 * @param string $attribute The name of the attribute to write.
+	 * @param mixed  $value     The value of the attribute to write.
+	 * @return void
 	 */
-	public function writeAttribute($entity, string $attribute, $value)
+	public function writeAttribute($entity, string $attribute, $value): void
 	{
-		$this->getStrategy()->writeAttribute($entity, $attribute, $value);
+		$this->writeAttributes($entity, [$attribute => $value]);
 	}
 
 	/**
 	 * Write many attributes to an entity.
 	 *
-	 * @param object $entity
-	 * @param mixed[] $attributes
+	 * @param object  $entity     The entity to write the attributes to.
+	 * @param mixed[] $attributes The names and values of the attributes to write.
+	 * @return void
 	 */
-	public function writeAttributes($entity, array $attributes)
+	public function writeAttributes($entity, array $attributes): void
 	{
-		$strategy = $this->getStrategy();
-
-		foreach ($attributes as $attribute => $value) {
-			$strategy->writeAttribute($entity, $attribute, $value);
-		}
+		$this->getStrategy()->writeAttributes($entity, $attributes);
 	}
 }

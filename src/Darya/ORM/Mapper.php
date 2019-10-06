@@ -382,10 +382,7 @@ class Mapper
 	 */
 	public function mapFromStorage($entity, array $storageData)
 	{
-		$entityMap = $this->getEntityMap();
-		$mapping   = $entityMap->getMapping();
-
-		return $entityMap->getStrategy()->mapFromStorage($entity, $mapping, $storageData);
+		return $this->getEntityMap()->mapFromStorage($entity, $storageData);
 	}
 
 	/**
@@ -396,10 +393,7 @@ class Mapper
 	 */
 	public function mapToStorage($entity): array
 	{
-		$entityMap = $this->getEntityMap();
-		$mapping   = $entityMap->getMapping();
-
-		return $entityMap->getStrategy()->mapToStorage($entity, $mapping);
+		return $this->getEntityMap()->mapToStorage($entity);
 	}
 
 	/**
