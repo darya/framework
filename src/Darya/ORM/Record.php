@@ -93,6 +93,7 @@ class Record extends Model
 
 		if ($this->hasRelation($attribute)) {
 			$related = $this->related($attribute);
+
 			if ($related instanceof Record && $subattribute !== null) {
 				return $related->get($subattribute);
 			}

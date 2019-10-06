@@ -239,4 +239,61 @@ class EntityMap
 
 		return $attributes;
 	}
+
+	/**
+	 * Read an attribute from an entity.
+	 *
+	 * @param object $entity
+	 * @param string $attribute
+	 * @return mixed
+	 */
+	public function readAttribute($entity, string $attribute)
+	{
+		return $this->getStrategy()->readAttribute($entity, $attribute);
+	}
+
+	/**
+	 * Read many attributes from an entity.
+	 *
+	 * @param object $entity
+	 * @param array $attributes
+	 * @return array
+	 */
+	public function readAttributes($entity, array $attributes): array
+	{
+		$values = [];
+
+		foreach ($attributes as $attribute) {
+			$values[$attribute] = $this->readAttribute($entity, $attribute);
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Write an attribute to an entity.
+	 *
+	 * @param object $entity
+	 * @param string $attribute
+	 * @param mixed $value
+	 */
+	public function writeAttribute($entity, string $attribute, $value)
+	{
+		$this->getStrategy()->writeAttribute($entity, $attribute, $value);
+	}
+
+	/**
+	 * Write many attributes to an entity.
+	 *
+	 * @param object $entity
+	 * @param mixed[] $attributes
+	 */
+	public function writeAttributes($entity, array $attributes)
+	{
+		$strategy = $this->getStrategy();
+
+		foreach ($attributes as $attribute => $value) {
+			$strategy->writeAttribute($entity, $attribute, $value);
+		}
+	}
 }

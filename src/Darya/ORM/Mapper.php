@@ -241,14 +241,12 @@ class Mapper
 	 */
 	protected function loadWith(array $entities, Query $query)
 	{
-		$graph      = $this->orm->graph();
-		$entityName = $this->getEntityMap()->getName();
-
-		// Load related entities keyed by relationship name
+		$graph         = $this->orm->graph();
+		$entityName    = $this->getEntityMap()->getName();
 		$relationships = $graph->getRelationships($entityName, $query->with);
 
 		foreach ($relationships as $relationship) {
-			$relationship      = $relationship->eagerForParents($entities);
+			$relationship      = $relationship->forParents($entities);
 			$relatedEntityName = $relationship->getRelatedMap()->getName();
 
 			$relatedMapper     = $this->orm->mapper($relatedEntityName);
@@ -439,6 +437,6 @@ class Mapper
 	public function equals(Mapper $mapper)
 	{
 		return !($mapper->getEntityMap() === $this->getEntityMap()) ||
-		!($mapper->getStorage() === $this->getStorage() || $mapper->getStorage() === $this->orm);
+			   !($mapper->getStorage() === $this->getStorage() || $mapper->getStorage() === $this->orm);
 	}
 }

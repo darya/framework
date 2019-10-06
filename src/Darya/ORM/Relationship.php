@@ -75,7 +75,7 @@ abstract class Relationship extends Query
 	 * @param mixed $entities The parent entities.
 	 * @return Relationship The new relationship query.
 	 */
-	abstract public function eagerForParents(array $entities): Relationship;
+	abstract public function forParents(array $entities): Relationship;
 
 	/**
 	 * Match a set of eagerly-loaded related entities to the given parent entities.
@@ -134,9 +134,28 @@ abstract class Relationship extends Query
 	 */
 	public function getParentId($parent)
 	{
-		// TODO: EntityMap should decide how to read attributes
-		$parentKey = $this->getParentMap()->getKey();
+		$ids = $this->getParentIds([$parent]);
 
-		return $parent[$parentKey];
+		return $ids[0];
+	}
+
+	/**
+	 * Get IDs of the given parent entities.
+	 *
+	 * @param array $parents
+	 * @return mixed[]
+	 */
+	public function getParentIds(array $parents)
+	{
+		$parentMap = $this->getParentMap();
+		$parentKey = $parentMap->getKey();
+
+		$ids = [];
+
+		foreach ($parents as $parent) {
+			$ids[] = $parentMap->readAttribute($parent, $parentKey);
+		}
+
+		return $ids;
 	}
 }

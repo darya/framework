@@ -8,7 +8,7 @@ use Darya\ORM\EntityMapFactory;
 use Darya\ORM\Query;
 use Darya\ORM\Relationship\Has;
 use Darya\Storage;
-use Darya\Tests\Unit\ORM\Fixtures\User;
+use Darya\Tests\Unit\ORM\Fixtures\UserModel as User;
 use PHPUnit\Framework\TestCase;
 
 class EntityManagerTest extends TestCase
@@ -89,10 +89,8 @@ class EntityManagerTest extends TestCase
 				$userMap
 			],
 			[
-				// TODO: BelongsTo('master', $userMap, $userMap, 'padawan_id');
-				new Has('master', $userMap, $userMap, 'padawan_id'),
 				new Has('padawan', $userMap, $userMap, 'master_id')
-				//new BelongsTo('padawan', $userMap, $userMap, 'padawan_id')
+				// TODO: new BelongsTo('master', $userMap, $userMap, 'master_id'),
 			]
 		);
 	}
@@ -160,9 +158,20 @@ class EntityManagerTest extends TestCase
 
 		$users = $orm->query(User::class)->with('padawan')->run();
 
-		$this->assertCount(count($this->storageData['users']), $users);
+		$storageUsers = $this->storageData['users'];
+		$this->assertCount(count($storageUsers), $users);
+
+		$actualPadawanCount = 0;
+		$expectedPadawanCount = count($orm->query(User::class)->where('master_id >', 0)->run());
 
 		// TODO: Unit test the matches
-		//var_dump($users);
+		foreach ($users as $user) {
+			if ($user->padawan) {
+				$this->assertSame($user->padawan->master_id, $user->id);
+				$actualPadawanCount++;
+			}
+		}
+
+		$this->assertSame($expectedPadawanCount, $actualPadawanCount);
 	}
 }

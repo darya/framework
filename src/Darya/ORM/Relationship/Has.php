@@ -17,17 +17,12 @@ class Has extends Relationship
 		return $query;
 	}
 
-	public function eagerForParents(array $entities): Relationship
+	public function forParents(array $entities): Relationship
 	{
 		$query = clone $this;
 
 		$foreignKey = $this->getForeignKey();
-		$ids = [];
-
-		// TODO: Extract this loop to a Relationship class method
-		foreach ($entities as $entity) {
-			$ids[] = $this->getParentId($entity);
-		}
+		$ids = $this->getParentIds($entities);
 
 		$query->where("$foreignKey in", $ids);
 
@@ -36,21 +31,27 @@ class Has extends Relationship
 
 	public function match(array $parentEntities, array $relatedEntities)
 	{
+		$parentMap  = $this->getParentMap();
+		$relatedMap = $this->getRelatedMap();
 		$primaryKey = $this->getParentMap()->getKey();
 		$foreignKey = $this->getForeignKey();
 
-		// Key parent entities by foreign key
+		// Key related entities by foreign key
 		$relatedDictionary = [];
 
-		// TODO: EntityMap should decide how to read attributes ($relatedEntity[$foreignKey])
 		foreach ($relatedEntities as $relatedEntity) {
-			$relatedDictionary[$relatedEntity[$foreignKey]] = $relatedEntity;
+			$parentId = $relatedMap->readAttribute($relatedEntity, $foreignKey);
+
+			$relatedDictionary[$parentId] = $relatedEntity;
 		}
 
 		// Match related entities with parents
-		// TODO: EntityMap should decide how to read attributes ($parentEntity[$primaryKey])
+		$relationshipName = $this->getName();
+
 		foreach ($parentEntities as $parentEntity) {
-			$parentEntity[$this->getName()] = $relatedDictionary[$parentEntity[$primaryKey]] ?? null;
+			$parentId = $parentMap->readAttribute($parentEntity, $primaryKey);
+
+			$parentMap->writeAttribute($parentEntity, $relationshipName, $relatedDictionary[$parentId] ?? null);
 		}
 
 		return $parentEntities;
