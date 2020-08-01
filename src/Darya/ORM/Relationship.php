@@ -136,7 +136,7 @@ abstract class Relationship extends Query
 	{
 		$ids = $this->getParentIds([$parent]);
 
-		return $ids[0];
+		return $ids[0] ?? null;
 	}
 
 	/**

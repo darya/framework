@@ -43,7 +43,7 @@ class EntityMap
 	protected $resource;
 
 	/**
-	 * The mapping of entity properties to storage fields.
+	 * The mapping of entity attributes as keys to storage fields as values.
 	 *
 	 * @var array
 	 */
@@ -68,7 +68,7 @@ class EntityMap
 	 *
 	 * @param string          $class    The class name of the entity to map.
 	 * @param string          $resource The name of the resource the entity maps to in storage.
-	 * @param array           $mapping  The mapping of entity attributes to storage fields.
+	 * @param array           $mapping  The mapping of entity attributes as keys to storage fields as values.
 	 * @param Strategy        $strategy The mapping strategy to use.
 	 * @param string|string[] $key      [optional] The entity's primary key attribute(s). Defaults to `'id'`.
 	 */

@@ -45,8 +45,8 @@ class EntityGraph
 	/**
 	 * Create a new entity graph.
 	 *
-	 * @param EntityMap[] $entityMaps    Entity maps.
-	 * @param Relation[]  $relationships Entity relationships.
+	 * @param EntityMap[]    $entityMaps    Entity maps.
+	 * @param Relationship[] $relationships Entity relationships.
 	 */
 	public function __construct(array $entityMaps = [], array $relationships = [])
 	{
@@ -126,17 +126,17 @@ class EntityGraph
 	/**
 	 * Get all the relationships of an entity.
 	 *
-	 * Optionally select relationships by name.
+	 * Optionally selects relationships by name.
 	 *
-	 * @param string $entityName        The entity name.
-	 * @param array  $relationshipNames Optional relationship names to load.
+	 * @param string     $entityName        The entity name.
+	 * @param array|null $relationshipNames Optional names of the relationships to load.
 	 * @return Relationship[]
-	 * @throws UnexpectedValueException
+	 * @throws RuntimeException If the entity name is not found
 	 */
-	public function getRelationships($entityName, array $relationshipNames = null): array
+	public function getRelationships($entityName, ?array $relationshipNames = null): array
 	{
-		if (!isset($this->relationships[$entityName])) {
-			throw new UnexpectedValueException("Entity '$entityName' not found");
+		if (!$this->hasEntity($entityName)) {
+			throw new RuntimeException("Entity '$entityName' not found");
 		}
 
 		$relationships = $this->relationships[$entityName];
@@ -145,7 +145,7 @@ class EntityGraph
 			$relationships = array_intersect_key($relationships, array_flip($relationshipNames));
 		}
 
-		return $relationships;
+		return $relationships ?? [];
 	}
 
 	/**

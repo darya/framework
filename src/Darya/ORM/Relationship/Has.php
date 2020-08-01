@@ -3,6 +3,11 @@ namespace Darya\ORM\Relationship;
 
 use Darya\ORM\Relationship;
 
+/**
+ * One-to-one relationship.
+ *
+ * @author Chris Andrew <chris@hexus.io>
+ */
 class Has extends Relationship
 {
 	public function forParent($entity): Relationship
@@ -36,14 +41,8 @@ class Has extends Relationship
 		$primaryKey = $this->getParentMap()->getKey();
 		$foreignKey = $this->getForeignKey();
 
-		// Key related entities by foreign key
-		$relatedDictionary = [];
-
-		foreach ($relatedEntities as $relatedEntity) {
-			$parentId = $relatedMap->readAttribute($relatedEntity, $foreignKey);
-
-			$relatedDictionary[$parentId] = $relatedEntity;
-		}
+		// Index related entities by foreign key
+		$relatedDictionary = $this->buildRelatedDictionary($relatedEntities);
 
 		// Match related entities with parents
 		$relationshipName = $this->getName();
@@ -55,5 +54,27 @@ class Has extends Relationship
 		}
 
 		return $parentEntities;
+	}
+
+	/**
+	 * Index related entities by their foreign keys.
+	 *
+	 * @param array $relatedEntities Related entities to index by their foreign keys.
+	 * @return array Related entities indexed by their foreign keys.
+	 */
+	protected function buildRelatedDictionary(array $relatedEntities): array
+	{
+		$relatedMap = $this->getRelatedMap();
+		$foreignKey = $this->getForeignKey();
+
+		$relatedDictionary = [];
+
+		foreach ($relatedEntities as $relatedEntity) {
+			$parentId = $relatedMap->readAttribute($relatedEntity, $foreignKey);
+
+			$relatedDictionary[$parentId] = $relatedEntity;
+		}
+
+		return $relatedDictionary;
 	}
 }

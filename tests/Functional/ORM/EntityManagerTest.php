@@ -5,15 +5,15 @@ namespace Darya\Tests\Functional\ORM;
 use Darya\ORM\EntityGraph;
 use Darya\ORM\EntityManager;
 use Darya\ORM\EntityMapFactory;
-use Darya\ORM\Query;
 use Darya\ORM\Relationship\Has;
+use Darya\ORM\Relationship\HasMany;
 use Darya\Storage;
+use Darya\Tests\Unit\ORM\Fixtures\PostModel as Post;
 use Darya\Tests\Unit\ORM\Fixtures\UserModel as User;
 use PHPUnit\Framework\TestCase;
 
 class EntityManagerTest extends TestCase
 {
-
 	/**
 	 * @var array[]
 	 */
@@ -65,6 +65,23 @@ class EntityManagerTest extends TestCase
 					'surname'   => 'Tano',
 					'master_id' => 3
 				]
+			],
+			'posts' => [
+				[
+					'id'        => 1,
+					'title'     => 'Post one',
+					'author_id' => 1
+				],
+				[
+					'id'        => 2,
+					'title'     => 'Post two',
+					'author_id' => 1
+				],
+				[
+					'id'        => 3,
+					'title'     => 'Post three',
+					'author_id' => 2
+				]
 			]
 		];
 
@@ -84,13 +101,25 @@ class EntityManagerTest extends TestCase
 			'users'
 		);
 
+		$postMap = $this->factory->createForClass(
+			Post::class,
+			[
+				'id'        => 'id',
+				'title'     => 'title',
+				'author_id' => 'author_id'
+			],
+			'posts'
+		);
+
 		$this->graph = new EntityGraph(
 			[
-				$userMap
+				$userMap,
+				$postMap
 			],
 			[
-				new Has('padawan', $userMap, $userMap, 'master_id')
+				new Has('padawan', $userMap, $userMap, 'master_id'),
 				// TODO: new BelongsTo('master', $userMap, $userMap, 'master_id'),
+				new HasMany('posts', $userMap, $postMap, 'author_id')
 			]
 		);
 	}
@@ -114,10 +143,10 @@ class EntityManagerTest extends TestCase
 		$this->assertCount(1, $users);
 		$user = $users[0];
 		$this->assertInstanceOf(User::class, $user);
-		$this->assertEquals($user->id, 2);
-		$this->assertEquals($user->firstname, 'Obi-Wan');
-		$this->assertEquals($user->surname, 'Kenobi');
-		$this->assertEquals($user->master_id, 1);
+		$this->assertEquals(2, $user->id);
+		$this->assertEquals('Obi-Wan', $user->firstname);
+		$this->assertEquals('Kenobi', $user->surname);
+		$this->assertEquals(1, $user->master_id);
 	}
 
 	/**
@@ -156,13 +185,16 @@ class EntityManagerTest extends TestCase
 	{
 		$orm = $this->newEntityManager();
 
-		$users = $orm->query(User::class)->with('padawan')->run();
+		$users = $orm->query(User::class)->with(['padawan', 'posts'])->run();
 
 		$storageUsers = $this->storageData['users'];
 		$this->assertCount(count($storageUsers), $users);
 
-		$actualPadawanCount = 0;
+		$actualPadawanCount   = 0;
 		$expectedPadawanCount = count($orm->query(User::class)->where('master_id >', 0)->run());
+
+		$actualPostsCount   = 0;
+		$expectedPostsCount = count($orm->query(Post::class)->where('author_id >', 0)->run());
 
 		// TODO: Unit test the matches
 		foreach ($users as $user) {
@@ -170,8 +202,13 @@ class EntityManagerTest extends TestCase
 				$this->assertSame($user->padawan->master_id, $user->id);
 				$actualPadawanCount++;
 			}
+
+			if ($user->posts) {
+				$actualPostsCount += count($user->posts);
+			}
 		}
 
-		$this->assertSame($expectedPadawanCount, $actualPadawanCount);
+		$this->assertSame($expectedPadawanCount, $actualPadawanCount, 'Eagerly loaded padawans count did not match');
+		$this->assertSame($expectedPostsCount, $actualPostsCount, 'Eagerly loaded posts count did not match');
 	}
 }
