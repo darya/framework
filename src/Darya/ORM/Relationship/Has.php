@@ -1,4 +1,5 @@
 <?php
+
 namespace Darya\ORM\Relationship;
 
 use Darya\ORM\Relationship;
@@ -14,8 +15,8 @@ class Has extends Relationship
 	{
 		$query = clone $this;
 
-		$foreignKey = $this->getForeignKey();
-		$id = $this->getParentId($entity);
+		$foreignKey = $this->getParentMap()->getStorageField($this->getForeignKey());
+		$id         = $this->getParentId($entity);
 
 		$query->where($foreignKey, $id);
 
@@ -26,25 +27,23 @@ class Has extends Relationship
 	{
 		$query = clone $this;
 
-		$foreignKey = $this->getForeignKey();
-		$ids = $this->getParentIds($entities);
+		$foreignKey = $this->getParentMap()->getStorageField($this->getForeignKey());
+		$ids        = $this->getParentIds($entities);
 
 		$query->where("$foreignKey in", $ids);
 
 		return $query;
 	}
 
-	public function match(array $parentEntities, array $relatedEntities)
+	public function match(array $parentEntities, array $relatedEntities): array
 	{
 		$parentMap  = $this->getParentMap();
-		$relatedMap = $this->getRelatedMap();
 		$primaryKey = $this->getParentMap()->getKey();
-		$foreignKey = $this->getForeignKey();
 
 		// Index related entities by foreign key
 		$relatedDictionary = $this->buildRelatedDictionary($relatedEntities);
 
-		// Match related entities with parents
+		// Match related entities with their parents
 		$relationshipName = $this->getName();
 
 		foreach ($parentEntities as $parentEntity) {
@@ -58,6 +57,8 @@ class Has extends Relationship
 
 	/**
 	 * Index related entities by their foreign keys.
+	 *
+	 * TODO: Dictionary helpers, somewhere.
 	 *
 	 * @param array $relatedEntities Related entities to index by their foreign keys.
 	 * @return array Related entities indexed by their foreign keys.

@@ -84,7 +84,7 @@ abstract class Relationship extends Query
 	 * @param mixed[] $relatedEntities The related entities to match.
 	 * @return mixed[] The parent entities with their related entities matched.
 	 */
-	abstract public function match(array $parentEntities, array $relatedEntities);
+	abstract public function match(array $parentEntities, array $relatedEntities): array;
 
 	/**
 	 * Get the relationship name.
@@ -117,7 +117,27 @@ abstract class Relationship extends Query
 	}
 
 	/**
-	 * Get the foreign key.
+	 * Get the parent entity's primary key attribute(s).
+	 *
+	 * @return string|string[]
+	 */
+	public function getParentKey()
+	{
+		return $this->getParentMap()->getKey();
+	}
+
+	/**
+	 * Get the related entity's primary key attribute(s).
+	 *
+	 * @return string|string[]
+	 */
+	public function getRelatedKey()
+	{
+		return $this->getRelatedMap()->getKey();
+	}
+
+	/**
+	 * Get the relationship's foreign key attribute.
 	 *
 	 * @return string
 	 */
@@ -140,12 +160,12 @@ abstract class Relationship extends Query
 	}
 
 	/**
-	 * Get IDs of the given parent entities.
+	 * Get the IDs of the given parent entities.
 	 *
-	 * @param array $parents
+	 * @param mixed[] $parents
 	 * @return mixed[]
 	 */
-	public function getParentIds(array $parents)
+	public function getParentIds(array $parents): array
 	{
 		$parentMap = $this->getParentMap();
 		$parentKey = $parentMap->getKey();
@@ -154,6 +174,39 @@ abstract class Relationship extends Query
 
 		foreach ($parents as $parent) {
 			$ids[] = $parentMap->readAttribute($parent, $parentKey);
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Get the related entity's foreign key.
+	 *
+	 * @param mixed $related
+	 * @return mixed
+	 */
+	public function getRelatedId($related)
+	{
+		$ids = $this->getRelatedIds([$related]);
+
+		return $ids[0] ?? null;
+	}
+
+	/**
+	 * Get the foreign key values of the given related entities.
+	 *
+	 * @param mixed[] $related Related entities to load the foreign key values from.
+	 * @return mixed[]
+	 */
+	public function getRelatedIds(array $related): array
+	{
+		$relatedMap = $this->getRelatedMap();
+		$relatedKey = $relatedMap->getKey();
+
+		$ids = [];
+
+		foreach ($related as $entity) {
+			$ids[] = $relatedMap->readAttribute($entity, $relatedKey);
 		}
 
 		return $ids;

@@ -3,7 +3,7 @@
 namespace Darya\ORM\Relationship;
 
 /**
- * HasMany class.
+ * One-to-many relationship.
  *
  * @author Chris Andrew <chris@hexus.io>
  */

@@ -5,6 +5,7 @@ namespace Darya\Tests\Functional\ORM;
 use Darya\ORM\EntityGraph;
 use Darya\ORM\EntityManager;
 use Darya\ORM\EntityMapFactory;
+use Darya\ORM\Relationship\BelongsTo;
 use Darya\ORM\Relationship\Has;
 use Darya\ORM\Relationship\HasMany;
 use Darya\Storage;
@@ -117,8 +118,8 @@ class EntityManagerTest extends TestCase
 				$postMap
 			],
 			[
+				new BelongsTo('master', $userMap, $userMap, 'master_id'),
 				new Has('padawan', $userMap, $userMap, 'master_id'),
-				// TODO: new BelongsTo('master', $userMap, $userMap, 'master_id'),
 				new HasMany('posts', $userMap, $postMap, 'author_id')
 			]
 		);
@@ -185,10 +186,13 @@ class EntityManagerTest extends TestCase
 	{
 		$orm = $this->newEntityManager();
 
-		$users = $orm->query(User::class)->with(['padawan', 'posts'])->run();
+		$users = $orm->query(User::class)->with(['master', 'padawan', 'posts'])->run();
 
 		$storageUsers = $this->storageData['users'];
 		$this->assertCount(count($storageUsers), $users);
+
+		$actualMasterCount   = 0;
+		$expectedMasterCount = count($orm->query(User::class)->where('master_id >', 0)->run());
 
 		$actualPadawanCount   = 0;
 		$expectedPadawanCount = count($orm->query(User::class)->where('master_id >', 0)->run());
@@ -196,18 +200,28 @@ class EntityManagerTest extends TestCase
 		$actualPostsCount   = 0;
 		$expectedPostsCount = count($orm->query(Post::class)->where('author_id >', 0)->run());
 
-		// TODO: Unit test the matches
+		// Assert that the IDs of related entities match properly, and increment the counts of each
 		foreach ($users as $user) {
+			if ($user->master) {
+				$this->assertSame($user->master_id, $user->master->id);
+				$actualMasterCount++;
+			}
+
 			if ($user->padawan) {
-				$this->assertSame($user->padawan->master_id, $user->id);
+				$this->assertSame($user->id, $user->padawan->master_id);
 				$actualPadawanCount++;
 			}
 
 			if ($user->posts) {
+				foreach ($user->posts as $post) {
+					$this->assertSame($user->id, $post->author_id);
+				}
+
 				$actualPostsCount += count($user->posts);
 			}
 		}
 
+		$this->assertSame($expectedMasterCount, $actualMasterCount, 'Eagerly loaded masters count did not match');
 		$this->assertSame($expectedPadawanCount, $actualPadawanCount, 'Eagerly loaded padawans count did not match');
 		$this->assertSame($expectedPostsCount, $actualPostsCount, 'Eagerly loaded posts count did not match');
 	}

@@ -282,7 +282,7 @@ class EntityMap
 	/**
 	 * Read an attribute from an entity.
 	 *
-	 * @param object $entity    The entity to read the attribute from.
+	 * @param mixed  $entity    The entity to read the attribute from.
 	 * @param string $attribute The name of the attribute to read.
 	 * @return mixed The attribute's value.
 	 */
@@ -294,13 +294,31 @@ class EntityMap
 	/**
 	 * Read many attributes from an entity.
 	 *
-	 * @param object $entity     The entity to read the attributes from.
-	 * @param array  $attributes The names of the attributes to read.
-	 * @return array The attribute values.
+	 * @param mixed    $entity     The entity to read the attributes from.
+	 * @param string[] $attributes The names of the attributes to read.
+	 * @return mixed[] The attribute values.
 	 */
 	public function readAttributes($entity, array $attributes): array
 	{
 		return $this->getStrategy()->readAttributes($entity, $attributes);
+	}
+
+	/**
+	 * Read an attribute from many entities.
+	 *
+	 * @param iterable $entities  The entities to read the attribute from.
+	 * @param string   $attribute The name of the attribute to read.
+	 * @return mixed[] The attribute values from each entity.
+	 */
+	public function readAttributeFromMany(iterable $entities, string $attribute): array
+	{
+		$values = [];
+
+		foreach ($entities as $entity) {
+			$values[] = $this->readAttribute($entity, $attribute);
+		}
+
+		return $values;
 	}
 
 	/**
