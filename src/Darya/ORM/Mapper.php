@@ -24,6 +24,8 @@ use UnexpectedValueException;
 class Mapper
 {
 	/**
+	 * The entity manager.
+	 *
 	 * @var EntityManager
 	 */
 	private $orm;
@@ -45,7 +47,7 @@ class Mapper
 	/**
 	 * Create a new mapper.
 	 *
-	 * @param EntityManager     $orm
+	 * @param EntityManager     $orm       The entity manager.
 	 * @param EntityMap         $entityMap The entity map to use.
 	 * @param Storage\Queryable $storage   The storage to map to.
 	 */
@@ -62,7 +64,7 @@ class Mapper
 	 * @param mixed $id The ID of the entity to check.
 	 * @return bool
 	 */
-	public function has($id)
+	public function has($id): bool
 	{
 		if ($id === null) {
 			return false;
@@ -78,9 +80,7 @@ class Mapper
 			->limit(1)
 			->run();
 
-		$exists = $result->count > 0;
-
-		return $exists;
+		return $result->count > 0;
 	}
 
 	/**
@@ -185,7 +185,7 @@ class Mapper
 	 * @param Query $query
 	 * @return array TODO: Return a Storage\Result?
 	 */
-	public function run(Query $query)
+	public function run(Query $query): array
 	{
 		if ($this->equals($query->mapper)) {
 			throw new UnexpectedValueException("Unexpected query mapper for entity '{$query->mapper->getEntityMap()->getName()}'");
@@ -239,7 +239,7 @@ class Mapper
 	 * @param Query    $query    The query with the relationships to load.
 	 * @return object[] The entities with the given relationships loaded.
 	 */
-	protected function loadWith(array $entities, Query $query)
+	protected function loadWith(array $entities, Query $query): array
 	{
 		$graph         = $this->orm->graph();
 		$entityName    = $this->getEntityMap()->getName();
@@ -327,6 +327,7 @@ class Mapper
 	 *
 	 * TODO: Factory work should happen here, via the entity map or otherwise
 	 *
+	 * @throws ReflectionException
 	 * @return object
 	 */
 	public function newInstance()
@@ -342,7 +343,7 @@ class Mapper
 	 * @param array $storageData The storage data to create entities from.
 	 * @return array The new entities.
 	 */
-	public function newInstances(array $storageData)
+	public function newInstances(array $storageData): array
 	{
 		$entities = [];
 

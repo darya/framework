@@ -30,6 +30,13 @@ abstract class Relationship extends Query
 	protected $name;
 
 	/**
+	 * The parent entity map.
+	 *
+	 * @var EntityMap
+	 */
+	protected $parentMap;
+
+	/**
 	 * The related entity map.
 	 *
 	 * @var EntityMap

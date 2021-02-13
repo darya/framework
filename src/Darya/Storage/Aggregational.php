@@ -4,6 +4,8 @@ namespace Darya\Storage;
 /**
  * Darya's aggregational data store interface.
  *
+ * TODO: Rename to Aggregatable or Aggregable
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 interface Aggregational

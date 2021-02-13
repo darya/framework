@@ -4,6 +4,7 @@ namespace Darya\Storage;
 
 use ArrayIterator;
 use IteratorAggregate;
+use Traversable;
 
 /**
  * Darya's abstract storage query result.
@@ -75,7 +76,7 @@ abstract class AbstractResult implements IteratorAggregate
 	 * @param string $string
 	 * @return string
 	 */
-	protected static function snakeToCamel($string)
+	protected static function snakeToCamel(string $string)
 	{
 		return preg_replace_callback('/_(.)/', function ($matches) {
 			return strtoupper($matches[1]);
@@ -123,7 +124,7 @@ abstract class AbstractResult implements IteratorAggregate
 	/**
 	 * Retrieve an external iterator.
 	 *
-	 * @return \Traversable
+	 * @return Traversable
 	 */
 	public function getIterator()
 	{
@@ -136,7 +137,7 @@ abstract class AbstractResult implements IteratorAggregate
 	 * @param string $property
 	 * @return mixed
 	 */
-	public function __get($property)
+	public function __get(string $property)
 	{
 		return $this->$property;
 	}
@@ -147,7 +148,7 @@ abstract class AbstractResult implements IteratorAggregate
 	 * @param string $property
 	 * @return bool
 	 */
-	public function __isset($property)
+	public function __isset(string $property)
 	{
 		return isset($this->$property);
 	}
