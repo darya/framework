@@ -27,28 +27,22 @@ abstract class Relationship extends Query
 	 *
 	 * @var string
 	 */
-	protected $name;
+	protected string $name;
 
 	/**
 	 * The parent entity map.
-	 *
-	 * @var EntityMap
 	 */
-	protected $parentMap;
+	protected EntityMap $parentMap;
 
 	/**
 	 * The related entity map.
-	 *
-	 * @var EntityMap
 	 */
-	protected $relatedMap;
+	protected EntityMap $relatedMap;
 
 	/**
 	 * The foreign key attribute.
-	 *
-	 * @var string
 	 */
-	protected $foreignKey;
+	protected string $foreignKey;
 
 	/**
 	 * Create a new relationship.
@@ -79,10 +73,11 @@ abstract class Relationship extends Query
 	/**
 	 * Build an eager-loading instance of this relationship query for the given parent entities.
 	 *
-	 * @param mixed $entities The parent entities.
+	 * @param mixed[]       $entities The parent entities.
+	 * @param EntityManager $orm
 	 * @return Relationship The new relationship query.
 	 */
-	abstract public function forParents(array $entities): Relationship;
+	abstract public function forParents(array $entities, EntityManager $orm): Relationship;
 
 	/**
 	 * Match a set of eagerly-loaded related entities to the given parent entities.

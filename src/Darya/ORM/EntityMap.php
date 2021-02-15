@@ -3,6 +3,7 @@
 namespace Darya\ORM;
 
 use Darya\ORM\EntityMap\Strategy;
+use Darya\Storage;
 use InvalidArgumentException;
 
 /**
@@ -15,7 +16,9 @@ use InvalidArgumentException;
  * TODO: Could an entity factory go here too?
  *       This would give the entity map control over how entities are instantiated.
  *
- * TODO: Storage name should be kept here too, for the EntityManager to use to create Mappers
+ * TODO: Storage name could be kept here too, for the EntityManager to use to create Mappers
+ *       Work out the best way to handle this relationship between mappings and storages though
+ *       A single mapping could be used for multiple storage backends
  *
  * @author Chris Andrew <chris@hexus.io>
  */
@@ -24,37 +27,44 @@ class EntityMap
 	/**
 	 * The name of the entity.
 	 *
-	 * @var string
+	 * @var string|null
 	 */
-	protected $name;
+	protected ?string $name;
 
 	/**
 	 * The class name of the entity to map.
 	 *
 	 * @var string
 	 */
-	protected $class;
+	protected string $class;
+
+	/**
+	 * The storage the entity maps to.
+	 *
+	 * @var Storage\Queryable
+	 */
+	protected Storage\Queryable $storage;
 
 	/**
 	 * The name of the resource the entity maps to in storage.
 	 *
 	 * @var string
 	 */
-	protected $resource;
+	protected string $resource;
 
 	/**
-	 * The mapping of entity attributes as keys to storage fields as values.
+	 * The key-value mapping of entity attributes to storage fields.
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
-	protected $mapping = [];
+	protected array $mapping = [];
 
 	/**
 	 * The mapping strategy to use.
 	 *
 	 * @var Strategy
 	 */
-	protected $strategy;
+	protected Strategy $strategy;
 
 	/**
 	 * The entity's primary key attribute(s).
@@ -66,11 +76,11 @@ class EntityMap
 	/**
 	 * Create a new entity map.
 	 *
-	 * @param string          $class    The class name of the entity to map.
-	 * @param string          $resource The name of the resource the entity maps to in storage.
-	 * @param array           $mapping  The mapping of entity attributes as keys to storage fields as values.
-	 * @param Strategy        $strategy The mapping strategy to use.
-	 * @param string|string[] $key      [optional] The entity's primary key attribute(s). Defaults to `'id'`.
+	 * @param string            $class    The class name of the entity to map.
+	 * @param string            $resource The name of the resource the entity maps to in storage.
+	 * @param array             $mapping  The key-value mapping of entity attributes to storage fields.
+	 * @param Strategy          $strategy The mapping strategy to use.
+	 * @param string|string[]   $key      [optional] The entity's primary key attribute(s). Defaults to `'id'`.
 	 */
 	public function __construct(string $class, string $resource, array $mapping, Strategy $strategy, $key = 'id')
 	{
@@ -151,7 +161,7 @@ class EntityMap
 	 * @param array  $storageData The storage data to map from.
 	 * @return object The mapped entity.
 	 */
-	public function mapFromStorage($entity, array $storageData)
+	public function mapFromStorage(object $entity, array $storageData): object
 	{
 		$mapping = $this->getMapping();
 
@@ -170,7 +180,7 @@ class EntityMap
 	 * @param object $entity The entity to map from.
 	 * @return array The mapped storage data.
 	 */
-	public function mapToStorage($entity): array
+	public function mapToStorage(object $entity): array
 	{
 		$mapping = $this->getMapping();
 
@@ -198,7 +208,7 @@ class EntityMap
 	 *
 	 * @param string|string[]
 	 */
-	protected function setKey($key)
+	protected function setKey($key): void
 	{
 		if (!is_string($key) && !is_array($key)) {
 			throw new InvalidArgumentException("Entity key must be a string, or an array of strings");

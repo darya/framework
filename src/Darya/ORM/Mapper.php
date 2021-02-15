@@ -171,12 +171,10 @@ class Mapper
 	 */
 	public function query(): Query\Builder
 	{
-		$query = new Query\Builder(
+		return new Query\Builder(
 			new Query($this),
 			$this->orm
 		);
-
-		return $query;
 	}
 
 	/**
@@ -246,7 +244,7 @@ class Mapper
 		$relationships = $graph->getRelationships($entityName, $query->with);
 
 		foreach ($relationships as $relationship) {
-			$relationship      = $relationship->forParents($entities);
+			$relationship      = $relationship->forParents($entities, $this->orm);
 			$relatedEntityName = $relationship->getRelatedMap()->getName();
 
 			$relatedMapper     = $this->orm->mapper($relatedEntityName);

@@ -23,7 +23,7 @@ class Has extends Relationship
 		return $query;
 	}
 
-	public function forParents(array $entities): Relationship
+	public function forParents(array $entities, \Darya\ORM\EntityManager $orm): Relationship
 	{
 		$query = clone $this;
 

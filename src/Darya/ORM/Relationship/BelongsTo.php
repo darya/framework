@@ -2,6 +2,7 @@
 
 namespace Darya\ORM\Relationship;
 
+use Darya\ORM\EntityManager;
 use Darya\ORM\Relationship;
 
 /**
@@ -23,7 +24,7 @@ class BelongsTo extends Relationship
 		return $query;
 	}
 
-	public function forParents(array $entities): Relationship
+	public function forParents(array $entities, EntityManager $orm): Relationship
 	{
 		$query = clone $this;
 

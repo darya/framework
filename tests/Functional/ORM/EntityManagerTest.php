@@ -6,10 +6,12 @@ use Darya\ORM\EntityGraph;
 use Darya\ORM\EntityManager;
 use Darya\ORM\EntityMapFactory;
 use Darya\ORM\Relationship\BelongsTo;
+use Darya\ORM\Relationship\BelongsToMany;
 use Darya\ORM\Relationship\Has;
 use Darya\ORM\Relationship\HasMany;
 use Darya\Storage;
 use Darya\Tests\Unit\ORM\Fixtures\PostModel as Post;
+use Darya\Tests\Unit\ORM\Fixtures\RoleModel as Role;
 use Darya\Tests\Unit\ORM\Fixtures\UserModel as User;
 use PHPUnit\Framework\TestCase;
 
@@ -67,6 +69,46 @@ class EntityManagerTest extends TestCase
 					'master_id' => 3
 				]
 			],
+			'roles' => [
+				[
+					'id' => 1,
+					'name' => 'Jedi Master'
+				],
+				[
+					'id' => 2,
+					'name' => 'Jedi Knight'
+				],
+				[
+					'id' => 3,
+					'name' => 'Jedi Padawan'
+				],
+				[
+					'id' => 4,
+					'name' => 'Jedi Council'
+				]
+			],
+			'users_roles' => [
+				[
+					'user_id' => 1,
+					'role_id' => 1
+				],
+				[
+					'user_id' => 2,
+					'role_id' => 1
+				],
+				[
+					'user_id' => 2,
+					'role_id' => 4,
+				],
+				[
+					'user_id' => 3,
+					'role_id' => 2
+				],
+				[
+					'user_id' => 4,
+					'role_id' => 3
+				]
+			],
 			'posts' => [
 				[
 					'id'        => 1,
@@ -102,6 +144,15 @@ class EntityManagerTest extends TestCase
 			'users'
 		);
 
+		$roleMap = $this->factory->createForClass(
+			Role::class,
+			[
+				'id'   => 'id',
+				'name' => 'name'
+			],
+			'roles'
+		);
+
 		$postMap = $this->factory->createForClass(
 			Post::class,
 			[
@@ -115,12 +166,14 @@ class EntityManagerTest extends TestCase
 		$this->graph = new EntityGraph(
 			[
 				$userMap,
-				$postMap
+				$postMap,
+				$roleMap
 			],
 			[
 				new BelongsTo('master', $userMap, $userMap, 'master_id'),
 				new Has('padawan', $userMap, $userMap, 'master_id'),
-				new HasMany('posts', $userMap, $postMap, 'author_id')
+				new HasMany('posts', $userMap, $postMap, 'author_id'),
+				new BelongsToMany('roles', $userMap, $roleMap, 'role_id', 'user_id', 'users_roles')
 			]
 		);
 	}
@@ -186,7 +239,7 @@ class EntityManagerTest extends TestCase
 	{
 		$orm = $this->newEntityManager();
 
-		$users = $orm->query(User::class)->with(['master', 'padawan', 'posts'])->run();
+		$users = $orm->query(User::class)->with(['master', 'padawan', 'posts', 'roles'])->run();
 
 		$storageUsers = $this->storageData['users'];
 		$this->assertCount(count($storageUsers), $users);
@@ -199,6 +252,9 @@ class EntityManagerTest extends TestCase
 
 		$actualPostsCount   = 0;
 		$expectedPostsCount = count($orm->query(Post::class)->where('author_id >', 0)->run());
+
+		$actualRolesCount = 0;
+		$expectedRolesCount = count($this->storageData['users_roles']);
 
 		// Assert that the IDs of related entities match properly, and increment the counts of each
 		foreach ($users as $user) {
@@ -219,10 +275,15 @@ class EntityManagerTest extends TestCase
 
 				$actualPostsCount += count($user->posts);
 			}
+
+			if ($user->roles) {
+				$actualRolesCount += count($user->roles);
+			}
 		}
 
 		$this->assertSame($expectedMasterCount, $actualMasterCount, 'Eagerly loaded masters count did not match');
 		$this->assertSame($expectedPadawanCount, $actualPadawanCount, 'Eagerly loaded padawans count did not match');
 		$this->assertSame($expectedPostsCount, $actualPostsCount, 'Eagerly loaded posts count did not match');
+		$this->assertSame($expectedRolesCount, $actualRolesCount, 'Eagerly loaded roles count did not match');
 	}
 }
