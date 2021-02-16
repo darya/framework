@@ -56,7 +56,7 @@ class BelongsToMany extends Relationship
 		$parentIds = $this->getParentIds($entities);
 		$relatedIdsQuery = $orm->getDefaultStorage()
 			->query($this->junctionResource)
-			->select([$this->foreignKey])
+			->fields([$this->foreignKey])
 			->where("{$this->parentForeignKey} in", $parentIds);
 
 		$relatedKey = $this->getRelatedMap()->getStorageKey();

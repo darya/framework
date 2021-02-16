@@ -293,8 +293,6 @@ class Filterer
 
 				return $carry;
 			}, []);
-
-			var_dump($value);
 		}
 
 		return $value;
