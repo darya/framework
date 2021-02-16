@@ -12,7 +12,7 @@ use Darya\ORM\Relationship;
  */
 class BelongsTo extends Relationship
 {
-	public function forParent($entity): Relationship
+	public function forParent($entity, EntityManager $orm): Relationship
 	{
 		$query = clone $this;
 

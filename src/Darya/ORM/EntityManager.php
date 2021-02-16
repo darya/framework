@@ -3,6 +3,7 @@
 namespace Darya\ORM;
 
 use Darya\ORM\Exception\EntityNotFoundException;
+use Darya\ORM\Exception\MappingException;
 use Darya\Storage;
 use Darya\Storage\Queryable;
 use RuntimeException;
@@ -126,7 +127,7 @@ class EntityManager implements Storage\Queryable
 	 *
 	 * @param string      $entity  The entity name.
 	 * @param string|null $storage The storage to use.
-	 * @return Mapper
+	 * @return Mapper The entity's mapper.
 	 */
 	public function mapper(string $entity, string $storage = null): Mapper
 	{
@@ -135,17 +136,13 @@ class EntityManager implements Storage\Queryable
 		}
 
 		if (!isset($this->storages[$storage])) {
-			// TODO: MappingException
-			throw new UnexpectedValueException("Unknown storage '$storage'");
+			throw MappingException::unknownStorage($storage);
 		}
 
-		$storage = $this->storages[$storage];
+		$storage   = $this->storages[$storage];
+		$entityMap = $this->graph->getEntityMap($entity);
 
-		return new Mapper(
-			$this,
-			$this->graph->getEntityMap($entity),
-			$storage
-		);
+		return new Mapper($this, $entityMap, $storage);
 	}
 
 	/**
@@ -153,7 +150,7 @@ class EntityManager implements Storage\Queryable
 	 *
 	 * @param string $entity The entity to find.
 	 * @param mixed  $id     The ID of the entity to find.
-	 * @return object|null
+	 * @return object|null The entity, if found. `null` otherwise.
 	 */
 	public function find(string $entity, $id)
 	{
@@ -165,7 +162,7 @@ class EntityManager implements Storage\Queryable
 	 *
 	 * @param string $entity The entity to find.
 	 * @param mixed  $id     The ID of the entity to find.
-	 * @return object The entity.
+	 * @return object The entity, found or created.
 	 */
 	public function findOrNew(string $entity, $id)
 	{
@@ -193,7 +190,7 @@ class EntityManager implements Storage\Queryable
 	 *
 	 * @param string  $entity The entity to find.
 	 * @param mixed[] $id     The ID of the entity to find.
-	 * @return object|null The entities.
+	 * @return object[] The entities found.
 	 */
 	public function findMany(string $entity, array $id)
 	{

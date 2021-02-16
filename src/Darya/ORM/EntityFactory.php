@@ -11,7 +11,7 @@ namespace Darya\ORM;
 interface EntityFactory
 {
 	/**
-	 * Create an entity with the given properties.
+	 * Create an entity with the given attributes.
 	 *
 	 * @param array $attributes [optional] The attributes to create the entity with.
 	 * @return mixed

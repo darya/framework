@@ -163,17 +163,27 @@ class EntityManagerTest extends TestCase
 			'posts'
 		);
 
+		$userRoleMap = $this->factory->create(
+			'UserRole',
+			[
+				'user_id' => 'user_id',
+				'role_id' => 'role_id'
+			],
+			'users_roles'
+		);
+
 		$this->graph = new EntityGraph(
 			[
 				$userMap,
 				$postMap,
-				$roleMap
+				$roleMap,
+				$userRoleMap
 			],
 			[
 				new BelongsTo('master', $userMap, $userMap, 'master_id'),
 				new Has('padawan', $userMap, $userMap, 'master_id'),
 				new HasMany('posts', $userMap, $postMap, 'author_id'),
-				new BelongsToMany('roles', $userMap, $roleMap, 'role_id', 'user_id', 'users_roles')
+				new BelongsToMany('roles', $userMap, $roleMap, 'role_id', 'user_id', 'UserRole')
 			]
 		);
 	}

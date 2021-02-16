@@ -19,11 +19,11 @@ class BelongsToMany extends Relationship
 	protected string $parentForeignKey;
 
 	/**
-	 * The resource that contains relationships between the parent and related entities.
+	 * The entity that represents relationships between the parent and related entities.
 	 *
-	 * Represents the equivalent of a junction table in SQL.
+	 * Represents the equivalent of a junction table in SQL; one that contains foreign key tuples.
 	 */
-	protected string $junctionResource;
+	protected string $associativeEntity;
 
 	public function __construct(
 		string $name,
@@ -31,18 +31,25 @@ class BelongsToMany extends Relationship
 		EntityMap $relatedMap,
 		string $foreignKey,
 		string $parentForeignKey,
-		string $junctionResource
+		string $associativeEntity
 	) {
 		parent::__construct($name, $parentMap, $relatedMap, $foreignKey);
 
-		$this->parentForeignKey = $parentForeignKey;
-		$this->junctionResource = $junctionResource;
+		$this->parentForeignKey  = $parentForeignKey;
+		$this->associativeEntity = $associativeEntity;
 	}
 
-	public function forParent($entity): Relationship
+	public function forParent($entity, EntityManager $orm): Relationship
 	{
-		// TODO: Implement forParent() method.
 		$query = clone $this;
+
+		$parentId = $this->getParentId($entity);
+		$relatedIdsQuery = $orm->query($this->associativeEntity)
+			->fields([$this->foreignKey])
+			->where($this->parentForeignKey, $parentId);
+
+		$relatedKey = $this->getRelatedKey();
+		$query->where("$relatedKey in", $relatedIdsQuery);
 
 		return $query;
 	}
@@ -51,15 +58,12 @@ class BelongsToMany extends Relationship
 	{
 		$query = clone $this;
 
-		// TODO: Be smarter than using default storage for junction queries
-		//       Consider automapping junction entities where they're not, or forcing them to be provided, etc.
 		$parentIds = $this->getParentIds($entities);
-		$relatedIdsQuery = $orm->getDefaultStorage()
-			->query($this->junctionResource)
+		$relatedIdsQuery = $orm->query($this->associativeEntity)
 			->fields([$this->foreignKey])
 			->where("{$this->parentForeignKey} in", $parentIds);
 
-		$relatedKey = $this->getRelatedMap()->getStorageKey();
+		$relatedKey = $this->getRelatedKey();
 		$query->where("$relatedKey in", $relatedIdsQuery);
 
 		return $query;
@@ -68,11 +72,13 @@ class BelongsToMany extends Relationship
 	public function match(array $parentEntities, array $relatedEntities): array
 	{
 		// TODO: Implement match() method.
-		//       Find a sensible way to share junction entities with this method
+		//       Load associative entities into memory explicitly and build a dictionary
+		//       for matching
+		//       @see \Darya\ORM\Relation\BelongsToMany::eager()
 		$parentIds = $this->getParentIds($parentEntities);
 		$relatedIds = $this->getRelatedIds($relatedEntities);
 
-		//var_dump($parentIds, $relatedIds);
+		var_dump($parentIds, $relatedIds);
 		//die;
 
 		return $parentEntities;

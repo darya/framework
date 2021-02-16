@@ -2,6 +2,7 @@
 
 namespace Darya\ORM\Relationship;
 
+use Darya\ORM\EntityManager;
 use Darya\ORM\Relationship;
 
 /**
@@ -11,7 +12,7 @@ use Darya\ORM\Relationship;
  */
 class Has extends Relationship
 {
-	public function forParent($entity): Relationship
+	public function forParent($entity, EntityManager $orm): Relationship
 	{
 		$query = clone $this;
 
@@ -23,7 +24,7 @@ class Has extends Relationship
 		return $query;
 	}
 
-	public function forParents(array $entities, \Darya\ORM\EntityManager $orm): Relationship
+	public function forParents(array $entities, EntityManager $orm): Relationship
 	{
 		$query = clone $this;
 

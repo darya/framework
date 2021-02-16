@@ -65,10 +65,11 @@ abstract class Relationship extends Query
 	/**
 	 * Build an instance of this relationship query for a given parent entity.
 	 *
-	 * @param mixed $entity The parent entity.
+	 * @param mixed         $entity The parent entity.
+	 * @param EntityManager $orm
 	 * @return Relationship The new relationship query.
 	 */
-	abstract public function forParent($entity): Relationship;
+	abstract public function forParent($entity, EntityManager $orm): Relationship;
 
 	/**
 	 * Build an eager-loading instance of this relationship query for the given parent entities.

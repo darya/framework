@@ -8,6 +8,8 @@ use RuntimeException;
  *
  * Thrown when a requested entity does not exist in storage.
  *
+ * TODO: Enforce the entity name via the constructor and provide a convenient factory method
+ *
  * @author Chris Andrew <chris@hexus.io>
  */
 class EntityNotFoundException extends RuntimeException
@@ -17,16 +19,16 @@ class EntityNotFoundException extends RuntimeException
 	 *
 	 * @var string
 	 */
-	protected $entity;
+	protected string $entity;
 
 	/**
 	 * Get the name of the entity.
 	 *
 	 * @return string
 	 */
-	public function getEntityName()
+	public function getEntityName(): string
 	{
-		return $this->entity;
+		return $this->entity ?? '';
 	}
 
 	/**
@@ -35,7 +37,7 @@ class EntityNotFoundException extends RuntimeException
 	 * @param string $entity
 	 * @return $this
 	 */
-	public function setEntityName($entity)
+	public function setEntityName(string $entity)
 	{
 		$this->entity = $entity;
 

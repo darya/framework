@@ -28,6 +28,7 @@ class EntityMapFactory
 			$resource = $name;
 		}
 
+		// TODO: Model is an abstract class, we need something concrete and final
 		$entityMap = new EntityMap(
 			Model::class, $resource, $mapping, new PropertyStrategy()
 		);
