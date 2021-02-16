@@ -1,6 +1,9 @@
 <?php
 namespace Darya\Storage;
 
+use Darya\Storage\Query\Builder;
+use InvalidArgumentException;
+
 /**
  * Filters record sets using an array-based criteria syntax.
  *
@@ -11,31 +14,35 @@ namespace Darya\Storage;
 class Filterer
 {
 	/**
-	 * @var array Filter comparison operators
+	 * Filter comparison operators.
+	 *
+	 * @var string[]
 	 */
-	protected static $operators = array(
+	protected static array $operators = [
 		'=', '!=', '>', '<', '<>', '>=', '<=', 'in', 'not in', 'is', 'is not',
 		'like', 'not like'
-	);
+	];
 
 	/**
-	 * @var array A map of filter operators to methods that implement them
+	 * A map of filter operators to methods that implement them.
+	 *
+	 * @var array<string, string>
 	 */
-	protected static $methods = array(
-		'='  => 'equal',
-		'!=' => 'notEqual',
-		'>'  => 'greater',
-		'<'  => 'smaller',
-		'<>' => 'greaterOrSmaller',
-		'>=' => 'greaterOrEqual',
-		'<=' => 'smallerOrEqual',
-		'in'     => 'in',
-		'not in' => 'notIn',
-		'is'     => 'is',
-		'is not' => 'isNot',
+	protected static array $methods = [
+		'='        => 'equal',
+		'!='       => 'notEqual',
+		'>'        => 'greater',
+		'<'        => 'smaller',
+		'<>'       => 'greaterOrSmaller',
+		'>='       => 'greaterOrEqual',
+		'<='       => 'smallerOrEqual',
+		'in'       => 'in',
+		'not in'   => 'notIn',
+		'is'       => 'is',
+		'is not'   => 'isNot',
 		'like'     => 'like',
 		'not like' => 'notLike'
-	);
+	];
 
 	/**
 	 * Separate the given filter field into a field and its operator.
@@ -49,19 +56,19 @@ class Filterer
 	 * @param string $field
 	 * @return array array($field, $operator)
 	 */
-	public static function separateField($field)
+	public static function separateField(string $field): array
 	{
-		return array_pad(explode(' ', trim($field), 2), 2, null);
+		return asplode(' ', trim($field), 2);
 	}
 
 	/**
 	 * Prepare a default operator for the given value.
 	 *
-	 * @param string $operator
-	 * @param mixed  $value
+	 * @param string|null $operator
+	 * @param mixed       $value
 	 * @return string
 	 */
-	public static function prepareOperator($operator, $value)
+	public static function prepareOperator(?string $operator, $value): string
 	{
 		$operator = trim($operator);
 
@@ -77,7 +84,7 @@ class Filterer
 			}
 		}
 
-		if (is_array($value)) {
+		if (is_array($value) || $value instanceof Builder) {
 			if ($operator === '=') {
 				$operator = 'in';
 			}
@@ -98,9 +105,9 @@ class Filterer
 	 * @param string $operator
 	 * @return string
 	 */
-	protected static function getComparisonMethod($operator)
+	protected static function getComparisonMethod(string $operator): string
 	{
-		return isset(static::$methods[$operator]) ? static::$methods[$operator] : 'equal';
+		return static::$methods[$operator] ?? 'equal';
 	}
 
 	/**
@@ -110,19 +117,19 @@ class Filterer
 	 * @param string $method
 	 * @return bool
 	 */
-	protected static function methodHandlesArrays($method)
+	protected static function methodHandlesArrays(string $method): bool
 	{
 		return $method === 'in' || $method === 'notIn';
 	}
 
 	/**
-	 * Build a closure to use with array_filter().
+	 * Build a closure to use with `array_filter()`.
 	 *
 	 * @param array $filter
 	 * @param bool  $or     [optional]
-	 * @return \Closure
+	 * @return callable
 	 */
-	public function closure(array $filter, $or = false)
+	public function closure(array $filter, $or = false): callable
 	{
 		$filterer = $this;
 
@@ -132,26 +139,13 @@ class Filterer
 	}
 
 	/**
-	 * Escape the given value for use as a like query.
-	 *
-	 * Precedes all underscore and percentage characters with a backwards slash.
-	 *
-	 * @param string $value
-	 * @return string
-	 */
-	public function escape($value)
-	{
-		return preg_replace('/([%_])/', '\\$1', $value);
-	}
-
-	/**
 	 * Filter the given data.
 	 *
 	 * @param array $data
 	 * @param array $filter [optional]
 	 * @return array
 	 */
-	public function filter(array $data, array $filter = array())
+	public function filter(array $data, array $filter = []): array
 	{
 		if (empty($filter)) {
 			return $data;
@@ -170,19 +164,19 @@ class Filterer
 	 * @param int   $limit  [optional]
 	 * @return array
 	 */
-	public function reject(array $data, array $filter = array(), $limit = 0)
+	public function reject(array $data, array $filter = [], $limit = 0): array
 	{
 		if (empty($filter)) {
 			return $data;
 		}
 
-		$keys = array_filter($data, $this->closure($filter));
+		$pruned = array_filter($data, $this->closure($filter));
 
 		if ($limit) {
-			$keys = array_slice($keys, 0, $limit, true);
+			$pruned = array_slice($pruned, 0, $limit, true);
 		}
 
-		return array_values(array_diff_key($data, $keys));
+		return array_values(array_diff_key($data, $pruned));
 	}
 
 	/**
@@ -195,7 +189,7 @@ class Filterer
 	 * @param bool  $or     [optional]
 	 * @return bool
 	 */
-	public function matches(array $row, array $filter = array(), $or = false)
+	public function matches(array $row, array $filter = [], $or = false): bool
 	{
 		if (empty($filter)) {
 			return true;
@@ -204,7 +198,7 @@ class Filterer
 		$result = false;
 
 		foreach ($filter as $field => $value) {
-			list($field, $operator) = static::separateField($field);
+			[$field, $operator] = static::separateField($field);
 
 			if (strtolower($field) === 'or') {
 				$result = $this->matches($row, $value, true);
@@ -226,6 +220,8 @@ class Filterer
 
 			$method = static::getComparisonMethod($operator);
 
+			$value = $this->prepareValue($method, $value);
+
 			if ($or) {
 				$result |= $this->compareOr($method, $actual, $value);
 
@@ -246,12 +242,12 @@ class Filterer
 	 * Apply a function to the elements of the given data that match a filter.
 	 *
 	 * @param array    $data
-	 * @param array    $filter   [optional]
-	 * @param callable $callback
-	 * @param int      $limit    [optional]
+	 * @param array    $filter
+	 * @param callable $callback [optional]
+	 * @param int|null $limit    [optional]
 	 * @return array
 	 */
-	public function map(array $data, array $filter, $callback, $limit = 0)
+	public function map(array $data, array $filter, callable $callback, ?int $limit = 0): array
 	{
 		if (!is_callable($callback)) {
 			return $data;
@@ -261,7 +257,7 @@ class Filterer
 
 		foreach ($data as $key => $row) {
 			if ($this->matches($row, $filter)) {
-				$data[$key] = call_user_func_array($callback, array($row, $key));
+				$data[$key] = call_user_func_array($callback, [$row, $key]);
 
 				$affected++;
 			}
@@ -275,6 +271,36 @@ class Filterer
 	}
 
 	/**
+	 * Prepare a value for comparison.
+	 *
+	 * @param string $method Comparison method
+	 * @param mixed  $value  Value to prepare
+	 * @return mixed The prepared value
+	 * @throws InvalidArgumentException If the value is a subquery that returns more or less than one field
+	 */
+	protected function prepareValue(string $method, $value)
+	{
+		if (static::methodHandlesArrays($method) && $value instanceof Builder) {
+			if (count($value->fields) <> 1) {
+				throw new InvalidArgumentException('Filter subqueries should only return one field');
+			}
+
+			// Extract the values from the query result data
+			$data = $value->run()->data;
+
+			$value = array_reduce($data, function (array $carry, array $row) {
+				$carry[] = array_values($row)[0] ?? null;
+
+				return $carry;
+			}, []);
+
+			var_dump($value);
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Determine the result of the given comparison.
 	 *
 	 * If the value is an array, the comparison is evaluated on each element
@@ -285,7 +311,7 @@ class Filterer
 	 * @param mixed  $value
 	 * @return bool
 	 */
-	protected function compare($method, $actual, $value)
+	protected function compare(string $method, $actual, $value): bool
 	{
 		if (!is_array($value) || static::methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
@@ -309,7 +335,7 @@ class Filterer
 	 * @param mixed  $value
 	 * @return bool
 	 */
-	protected function compareOr($method, $actual, $value)
+	protected function compareOr(string $method, $actual, $value): bool
 	{
 		if (!is_array($value) || static::methodHandlesArrays($method)) {
 			return $this->$method($actual, $value);
@@ -325,30 +351,33 @@ class Filterer
 	}
 
 	/**
-	 * Determine whether the given values are equal.
+	 * Determine whether the given values are loosely equal.
 	 *
 	 * @param mixed $actual
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function equal($actual, $value)
+	protected function equal($actual, $value): bool
 	{
-		if (is_string($actual) && is_string($value)) {
+		if (is_string($actual)) {
 			$actual = strtolower($actual);
-			$value  = strtolower($value);
+		}
+
+		if (is_string($value)) {
+			$value = strtolower($value);
 		}
 
 		return $actual == $value;
 	}
 
 	/**
-	 * Determine whether the given values are not equal.
+	 * Determine whether the given values are not loosely equal.
 	 *
 	 * @param mixed $actual
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function notEqual($actual, $value)
+	protected function notEqual($actual, $value): bool
 	{
 		return !$this->equal($actual, $value);
 	}
@@ -361,7 +390,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function greater($actual, $value)
+	protected function greater($actual, $value): bool
 	{
 		return $actual > $value;
 	}
@@ -374,7 +403,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function smaller($actual, $value)
+	protected function smaller($actual, $value): bool
 	{
 		return $actual < $value;
 	}
@@ -387,7 +416,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function greaterOrsmaller($actual, $value)
+	protected function greaterOrsmaller($actual, $value): bool
 	{
 		return $actual <> $value;
 	}
@@ -400,7 +429,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function greaterOrEqual($actual, $value)
+	protected function greaterOrEqual($actual, $value): bool
 	{
 		return $actual >= $value;
 	}
@@ -413,7 +442,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function smallerOrEqual($actual, $value)
+	protected function smallerOrEqual($actual, $value): bool
 	{
 		return $actual <= $value;
 	}
@@ -425,7 +454,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function in($actual, $value)
+	protected function in($actual, $value): bool
 	{
 		return in_array($actual, (array) $value);
 	}
@@ -438,7 +467,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function notIn($actual, $value)
+	protected function notIn($actual, $value): bool
 	{
 		return !$this->in($actual, $value);
 	}
@@ -450,20 +479,20 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function is($actual, $value)
+	protected function is($actual, $value): bool
 	{
 		return $actual === $value;
 	}
 
 	/**
-	 * Determine the result of a negative boolean comparison between the given
+	 * Determine the result of a negative strict comparison between the given
 	 * values.
 	 *
 	 * @param mixed $actual
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function isNot($actual, $value)
+	protected function isNot($actual, $value): bool
 	{
 		return !$this->is($actual, $value);
 	}
@@ -476,11 +505,11 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function like($actual, $value)
+	protected function like($actual, $value): bool
 	{
 		$value = preg_quote($value, '/');
 
-		$pattern = '/' . preg_replace(array('/([^\\\])?_/', '/([^\\\])?%/'), array('$1.', '$1.*'), $value) . '/i';
+		$pattern = '/' . preg_replace(['/([^\\\])?_/', '/([^\\\])?%/'], ['$1.', '$1.*'], $value) . '/i';
 
 		return preg_match($pattern, $actual);
 	}
@@ -493,7 +522,7 @@ class Filterer
 	 * @param mixed $value
 	 * @return bool
 	 */
-	protected function notLike($actual, $value)
+	protected function notLike($actual, $value): bool
 	{
 		return !$this->like($actual, $value);
 	}

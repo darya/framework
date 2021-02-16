@@ -49,20 +49,18 @@ class BelongsToMany extends Relationship
 
 	public function forParents(array $entities, EntityManager $orm): Relationship
 	{
-		// TODO: Implement forParents() method.
 		$query = clone $this;
 
-		$storage = $orm->getDefaultStorage();
-
+		// TODO: Be smarter than using default storage for junction queries
+		//       Consider automapping junction entities where they're not, or forcing them to be provided, etc.
 		$parentIds = $this->getParentIds($entities);
-		$relatedIdsQuery = $storage->query($this->junctionResource, [$this->foreignKey])
+		$relatedIdsQuery = $orm->getDefaultStorage()
+			->query($this->junctionResource)
+			->select([$this->foreignKey])
 			->where("{$this->parentForeignKey} in", $parentIds);
 
-		// TODO: Implement sub-query support for InMemory storage so we don't have to load IDs here for tests to pass
-		$relatedIds = array_column($relatedIdsQuery->run()->data, $this->foreignKey);
-
 		$relatedKey = $this->getRelatedMap()->getStorageKey();
-		$query->where($relatedKey, $relatedIds);
+		$query->where("$relatedKey in", $relatedIdsQuery);
 
 		return $query;
 	}
@@ -70,10 +68,11 @@ class BelongsToMany extends Relationship
 	public function match(array $parentEntities, array $relatedEntities): array
 	{
 		// TODO: Implement match() method.
+		//       Find a sensible way to share junction entities with this method
 		$parentIds = $this->getParentIds($parentEntities);
 		$relatedIds = $this->getRelatedIds($relatedEntities);
 
-		var_dump($parentIds, $relatedIds);
+		//var_dump($parentIds, $relatedIds);
 		//die;
 
 		return $parentEntities;
