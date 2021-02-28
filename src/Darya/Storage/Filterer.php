@@ -285,8 +285,17 @@ class Filterer
 				throw new InvalidArgumentException('Filter subqueries should only return one field');
 			}
 
-			// Extract the values from the query result data
-			$data = $value->run()->data;
+			/**
+			 * Extract the values from the query result data
+			 *
+			 * TODO: {@see \Darya\ORM\Mapper::run()}, it doesn't return a storage result which causes this failure
+			 *       We could optionally assume "some array" or "some iterable" but sticking to an interface is
+			 *       probably a good idea, as EntityManager and Mapper both break the return value contract of
+			 *       the Queryable storage interface currently
+			 */
+			$result = $value->run();
+			var_dump($result);
+			$data = $result->data;
 
 			$value = array_reduce($data, function (array $carry, array $row) {
 				$carry[] = array_values($row)[0] ?? null;

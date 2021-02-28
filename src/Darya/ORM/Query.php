@@ -20,21 +20,21 @@ class Query extends Storage\Query
 	 *
 	 * @var Mapper
 	 */
-	protected $mapper;
+	protected Mapper $mapper;
 
 	/**
 	 * Relationships to check existence for.
 	 *
 	 * @var callable[]|string[]
 	 */
-	protected $has = [];
+	protected array $has = [];
 
 	/**
 	 * Relationships to load entities with.
 	 *
 	 * @var callable[]|string[]
 	 */
-	protected $with = [];
+	protected array $with = [];
 
 	/**
 	 * Create a new ORM query.

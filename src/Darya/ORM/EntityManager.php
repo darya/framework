@@ -23,21 +23,21 @@ class EntityManager implements Storage\Queryable
 	 *
 	 * @var EntityGraph
 	 */
-	protected $graph;
+	protected EntityGraph $graph;
 
 	/**
 	 * Storages keyed by name.
 	 *
 	 * @var Storage\Queryable[]
 	 */
-	protected $storages;
+	protected array $storages;
 
 	/**
 	 * The default storage name.
 	 *
 	 * @var string
 	 */
-	protected $defaultStorageName;
+	protected string $defaultStorageName;
 
 	/**
 	 * Cached entity mappers.
@@ -46,7 +46,7 @@ class EntityManager implements Storage\Queryable
 	 *
 	 * @var Mapper[]
 	 */
-	protected $mappers = [];
+	protected array $mappers = [];
 
 	/**
 	 * Create a new entity manager.

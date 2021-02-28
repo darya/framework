@@ -28,21 +28,21 @@ class Mapper
 	 *
 	 * @var EntityManager
 	 */
-	private $orm;
+	private EntityManager $orm;
 
 	/**
 	 * The EntityMap to map to storage.
 	 *
 	 * @var EntityMap
 	 */
-	protected $entityMap;
+	protected EntityMap $entityMap;
 
 	/**
 	 * The storage to map to.
 	 *
 	 * @var Storage\Queryable
 	 */
-	protected $storage;
+	protected Storage\Queryable $storage;
 
 	/**
 	 * Create a new mapper.
@@ -91,7 +91,7 @@ class Mapper
 	 * @param mixed $id The ID of the entity to find.
 	 * @return object|null The entity, or null if it is not found.
 	 */
-	public function find($id)
+	public function find($id): ?object
 	{
 		$storageKey = $this->getEntityMap()->getStorageKey();
 
@@ -115,7 +115,7 @@ class Mapper
 	 * @return object The entity.
 	 * @throws EntityNotFoundException When the entity is not found.
 	 */
-	public function findOrFail($id)
+	public function findOrFail($id): object
 	{
 		$entity = $this->find($id);
 
@@ -134,7 +134,7 @@ class Mapper
 	 * @param mixed $id The ID of the entity to find.
 	 * @return object The entity.
 	 */
-	public function findOrNew($id)
+	public function findOrNew($id): object
 	{
 		return $this->find($id) ?: $this->newInstance();
 	}

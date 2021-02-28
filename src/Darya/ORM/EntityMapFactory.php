@@ -15,7 +15,7 @@ use InvalidArgumentException;
 class EntityMapFactory
 {
 	/**
-	 * Create an entity map without a specific PHP class.
+	 * Create an entity map without a specific entity class.
 	 *
 	 * @param string      $name
 	 * @param array       $mapping
@@ -28,9 +28,8 @@ class EntityMapFactory
 			$resource = $name;
 		}
 
-		// TODO: Model is an abstract class, we need something concrete and final
 		$entityMap = new EntityMap(
-			Model::class, $resource, $mapping, new PropertyStrategy()
+			Entity::class, $resource, $mapping, new PropertyStrategy()
 		);
 
 		$entityMap->setName($name);
@@ -39,7 +38,7 @@ class EntityMapFactory
 	}
 
 	/**
-	 * Create a mapping for a PHP class.
+	 * Create a mapping for an entity class.
 	 *
 	 * @param string      $class
 	 * @param array|null  $mapping
