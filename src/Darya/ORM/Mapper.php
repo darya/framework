@@ -250,7 +250,7 @@ class Mapper
 			$relatedMapper     = $this->orm->mapper($relatedEntityName);
 			$relationshipQuery = $this->orm->prepareQuery($relationship);
 
-			$relationship->match($entities, $relatedMapper->run($relationshipQuery));
+			$relationship->match($entities, $relatedMapper->run($relationshipQuery), $this->orm);
 		}
 
 		return $entities;

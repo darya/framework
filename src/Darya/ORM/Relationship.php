@@ -63,7 +63,7 @@ abstract class Relationship extends Query
 	}
 
 	/**
-	 * Build an instance of this relationship query for a given parent entity.
+	 * Build a new instance of this relationship query for a given parent entity.
 	 *
 	 * @param mixed         $entity The parent entity.
 	 * @param EntityManager $orm
@@ -72,7 +72,7 @@ abstract class Relationship extends Query
 	abstract public function forParent($entity, EntityManager $orm): Relationship;
 
 	/**
-	 * Build an eager-loading instance of this relationship query for the given parent entities.
+	 * Build a new eager-loading instance of this relationship query for the given parent entities.
 	 *
 	 * @param mixed[]       $entities The parent entities.
 	 * @param EntityManager $orm
@@ -83,11 +83,12 @@ abstract class Relationship extends Query
 	/**
 	 * Match a set of eagerly-loaded related entities to the given parent entities.
 	 *
-	 * @param mixed[] $parentEntities  The parent entities to match.
-	 * @param mixed[] $relatedEntities The related entities to match.
+	 * @param mixed[]       $parentEntities  The parent entities to match.
+	 * @param mixed[]       $relatedEntities The related entities to match.
+	 * @param EntityManager $orm
 	 * @return mixed[] The parent entities with their related entities matched.
 	 */
-	abstract public function match(array $parentEntities, array $relatedEntities): array;
+	abstract public function match(array $parentEntities, array $relatedEntities, EntityManager $orm): array;
 
 	/**
 	 * Get the relationship name.

@@ -36,7 +36,7 @@ class Has extends Relationship
 		return $query;
 	}
 
-	public function match(array $parentEntities, array $relatedEntities): array
+	public function match(array $parentEntities, array $relatedEntities, EntityManager $orm): array
 	{
 		$parentMap  = $this->getParentMap();
 		$primaryKey = $this->getParentMap()->getKey();

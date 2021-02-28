@@ -36,7 +36,7 @@ class BelongsTo extends Relationship
 		return $query;
 	}
 
-	public function match(array $parentEntities, array $relatedEntities): array
+	public function match(array $parentEntities, array $relatedEntities, EntityManager $orm): array
 	{
 		$parentMap  = $this->getParentMap();
 		$foreignKey = $this->getForeignKey();
@@ -66,13 +66,10 @@ class BelongsTo extends Relationship
 	 */
 	protected function buildRelatedDictionary(array $relatedEntities): array
 	{
-		$relatedMap = $this->getRelatedMap();
-		$relatedKey = $relatedMap->getKey();
-
 		$relatedDictionary = [];
 
 		foreach ($relatedEntities as $relatedEntity) {
-			$relatedId = $relatedMap->readAttribute($relatedEntity, $relatedKey);
+			$relatedId = $this->getRelatedId($relatedEntity);
 
 			$relatedDictionary[$relatedId] = $relatedEntity;
 		}

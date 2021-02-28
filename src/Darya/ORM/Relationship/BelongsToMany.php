@@ -69,17 +69,18 @@ class BelongsToMany extends Relationship
 		return $query;
 	}
 
-	public function match(array $parentEntities, array $relatedEntities): array
+	public function match(array $parentEntities, array $relatedEntities, EntityManager $orm): array
 	{
-		// TODO: Implement match() method.
-		//       Load associative entities into memory explicitly and build a dictionary
-		//       for matching
-		//       @see \Darya\ORM\Relation\BelongsToMany::eager()
-		$parentIds = $this->getParentIds($parentEntities);
-		$relatedIds = $this->getRelatedIds($relatedEntities);
+		$parentMap = $this->getParentMap();
+		$adjacencyList = $this->buildAdjacencyList($parentEntities, $relatedEntities, $orm);
 
-		var_dump($parentIds, $relatedIds);
-		//die;
+		$relationshipName = $this->getName();
+
+		foreach ($parentEntities as $parentEntity) {
+			$parentId = $this->getParentId($parentEntity);
+
+			$parentMap->writeAttribute($parentEntity, $relationshipName, $adjacencyList[$parentId] ?? null);
+		}
 
 		return $parentEntities;
 	}
@@ -92,5 +93,65 @@ class BelongsToMany extends Relationship
 	protected function sameStorage(): bool
 	{
 		//return $this->getParentMap()->getStorage() === $this->getRelatedMap()->getStorage();
+	}
+
+	/**
+	 * Build an adjacency list from parent entity IDs to lists of related entities.
+	 *
+	 * TODO: Actually use mapped field names
+	 *
+	 * @param array         $parentEntities
+	 * @param array         $relatedEntities
+	 * @param EntityManager $orm
+	 * @return array
+	 */
+	protected function buildAdjacencyList(array $parentEntities, array $relatedEntities, EntityManager $orm): array
+	{
+		$parentIds = $this->getParentIds($parentEntities);
+
+		// Build a dictionary of related entities (keyed by ID)
+		$relatedDictionary = $this->buildRelatedDictionary($relatedEntities);
+
+		// Load associations between parent and related entities
+		$associations = $orm->query($this->associativeEntity)
+			->fields([$this->parentForeignKey, $this->foreignKey])
+			->where("{$this->parentForeignKey} in", $parentIds)
+			->run();
+
+		// Build an adjacency list as the related dictionary
+		$adjacencyList = [];
+
+		foreach ($associations as $association) {
+			// Skip rows with missing IDs
+			if (!isset($association[$this->parentForeignKey], $association[$this->foreignKey]))	{
+				continue;
+			}
+
+			$parentId = $association[$this->parentForeignKey];
+			$relatedId = $association[$this->foreignKey];
+
+			$adjacencyList[$parentId][] = $relatedDictionary[$relatedId];
+		}
+
+		return $adjacencyList;
+	}
+
+	/**
+	 * Build a dictionary of related entities, keyed by their ID.
+	 *
+	 * @param array $relatedEntities
+	 * @return array
+	 */
+	protected function buildRelatedDictionary(array $relatedEntities): array
+	{
+		$relatedDictionary = [];
+
+		foreach ($relatedEntities as $relatedEntity) {
+			$relatedId = $this->getRelatedId($relatedEntity);
+
+			$relatedDictionary[$relatedId] = $relatedEntity;
+		}
+
+		return $relatedDictionary;
 	}
 }
